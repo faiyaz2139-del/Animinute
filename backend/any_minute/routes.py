@@ -896,16 +896,37 @@ async def am_create_pay_rate(data: AMPayRateCreate, user: dict = Depends(am_requ
 @am_router.put("/pay-rates/{rate_id}")
 async def am_update_pay_rate(rate_id: str, data: AMPayRateUpdate, user: dict = Depends(am_require_admin)):
     """Update a pay rate"""
+    # Get old value for audit
+    old_rate = await am_db.am_pay_rates.find_one(
+        {"id": rate_id, "tenant_id": user['tenant_id']},
+        {"_id": 0}
+    )
+    if not old_rate:
+        raise HTTPException(status_code=404, detail="Pay rate not found")
+    
     update_data = {k: v for k, v in data.model_dump().items() if v is not None}
     if not update_data:
         raise HTTPException(status_code=400, detail="No data to update")
     
-    result = await am_db.am_pay_rates.update_one(
+    await am_db.am_pay_rates.update_one(
         {"id": rate_id, "tenant_id": user['tenant_id']},
         {"$set": update_data}
     )
-    if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="Pay rate not found")
+    
+    new_rate = await am_db.am_pay_rates.find_one({"id": rate_id}, {"_id": 0})
+    
+    # Audit log - pay rate updated
+    await am_log_audit(
+        tenant_id=user['tenant_id'],
+        actor_id=user['id'],
+        actor_name=f"{user['first_name']} {user['last_name']}",
+        action="UPDATE",
+        entity_type="pay_rate",
+        entity_id=rate_id,
+        entity_name=f"Pay Rate {old_rate.get('rate_type', '')}",
+        old_value=old_rate,
+        new_value=new_rate
+    )
     
     return {"success": True}
 
