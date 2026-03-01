@@ -17,7 +17,7 @@ const navItems = [
   { to: '/anyminute/schedule', icon: Calendar, label: 'Schedule' },
   { to: '/anyminute/reports', icon: FileText, label: 'Reports' },
   { to: '/anyminute/pay-rates', icon: DollarSign, label: 'Pay Rates' },
-  { to: '/anyminute/tickets', icon: Ticket, label: 'Tickets', phase2: true },
+  { to: '/anyminute/tickets', icon: Ticket, label: 'Tickets' },
   { to: '/anyminute/plan-upgrade', icon: CreditCard, label: 'Billing' },
   { to: '/anyminute/settings', icon: Settings, label: 'Settings' },
   { to: '/anyminute/test-checklist', icon: TestTube, label: 'Test Checklist' },
