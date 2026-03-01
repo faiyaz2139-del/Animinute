@@ -155,6 +155,7 @@ function AllRoutes() {
       <Route path="/anyminute/reports" element={<AMProtectedRoute><AMReports /></AMProtectedRoute>} />
       <Route path="/anyminute/tickets" element={<AMProtectedRoute><AMTickets /></AMProtectedRoute>} />
       <Route path="/anyminute/plan-upgrade" element={<AMProtectedRoute><AMBilling /></AMProtectedRoute>} />
+      <Route path="/anyminute/pay-rates" element={<AMProtectedRoute><AMAdminRoute><AMPayRate /></AMAdminRoute></AMProtectedRoute>} />
       <Route path="/anyminute/test-checklist" element={<AMProtectedRoute><AMTestChecklist /></AMProtectedRoute>} />
       <Route path="/anyminute/settings" element={<AMProtectedRoute><AMAdminRoute><AMSettings /></AMAdminRoute></AMProtectedRoute>} />
       <Route path="/anyminute" element={<Navigate to="/anyminute/login" replace />} />
