@@ -2081,16 +2081,16 @@ async def am_create_portal(user: dict = Depends(am_require_admin)):
     return result
 
 @am_router.post("/stripe/webhook")
-async def am_stripe_webhook(request):
+async def am_stripe_webhook(request: Request):
     """Handle Stripe webhook events"""
-    from fastapi import Request
-    
     payload = await request.body()
     sig_header = request.headers.get("stripe-signature", "")
     
     result = await handle_webhook_event(payload, sig_header)
     
+    logger.info(f"Stripe webhook result: {result}")
+    
     if not result.get("success"):
         raise HTTPException(status_code=400, detail=result.get("error", "Webhook processing failed"))
     
-    return {"received": True}
+    return {"received": True, "result": result}
