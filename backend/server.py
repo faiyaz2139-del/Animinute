@@ -575,6 +575,15 @@ async def calculate_payroll(run_id: str, user: dict = Depends(require_admin)):
     company = await db.companies.find_one({"id": user['company_id']}, {"_id": 0})
     period = await db.pay_periods.find_one({"id": run['pay_period_id']}, {"_id": 0})
     
+    # GUARD: Block payroll run before pay date
+    if period and period.get('pay_date'):
+        today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+        if today < period['pay_date']:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Payroll run cannot be calculated before the pay date ({period['pay_date']}). Please wait until the pay date to run payroll."
+            )
+    
     # Get employees and time entries
     employees = await db.employees.find({"company_id": user['company_id'], "active": True}, {"_id": 0}).to_list(1000)
     time_entries = await db.time_entries.find({"pay_period_id": run['pay_period_id'], "company_id": user['company_id']}, {"_id": 0}).to_list(1000)
