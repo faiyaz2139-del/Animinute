@@ -1325,9 +1325,14 @@ async def am_payroll_get_approved_entries(
     
     week_ids = [w['id'] for w in weeks]
     
+    # Get entries - filter by approved entry status if available
     entries = await am_db.am_timesheet_entries.find({
         "week_id": {"$in": week_ids},
-        "work_date": {"$gte": start, "$lte": end}
+        "work_date": {"$gte": start, "$lte": end},
+        "$or": [
+            {"entry_status": {"$in": ["approved", None]}},  # Include approved or entries without status
+            {"entry_status": {"$exists": False}}
+        ]
     }, {"_id": 0}).to_list(10000)
     
     users = await am_db.am_users.find({"tenant_id": tenant['id']}, {"_id": 0}).to_list(1000)
@@ -1335,18 +1340,23 @@ async def am_payroll_get_approved_entries(
     
     result = []
     for entry in entries:
+        # Skip entries with no hours
+        hours = entry.get('net_hours', 0) or 0
+        if hours <= 0:
+            continue
+            
         user = user_map.get(entry['user_id'], {})
         result.append({
             "employee_key": user.get('employee_mapping_key') or entry['user_id'],
             "employee_email": user.get('email', ''),
             "work_date": entry['work_date'],
-            "regular_hours": entry.get('net_hours', 0),
+            "regular_hours": hours,
             "overtime_hours": 0,
             "source_ref": entry['id'],
             "notes": entry.get('notes', '')
         })
     
-    return {"entries": result}
+    return {"entries": result, "total_count": len(result)}
 
 @am_router.post("/payroll/lock")
 async def am_payroll_lock_entries(
