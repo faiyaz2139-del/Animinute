@@ -139,6 +139,18 @@ class AMPayRateUpdate(BaseModel):
 class AMTimesheetEntryStatusUpdate(BaseModel):
     status: str  # pending, approved, rejected, absent
 
+# Ticket Models
+class AMTicketCreate(BaseModel):
+    subject: str
+    description: str
+    priority: str = "medium"  # low, medium, high, urgent
+
+class AMTicketReply(BaseModel):
+    message: str
+
+class AMTicketStatusUpdate(BaseModel):
+    status: str  # open, in_progress, resolved, closed
+
 # ===================== AUTH HELPERS =====================
 
 def am_hash_password(password: str) -> str:
