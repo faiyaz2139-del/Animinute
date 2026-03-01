@@ -3,39 +3,45 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { Layout } from '../components/Layout';
 import { FormField, BlueButton, Popup, Loader } from '../components/SharedComponents';
-import { AM_API_URL } from '../context/AMAuthContext';
+import { AM_API_URL, useAMAuth } from '../context/AMAuthContext';
 
 export default function AMAddUser() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { token } = useAMAuth();
   const editUser = location.state?.user;
 
   const [businesses, setBusinesses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [popup, setPopup] = useState({ open: false });
+  const [popup, setPopup] = useState({ isOpen: false });
   const [form, setForm] = useState({
     business_id: '', role: 'employee', first_name: '', last_name: '', email: '', password: '',
     phone: '', mobile: '', dob: '', gender: '', hire_date: '', postal_code: ''
   });
   const [errors, setErrors] = useState({});
 
+  // Auth headers for API calls
+  const config = { headers: { Authorization: `Bearer ${token}` } };
+
   useEffect(() => {
-    fetchBusinesses();
+    if (token) {
+      fetchBusinesses();
+    }
     if (editUser) {
       setForm({ ...form, ...editUser, password: '' });
     }
-  }, []);
+  }, [token]);
 
   const fetchBusinesses = async () => {
     try {
-      const res = await axios.get(`${AM_API_URL}/businesses`);
+      const res = await axios.get(`${AM_API_URL}/businesses`, config);
       setBusinesses(res.data);
       if (res.data.length > 0 && !editUser) {
         setForm(f => ({ ...f, business_id: res.data[0].id }));
       }
     } catch (err) {
-      console.error(err);
+      console.error('Error fetching businesses:', err);
     } finally {
       setLoading(false);
     }
@@ -66,14 +72,14 @@ export default function AMAddUser() {
       if (!payload.password) delete payload.password;
       
       if (editUser) {
-        await axios.put(`${AM_API_URL}/users/${editUser.id}`, payload);
-        setPopup({ open: true, type: 'success', title: 'Success', message: 'User updated successfully!' });
+        await axios.put(`${AM_API_URL}/users/${editUser.id}`, payload, config);
+        setPopup({ isOpen: true, type: 'success', title: 'Success', message: 'User updated successfully!' });
       } else {
-        await axios.post(`${AM_API_URL}/users`, payload);
-        setPopup({ open: true, type: 'success', title: 'Success', message: 'User created successfully!' });
+        await axios.post(`${AM_API_URL}/users`, payload, config);
+        setPopup({ isOpen: true, type: 'success', title: 'Success', message: 'User created successfully!' });
       }
     } catch (err) {
-      setPopup({ open: true, type: 'error', title: 'Error', message: err.response?.data?.detail || 'Failed to save user' });
+      setPopup({ isOpen: true, type: 'error', title: 'Error', message: err.response?.data?.detail || 'Failed to save user' });
     } finally {
       setSaving(false);
     }
@@ -94,7 +100,7 @@ export default function AMAddUser() {
               type="select"
               value={form.business_id}
               onChange={handleChange}
-              options={businesses.map(b => ({ value: b.id, label: b.company_name }))}
+              options={businesses.map(b => ({ value: b.id, label: b.name }))}
               error={errors.business_id}
               required
             />
@@ -151,13 +157,13 @@ export default function AMAddUser() {
             <BlueButton type="button" outline style={{ marginBottom: '16px' }}>Search</BlueButton>
           </div>
 
-          <BlueButton type="submit" disabled={saving} style={{ marginTop: '16px' }}>
+          <BlueButton type="submit" disabled={saving} style={{ marginTop: '16px' }} data-testid="save-user-btn">
             {saving ? 'Saving...' : editUser ? 'Update User' : 'Create User'}
           </BlueButton>
         </form>
       </div>
 
-      <Popup {...popup} onClose={() => { setPopup({ open: false }); if (popup.type === 'success') navigate('/anyminute/home'); }} />
+      <Popup {...popup} onClose={() => { setPopup({ isOpen: false }); if (popup.type === 'success') navigate('/anyminute/edit-user'); }} />
     </Layout>
   );
 }
