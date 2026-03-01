@@ -166,6 +166,22 @@ Build a production-ready MVP web app called "Payroll Canada" for Canadian SMBs. 
 
 ## Completed Work Log
 
+### March 1, 2026 (Audit Logs Feature - P0)
+**Audit Logs System** ✅ COMPLETE
+- Backend APIs:
+  - `GET /api/am/audit-logs` - Fetch all audit logs (admin only, with filters)
+  - `GET /api/am/audit-logs/summary` - Get action/entity statistics
+  - `am_log_audit()` helper function for comprehensive logging
+- Logged entities: Users, Businesses, Timesheets, Pay Rates, Tickets
+- Tracked data: actor_id, actor_name, action (CREATE/UPDATE/DELETE), entity details, old_value, new_value, changes diff, timestamp
+- Frontend: Created `/app/frontend/src/anyminute/pages/AuditLogs.js`
+  - Summary cards (Total Events, Created, Updated, Deleted)
+  - Searchable/filterable activity history table
+  - Entity icons and action badges
+  - Admin-only access (RBAC enforced)
+- Navigation: Added "Audit Logs" to sidebar (admin only)
+- MongoDB Collection: `am_audit_logs`
+
 ### March 1, 2026 (Phase 2 Bug Fixes - 8 Priority Items + Tickets)
 All bugs from AnyMinute_BugFix_StatusReport.docx now FIXED:
 
