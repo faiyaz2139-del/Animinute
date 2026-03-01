@@ -1827,7 +1827,17 @@ async def am_update_ticket_status(ticket_id: str, data: AMTicketStatusUpdate, us
     if data.status not in ['open', 'in_progress', 'resolved', 'closed']:
         raise HTTPException(status_code=400, detail="Invalid status")
     
-    result = await am_db.am_tickets.update_one(
+    # Get old status for audit
+    ticket = await am_db.am_tickets.find_one(
+        {"id": ticket_id, "tenant_id": user['tenant_id']},
+        {"_id": 0}
+    )
+    if not ticket:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+    
+    old_status = ticket.get('status', 'open')
+    
+    await am_db.am_tickets.update_one(
         {"id": ticket_id, "tenant_id": user['tenant_id']},
         {"$set": {
             "status": data.status,
@@ -1835,8 +1845,18 @@ async def am_update_ticket_status(ticket_id: str, data: AMTicketStatusUpdate, us
         }}
     )
     
-    if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="Ticket not found")
+    # Audit log - ticket status updated
+    await am_log_audit(
+        tenant_id=user['tenant_id'],
+        actor_id=user['id'],
+        actor_name=f"{user['first_name']} {user['last_name']}",
+        action="UPDATE",
+        entity_type="ticket",
+        entity_id=ticket_id,
+        entity_name=f"Ticket #{ticket.get('ticket_number', '')}: {ticket.get('subject', '')[:50]}",
+        old_value={"status": old_status},
+        new_value={"status": data.status}
+    )
     
     return {"success": True, "status": data.status}
 
