@@ -878,6 +878,19 @@ async def am_create_pay_rate(data: AMPayRateCreate, user: dict = Depends(am_requ
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     await am_db.am_pay_rates.insert_one(rate)
+    
+    # Audit log - pay rate created
+    await am_log_audit(
+        tenant_id=user['tenant_id'],
+        actor_id=user['id'],
+        actor_name=f"{user['first_name']} {user['last_name']}",
+        action="CREATE",
+        entity_type="pay_rate",
+        entity_id=rate_id,
+        entity_name=f"{target_user.get('first_name', '')} {target_user.get('last_name', '')} - {data.rate_type}",
+        new_value={"user_id": data.user_id, "rate_type": data.rate_type, "rate_amount": data.rate_amount, "effective_from": data.effective_from}
+    )
+    
     return {k: v for k, v in rate.items() if k != '_id'}
 
 @am_router.put("/pay-rates/{rate_id}")
