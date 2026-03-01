@@ -580,6 +580,19 @@ async def am_create_user(data: AMUserManageCreate, user: dict = Depends(am_requi
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     await am_db.am_users.insert_one(new_user)
+    
+    # Audit log - user created
+    await am_log_audit(
+        tenant_id=user['tenant_id'],
+        actor_id=user['id'],
+        actor_name=f"{user['first_name']} {user['last_name']}",
+        action="CREATE",
+        entity_type="user",
+        entity_id=user_id,
+        entity_name=f"{data.first_name} {data.last_name}",
+        new_value={"email": data.email.lower(), "role": data.role, "first_name": data.first_name, "last_name": data.last_name}
+    )
+    
     return {k: v for k, v in new_user.items() if k not in ['_id', 'password_hash']}
 
 @am_router.get("/users/{user_id}")
