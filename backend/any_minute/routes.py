@@ -1406,6 +1406,24 @@ async def am_bulk_reject_week(week_id: str, reason: Optional[str] = Query(None),
         }}
     )
     
+    # Get employee name for audit
+    emp = await am_db.am_users.find_one({"id": week['user_id']}, {"_id": 0})
+    emp_name = f"{emp.get('first_name', '')} {emp.get('last_name', '')}" if emp else "Unknown"
+    
+    # Audit log - timesheet week rejected
+    await am_log_audit(
+        tenant_id=user['tenant_id'],
+        actor_id=user['id'],
+        actor_name=f"{user['first_name']} {user['last_name']}",
+        action="UPDATE",
+        entity_type="timesheet",
+        entity_id=week_id,
+        entity_name=f"Timesheet {week['week_start_date']} - {emp_name}",
+        old_value={"status": week.get('status', 'draft')},
+        new_value={"status": "rejected", "rejection_reason": reason},
+        metadata={"entries_updated": result.modified_count}
+    )
+    
     return {"success": True, "entries_updated": result.modified_count}
 
 async def am_update_week_total_hours(week_id: str):
