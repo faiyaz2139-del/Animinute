@@ -275,10 +275,13 @@ All bugs from AnyMinute_BugFix_StatusReport.docx now FIXED:
 - [x] **Audit Logs** - Complete (Mar 1, 2026)
   - Full trail of who did what with old/new value tracking
   - Admin-only Audit Log screen with filters
-- [ ] **Stripe Integration** - Next priority (webhook handlers ready)
-- [ ] Report enhancement - "Compare to prior period" feature
+- [x] **Stripe Integration** - Complete (Mar 1, 2026) — TEST MODE
+  - 3 webhook handlers: subscription created/updated/deleted
+  - Login blocking for cancelled subscriptions
+- [x] **Report Enhancement** - Complete (Mar 1, 2026)
+  - "Compare to prior period" feature with trend analysis
+- [ ] Live email service (currently mocked - console logging)
 - [ ] Reseller registration (placeholder screen)
-- [ ] Live email service (currently mocked)
 
 ### P2 - Enhancements
 - [ ] Mobile responsive improvements
