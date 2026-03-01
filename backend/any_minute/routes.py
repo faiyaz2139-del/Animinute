@@ -933,12 +933,32 @@ async def am_update_pay_rate(rate_id: str, data: AMPayRateUpdate, user: dict = D
 @am_router.delete("/pay-rates/{rate_id}")
 async def am_delete_pay_rate(rate_id: str, user: dict = Depends(am_require_admin)):
     """Soft delete a pay rate"""
-    result = await am_db.am_pay_rates.update_one(
+    # Get rate info for audit
+    rate = await am_db.am_pay_rates.find_one(
+        {"id": rate_id, "tenant_id": user['tenant_id']},
+        {"_id": 0}
+    )
+    if not rate:
+        raise HTTPException(status_code=404, detail="Pay rate not found")
+    
+    await am_db.am_pay_rates.update_one(
         {"id": rate_id, "tenant_id": user['tenant_id']},
         {"$set": {"active": False}}
     )
-    if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="Pay rate not found")
+    
+    # Audit log - pay rate deleted
+    await am_log_audit(
+        tenant_id=user['tenant_id'],
+        actor_id=user['id'],
+        actor_name=f"{user['first_name']} {user['last_name']}",
+        action="DELETE",
+        entity_type="pay_rate",
+        entity_id=rate_id,
+        entity_name=f"Pay Rate {rate.get('rate_type', '')}",
+        old_value={"active": True, "rate_amount": rate.get('rate_amount')},
+        new_value={"active": False}
+    )
+    
     return {"success": True}
 
 @am_router.get("/pay-rates/effective/{user_id}")
