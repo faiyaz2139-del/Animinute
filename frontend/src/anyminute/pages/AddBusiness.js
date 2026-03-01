@@ -3,27 +3,40 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { Layout } from '../components/Layout';
 import { FormField, BlueButton, Popup } from '../components/SharedComponents';
-import { AM_API_URL } from '../context/AMAuthContext';
+import { AM_API_URL, useAMAuth } from '../context/AMAuthContext';
 
 export default function AMAddBusiness() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { token } = useAMAuth();
   const editBusiness = location.state?.business;
 
   const [form, setForm] = useState({
     company_name: '', operating_name: '', primary_contact_name: '', business_number: '',
     legal_entity_type: 'Incorporation', website: '', street_number: '', address_line1: '',
-    address_line2: '', suite_number: '', suite_type: '', city: '', province: '', postal_code: '', logo_url: ''
+    address_line2: '', suite_number: '', suite_type: '', city: '', province: '', postal_code: '', 
+    logo_url: '', contact_email: '', contact_phone: ''
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [popup, setPopup] = useState({ open: false });
   const [showAddress, setShowAddress] = useState(false);
 
+  // Auth headers for API calls
+  const config = { headers: { Authorization: `Bearer ${token}` } };
+
   useEffect(() => {
     if (editBusiness) {
-      setForm({ ...form, ...editBusiness });
-      setShowAddress(!!editBusiness.address_line1);
+      // Map backend fields back to form fields
+      setForm({ 
+        ...form, 
+        company_name: editBusiness.name || '',
+        address_line1: editBusiness.address || '',
+        contact_email: editBusiness.contact_email || '',
+        contact_phone: editBusiness.contact_phone || '',
+        ...editBusiness 
+      });
+      setShowAddress(!!editBusiness.address);
     }
   }, [editBusiness]);
 
@@ -47,19 +60,43 @@ export default function AMAddBusiness() {
     return Object.keys(errs).length === 0;
   };
 
+  // Build the address string from form fields
+  const buildAddress = () => {
+    if (!showAddress) return null;
+    const parts = [];
+    if (form.street_number) parts.push(form.street_number);
+    if (form.address_line1) parts.push(form.address_line1);
+    if (form.suite_number && form.suite_type) parts.push(`${form.suite_type} ${form.suite_number}`);
+    if (form.address_line2) parts.push(form.address_line2);
+    if (form.city) parts.push(form.city);
+    if (form.province) parts.push(form.province);
+    if (form.postal_code) parts.push(form.postal_code);
+    return parts.join(', ');
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
     setLoading(true);
+    
+    // Map form fields to backend schema
+    const payload = {
+      name: form.company_name,
+      address: buildAddress(),
+      contact_email: form.contact_email || null,
+      contact_phone: form.contact_phone || null
+    };
+    
     try {
       if (editBusiness) {
-        await axios.put(`${AM_API_URL}/businesses/${editBusiness.id}`, form);
+        await axios.put(`${AM_API_URL}/businesses/${editBusiness.id}`, payload, config);
         setPopup({ open: true, type: 'success', title: 'Success', message: 'Business updated successfully!' });
       } else {
-        await axios.post(`${AM_API_URL}/businesses`, form);
+        await axios.post(`${AM_API_URL}/businesses`, payload, config);
         setPopup({ open: true, type: 'success', title: 'Success', message: 'Business created successfully!' });
       }
     } catch (err) {
+      console.error('Business save error:', err.response?.data || err);
       setPopup({ open: true, type: 'error', title: 'Error', message: err.response?.data?.detail || 'Failed to save business' });
     } finally {
       setLoading(false);
@@ -79,9 +116,11 @@ export default function AMAddBusiness() {
             </div>
           </div>
 
-          <FormField label="Company Name" name="company_name" value={form.company_name} onChange={handleChange} error={errors.company_name} required />
+          <FormField label="Company Name" name="company_name" value={form.company_name} onChange={handleChange} error={errors.company_name} required data-testid="business-name-input" />
           <FormField label="Operating Name" name="operating_name" value={form.operating_name} onChange={handleChange} />
           <FormField label="Primary Contact Name" name="primary_contact_name" value={form.primary_contact_name} onChange={handleChange} error={errors.primary_contact_name} required />
+          <FormField label="Contact Email" name="contact_email" value={form.contact_email} onChange={handleChange} type="email" />
+          <FormField label="Contact Phone" name="contact_phone" value={form.contact_phone} onChange={handleChange} />
           <FormField label="Business Number" name="business_number" value={form.business_number} onChange={handleChange} />
           
           <FormField
@@ -131,6 +170,7 @@ export default function AMAddBusiness() {
                   value={form.suite_type}
                   onChange={handleChange}
                   options={[
+                    { value: '', label: 'Select...' },
                     { value: 'Apartment', label: 'Apartment' },
                     { value: 'Suite', label: 'Suite' },
                     { value: 'Unit', label: 'Unit' }
@@ -145,7 +185,7 @@ export default function AMAddBusiness() {
             </div>
           )}
 
-          <BlueButton type="submit" disabled={loading} style={{ marginTop: '16px' }}>
+          <BlueButton type="submit" disabled={loading} style={{ marginTop: '16px' }} data-testid="save-business-btn">
             {loading ? 'Saving...' : 'Save'}
           </BlueButton>
         </form>
