@@ -1418,6 +1418,137 @@ async def am_get_dashboard_stats(user: dict = Depends(am_get_current_user)):
         "current_week_start": week_start
     }
 
+
+# ===================== TICKETS (SUPPORT) ROUTES =====================
+
+@am_router.get("/tickets")
+async def am_get_tickets(user: dict = Depends(am_get_current_user)):
+    """Get tickets - users see their own, admins see all"""
+    query = {"tenant_id": user['tenant_id']}
+    if user['role'] != 'admin':
+        query['created_by'] = user['id']
+    
+    tickets = await am_db.am_tickets.find(query, {"_id": 0}).sort("created_at", -1).to_list(100)
+    return tickets
+
+@am_router.get("/tickets/{ticket_id}")
+async def am_get_ticket(ticket_id: str, user: dict = Depends(am_get_current_user)):
+    """Get single ticket with replies"""
+    ticket = await am_db.am_tickets.find_one(
+        {"id": ticket_id, "tenant_id": user['tenant_id']},
+        {"_id": 0}
+    )
+    if not ticket:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+    
+    # Non-admins can only view their own tickets
+    if user['role'] != 'admin' and ticket['created_by'] != user['id']:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    replies = await am_db.am_ticket_replies.find(
+        {"ticket_id": ticket_id},
+        {"_id": 0}
+    ).sort("created_at", 1).to_list(100)
+    
+    return {"ticket": ticket, "replies": replies}
+
+@am_router.post("/tickets")
+async def am_create_ticket(data: AMTicketCreate, user: dict = Depends(am_get_current_user)):
+    """Create a new support ticket"""
+    if data.priority not in ['low', 'medium', 'high', 'urgent']:
+        raise HTTPException(status_code=400, detail="Invalid priority")
+    
+    ticket_id = str(uuid.uuid4())
+    ticket_number = await am_db.am_tickets.count_documents({"tenant_id": user['tenant_id']}) + 1
+    
+    ticket = {
+        "id": ticket_id,
+        "tenant_id": user['tenant_id'],
+        "ticket_number": ticket_number,
+        "subject": data.subject,
+        "description": data.description,
+        "priority": data.priority,
+        "status": "open",
+        "created_by": user['id'],
+        "created_by_name": f"{user['first_name']} {user['last_name']}",
+        "created_by_email": user['email'],
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    await am_db.am_tickets.insert_one(ticket)
+    return {k: v for k, v in ticket.items() if k != '_id'}
+
+@am_router.post("/tickets/{ticket_id}/reply")
+async def am_reply_ticket(ticket_id: str, data: AMTicketReply, user: dict = Depends(am_get_current_user)):
+    """Add a reply to a ticket"""
+    ticket = await am_db.am_tickets.find_one(
+        {"id": ticket_id, "tenant_id": user['tenant_id']},
+        {"_id": 0}
+    )
+    if not ticket:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+    
+    # Non-admins can only reply to their own tickets
+    if user['role'] != 'admin' and ticket['created_by'] != user['id']:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    reply = {
+        "id": str(uuid.uuid4()),
+        "ticket_id": ticket_id,
+        "message": data.message,
+        "is_admin_reply": user['role'] == 'admin',
+        "created_by": user['id'],
+        "created_by_name": f"{user['first_name']} {user['last_name']}",
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await am_db.am_ticket_replies.insert_one(reply)
+    
+    # Update ticket timestamp
+    await am_db.am_tickets.update_one(
+        {"id": ticket_id},
+        {"$set": {"updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    return {k: v for k, v in reply.items() if k != '_id'}
+
+@am_router.put("/tickets/{ticket_id}/status")
+async def am_update_ticket_status(ticket_id: str, data: AMTicketStatusUpdate, user: dict = Depends(am_require_admin)):
+    """Update ticket status - admin only"""
+    if data.status not in ['open', 'in_progress', 'resolved', 'closed']:
+        raise HTTPException(status_code=400, detail="Invalid status")
+    
+    result = await am_db.am_tickets.update_one(
+        {"id": ticket_id, "tenant_id": user['tenant_id']},
+        {"$set": {
+            "status": data.status,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+    
+    return {"success": True, "status": data.status}
+
+@am_router.get("/tickets/stats/summary")
+async def am_get_ticket_stats(user: dict = Depends(am_require_admin)):
+    """Get ticket statistics for admin dashboard"""
+    tenant_id = user['tenant_id']
+    
+    total = await am_db.am_tickets.count_documents({"tenant_id": tenant_id})
+    open_count = await am_db.am_tickets.count_documents({"tenant_id": tenant_id, "status": "open"})
+    in_progress = await am_db.am_tickets.count_documents({"tenant_id": tenant_id, "status": "in_progress"})
+    resolved = await am_db.am_tickets.count_documents({"tenant_id": tenant_id, "status": "resolved"})
+    
+    return {
+        "total": total,
+        "open": open_count,
+        "in_progress": in_progress,
+        "resolved": resolved,
+        "closed": total - open_count - in_progress - resolved
+    }
+
+
 # ===================== DEMO DATA =====================
 
 @am_router.post("/demo/generate")
