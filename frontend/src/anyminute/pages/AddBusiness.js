@@ -19,7 +19,7 @@ export default function AMAddBusiness() {
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
-  const [popup, setPopup] = useState({ open: false });
+  const [popup, setPopup] = useState({ isOpen: false });
   const [showAddress, setShowAddress] = useState(false);
 
   // Auth headers for API calls
