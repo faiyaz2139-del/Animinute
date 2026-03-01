@@ -240,6 +240,51 @@ def am_calculate_net_hours(start_time: str, end_time: str, break_minutes: int) -
     except:
         return 0.0
 
+# ===================== AUDIT LOGGING =====================
+
+async def am_log_audit(
+    tenant_id: str,
+    actor_id: str,
+    actor_name: str,
+    action: str,  # CREATE, UPDATE, DELETE
+    entity_type: str,  # user, business, timesheet, pay_rate, payroll_run, ticket
+    entity_id: str,
+    entity_name: str = None,
+    old_value: dict = None,
+    new_value: dict = None,
+    metadata: dict = None
+):
+    """
+    Log an audit entry for Any Minute.
+    Tracks who did what, when, and the before/after values.
+    """
+    # Build changes summary
+    changes = {}
+    if old_value and new_value:
+        for key in set(list(old_value.keys()) + list(new_value.keys())):
+            old_v = old_value.get(key)
+            new_v = new_value.get(key)
+            if old_v != new_v and key not in ['_id', 'password_hash', 'updated_at', 'created_at']:
+                changes[key] = {"old": old_v, "new": new_v}
+    
+    audit_entry = {
+        "id": str(uuid.uuid4()),
+        "tenant_id": tenant_id,
+        "actor_id": actor_id,
+        "actor_name": actor_name,
+        "action": action,
+        "entity_type": entity_type,
+        "entity_id": entity_id,
+        "entity_name": entity_name,
+        "changes": changes if changes else None,
+        "old_value": old_value,
+        "new_value": new_value,
+        "metadata": metadata,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+    await am_db.am_audit_logs.insert_one(audit_entry)
+    logger.info(f"AUDIT: {action} {entity_type} '{entity_name or entity_id}' by {actor_name}")
+
 # ===================== ROOT ENDPOINT =====================
 
 @am_router.get("/")
