@@ -1672,3 +1672,74 @@ async def am_generate_demo_data(user: dict = Depends(am_require_admin)):
             created_businesses.append(business)
     
     return {"success": True, "businesses_created": len(created_businesses)}
+
+
+# ===================== STRIPE PAYMENT ROUTES =====================
+
+@am_router.get("/stripe/config")
+async def am_get_stripe_config():
+    """Get Stripe configuration for frontend"""
+    config = get_stripe_config()
+    return config
+
+@am_router.post("/stripe/checkout")
+async def am_create_checkout(
+    plan: str,
+    user: dict = Depends(am_require_admin)
+):
+    """Create a Stripe Checkout session for plan upgrade"""
+    if not is_stripe_configured():
+        raise HTTPException(status_code=400, detail="Stripe payments not configured. Contact support.")
+    
+    base_url = os.environ.get("ANYMINUTE_BASE_URL", "https://anyminute.ai")
+    
+    result = await create_checkout_session(
+        tenant_id=user['tenant_id'],
+        plan=plan,
+        success_url=f"{base_url}/anyminute/plan-upgrade?success=true",
+        cancel_url=f"{base_url}/anyminute/plan-upgrade?cancelled=true",
+        customer_email=user['email']
+    )
+    
+    if not result.get("success"):
+        raise HTTPException(status_code=400, detail=result.get("error", "Failed to create checkout"))
+    
+    return result
+
+@am_router.post("/stripe/portal")
+async def am_create_portal(user: dict = Depends(am_require_admin)):
+    """Create a Stripe Customer Portal session for subscription management"""
+    if not is_stripe_configured():
+        raise HTTPException(status_code=400, detail="Stripe payments not configured")
+    
+    # Get tenant's Stripe customer ID
+    tenant = await am_db.am_tenants.find_one({"id": user['tenant_id']}, {"_id": 0})
+    if not tenant or not tenant.get('stripe_customer_id'):
+        raise HTTPException(status_code=400, detail="No active subscription found")
+    
+    base_url = os.environ.get("ANYMINUTE_BASE_URL", "https://anyminute.ai")
+    
+    result = await create_customer_portal_session(
+        customer_id=tenant['stripe_customer_id'],
+        return_url=f"{base_url}/anyminute/plan-upgrade"
+    )
+    
+    if not result.get("success"):
+        raise HTTPException(status_code=400, detail=result.get("error", "Failed to create portal"))
+    
+    return result
+
+@am_router.post("/stripe/webhook")
+async def am_stripe_webhook(request):
+    """Handle Stripe webhook events"""
+    from fastapi import Request
+    
+    payload = await request.body()
+    sig_header = request.headers.get("stripe-signature", "")
+    
+    result = await handle_webhook_event(payload, sig_header)
+    
+    if not result.get("success"):
+        raise HTTPException(status_code=400, detail=result.get("error", "Webhook processing failed"))
+    
+    return {"received": True}
