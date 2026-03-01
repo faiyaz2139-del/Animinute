@@ -1123,6 +1123,20 @@ async def am_bulk_approve_week(week_id: str, user: dict = Depends(am_require_man
         }}
     )
     
+    # Send email notification to employee
+    try:
+        emp = await am_db.am_users.find_one({"id": week['user_id']}, {"_id": 0})
+        if emp and emp.get('email'):
+            await send_timesheet_approved_notification(
+                to_email=emp['email'],
+                employee_name=f"{emp['first_name']} {emp['last_name']}",
+                week_start=week['week_start_date'],
+                total_hours=week.get('total_hours', 0),
+                approved_by=f"{user['first_name']} {user['last_name']}"
+            )
+    except Exception as e:
+        logger.warning(f"Failed to send timesheet approval notification: {e}")
+    
     return {"success": True, "entries_updated": result.modified_count}
 
 @am_router.post("/timesheet-weeks/{week_id}/bulk-reject")
