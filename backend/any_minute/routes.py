@@ -25,7 +25,8 @@ from any_minute.stripe_service import (
     create_customer_portal_session,
     handle_webhook_event,
     is_stripe_configured,
-    is_live_mode
+    is_live_mode,
+    init_stripe_db
 )
 
 logger = logging.getLogger("any_minute")
@@ -45,6 +46,8 @@ am_db = None
 def init_am_db(database):
     global am_db
     am_db = database
+    # Also initialize stripe service with db reference
+    init_stripe_db(database)
 
 # ===================== PYDANTIC MODELS =====================
 
