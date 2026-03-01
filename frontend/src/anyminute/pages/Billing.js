@@ -83,6 +83,30 @@ export default function Billing() {
 
   return (
     <Layout title="Billing">
+      {/* TEST MODE Warning Banner */}
+      {stripeConfig && stripeConfig.mode === 'test' && (
+        <div 
+          style={{ 
+            padding: '12px 16px', 
+            backgroundColor: '#fff3cd', 
+            color: '#856404', 
+            borderRadius: '8px', 
+            marginBottom: '16px', 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '8px',
+            border: '1px solid #ffc107'
+          }} 
+          data-testid="test-mode-banner"
+        >
+          <AlertTriangle size={18} />
+          <div>
+            <strong>TEST MODE</strong> - Payments are in test mode. No real charges will be made.
+            {!stripeConfig.configured && ' Stripe integration not yet configured.'}
+          </div>
+        </div>
+      )}
+
       {error && (
         <div style={{ padding: '12px 16px', backgroundColor: '#ffebee', color: '#c62828', borderRadius: '8px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }} data-testid="billing-error">
           <AlertCircle size={18} />
