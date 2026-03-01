@@ -191,7 +191,7 @@ export default function AMAddBusiness() {
         </form>
       </div>
 
-      <Popup {...popup} onClose={() => { setPopup({ open: false }); if (popup.type === 'success') navigate('/anyminute/home'); }} />
+      <Popup {...popup} onClose={() => { setPopup({ isOpen: false }); if (popup.type === 'success') navigate('/anyminute/home'); }} />
     </Layout>
   );
 }
