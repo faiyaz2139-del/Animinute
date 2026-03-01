@@ -1499,6 +1499,24 @@ async def am_create_ticket(data: AMTicketCreate, user: dict = Depends(am_get_cur
         "updated_at": datetime.now(timezone.utc).isoformat()
     }
     await am_db.am_tickets.insert_one(ticket)
+    
+    # Send email notification to admins
+    try:
+        admins = await am_db.am_users.find(
+            {"tenant_id": user['tenant_id'], "role": "admin", "active": True},
+            {"email": 1, "_id": 0}
+        ).to_list(100)
+        for admin in admins:
+            await send_ticket_created_notification(
+                admin_email=admin['email'],
+                ticket_number=ticket_number,
+                subject=data.subject,
+                created_by=ticket['created_by_name'],
+                priority=data.priority
+            )
+    except Exception as e:
+        logger.warning(f"Failed to send ticket notification: {e}")
+    
     return {k: v for k, v in ticket.items() if k != '_id'}
 
 @am_router.post("/tickets/{ticket_id}/reply")
