@@ -135,12 +135,14 @@ Build a production-ready MVP web app called "Payroll Canada" for Canadian SMBs. 
 
 ### Any Minute Collections (am_* prefix)
 - **am_tenants**: Multi-tenant isolation, payroll API key, **plan, seat_limit, status (billing fields)**
-- **am_users**: Users with role (admin/manager/employee), employee_mapping_key
+- **am_users**: Users with role (admin/manager/employee), employee_mapping_key, **status, status_effective_date**
+- **am_user_status_history**: **NEW - Track status changes with effective dates**
 - **am_businesses**: Business locations per tenant
 - **am_timesheet_weeks**: Weekly timesheet containers with status
-- **am_timesheet_entries**: Daily time entries with net hours
+- **am_timesheet_entries**: Daily time entries with net hours, **entry_status (pending/approved/rejected/absent)**
 - **am_schedule_entries**: Shift schedules
 - **am_user_business_roles**: User-business role assignments
+- **am_pay_rates**: **NEW - Pay rates per user per business with effective dates**
 
 ---
 
