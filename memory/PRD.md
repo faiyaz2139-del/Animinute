@@ -108,16 +108,23 @@ Build a production-ready MVP web app called "Payroll Canada" for Canadian SMBs. 
 | GET | /auth/me | Get current user profile |
 | GET/POST/PUT/DELETE | /businesses/* | Business CRUD |
 | GET/POST/PUT/DELETE | /users/* | User management |
+| **PUT** | **/users/{id}/status** | **Update user status (Active/Not Active/Terminated)** |
+| **GET** | **/users/{id}/status-history** | **Get user status change history** |
 | GET/POST | /timesheet-weeks/* | Timesheet week management |
 | POST | /timesheet-weeks/{id}/submit | Submit for approval |
 | POST | /timesheet-weeks/{id}/approve | Approve/reject timesheet |
+| **POST** | **/timesheet-weeks/{id}/bulk-approve** | **Approve all entries in week** |
+| **POST** | **/timesheet-weeks/{id}/bulk-reject** | **Reject all entries in week** |
 | GET/POST/PUT/DELETE | /timesheet-entries/* | Daily time entries |
+| **PUT** | **/timesheet-entries/{id}/status** | **Update entry status (Pending/Approved/Rejected/Absent)** |
 | GET/POST/PUT/DELETE | /schedules/* | Schedule management |
 | GET | /reports/by-business | Hours by business report |
 | GET | /tenant/settings | Get payroll API key |
 | POST | /tenant/settings/regenerate-key | Regenerate API key |
 | **GET** | **/billing** | **Get billing info (plan, seats, status)** |
 | **PUT** | **/billing** | **Update billing (admin only)** |
+| **GET/POST/PUT/DELETE** | **/pay-rates/*** | **Pay rate management** |
+| **GET** | **/pay-rates/effective/{user_id}** | **Get effective pay rate for user** |
 | GET | /payroll/employees | Payroll integration - employees |
 | GET | /payroll/approved-entries | Payroll integration - approved hours |
 | POST | /payroll/lock | Payroll integration - lock entries |
