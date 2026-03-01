@@ -525,18 +525,38 @@ async def am_get_business(business_id: str, user: dict = Depends(am_get_current_
 
 @am_router.put("/businesses/{business_id}")
 async def am_update_business(business_id: str, data: AMBusinessUpdate, user: dict = Depends(am_require_admin)):
+    # Get old value for audit
+    old_business = await am_db.am_businesses.find_one(
+        {"id": business_id, "tenant_id": user['tenant_id']},
+        {"_id": 0}
+    )
+    if not old_business:
+        raise HTTPException(status_code=404, detail="Business not found")
+    
     update_data = {k: v for k, v in data.model_dump().items() if v is not None}
     if not update_data:
         raise HTTPException(status_code=400, detail="No data to update")
     
-    result = await am_db.am_businesses.update_one(
+    await am_db.am_businesses.update_one(
         {"id": business_id, "tenant_id": user['tenant_id']},
         {"$set": update_data}
     )
-    if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="Business not found")
     
     business = await am_db.am_businesses.find_one({"id": business_id}, {"_id": 0})
+    
+    # Audit log - business updated
+    await am_log_audit(
+        tenant_id=user['tenant_id'],
+        actor_id=user['id'],
+        actor_name=f"{user['first_name']} {user['last_name']}",
+        action="UPDATE",
+        entity_type="business",
+        entity_id=business_id,
+        entity_name=business.get('name', ''),
+        old_value=old_business,
+        new_value=business
+    )
+    
     return business
 
 @am_router.delete("/businesses/{business_id}")
