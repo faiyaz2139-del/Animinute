@@ -166,6 +166,35 @@ Build a production-ready MVP web app called "Payroll Canada" for Canadian SMBs. 
 
 ## Completed Work Log
 
+### March 1, 2026 (Phase 2 Bug Fixes - 8 Priority Items)
+All 8 priority items implemented from AnyMinute_MasterPrompt.docx:
+
+1. **User Status Lifecycle** ✅
+   - Backend: PUT `/users/{id}/status`, GET `/users/{id}/status-history`
+   - Status: Active/Not Active/Terminated with effective dates
+   - History tracking in `am_user_status_history` collection
+
+2. **Pay Rate Management** ✅
+   - New Pay Rates page (`/app/frontend/src/anyminute/pages/PayRate.js`)
+   - Backend CRUD: `/pay-rates/*` endpoints
+   - Rate types: Hourly/Salary/Overtime with effective dates
+
+3. **Timesheet Entry Status** ✅
+   - Status column added with color-coded badges
+   - Manager dropdown to change status per entry
+
+4. **Bulk Approve/Reject Week** ✅
+   - Endpoints: `/timesheet-weeks/{id}/bulk-approve`, `/bulk-reject`
+   - UI: "Approve All Entries" / "Reject All Entries" buttons
+
+5. **Payroll Run Guard** ✅ - Block if today < pay_date
+
+6. **Fix $0 Employees** ✅ - Skip 0-hour entries in approved-entries API
+
+7. **CSV Export Fix** ✅ - Verified correct run_id filtering
+
+8. **Import Timesheets** ✅ - Enhanced error handling
+
 ### February 15, 2026 (Phase 2A - Billing Complete)
 - **Plan Upgrade + Billing MVP** implemented without Stripe
 - Backend changes (`/app/backend/any_minute/routes.py`):
