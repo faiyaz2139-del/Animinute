@@ -183,13 +183,19 @@ async def am_get_current_user(credentials: HTTPAuthorizationCredentials = Depend
         raise HTTPException(status_code=401, detail="Invalid token")
 
 async def am_require_admin(user: dict = Depends(am_get_current_user)):
-    if user['role'] not in ['admin', 'manager']:
+    if user['role'] != 'admin':
         raise HTTPException(status_code=403, detail="Admin access required")
     return user
 
 async def am_require_manager_or_admin(user: dict = Depends(am_get_current_user)):
     if user['role'] not in ['admin', 'manager']:
         raise HTTPException(status_code=403, detail="Manager or Admin access required")
+    return user
+
+async def am_require_accountant_or_above(user: dict = Depends(am_get_current_user)):
+    """Accountant, Manager, or Admin can access"""
+    if user['role'] not in ['admin', 'manager', 'accountant']:
+        raise HTTPException(status_code=403, detail="Accountant, Manager, or Admin access required")
     return user
 
 # ===================== UTILITY FUNCTIONS =====================
