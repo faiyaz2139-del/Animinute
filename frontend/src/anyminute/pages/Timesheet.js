@@ -211,6 +211,42 @@ export default function AMTimesheet() {
     }
   };
 
+  const updateEntryStatus = async (entryId, newStatus) => {
+    try {
+      await axios.put(`${AM_API_URL}/timesheet-entries/${entryId}/status`, {
+        status: newStatus
+      }, config);
+      await loadWeekData();
+    } catch (err) {
+      alert(err.response?.data?.detail || 'Failed to update status');
+    }
+  };
+
+  const bulkApproveWeek = async () => {
+    if (!weekData) return;
+    try {
+      await axios.post(`${AM_API_URL}/timesheet-weeks/${weekData.id}/bulk-approve`, {}, config);
+      await loadWeekData();
+      await loadPendingWeeks();
+      alert('All entries approved!');
+    } catch (err) {
+      alert(err.response?.data?.detail || 'Failed to bulk approve');
+    }
+  };
+
+  const bulkRejectWeek = async () => {
+    const reason = prompt('Rejection reason (optional):');
+    if (!weekData) return;
+    try {
+      await axios.post(`${AM_API_URL}/timesheet-weeks/${weekData.id}/bulk-reject?reason=${encodeURIComponent(reason || '')}`, {}, config);
+      await loadWeekData();
+      await loadPendingWeeks();
+      alert('All entries rejected!');
+    } catch (err) {
+      alert(err.response?.data?.detail || 'Failed to bulk reject');
+    }
+  };
+
   const totalHours = useMemo(() => {
     return Object.values(entries).reduce((sum, entry) => {
       return sum + parseFloat(calculateNetHours(entry) || 0);
