@@ -292,6 +292,9 @@ export default function AMTimesheet() {
               {weekDays.map((day) => {
                 const entry = entries[day.date] || {};
                 const netHours = calculateNetHours(entry);
+                const entryStatus = entry.entry_status || 'pending';
+                const statusStyle = STATUS_COLORS[entryStatus] || STATUS_COLORS.pending;
+                
                 return (
                   <tr key={day.date} style={{ backgroundColor: day.isToday ? '#e3f2fd' : 'transparent' }}>
                     <td>
@@ -331,6 +334,41 @@ export default function AMTimesheet() {
                       />
                     </td>
                     <td style={{ fontWeight: 'bold' }}>{netHours}</td>
+                    {/* Entry Status */}
+                    <td>
+                      {entry.id && isManager ? (
+                        <select
+                          value={entryStatus}
+                          onChange={(e) => updateEntryStatus(entry.id, e.target.value)}
+                          className="am-select am-select-sm"
+                          style={{ 
+                            backgroundColor: statusStyle.bg, 
+                            color: statusStyle.color,
+                            fontWeight: '600',
+                            fontSize: '11px',
+                            padding: '4px 8px',
+                            borderRadius: '4px'
+                          }}
+                          data-testid={`status-${day.date}`}
+                        >
+                          <option value="pending">Pending</option>
+                          <option value="approved">Approved</option>
+                          <option value="rejected">Rejected</option>
+                          <option value="absent">Absent</option>
+                        </select>
+                      ) : entry.id ? (
+                        <span style={{
+                          padding: '4px 8px',
+                          backgroundColor: statusStyle.bg,
+                          color: statusStyle.color,
+                          borderRadius: '4px',
+                          fontSize: '11px',
+                          fontWeight: '600'
+                        }}>
+                          {statusStyle.label}
+                        </span>
+                      ) : null}
+                    </td>
                     <td>
                       <input
                         type="text"
@@ -339,10 +377,11 @@ export default function AMTimesheet() {
                         disabled={!canEdit}
                         placeholder="Notes..."
                         className="am-input am-input-sm"
+                        style={{ width: '120px' }}
                         data-testid={`notes-${day.date}`}
                       />
                     </td>
-                    <td>
+                    <td style={{ display: 'flex', gap: '4px' }}>
                       {canEdit && (entry.start_time || entry.end_time) && (
                         <button
                           onClick={() => saveEntry(day.date)}
