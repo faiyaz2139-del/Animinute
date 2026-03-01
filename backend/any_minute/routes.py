@@ -498,6 +498,19 @@ async def am_create_business(data: AMBusinessCreate, user: dict = Depends(am_req
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     await am_db.am_businesses.insert_one(business)
+    
+    # Audit log - business created
+    await am_log_audit(
+        tenant_id=user['tenant_id'],
+        actor_id=user['id'],
+        actor_name=f"{user['first_name']} {user['last_name']}",
+        action="CREATE",
+        entity_type="business",
+        entity_id=business_id,
+        entity_name=data.name,
+        new_value={"name": data.name, "address": data.address, "contact_email": data.contact_email}
+    )
+    
     return {k: v for k, v in business.items() if k != '_id'}
 
 @am_router.get("/businesses/{business_id}")
