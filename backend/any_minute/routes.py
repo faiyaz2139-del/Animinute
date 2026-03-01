@@ -1550,6 +1550,34 @@ async def am_reply_ticket(ticket_id: str, data: AMTicketReply, user: dict = Depe
         {"$set": {"updated_at": datetime.now(timezone.utc).isoformat()}}
     )
     
+    # Send email notification
+    try:
+        # If admin replies, notify ticket creator
+        # If user replies, notify admins
+        if user['role'] == 'admin':
+            await send_ticket_reply_notification(
+                to_email=ticket['created_by_email'],
+                ticket_number=ticket['ticket_number'],
+                ticket_subject=ticket['subject'],
+                reply_by=f"{user['first_name']} {user['last_name']} (Support)",
+                reply_preview=data.message[:200]
+            )
+        else:
+            admins = await am_db.am_users.find(
+                {"tenant_id": user['tenant_id'], "role": "admin", "active": True},
+                {"email": 1, "_id": 0}
+            ).to_list(100)
+            for admin in admins:
+                await send_ticket_reply_notification(
+                    to_email=admin['email'],
+                    ticket_number=ticket['ticket_number'],
+                    ticket_subject=ticket['subject'],
+                    reply_by=f"{user['first_name']} {user['last_name']}",
+                    reply_preview=data.message[:200]
+                )
+    except Exception as e:
+        logger.warning(f"Failed to send reply notification: {e}")
+    
     return {k: v for k, v in reply.items() if k != '_id'}
 
 @am_router.put("/tickets/{ticket_id}/status")
