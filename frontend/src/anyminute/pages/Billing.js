@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAMAuth, AM_API_URL } from '../context/AMAuthContext';
 import { Layout } from '../components/Layout';
 import axios from 'axios';
-import { CreditCard, Users, Check, AlertCircle } from 'lucide-react';
+import { CreditCard, Users, Check, AlertCircle, AlertTriangle } from 'lucide-react';
 
 const PLANS = {
   free: { name: 'Free', seats: 5, color: '#9e9e9e', features: ['Up to 5 users', 'Basic timesheets', 'Manual exports'] },
@@ -13,6 +13,7 @@ const PLANS = {
 export default function Billing() {
   const { token, user: currentUser } = useAMAuth();
   const [billing, setBilling] = useState(null);
+  const [stripeConfig, setStripeConfig] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -25,7 +26,17 @@ export default function Billing() {
 
   useEffect(() => {
     loadBilling();
+    loadStripeConfig();
   }, [token]);
+
+  const loadStripeConfig = async () => {
+    try {
+      const res = await axios.get(`${AM_API_URL}/stripe/config`);
+      setStripeConfig(res.data);
+    } catch (err) {
+      console.log('Stripe not configured');
+    }
+  };
 
   const loadBilling = async () => {
     try {
