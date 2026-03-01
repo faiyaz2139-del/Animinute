@@ -166,6 +166,32 @@ Build a production-ready MVP web app called "Payroll Canada" for Canadian SMBs. 
 
 ## Completed Work Log
 
+### March 1, 2026 — Sprint Complete (All 3 Tasks)
+
+**Task 1: Audit Logs (P0)** ✅ COMPLETE
+- Backend: `am_log_audit()` helper + API endpoints (`GET /api/am/audit-logs`, `GET /api/am/audit-logs/summary`)
+- Tracked entities: Users, Businesses, Timesheets, Pay Rates, Tickets (CREATE/UPDATE/DELETE with old/new value diffs)
+- Frontend: Admin-only `/anyminute/audit-logs` page with summary cards, searchable table, filters by entity/action
+- Navigation: Added "Audit Logs" to sidebar (admin role only)
+- MongoDB Collection: `am_audit_logs`
+
+**Task 2: Full Stripe Integration (P1)** ✅ COMPLETE — TEST MODE
+- Configured Stripe environment variables in backend/.env
+- Implemented 3 webhook handlers in `/app/backend/any_minute/stripe_service.py`:
+  - `customer.subscription.created` → Activates account, sets plan + seat limit
+  - `customer.subscription.updated` → Updates plan tier (upgrades/downgrades)
+  - `customer.subscription.deleted` → Deactivates account, blocks login with message
+- Login block: "Your subscription has ended. Please renew to continue."
+- All 3 webhooks tested and confirmed HTTP 200 + correct DB changes
+
+**Task 3: Report Enhancement (P2)** ✅ COMPLETE
+- Backend: New `GET /api/am/reports/compare` endpoint
+- Calculates prior period of same length (e.g., Jan 1-31 vs Dec 1-31)
+- Returns: current/prior hours, unique users, change amounts, % change, business breakdown
+- Frontend: "Compare to Prior Period" toggle on Reports page
+- Summary cards: Current Period, Prior Period, Change (with trend icons)
+- Business comparison table with hours and % change per business
+
 ### March 1, 2026 (Audit Logs Feature - P0)
 **Audit Logs System** ✅ COMPLETE
 - Backend APIs:
