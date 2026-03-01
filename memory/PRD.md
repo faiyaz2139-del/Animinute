@@ -246,12 +246,13 @@ All bugs from AnyMinute_BugFix_StatusReport.docx now FIXED:
   - Admin-only API: GET/PUT /api/am/billing
   - Seat limit enforcement when adding users
   - Full Billing UI with plan selection
+- [x] **Audit Logs** - Complete (Mar 1, 2026)
+  - Full trail of who did what with old/new value tracking
+  - Admin-only Audit Log screen with filters
+- [ ] **Stripe Integration** - Next priority (webhook handlers ready)
+- [ ] Report enhancement - "Compare to prior period" feature
 - [ ] Reseller registration (placeholder screen)
-- [ ] Tickets system (placeholder screen)
-- [ ] RBAC hardening (frontend route guards, backend permission checks)
-- [ ] Notifications - event logging for key actions
-- [ ] Audit logs for create/update/delete actions
-- [ ] "Compare to a prior period" hyperlink in reports
+- [ ] Live email service (currently mocked)
 
 ### P2 - Enhancements
 - [ ] Mobile responsive improvements
