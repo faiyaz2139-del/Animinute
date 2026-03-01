@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useAMAuth } from '../context/AMAuthContext';
 import {
   LayoutDashboard, Home, Building2, Users, UserPlus, UserCog,
-  FolderPlus, FileText, Calendar, Ticket, CreditCard, Settings, LogOut, TestTube
+  FolderPlus, FileText, Calendar, Ticket, CreditCard, Settings, LogOut, TestTube, DollarSign
 } from 'lucide-react';
 
 const navItems = [
@@ -16,6 +16,7 @@ const navItems = [
   { to: '/anyminute/timesheet', icon: FileText, label: 'Timesheet' },
   { to: '/anyminute/schedule', icon: Calendar, label: 'Schedule' },
   { to: '/anyminute/reports', icon: FileText, label: 'Reports' },
+  { to: '/anyminute/pay-rates', icon: DollarSign, label: 'Pay Rates' },
   { to: '/anyminute/tickets', icon: Ticket, label: 'Tickets', phase2: true },
   { to: '/anyminute/plan-upgrade', icon: CreditCard, label: 'Billing' },
   { to: '/anyminute/settings', icon: Settings, label: 'Settings' },
