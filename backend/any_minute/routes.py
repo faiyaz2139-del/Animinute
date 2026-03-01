@@ -607,6 +607,14 @@ async def am_get_user(user_id: str, user: dict = Depends(am_require_manager_or_a
 
 @am_router.put("/users/{user_id}")
 async def am_update_user(user_id: str, data: AMUserManageUpdate, user: dict = Depends(am_require_admin)):
+    # Get old value for audit
+    old_user = await am_db.am_users.find_one(
+        {"id": user_id, "tenant_id": user['tenant_id']},
+        {"_id": 0, "password_hash": 0}
+    )
+    if not old_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
     update_data = {k: v for k, v in data.model_dump().items() if v is not None}
     if not update_data:
         raise HTTPException(status_code=400, detail="No data to update")
@@ -615,10 +623,22 @@ async def am_update_user(user_id: str, data: AMUserManageUpdate, user: dict = De
         {"id": user_id, "tenant_id": user['tenant_id']},
         {"$set": update_data}
     )
-    if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="User not found")
     
     updated_user = await am_db.am_users.find_one({"id": user_id}, {"_id": 0, "password_hash": 0})
+    
+    # Audit log - user updated
+    await am_log_audit(
+        tenant_id=user['tenant_id'],
+        actor_id=user['id'],
+        actor_name=f"{user['first_name']} {user['last_name']}",
+        action="UPDATE",
+        entity_type="user",
+        entity_id=user_id,
+        entity_name=f"{updated_user.get('first_name', '')} {updated_user.get('last_name', '')}",
+        old_value=old_user,
+        new_value=updated_user
+    )
+    
     return updated_user
 
 @am_router.delete("/users/{user_id}")
