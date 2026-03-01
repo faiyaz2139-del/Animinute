@@ -1729,6 +1729,18 @@ async def am_create_ticket(data: AMTicketCreate, user: dict = Depends(am_get_cur
     }
     await am_db.am_tickets.insert_one(ticket)
     
+    # Audit log - ticket created
+    await am_log_audit(
+        tenant_id=user['tenant_id'],
+        actor_id=user['id'],
+        actor_name=f"{user['first_name']} {user['last_name']}",
+        action="CREATE",
+        entity_type="ticket",
+        entity_id=ticket_id,
+        entity_name=f"Ticket #{ticket_number}: {data.subject[:50]}",
+        new_value={"subject": data.subject, "priority": data.priority, "status": "open"}
+    )
+    
     # Send email notification to admins
     try:
         admins = await am_db.am_users.find(
