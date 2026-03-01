@@ -33,6 +33,7 @@ import AMSettings from "./anyminute/pages/Settings";
 import AMBilling from "./anyminute/pages/Billing";
 import AMPayRate from "./anyminute/pages/PayRate";
 import AMTickets from "./anyminute/pages/Tickets";
+import AMAuditLogs from "./anyminute/pages/AuditLogs";
 import { TestChecklist as AMTestChecklist } from "./anyminute/pages/ComingSoon";
 
 import "./App.css";
