@@ -438,20 +438,46 @@ export default function AMTimesheet() {
               <tr style={{ backgroundColor: '#f5f5f5' }}>
                 <td colSpan="4" style={{ textAlign: 'right', fontWeight: 'bold' }}>Total Hours:</td>
                 <td style={{ fontWeight: 'bold', fontSize: '18px' }}>{totalHours}</td>
-                <td colSpan="2"></td>
+                <td colSpan="3"></td>
               </tr>
             </tfoot>
           </table>
         </div>
 
-        {canSubmit && (
-          <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end' }}>
-            <BlueButton onClick={submitTimesheet} data-testid="submit-timesheet-btn">
-              <Send size={16} style={{ marginRight: '8px' }} />
-              Submit for Approval
-            </BlueButton>
-          </div>
-        )}
+        {/* Action buttons */}
+        <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+          {/* Bulk Approve/Reject for Managers */}
+          {isManager && weekData && weekData.status === 'submitted' && (
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button
+                onClick={bulkApproveWeek}
+                style={{ padding: '10px 20px', backgroundColor: '#34a853', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '8px' }}
+                data-testid="bulk-approve-btn"
+              >
+                <CheckCircle size={18} />
+                Approve All Entries
+              </button>
+              <button
+                onClick={bulkRejectWeek}
+                style={{ padding: '10px 20px', backgroundColor: '#ea4335', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '8px' }}
+                data-testid="bulk-reject-btn"
+              >
+                <XCircle size={18} />
+                Reject All Entries
+              </button>
+            </div>
+          )}
+          
+          {/* Submit button for employees */}
+          {canSubmit && (
+            <div style={{ marginLeft: 'auto' }}>
+              <BlueButton onClick={submitTimesheet} data-testid="submit-timesheet-btn">
+                <Send size={16} style={{ marginRight: '8px' }} />
+                Submit for Approval
+              </BlueButton>
+            </div>
+          )}
+        </div>
       </div>
 
       {isManager && pendingWeeks.length > 0 && (
