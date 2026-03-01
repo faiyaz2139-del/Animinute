@@ -1,0 +1,113 @@
+# =============================================================================
+# AnyMinute Docker Compose Configuration
+# =============================================================================
+# Usage:
+#   1. Copy environment files: cp backend/.env.example backend/.env
+#   2. Edit .env with your values
+#   3. Start all services: docker-compose up --build
+#   4. Stop all services: docker-compose down
+#   5. View logs: docker-compose logs -f
+# =============================================================================
+
+version: '3.8'
+
+services:
+  # ---------------------------------------------------------------------------
+  # MongoDB Database
+  # ---------------------------------------------------------------------------
+  mongodb:
+    image: mongo:6.0
+    container_name: anyminute-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
+    environment:
+      # Uncomment and set for production:
+      # MONGO_INITDB_ROOT_USERNAME: admin
+      # MONGO_INITDB_ROOT_PASSWORD: your_secure_password
+      MONGO_INITDB_DATABASE: anyminute_db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - anyminute-network
+
+  # ---------------------------------------------------------------------------
+  # Backend API (FastAPI)
+  # ---------------------------------------------------------------------------
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: anyminute-backend
+    restart: unless-stopped
+    ports:
+      - "8001:8001"
+    env_file:
+      - backend/.env
+    environment:
+      # Override MongoDB URL to use Docker network
+      MONGO_URL: mongodb://mongodb:27017
+      DB_NAME: anyminute_db
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - anyminute-network
+
+  # ---------------------------------------------------------------------------
+  # Frontend (React + Nginx)
+  # ---------------------------------------------------------------------------
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      args:
+        REACT_APP_BACKEND_URL: http://localhost:8001
+        REACT_APP_STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY:-pk_test_placeholder}
+    container_name: anyminute-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+    networks:
+      - anyminute-network
+
+# =============================================================================
+# Volumes
+# =============================================================================
+volumes:
+  mongodb_data:
+    driver: local
+    name: anyminute-mongodb-data
+  mongodb_config:
+    driver: local
+    name: anyminute-mongodb-config
+
+# =============================================================================
+# Networks
+# =============================================================================
+networks:
+  anyminute-network:
+    driver: bridge
+    name: anyminute-network
