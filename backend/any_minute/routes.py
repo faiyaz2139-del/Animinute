@@ -1721,6 +1721,55 @@ async def am_get_dashboard_stats(user: dict = Depends(am_get_current_user)):
     }
 
 
+# ===================== AUDIT LOG ROUTES =====================
+
+@am_router.get("/audit-logs")
+async def am_get_audit_logs(
+    user: dict = Depends(am_require_admin),
+    entity_type: Optional[str] = Query(None),
+    action: Optional[str] = Query(None),
+    limit: int = Query(100, le=500)
+):
+    """Get audit logs - admin only"""
+    query = {"tenant_id": user['tenant_id']}
+    
+    if entity_type:
+        query['entity_type'] = entity_type
+    if action:
+        query['action'] = action
+    
+    logs = await am_db.am_audit_logs.find(query, {"_id": 0}).sort("timestamp", -1).to_list(limit)
+    return logs
+
+@am_router.get("/audit-logs/summary")
+async def am_get_audit_logs_summary(user: dict = Depends(am_require_admin)):
+    """Get audit log summary stats - admin only"""
+    tenant_id = user['tenant_id']
+    
+    # Count by action type
+    total = await am_db.am_audit_logs.count_documents({"tenant_id": tenant_id})
+    creates = await am_db.am_audit_logs.count_documents({"tenant_id": tenant_id, "action": "CREATE"})
+    updates = await am_db.am_audit_logs.count_documents({"tenant_id": tenant_id, "action": "UPDATE"})
+    deletes = await am_db.am_audit_logs.count_documents({"tenant_id": tenant_id, "action": "DELETE"})
+    
+    # Count by entity type
+    entity_counts = {}
+    for entity in ['user', 'business', 'timesheet', 'pay_rate', 'ticket']:
+        count = await am_db.am_audit_logs.count_documents({"tenant_id": tenant_id, "entity_type": entity})
+        if count > 0:
+            entity_counts[entity] = count
+    
+    return {
+        "total": total,
+        "by_action": {
+            "create": creates,
+            "update": updates,
+            "delete": deletes
+        },
+        "by_entity": entity_counts
+    }
+
+
 # ===================== TICKETS (SUPPORT) ROUTES =====================
 
 @am_router.get("/tickets")
