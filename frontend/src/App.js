@@ -32,7 +32,8 @@ import AMReports from "./anyminute/pages/Reports";
 import AMSettings from "./anyminute/pages/Settings";
 import AMBilling from "./anyminute/pages/Billing";
 import AMPayRate from "./anyminute/pages/PayRate";
-import { Tickets as AMTickets, TestChecklist as AMTestChecklist } from "./anyminute/pages/ComingSoon";
+import AMTickets from "./anyminute/pages/Tickets";
+import { TestChecklist as AMTestChecklist } from "./anyminute/pages/ComingSoon";
 
 import "./App.css";
 
