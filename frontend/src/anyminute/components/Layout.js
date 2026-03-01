@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useAMAuth } from '../context/AMAuthContext';
 import {
   LayoutDashboard, Home, Building2, Users, UserPlus, UserCog,
-  FolderPlus, FileText, Calendar, Ticket, CreditCard, Settings, LogOut, TestTube, DollarSign
+  FolderPlus, FileText, Calendar, Ticket, CreditCard, Settings, LogOut, TestTube, DollarSign, ClipboardList
 } from 'lucide-react';
 
 // Nav items with role-based access control
@@ -20,6 +20,7 @@ const navItems = [
   { to: '/anyminute/reports', icon: FileText, label: 'Reports', allowedRoles: ['admin', 'manager', 'accountant'] },
   { to: '/anyminute/pay-rates', icon: DollarSign, label: 'Pay Rates', allowedRoles: ['admin'] },
   { to: '/anyminute/tickets', icon: Ticket, label: 'Tickets', allowedRoles: [] },
+  { to: '/anyminute/audit-logs', icon: ClipboardList, label: 'Audit Logs', allowedRoles: ['admin'] },
   { to: '/anyminute/plan-upgrade', icon: CreditCard, label: 'Billing', allowedRoles: ['admin'] },
   { to: '/anyminute/settings', icon: Settings, label: 'Settings', allowedRoles: ['admin'] },
   { to: '/anyminute/test-checklist', icon: TestTube, label: 'Test Checklist', allowedRoles: ['admin'] },
