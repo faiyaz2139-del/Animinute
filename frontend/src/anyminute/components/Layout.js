@@ -6,31 +6,40 @@ import {
   FolderPlus, FileText, Calendar, Ticket, CreditCard, Settings, LogOut, TestTube, DollarSign
 } from 'lucide-react';
 
+// Nav items with role-based access control
+// allowedRoles: array of roles that can see this item (empty = all roles)
 const navItems = [
-  { to: '/anyminute/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/anyminute/home', icon: Home, label: 'Home' },
-  { to: '/anyminute/add-business', icon: Building2, label: 'Add Business' },
-  { to: '/anyminute/add-user', icon: UserPlus, label: 'Add User' },
-  { to: '/anyminute/edit-user', icon: UserCog, label: 'Edit User' },
-  { to: '/anyminute/add-project', icon: FolderPlus, label: 'Add Project' },
-  { to: '/anyminute/timesheet', icon: FileText, label: 'Timesheet' },
-  { to: '/anyminute/schedule', icon: Calendar, label: 'Schedule' },
-  { to: '/anyminute/reports', icon: FileText, label: 'Reports' },
-  { to: '/anyminute/pay-rates', icon: DollarSign, label: 'Pay Rates' },
-  { to: '/anyminute/tickets', icon: Ticket, label: 'Tickets' },
-  { to: '/anyminute/plan-upgrade', icon: CreditCard, label: 'Billing' },
-  { to: '/anyminute/settings', icon: Settings, label: 'Settings' },
-  { to: '/anyminute/test-checklist', icon: TestTube, label: 'Test Checklist' },
+  { to: '/anyminute/dashboard', icon: LayoutDashboard, label: 'Dashboard', allowedRoles: [] },
+  { to: '/anyminute/home', icon: Home, label: 'Home', allowedRoles: [] },
+  { to: '/anyminute/add-business', icon: Building2, label: 'Add Business', allowedRoles: ['admin'] },
+  { to: '/anyminute/add-user', icon: UserPlus, label: 'Add User', allowedRoles: ['admin'] },
+  { to: '/anyminute/edit-user', icon: UserCog, label: 'Edit User', allowedRoles: ['admin', 'manager'] },
+  { to: '/anyminute/add-project', icon: FolderPlus, label: 'Add Project', allowedRoles: ['admin', 'manager'] },
+  { to: '/anyminute/timesheet', icon: FileText, label: 'Timesheet', allowedRoles: [] },
+  { to: '/anyminute/schedule', icon: Calendar, label: 'Schedule', allowedRoles: ['admin', 'manager'] },
+  { to: '/anyminute/reports', icon: FileText, label: 'Reports', allowedRoles: ['admin', 'manager', 'accountant'] },
+  { to: '/anyminute/pay-rates', icon: DollarSign, label: 'Pay Rates', allowedRoles: ['admin'] },
+  { to: '/anyminute/tickets', icon: Ticket, label: 'Tickets', allowedRoles: [] },
+  { to: '/anyminute/plan-upgrade', icon: CreditCard, label: 'Billing', allowedRoles: ['admin'] },
+  { to: '/anyminute/settings', icon: Settings, label: 'Settings', allowedRoles: ['admin'] },
+  { to: '/anyminute/test-checklist', icon: TestTube, label: 'Test Checklist', allowedRoles: ['admin'] },
 ];
 
 export const LeftNav = () => {
   const { user, logout } = useAMAuth();
   const navigate = useNavigate();
+  const userRole = user?.role || 'employee';
 
   const handleLogout = () => {
     logout();
     navigate('/anyminute/login');
   };
+
+  // Filter nav items based on user role
+  const visibleNavItems = navItems.filter(item => {
+    if (!item.allowedRoles || item.allowedRoles.length === 0) return true;
+    return item.allowedRoles.includes(userRole);
+  });
 
   return (
     <nav className="am-left-nav">
@@ -46,7 +55,7 @@ export const LeftNav = () => {
       </div>
       
       <div style={{ padding: '8px 0' }}>
-        {navItems.map(item => (
+        {visibleNavItems.map(item => (
           <NavLink
             key={item.to}
             to={item.to}
