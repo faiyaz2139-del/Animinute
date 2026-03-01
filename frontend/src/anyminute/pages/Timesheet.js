@@ -3,7 +3,15 @@ import { useAMAuth, AM_API_URL } from '../context/AMAuthContext';
 import { Layout } from '../components/Layout';
 import { BlueButton } from '../components/SharedComponents';
 import axios from 'axios';
-import { ChevronLeft, ChevronRight, Check, Send, AlertCircle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Check, Send, AlertCircle, Trash2, Building2, CheckCircle, XCircle } from 'lucide-react';
+
+// Status color mapping
+const STATUS_COLORS = {
+  pending: { bg: '#fff3cd', color: '#856404', label: 'Pending' },
+  approved: { bg: '#d4edda', color: '#155724', label: 'Approved' },
+  rejected: { bg: '#f8d7da', color: '#721c24', label: 'Rejected' },
+  absent: { bg: '#e2e3e5', color: '#383d41', label: 'Absent' }
+};
 
 export default function AMTimesheet() {
   const { user, token, isManager } = useAMAuth();
