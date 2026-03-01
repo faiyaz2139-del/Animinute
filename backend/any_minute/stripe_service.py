@@ -210,7 +210,7 @@ async def handle_subscription_created(subscription: Dict) -> Dict[str, Any]:
     
     logger.info(f"Subscription CREATED: id={subscription_id}, customer={customer_id}, plan={plan}, status={status}")
     
-    if _db and tenant_id:
+    if _db is not None and tenant_id:
         # Update tenant with subscription info
         plan_config = STRIPE_PLANS.get(plan, STRIPE_PLANS["basic"])
         
@@ -239,7 +239,7 @@ async def handle_subscription_created(subscription: Dict) -> Dict[str, Any]:
             "seats": plan_config["seats"],
             "db_updated": result.modified_count > 0
         }
-    elif _db and customer_id:
+    elif _db is not None and customer_id:
         # Try to find tenant by customer_id
         tenant = await _db.am_tenants.find_one({"stripe_customer_id": customer_id})
         if tenant:
@@ -286,7 +286,7 @@ async def handle_subscription_updated(subscription: Dict) -> Dict[str, Any]:
     
     logger.info(f"Subscription UPDATED: id={subscription_id}, status={status}, plan={plan}")
     
-    if not _db:
+    if _db is None:
         return {"success": True, "action": "no_db", "subscription_id": subscription_id}
     
     # Find tenant by subscription_id or customer_id
@@ -365,7 +365,7 @@ async def handle_subscription_deleted(subscription: Dict) -> Dict[str, Any]:
     
     logger.info(f"Subscription DELETED: id={subscription_id}, customer={customer_id}")
     
-    if not _db:
+    if _db is None:
         return {"success": True, "action": "no_db", "subscription_id": subscription_id}
     
     # Find tenant
@@ -434,7 +434,7 @@ async def handle_payment_failed(invoice: Dict) -> Dict[str, Any]:
     
     logger.warning(f"Payment failed: customer={customer_id}")
     
-    if _db and customer_id:
+    if _db is not None and customer_id:
         # Update tenant status to show payment warning
         await _db.am_tenants.update_one(
             {"stripe_customer_id": customer_id},
