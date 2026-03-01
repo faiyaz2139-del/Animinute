@@ -820,6 +820,20 @@ async def am_update_user_status(user_id: str, data: AMUserStatusUpdate, user: di
     }
     await am_db.am_user_status_history.insert_one(history_record)
     
+    # Audit log - user status changed
+    await am_log_audit(
+        tenant_id=user['tenant_id'],
+        actor_id=user['id'],
+        actor_name=f"{user['first_name']} {user['last_name']}",
+        action="UPDATE",
+        entity_type="user",
+        entity_id=user_id,
+        entity_name=f"{target_user.get('first_name', '')} {target_user.get('last_name', '')}",
+        old_value={"status": old_status},
+        new_value={"status": data.status, "effective_date": data.effective_date},
+        metadata={"reason": data.reason}
+    )
+    
     return {"success": True, "status": data.status}
 
 @am_router.get("/users/{user_id}/status-history")
