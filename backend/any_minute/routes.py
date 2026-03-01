@@ -561,12 +561,32 @@ async def am_update_business(business_id: str, data: AMBusinessUpdate, user: dic
 
 @am_router.delete("/businesses/{business_id}")
 async def am_delete_business(business_id: str, user: dict = Depends(am_require_admin)):
-    result = await am_db.am_businesses.update_one(
+    # Get business info for audit
+    business = await am_db.am_businesses.find_one(
+        {"id": business_id, "tenant_id": user['tenant_id']},
+        {"_id": 0}
+    )
+    if not business:
+        raise HTTPException(status_code=404, detail="Business not found")
+    
+    await am_db.am_businesses.update_one(
         {"id": business_id, "tenant_id": user['tenant_id']},
         {"$set": {"active": False}}
     )
-    if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="Business not found")
+    
+    # Audit log - business deleted (soft delete)
+    await am_log_audit(
+        tenant_id=user['tenant_id'],
+        actor_id=user['id'],
+        actor_name=f"{user['first_name']} {user['last_name']}",
+        action="DELETE",
+        entity_type="business",
+        entity_id=business_id,
+        entity_name=business.get('name', ''),
+        old_value={"active": True},
+        new_value={"active": False}
+    )
+    
     return {"success": True}
 
 # ===================== USER MANAGEMENT ROUTES =====================
