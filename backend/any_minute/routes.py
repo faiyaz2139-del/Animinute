@@ -585,6 +585,159 @@ async def am_remove_user_from_business(user_id: str, business_id: str, user: dic
         raise HTTPException(status_code=404, detail="Role assignment not found")
     return {"success": True}
 
+# ===================== USER STATUS MANAGEMENT =====================
+
+@am_router.put("/users/{user_id}/status")
+async def am_update_user_status(user_id: str, data: AMUserStatusUpdate, user: dict = Depends(am_require_admin)):
+    """Update user status with history tracking"""
+    if data.status not in ['active', 'not_active', 'terminated']:
+        raise HTTPException(status_code=400, detail="Invalid status. Must be: active, not_active, or terminated")
+    
+    target_user = await am_db.am_users.find_one({"id": user_id, "tenant_id": user['tenant_id']})
+    if not target_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    old_status = target_user.get('status', 'active')
+    
+    # Update user status
+    await am_db.am_users.update_one(
+        {"id": user_id},
+        {"$set": {
+            "status": data.status,
+            "status_effective_date": data.effective_date,
+            "active": data.status == 'active'
+        }}
+    )
+    
+    # Record in status history
+    history_record = {
+        "id": str(uuid.uuid4()),
+        "tenant_id": user['tenant_id'],
+        "user_id": user_id,
+        "old_status": old_status,
+        "new_status": data.status,
+        "effective_date": data.effective_date,
+        "reason": data.reason,
+        "changed_by": user['id'],
+        "changed_by_name": f"{user['first_name']} {user['last_name']}",
+        "changed_at": datetime.now(timezone.utc).isoformat()
+    }
+    await am_db.am_user_status_history.insert_one(history_record)
+    
+    return {"success": True, "status": data.status}
+
+@am_router.get("/users/{user_id}/status-history")
+async def am_get_user_status_history(user_id: str, user: dict = Depends(am_require_manager_or_admin)):
+    """Get user status change history"""
+    history = await am_db.am_user_status_history.find(
+        {"user_id": user_id, "tenant_id": user['tenant_id']},
+        {"_id": 0}
+    ).sort("changed_at", -1).to_list(100)
+    return history
+
+# ===================== PAY RATE MANAGEMENT =====================
+
+@am_router.get("/pay-rates")
+async def am_get_pay_rates(
+    user: dict = Depends(am_require_manager_or_admin),
+    user_id: Optional[str] = Query(None),
+    business_id: Optional[str] = Query(None)
+):
+    """Get pay rates with optional filters"""
+    query = {"tenant_id": user['tenant_id']}
+    if user_id:
+        query['user_id'] = user_id
+    if business_id:
+        query['business_id'] = business_id
+    
+    rates = await am_db.am_pay_rates.find(query, {"_id": 0}).to_list(1000)
+    return rates
+
+@am_router.post("/pay-rates")
+async def am_create_pay_rate(data: AMPayRateCreate, user: dict = Depends(am_require_admin)):
+    """Create a new pay rate for a user"""
+    if data.rate_type not in ['hourly', 'salary', 'overtime']:
+        raise HTTPException(status_code=400, detail="Invalid rate type. Must be: hourly, salary, or overtime")
+    
+    target_user = await am_db.am_users.find_one({"id": data.user_id, "tenant_id": user['tenant_id']})
+    if not target_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    business = await am_db.am_businesses.find_one({"id": data.business_id, "tenant_id": user['tenant_id']})
+    if not business:
+        raise HTTPException(status_code=404, detail="Business not found")
+    
+    rate_id = str(uuid.uuid4())
+    rate = {
+        "id": rate_id,
+        "tenant_id": user['tenant_id'],
+        "user_id": data.user_id,
+        "business_id": data.business_id,
+        "rate_type": data.rate_type,
+        "rate_amount": data.rate_amount,
+        "effective_from": data.effective_from,
+        "effective_to": data.effective_to,
+        "active": True,
+        "created_by": user['id'],
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await am_db.am_pay_rates.insert_one(rate)
+    return {k: v for k, v in rate.items() if k != '_id'}
+
+@am_router.put("/pay-rates/{rate_id}")
+async def am_update_pay_rate(rate_id: str, data: AMPayRateUpdate, user: dict = Depends(am_require_admin)):
+    """Update a pay rate"""
+    update_data = {k: v for k, v in data.model_dump().items() if v is not None}
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No data to update")
+    
+    result = await am_db.am_pay_rates.update_one(
+        {"id": rate_id, "tenant_id": user['tenant_id']},
+        {"$set": update_data}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Pay rate not found")
+    
+    return {"success": True}
+
+@am_router.delete("/pay-rates/{rate_id}")
+async def am_delete_pay_rate(rate_id: str, user: dict = Depends(am_require_admin)):
+    """Soft delete a pay rate"""
+    result = await am_db.am_pay_rates.update_one(
+        {"id": rate_id, "tenant_id": user['tenant_id']},
+        {"$set": {"active": False}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Pay rate not found")
+    return {"success": True}
+
+@am_router.get("/pay-rates/effective/{user_id}")
+async def am_get_effective_pay_rate(
+    user_id: str, 
+    business_id: str = Query(...),
+    as_of_date: Optional[str] = Query(None),
+    user: dict = Depends(am_require_manager_or_admin)
+):
+    """Get the effective pay rate for a user as of a specific date"""
+    check_date = as_of_date or datetime.now(timezone.utc).strftime('%Y-%m-%d')
+    
+    rate = await am_db.am_pay_rates.find_one({
+        "tenant_id": user['tenant_id'],
+        "user_id": user_id,
+        "business_id": business_id,
+        "active": True,
+        "effective_from": {"$lte": check_date},
+        "$or": [
+            {"effective_to": None},
+            {"effective_to": {"$gte": check_date}}
+        ]
+    }, {"_id": 0})
+    
+    if not rate:
+        return {"pay_rate": None, "message": "No effective pay rate found"}
+    
+    return {"pay_rate": rate}
+
 # ===================== TIMESHEET WEEK ROUTES =====================
 
 @am_router.get("/timesheet-weeks")
