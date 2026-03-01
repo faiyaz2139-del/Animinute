@@ -1,155 +1,175 @@
 <analysis>**original_problem_statement:**
-The initial request was to build a production-ready MVP web app called Payroll Canada for Canadian SMBs. The app needed to import approved hours from an existing ASP.NET timesheet system, supporting both a real API connection and a mock mode. Key features included company setup, employee management, pay period creation, payroll calculation, PDF payslip generation, and CSV reports.
+The initial request was to build a production-ready MVP web app called Payroll Canada for Canadian SMBs. The scope expanded to include a multi-tenant time-tracking app Any Minute. Phase 1 of Any Minute and its integration with Payroll Canada are complete.
 
-The scope was later expanded with two major user requests:
-1.  **Add a Payroll Analytics Dashboard:** This was successfully implemented with charts for trends, breakdowns, and forecasts.
-2.  **Build a new Any Minute Timesheet App:** This is the current, active task. The user provided a detailed Business Requirements Document (BRD) to build a *separate*, multi-tenant time-tracking web app named Any Minute. This new app will replace the original concept of connecting to an external ASP.NET system and will serve as the source of timesheet data for Payroll Canada via a dedicated API.
-3. **Remove Emergent Branding:** The user requested the removal of all Emergent branding from the application.
+The current focus is on implementing Phase 2 features for Any Minute and fixing a comprehensive list of bugs and functional gaps identified by the user from a legacy ASP.NET system. The user provided multiple documents detailing these issues and a new sprint plan.
+
+**PRODUCT REQUIREMENTS (Latest Sprint):**
+-   **Task 1: E2E Workflow Test:** Perform a full end-to-end test of the core application workflow, from creating a business/employee to running payroll and creating a support ticket. Fix any issues found.
+-   **Task 2: RBAC Hardening:** Review and strengthen Role-Based Access Control on both the frontend and backend. Ensure unauthorized users cannot access restricted data or UI elements. Block terminated users from logging in.
+-   **Task 3: Email Notifications (Mocked):** Implement an email notification system for key events (new ticket, ticket reply, timesheet approval). This should be a mocked service that logs emails to the console but is structured to easily switch to a live SMTP service later.
+-   **Task 4: Stripe Live Key Readiness:** Prepare the application for Stripe integration. Create webhook handler endpoints and add configuration for Stripe keys, but do not implement live payment processing yet. Add a TEST mode banner to the UI.
 
 **User's preferred language**: English
 
 **what currently exists?**
-There are two applications in the workspace:
-1.  **Payroll Canada**: A complete and functional full-stack application (FastAPI backend, React frontend) that fulfills all initial requirements, including the added analytics dashboard. It is currently using mock data for timesheets, awaiting integration with the Any Minute app.
-2.  **Any Minute Timesheet**: The development for this new application has just begun. The agent has created the directory structure () and scaffolded several reusable frontend components (, , , , ) and a global theme file. The backend, data models, and main pages have not been created yet.
+The application is a unified full-stack solution with two frontends (Payroll Canada, Any Minute) and two backends served from a single process. The integration between the two apps is functional.
+
+A significant number of features and bug fixes were completed in the last session. This includes:
+-   **Phase 2A Billing MVP**: A manual, admin-controlled plan and seat limit system.
+-   **Comprehensive Bug Fixes**: A large batch of fixes for User/Business/Project management, Timesheet/Schedule functionality, and Payroll calculations were implemented based on user-provided documents.
+-   **Core Feature Enhancements**: User Status Lifecycle (Active/Inactive/Terminated with history), a dedicated Pay Rate management screen, and a functional internal Support Ticket system have been built.
+-   The application has undergone a full end-to-end test and RBAC hardening.
+-   A mocked email service and Stripe readiness stubs are now in place.
 
 **Last working item**:
--   **Last item agent was working**: The agent was scaffolding the new Any Minute timesheet application. The last action was the parallel creation of several reusable React components in  and a theme file in .
--   **Status**: IN PROGRESS
--   **Agent Testing Done**: N
--   **Which testing method agent to use?**: Once pages and backend are developed, use both frontend and backend testing agents.
+-   **Last item agent was working**: The agent completed **Task 4 — Stripe Live Key Readiness**. This involved adding Stripe configuration settings to , creating a new  router in the backend with a webhook handler endpoint (), and adding a TEST MODE banner to the Billing page () to indicate that payments are not live.
+-   **Status**: USER VERIFICATION PENDING
+-   **Agent Testing Done**: Y
+-   **Which testing method agent to use?**: backend testing agent. The primary functionality is the webhook endpoint. This should be tested by the testing agent to simulate incoming webhook calls from Stripe once it's configured. The UI banner can be visually confirmed with the .
 -   **User Testing Done**: N
 
 **All Pending/In progress Issue list**:
 -   **Issue 1: Emergent Branding Not Fully Removed (P1)**
-    -   **Description**: The user requested the removal of all Emergent branding. The agent successfully removed branding from the app's source code (e.g., ), but noted that a Made with Emergent badge visible in screenshots is injected by the hosting platform at runtime.
+    -   **Description**: The Made with Emergent badge is injected by the hosting platform at runtime and cannot be removed via application code.
+    -   **Attempted fixes**: None, as this is a platform-level feature.
+    -   **Next debug checklist**: Inform the user this is a platform feature if it is raised again.
+    -   **Why fix this issue and what will be achieved with the fix?**: Fulfills user request for a completely white-labeled application.
     -   **Status**: BLOCKED
-    -   **Attempted fixes**: The agent removed all branding-related scripts and tags from .
-    -   **Next debug checklist**:
-        1.  Confirm that no branding artifacts remain in any of the application source files.
-        2.  Inform the user that the remaining badge is a platform-level feature and cannot be removed from within the application's code.
-    -   **Why fix this issue and what will be achieved with the fix?**: To meet the user's explicit request for a white-labeled application.
-    -   **Is recurring issue?**: N
-    -   **Should Test frontend/backend/both after fix?**: Frontend (screenshot to verify).
+    -   **Is recurring issue?**: Y
+    -   **Should Test frontend/backend/both after fix?**: N/A
 
 **In progress Task List**:
--   **Task 1: Build Phase 1 MVP of Any Minute Timesheet App (P0)**
-    -   **Description**: Implement the full Phase 1 MVP for the Any Minute timesheet application as specified in the BRD and user clarifications.
-    -   **Where to resume**: The reusable frontend components have been created. The next step is to build the backend: create the FastAPI server, define the MongoDB models (with  prefix), and implement the authentication and core API routes.
-    -   **What will be achieved with this?**: A functional, multi-tenant timesheet application that can be integrated with the Payroll Canada app.
-    -   **Status**: IN PROGRESS
-    -   **Should Test frontend/backend/both after fix?**: Both
-    -   **Blocked on something**: No.
+-   None. The agent completed all tasks from the user's latest sprint request.
 
 **Upcoming and Future Tasks**
-**Upcoming Tasks (P0):**
-1.  **Any Minute Backend Development**:
-    -   Create  and data models (, , , , , etc.) in .
-    -   Implement JWT authentication.
-    -   Build API endpoints for CRUD operations on Business, User, and Project entities.
-    -   Build the core timesheet and scheduling endpoints.
-2.  **Any Minute Payroll Integration API**:
-    -   Implement the three critical endpoints for Payroll Canada integration:
-        -   
-        -   
-        -   
-    -   Secure these endpoints with an  stored in an environment variable.
-3.  **Any Minute Frontend Development**:
-    -   Create all pages outlined in the BRD: Login, SignUp, Dashboard, Home, Add/Edit Business, Add/Edit User, Timesheet Entry, Scheduling, and the Custom Report by Business Name.
-    -   Implement the timesheet entry grid with its specific logic (weekly view, start/end times, breaks, status).
-4.  **Integrate Payroll Canada with Any Minute**:
-    -   Once the Any Minute API is ready, modify the  module in the Payroll Canada backend to call the new API endpoints instead of using the mock data generator.
 
-**Future Tasks (P1):**
--   Implement Phase 2 features for Any Minute by creating placeholder screens for Reseller registration, Tickets, and Plan Upgrades.
--   Add the Compare to a prior period hyperlink functionality to the reports page in Any Minute.
+**Upcoming Tasks:**
+-   **Task 1: Full Stripe Integration (P0):** Move from Stripe Readiness to a full implementation. This will involve using the created webhook handlers to manage subscription statuses based on Stripe events (e.g., , ).
+-   **Task 2: Implement Audit Logs (P1):** Fulfill requirement **E) AUDIT LOGS** from the original Phase 2 plan. Create  entries for all critical create/update/delete actions across the application to track user activity.
+-   **Task 3: Implement Report Enhancement (P2):** Fulfill requirement **F) REPORT ENHANCEMENT** from the original Phase 2 plan. Add a Compare to prior period feature in the reports section.
+-   **Task 4: Switch to Live Email Service (P2):** Replace the mocked email service in  with a real SMTP implementation, configured via environment variables.
+
+**Future Tasks:**
+-   **Task 5: Implement Reseller / Partner Feature (P3):** Build out the full functionality for the Reseller Registration and Partner Dashboard pages, which are currently placeholders.
 
 **Completed work in this session**
--   **Payroll Canada MVP**: The entire application was built from scratch, including a FastAPI backend, React frontend, JWT authentication, and all core payroll features (employee management, payroll runs, PDF payslips, CSV reports).
--   **MongoDB Serialization Fix**: Corrected a recurring  serialization issue across multiple backend create endpoints by returning a clean copy of the data after the database insertion.
--   **PDF Generation Fix**: Resolved a style conflict in the PDF generation service that was creating empty/small files.
--   **Payroll Analytics Dashboard**: A new page () was added with backend endpoints and frontend charts to display payroll trends, deduction breakdowns, and cost forecasts.
--   **Branding Removal (Partial)**: Removed Emergent-related scripts, metadata, and HTML elements from .
--   **Any Minute App Scaffolding**: Created the directory structure and initial set of reusable frontend components for the new timesheet application.
+-   **E2E Workflow Test (Task 1)**: Executed a 10-step end-to-end test and fixed issues found (e.g., incorrect payroll API key).
+-   **RBAC Hardening (Task 2)**: Added role-based guards to frontend navigation () and hardened backend APIs, including blocking terminated users from logging in ().
+-   **Mock Email Notifications (Task 3)**: Created a mock email service () and integrated it into the Support Tickets and Timesheet approval flows.
+-   **Stripe Readiness (Task 4)**: Created Stripe webhook handlers () and added a TEST MODE banner to the UI ().
+-   **Phase 2A - Billing MVP**: Implemented a manual plan/seat limit system with backend models (), APIs (), and a frontend UI ().
+-   **Comprehensive Bug Fixes**: Addressed a large list of issues related to user, business, project, timesheet, and payroll modules.
+-   **User Status Lifecycle**: Implemented status management (Active/Inactive/Terminated) with history tracking.
+-   **Pay Rate Management**: Created a new section for managing employee pay rates with effective dates (, ).
+-   **Timesheet Enhancements**: Added per-entry status (Pending/Approved/etc.), bulk week approval/rejection, and color-coding to the timesheet page.
+-   **Support Ticket System**: Replaced the Coming Soon placeholder with a fully functional internal ticketing system (, ).
+-   **Payroll Guards**: Added logic to prevent payroll runs before the designated Pay Date ().
+
+**Earlier issues found/mentioned but not fixed**
+-   None other than the blocked Emergent Branding issue.
+
+**Known issue recurrence from previous fork**
+-   **Issue recurrence in previous fork**: MongoDB  serialization error.
+-   **Recurrence count**: 1
+-   **Status**: RESOLVED. The agent has demonstrated correct handling of BSON types in all recent work.
 
 **Code Architecture**
-The project consists of two separate full-stack applications:
-1.  **/app/**: The **Payroll Canada** application.
-    -   : FastAPI server with modules for payroll logic, PDF/CSV services, and a timesheet connector.
-    -   : React application containing all UI for payroll management.
-2.  **/app/any-minute-timesheet/**: The **Any Minute Timesheet** application (in progress).
-    -   : Will contain a FastAPI server, JWT auth, data models, and the payroll integration API layer.
-    -   : Will contain a React application for time tracking, project management, and scheduling.
+-   **Monorepo/Monoprocess**: Single repository and process for both Payroll Canada and Any Minute apps.
+-   **Backend**:  - FastAPI application. Core logic for Any Minute is in .
+-   **Frontend**:  - React application. Core components for Any Minute are in .
 
 **Key Technical Concepts**
--   **Architecture**: Two-service architecture where Payroll Canada consumes data from Any Minute via a REST API.
--   **Backend**: FastAPI, Python, MongoDB ().
--   **Frontend**: React, JavaScript, Tailwind CSS, Recharts (for charts).
--   **Authentication**: JWT for user sessions.
--   **Inter-service Security**: API Key () for securing communication between the two apps.
--   **Multi-tenancy**: To be implemented in the Any Minute app (Tenant/Subscriber model).
+-   **Backend**: FastAPI, Pydantic, MongoDB ()
+-   **Frontend**: React, JavaScript, Tailwind CSS, Axios
+-   **Authentication**: JWT for user sessions, API Key for inter-service communication.
 
 **key DB schema**
--   **Payroll Canada (Existing Collections)**: , , , , , , , , , .
--   **Any Minute (To be created with  prefix)**: , , , , , , , .
+-   : {name, **plan**, **seatLimit**, **billingStatus**, payroll_key}
+-   : {email, name, password_hash, ...}
+-   : {name, owner_id, ...}
+-   : {user_id, business_id, role}
+-   : {user_id, business_id, week_start_date, status}
+-   : {week_id, day, start_time, end_time, **status**}
+-   **New Collections**:
+    -   : {name, features, price}
+    -   : {tenant_id, plan_id, stripe_subscription_id}
+    -   : {tenant_id, user_id, title, status, priority, messages: [...]}
+    -   : {user_id, business_id, status, effective_date, reason}
+    -   : {user_id, business_id, rate, rate_type, effective_date_from, effective_date_to}
+-   **Upcoming Collections**: .
 
 **All files of reference**
--   : Contains , , , , . These were just created for the new app.
--   : Global style definitions for the new app.
--   : The main server file for the existing Payroll Canada app.
--   : The component for the recently added analytics feature in Payroll Canada.
--   : Modified to remove Emergent branding.
--   : Contains project requirements, progress, and future tasks.
+-   **Created Files**:
+    -   : New router for Stripe webhooks.
+    -   : New mock email service.
+    -   : New page for plan management.
+    -   : New page for managing pay rates.
+    -   : New page for the support ticket system.
+-   **Heavily Modified Files**:
+    -   : Integrated new routers.
+    -   : Added numerous endpoints for billing, tickets, pay rates, user status, and timesheet actions.
+    -   : Added many new Pydantic models for the new features.
+    -   : Overhauled to include user selection, entry status, and bulk actions.
+    -   : Updated with routes for all new pages.
+    -   : Updated navigation links and added role-based visibility.
+
+**Areas that need refactoring**:
+-   The mock email service in  is a placeholder designed to be replaced with a real SMTP implementation.
 
 **key api endpoints**
--   **Payroll Canada (Existing)**:
-    -   : User registration and login.
-    -   : Data for the analytics dashboard.
-    -   Standard CRUD endpoints for , , , etc.
--   **Any Minute (To be built)**:
-    -   : To export employee data to the payroll app.
-    -   : To export approved timesheet data.
-    -   : To lock timesheet entries after a payroll run.
+-   : Fetches tenant billing info.
+-   : Updates tenant plan and seat limit.
+-   : Creates a new pay rate.
+-   : Manages a specific pay rate.
+-   : Lists or creates support tickets.
+-   : Adds a reply to a ticket.
+-   : Bulk approve/reject a week's timesheet entries.
+-   : Handles incoming webhooks from Stripe (currently a stub).
 
 **Critical Info for New Agent**
--   The main priority is to build the new **Any Minute Timesheet app**. Do not work on Payroll Canada except for the final integration step.
--   Strictly follow the Any Minute BRD for Phase 1 MVP. The user has provided clear instructions: build it as a separate app, use the same MongoDB instance but with collections prefixed by , and use an API for integration.
--   The directory and reusable UI components for Any Minute are already in place. Resume work by building the backend first.
--   The user is sensitive about branding. Be aware that the Made with Emergent badge seen in screenshots is platform-injected and cannot be removed via code. This should be communicated if the user brings it up again.
+-   The last sprint requested by the user is complete. All 4 major tasks (E2E Test, RBAC Hardening, Mock Email, Stripe Readiness) have been implemented and tested by the agent.
+-   The application is in a stable state. Before starting new work, you must propose a plan based on the Upcoming Tasks and get user approval.
+-   The next logical steps are to implement the remaining Phase 2 requirements (Audit Logs, Report Enhancement) and/or move the mocked services (Email, Stripe) to a live implementation.
+-   The  and  directives from the user mean you should continue to reuse existing components and avoid large-scale refactors unless absolutely necessary.
 
 **documents and test reports created in this job**
+-    (Continuously updated)
 -   
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User**: Provided a BRD and requested the creation of a new Any Minute timesheet application to integrate with the payroll system.
-2.  **Agent**: Acknowledged the request and extracted the BRD.
-3.  **Agent**: Asked clarifying questions regarding deployment, database, integration, and authentication for the new app.
-4.  **User**: Answered clarifications: build a separate app, use the same DB with  prefixes, use an API for integration (not shared DB), use JWT auth, and reuse the existing logo.
-5.  **Agent**: Acknowledged the user's choices and began building the Any Minute app.
-6.  **Agent**: Created the directory structure for the new app.
-7.  **Agent**: Created reusable frontend components (, , etc.). (Last action performed).
-- The messages before this sequence related to the completion of the Payroll Canada app, the addition of the analytics dashboard, the request for branding removal, and providing sample login credentials.
+1.  **User**: Uploaded docs with ~40 bugs and new feature requirements from a legacy app. (Request)
+2.  **Agent**: Proposed using legacy docs as a reference to build equivalent features in the modern stack. (Plan)
+3.  **User**: Agreed and provided an 8-item priority list to fix. (Approval)
+4.  **Agent**: Implemented the 8 priority items (User Status, Pay Rate, Timesheet status, etc.). (Completed)
+5.  **User**: still some bugs are pending - uploaded a status report showing the Tickets feature was still a blank screen. (Feedback)
+6.  **Agent**: Implemented the full Support Ticket system, fixing the blank screen. (Completed)
+7.  **User**: Uploaded a new sprint plan with 4 tasks: E2E Test, RBAC Hardening, Mock Email, Stripe Readiness. (Request)
+8.  **Agent**: Provided a plan to tackle the 4 tasks in order. (Plan)
+9.  **User**: Approved the plan, instructing the agent to mock the email service and prepare for Stripe without going live. (Approval)
+10. **Agent**: Completed all 4 tasks from the sprint, reporting the success of each step. (Completed)
 
 **Project Health Check:**
--   **Working**: Payroll Canada app (awaiting integration).
--   **Broken**: Branding removal is incomplete due to a platform-injected badge that is outside the application's code.
--   **Mocked**: The timesheet import functionality in Payroll Canada is currently mocked, pending the creation of the Any Minute API.
+-   **Working**: All core features of Payroll Canada and Any Minute, including Phase 2 Billing, Pay Rates, User Status, and Tickets.
+-   **Broken**: None.
+-   **Mocked**:
+    -   **Email Service**:  logs to console instead of sending real emails.
+    -   **Stripe Integration**: Webhook endpoint exists but is not connected to a live Stripe account. UI shows a TEST MODE banner.
 
 **3rd Party Integrations**
--   **emergentintegrations**: A backend dependency used for various utilities. Does not require a user-provided key.
+-   : Backend dependency, uses Emergent LLM Key.
+-   **Stripe**: Readiness implemented (config, webhook stubs). Requires user API keys to go live.
 
 **Testing status**
--   **Testing agent used after significant changes**: YES (for the Payroll Canada application).
+-   **Testing agent used after significant changes**: YES, a test report is available at .
 -   **Troubleshoot agent used after agent stuck in loop**: NO
 -   **Test files created**: None.
--   **Known regressions**: None.
+-   **Known regressions**: None. A full E2E test was successfully completed.
 
 **Credentials to test flow:**
--   **Application**: Payroll Canada
--   **Email**: 
--   **Password**: 
+-   **Payroll Canada**: Email: , Password: 
+-   **Any Minute Timesheet Admin**: Email: , Password: 
+-   **Any Minute Timesheet Manager**: Email: , Password: 
+-   **Any Minute Timesheet Employee**: Email: , Password: 
 
 **What agent forgot to execute**
--   The primary task of building the Any Minute timesheet application is still outstanding and is the main focus for the next steps.
--   The final integration of Payroll Canada with the Any Minute API is pending the completion of the timesheet app.
--   The agent needs to manage user expectations regarding the platform-injected branding that cannot be removed via code.</analysis>
+-   The agent successfully completed all tasks from the user's most recent request. It did not forget to execute anything from the active scope. The remaining, un-started tasks from the original Phase 2 plan (Audit Logs, Report Enhancement) are correctly listed in the Upcoming and Future Tasks section.</analysis>
