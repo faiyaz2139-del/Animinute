@@ -320,8 +320,9 @@ export default function AMTimesheet() {
                 <th>End</th>
                 <th>Break (min)</th>
                 <th>Net Hours</th>
+                <th>Status</th>
                 <th>Notes</th>
-                <th></th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
