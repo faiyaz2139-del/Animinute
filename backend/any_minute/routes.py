@@ -646,12 +646,32 @@ async def am_delete_user(user_id: str, user: dict = Depends(am_require_admin)):
     if user_id == user['id']:
         raise HTTPException(status_code=400, detail="Cannot delete your own account")
     
+    # Get user info before delete for audit
+    target_user = await am_db.am_users.find_one(
+        {"id": user_id, "tenant_id": user['tenant_id']},
+        {"_id": 0, "password_hash": 0}
+    )
+    if not target_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
     result = await am_db.am_users.update_one(
         {"id": user_id, "tenant_id": user['tenant_id']},
         {"$set": {"active": False}}
     )
-    if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Audit log - user deleted (soft delete)
+    await am_log_audit(
+        tenant_id=user['tenant_id'],
+        actor_id=user['id'],
+        actor_name=f"{user['first_name']} {user['last_name']}",
+        action="DELETE",
+        entity_type="user",
+        entity_id=user_id,
+        entity_name=f"{target_user.get('first_name', '')} {target_user.get('last_name', '')}",
+        old_value={"active": True},
+        new_value={"active": False}
+    )
+    
     return {"success": True}
 
 # ===================== USER-BUSINESS ROLE ROUTES =====================
