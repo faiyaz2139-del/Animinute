@@ -154,7 +154,7 @@ export default function AMAddProject() {
               type="select"
               value={form.business_id}
               onChange={handleChange}
-              options={businesses.map(b => ({ value: b.id, label: b.company_name }))}
+              options={businesses.map(b => ({ value: b.id, label: b.name }))}
               required
             />
             <div style={{ display: 'flex', gap: '12px' }}>
@@ -177,7 +177,7 @@ export default function AMAddProject() {
               type="select"
               value={selectedBusiness}
               onChange={(e) => setSelectedBusiness(e.target.value)}
-              options={businesses.map(b => ({ value: b.id, label: b.company_name }))}
+              options={businesses.map(b => ({ value: b.id, label: b.name }))}
             />
           </div>
           <Table columns={columns} data={projects} />
