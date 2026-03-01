@@ -113,6 +113,32 @@ class AMScheduleEntryUpdate(BaseModel):
     end_time: Optional[str] = None
     notes: Optional[str] = None
 
+# User Status Models
+class AMUserStatusUpdate(BaseModel):
+    status: str  # active, not_active, terminated
+    effective_date: str
+    reason: Optional[str] = None
+
+# Pay Rate Models
+class AMPayRateCreate(BaseModel):
+    user_id: str
+    business_id: str
+    rate_type: str  # hourly, salary, overtime
+    rate_amount: float
+    effective_from: str
+    effective_to: Optional[str] = None
+
+class AMPayRateUpdate(BaseModel):
+    rate_type: Optional[str] = None
+    rate_amount: Optional[float] = None
+    effective_from: Optional[str] = None
+    effective_to: Optional[str] = None
+    active: Optional[bool] = None
+
+# Timesheet Entry Status Update
+class AMTimesheetEntryStatusUpdate(BaseModel):
+    status: str  # pending, approved, rejected, absent
+
 # ===================== AUTH HELPERS =====================
 
 def am_hash_password(password: str) -> str:
