@@ -3,34 +3,40 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { Layout } from '../components/Layout';
 import { FormField, BlueButton, Table, Loader } from '../components/SharedComponents';
-import { AM_API_URL } from '../context/AMAuthContext';
+import { AM_API_URL, useAMAuth } from '../context/AMAuthContext';
 
 export default function AMEditUser() {
   const navigate = useNavigate();
+  const { token } = useAMAuth();
   const [businesses, setBusinesses] = useState([]);
   const [users, setUsers] = useState([]);
   const [selectedBusiness, setSelectedBusiness] = useState('');
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchBusinesses();
-  }, []);
+  // Auth headers for API calls
+  const config = { headers: { Authorization: `Bearer ${token}` } };
 
   useEffect(() => {
-    if (selectedBusiness) {
+    if (token) {
+      fetchBusinesses();
+    }
+  }, [token]);
+
+  useEffect(() => {
+    if (selectedBusiness && token) {
       fetchUsers();
     }
-  }, [selectedBusiness]);
+  }, [selectedBusiness, token]);
 
   const fetchBusinesses = async () => {
     try {
-      const res = await axios.get(`${AM_API_URL}/businesses`);
+      const res = await axios.get(`${AM_API_URL}/businesses`, config);
       setBusinesses(res.data);
       if (res.data.length > 0) {
         setSelectedBusiness(res.data[0].id);
       }
     } catch (err) {
-      console.error(err);
+      console.error('Error fetching businesses:', err);
     } finally {
       setLoading(false);
     }
@@ -38,10 +44,10 @@ export default function AMEditUser() {
 
   const fetchUsers = async () => {
     try {
-      const res = await axios.get(`${AM_API_URL}/users`, { params: { business_id: selectedBusiness } });
+      const res = await axios.get(`${AM_API_URL}/users`, { ...config, params: { business_id: selectedBusiness } });
       setUsers(res.data);
     } catch (err) {
-      console.error(err);
+      console.error('Error fetching users:', err);
     }
   };
 
@@ -73,7 +79,7 @@ export default function AMEditUser() {
             type="select"
             value={selectedBusiness}
             onChange={(e) => setSelectedBusiness(e.target.value)}
-            options={businesses.map(b => ({ value: b.id, label: b.company_name }))}
+            options={businesses.map(b => ({ value: b.id, label: b.name }))}
           />
         </div>
 
