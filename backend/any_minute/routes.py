@@ -1027,6 +1027,105 @@ async def am_delete_timesheet_entry(entry_id: str, user: dict = Depends(am_get_c
     
     return {"success": True}
 
+@am_router.put("/timesheet-entries/{entry_id}/status")
+async def am_update_entry_status(entry_id: str, data: AMTimesheetEntryStatusUpdate, user: dict = Depends(am_require_manager_or_admin)):
+    """Update individual timesheet entry status (Pending/Approved/Rejected/Absent)"""
+    if data.status not in ['pending', 'approved', 'rejected', 'absent']:
+        raise HTTPException(status_code=400, detail="Invalid status. Must be: pending, approved, rejected, or absent")
+    
+    entry = await am_db.am_timesheet_entries.find_one(
+        {"id": entry_id, "tenant_id": user['tenant_id']},
+        {"_id": 0}
+    )
+    if not entry:
+        raise HTTPException(status_code=404, detail="Entry not found")
+    
+    week = await am_db.am_timesheet_weeks.find_one({"id": entry['week_id']}, {"_id": 0})
+    if week and week.get('locked'):
+        raise HTTPException(status_code=400, detail="Timesheet week is locked")
+    
+    await am_db.am_timesheet_entries.update_one(
+        {"id": entry_id},
+        {"$set": {
+            "entry_status": data.status,
+            "status_updated_by": user['id'],
+            "status_updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    return {"success": True, "status": data.status}
+
+@am_router.post("/timesheet-weeks/{week_id}/bulk-approve")
+async def am_bulk_approve_week(week_id: str, user: dict = Depends(am_require_manager_or_admin)):
+    """Approve all entries in a week at once"""
+    week = await am_db.am_timesheet_weeks.find_one(
+        {"id": week_id, "tenant_id": user['tenant_id']},
+        {"_id": 0}
+    )
+    if not week:
+        raise HTTPException(status_code=404, detail="Timesheet week not found")
+    
+    if week.get('locked'):
+        raise HTTPException(status_code=400, detail="Timesheet week is locked")
+    
+    # Update all entries in the week to approved
+    result = await am_db.am_timesheet_entries.update_many(
+        {"week_id": week_id, "tenant_id": user['tenant_id']},
+        {"$set": {
+            "entry_status": "approved",
+            "status_updated_by": user['id'],
+            "status_updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    # Update week status to approved
+    await am_db.am_timesheet_weeks.update_one(
+        {"id": week_id},
+        {"$set": {
+            "status": "approved",
+            "approved_by": user['id'],
+            "approved_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    return {"success": True, "entries_updated": result.modified_count}
+
+@am_router.post("/timesheet-weeks/{week_id}/bulk-reject")
+async def am_bulk_reject_week(week_id: str, reason: Optional[str] = Query(None), user: dict = Depends(am_require_manager_or_admin)):
+    """Reject all entries in a week at once"""
+    week = await am_db.am_timesheet_weeks.find_one(
+        {"id": week_id, "tenant_id": user['tenant_id']},
+        {"_id": 0}
+    )
+    if not week:
+        raise HTTPException(status_code=404, detail="Timesheet week not found")
+    
+    if week.get('locked'):
+        raise HTTPException(status_code=400, detail="Timesheet week is locked")
+    
+    # Update all entries in the week to rejected
+    result = await am_db.am_timesheet_entries.update_many(
+        {"week_id": week_id, "tenant_id": user['tenant_id']},
+        {"$set": {
+            "entry_status": "rejected",
+            "status_updated_by": user['id'],
+            "status_updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    # Update week status to rejected
+    await am_db.am_timesheet_weeks.update_one(
+        {"id": week_id},
+        {"$set": {
+            "status": "rejected",
+            "rejection_reason": reason,
+            "rejected_by": user['id'],
+            "rejected_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    return {"success": True, "entries_updated": result.modified_count}
+
 async def am_update_week_total_hours(week_id: str):
     entries = await am_db.am_timesheet_entries.find({"week_id": week_id}, {"_id": 0}).to_list(100)
     total_hours = sum(e.get('net_hours', 0) for e in entries)
