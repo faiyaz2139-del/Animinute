@@ -90,14 +90,14 @@ export default function AMAddBusiness() {
     try {
       if (editBusiness) {
         await axios.put(`${AM_API_URL}/businesses/${editBusiness.id}`, payload, config);
-        setPopup({ open: true, type: 'success', title: 'Success', message: 'Business updated successfully!' });
+        setPopup({ isOpen: true, type: 'success', title: 'Success', message: 'Business updated successfully!' });
       } else {
         await axios.post(`${AM_API_URL}/businesses`, payload, config);
-        setPopup({ open: true, type: 'success', title: 'Success', message: 'Business created successfully!' });
+        setPopup({ isOpen: true, type: 'success', title: 'Success', message: 'Business created successfully!' });
       }
     } catch (err) {
       console.error('Business save error:', err.response?.data || err);
-      setPopup({ open: true, type: 'error', title: 'Error', message: err.response?.data?.detail || 'Failed to save business' });
+      setPopup({ isOpen: true, type: 'error', title: 'Error', message: err.response?.data?.detail || 'Failed to save business' });
     } finally {
       setLoading(false);
     }
