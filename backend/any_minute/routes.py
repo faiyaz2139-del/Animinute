@@ -1609,6 +1609,111 @@ async def am_get_report_by_business(
     
     return result
 
+
+@am_router.get("/reports/compare")
+async def am_get_report_compare(
+    user: dict = Depends(am_require_manager_or_admin),
+    business_id: Optional[str] = Query(None),
+    start_date: Optional[str] = Query(None),
+    end_date: Optional[str] = Query(None)
+):
+    """
+    Compare current period to prior period of same length.
+    E.g., if current = Jan 1-31, prior = Dec 1-31
+    """
+    if not start_date or not end_date:
+        raise HTTPException(status_code=400, detail="Both start_date and end_date are required for comparison")
+    
+    # Calculate period length
+    start = datetime.strptime(start_date, "%Y-%m-%d").date()
+    end = datetime.strptime(end_date, "%Y-%m-%d").date()
+    period_days = (end - start).days + 1
+    
+    # Calculate prior period dates
+    prior_end = start - timedelta(days=1)
+    prior_start = prior_end - timedelta(days=period_days - 1)
+    
+    async def get_period_data(s_date: str, e_date: str, label: str):
+        """Helper to get report data for a period"""
+        query = {"tenant_id": user['tenant_id'], "status": "approved"}
+        if business_id:
+            query['business_id'] = business_id
+        query['week_start_date'] = {"$gte": s_date, "$lte": e_date}
+        
+        weeks = await am_db.am_timesheet_weeks.find(query, {"_id": 0}).to_list(1000)
+        
+        total_hours = sum(w.get('total_hours', 0) for w in weeks)
+        unique_users = len(set(w['user_id'] for w in weeks))
+        unique_businesses = len(set(w['business_id'] for w in weeks))
+        
+        # Business breakdown
+        business_hours = {}
+        for week in weeks:
+            biz_id = week['business_id']
+            if biz_id not in business_hours:
+                business_hours[biz_id] = 0
+            business_hours[biz_id] += week.get('total_hours', 0)
+        
+        return {
+            "label": label,
+            "start_date": s_date,
+            "end_date": e_date,
+            "total_hours": round(total_hours, 2),
+            "unique_users": unique_users,
+            "unique_businesses": unique_businesses,
+            "week_count": len(weeks),
+            "business_hours": business_hours
+        }
+    
+    # Get data for both periods
+    current_data = await get_period_data(start_date, end_date, "Current Period")
+    prior_data = await get_period_data(prior_start.isoformat(), prior_end.isoformat(), "Prior Period")
+    
+    # Calculate changes
+    hours_change = current_data['total_hours'] - prior_data['total_hours']
+    hours_change_pct = 0
+    if prior_data['total_hours'] > 0:
+        hours_change_pct = round((hours_change / prior_data['total_hours']) * 100, 1)
+    
+    # Get business names
+    businesses = await am_db.am_businesses.find({"tenant_id": user['tenant_id']}, {"_id": 0}).to_list(100)
+    business_map = {b['id']: b['name'] for b in businesses}
+    
+    # Detailed business comparison
+    all_biz_ids = set(current_data['business_hours'].keys()) | set(prior_data['business_hours'].keys())
+    business_comparison = []
+    for biz_id in all_biz_ids:
+        curr_hours = current_data['business_hours'].get(biz_id, 0)
+        prior_hours = prior_data['business_hours'].get(biz_id, 0)
+        change = curr_hours - prior_hours
+        change_pct = 0
+        if prior_hours > 0:
+            change_pct = round((change / prior_hours) * 100, 1)
+        
+        business_comparison.append({
+            "business_id": biz_id,
+            "business_name": business_map.get(biz_id, "Unknown"),
+            "current_hours": round(curr_hours, 2),
+            "prior_hours": round(prior_hours, 2),
+            "change": round(change, 2),
+            "change_percent": change_pct
+        })
+    
+    # Sort by current hours descending
+    business_comparison.sort(key=lambda x: x['current_hours'], reverse=True)
+    
+    return {
+        "current": current_data,
+        "prior": prior_data,
+        "summary": {
+            "hours_change": round(hours_change, 2),
+            "hours_change_percent": hours_change_pct,
+            "users_change": current_data['unique_users'] - prior_data['unique_users'],
+        },
+        "business_comparison": business_comparison
+    }
+
+
 # ===================== PAYROLL INTEGRATION API =====================
 
 async def am_verify_payroll_key(x_payroll_key: str = Header(...)):
