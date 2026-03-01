@@ -283,6 +283,7 @@ All bugs from AnyMinute_BugFix_StatusReport.docx now FIXED:
   - `pages/Reports.js` - Business reports
   - `pages/Settings.js` - Payroll API key management
   - **`pages/Billing.js` - Plan & seat management (Phase 2A)**
+  - **`pages/AuditLogs.js` - Activity history tracking (Admin only)**
 
 ### Tests
 - `/app/backend/tests/test_payroll_anyminute_integration.py` - Integration tests
