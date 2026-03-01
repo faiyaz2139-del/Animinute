@@ -361,6 +361,18 @@ async def am_login(data: AMUserLogin):
     if user_status == 'not_active':
         raise HTTPException(status_code=401, detail="Account is not active. Please contact your administrator.")
     
+    # Check tenant subscription status
+    tenant = await am_db.am_tenants.find_one({"id": user['tenant_id']}, {"_id": 0})
+    if tenant:
+        tenant_status = tenant.get('status', 'active')
+        billing_status = tenant.get('billing_status', 'active')
+        
+        if tenant_status == 'subscription_ended' or billing_status == 'cancelled':
+            raise HTTPException(
+                status_code=403, 
+                detail="Your subscription has ended. Please renew to continue."
+            )
+    
     token = am_create_token(user['id'], user['tenant_id'], user['role'])
     user_response = {k: v for k, v in user.items() if k != 'password_hash'}
     return {"token": token, "user": user_response}
