@@ -277,8 +277,15 @@ async def am_login(data: AMUserLogin):
     if not user or not am_verify_password(data.password, user['password_hash']):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
+    # Check if account is disabled or terminated
     if not user.get('active', True):
         raise HTTPException(status_code=401, detail="Account is disabled")
+    
+    user_status = user.get('status', 'active')
+    if user_status == 'terminated':
+        raise HTTPException(status_code=401, detail="Account is terminated. Please contact your administrator.")
+    if user_status == 'not_active':
+        raise HTTPException(status_code=401, detail="Account is not active. Please contact your administrator.")
     
     token = am_create_token(user['id'], user['tenant_id'], user['role'])
     user_response = {k: v for k, v in user.items() if k != 'password_hash'}
