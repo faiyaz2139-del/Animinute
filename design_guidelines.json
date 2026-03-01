@@ -1,0 +1,198 @@
+{
+  "project_name": "Payroll Canada - Any Minute",
+  "design_philosophy": {
+    "identity": "The Performance Pro",
+    "core_principles": [
+      "Fusion over Imitation: Mix Fintech precision with Swiss poster bold typography.",
+      "Emotion First: Reliability and Efficiency. Every pixel must say 'We handle your money safely'.",
+      "Content is King: Data tables are the hero. Optimise for scanability.",
+      "Negative Space: Use whitespace to prevent 'Spreadsheet Fatigue'.",
+      "Contrast: High contrast for data, subtle for structure."
+    ],
+    "anti_patterns": [
+      "Purple/Teal CTAs (Use Navy/Cornflower)",
+      "Inter everywhere (Use Manrope for Headings)",
+      "Center-Everything (Use Grids & Asymmetry)",
+      "Gradient Overload (Keep it flat & crisp)"
+    ]
+  },
+  "typography": {
+    "font_family": {
+      "headings": "Manrope, sans-serif",
+      "body": "Inter, sans-serif",
+      "mono": "JetBrains Mono, monospace"
+    },
+    "scale": {
+      "h1": "text-4xl md:text-5xl font-bold tracking-tight",
+      "h2": "text-3xl font-semibold tracking-tight",
+      "h3": "text-2xl font-semibold tracking-tight",
+      "p": "text-base leading-relaxed text-muted-foreground",
+      "small": "text-sm font-medium leading-none"
+    },
+    "rules": [
+      "Never use 'Inter' for Headings.",
+      "Headings > 32px must use tracking-tight.",
+      "Overlines must be uppercase and tracking-widest."
+    ]
+  },
+  "colors": {
+    "palette": {
+      "primary": {
+        "DEFAULT": "#1a237e",
+        "foreground": "#ffffff"
+      },
+      "secondary": {
+        "DEFAULT": "#6c8fef",
+        "foreground": "#ffffff"
+      },
+      "accent": {
+        "DEFAULT": "#f8fafc",
+        "foreground": "#1e293b"
+      },
+      "background": {
+        "light": "#ffffff",
+        "dark": "#020617"
+      },
+      "status": {
+        "success": "#10b981",
+        "warning": "#f59e0b",
+        "error": "#f43f5e",
+        "info": "#3b82f6"
+      }
+    },
+    "theme_strategy": "System-Adaptive (Light default for Trust, Dark for Power Users).",
+    "rules": [
+      "No generic full-screen gradients.",
+      "Use 'Tinted Grey' - never pure #000000 or #808080.",
+      "Dark mode backgrounds should be #020617 (Slate 950), not #000000."
+    ]
+  },
+  "layout_strategies": {
+    "spacing_scale": "p-1, p-2, p-4, p-6, p-8, p-12, p-16, p-20, p-24, p-32",
+    "grid_system": {
+      "mode": "MODE B: High Density Grid (For Dashboards)",
+      "rules": [
+        "Base Grid: grid-cols-1 md:grid-cols-3 lg:grid-cols-4",
+        "Gap: gap-4 or gap-6",
+        "Every pixel utilized. Use h-full on children."
+      ]
+    },
+    "containers": {
+      "dashboard_card": "p-6 rounded-xl border bg-card text-card-foreground shadow-sm",
+      "main_content": "container mx-auto py-6 md:py-10 max-w-7xl"
+    }
+  },
+  "ui_patterns": {
+    "surface_strategies": [
+      {
+        "name": "The Tracing Beam",
+        "usage": "Active Payroll Run Cards",
+        "description": "A glowing gradient line that travels around the container edge."
+      },
+      {
+        "name": "Glassmorphism (Crystal)",
+        "usage": "Sticky Headers / Modals",
+        "description": "bg-white/80 backdrop-blur-md border-b border-white/20"
+      },
+      {
+        "name": "Grid Borders",
+        "usage": "Data Tables / Analytics",
+        "description": "border-collapse style, subtle borders on right/bottom of grid items."
+      }
+    ],
+    "micro_interactions": [
+      "Hover: Slight lift (-translate-y-1) for cards.",
+      "Buttons: Scale down (0.98) on click.",
+      "Inputs: Ring-2 ring-primary/20 on focus."
+    ]
+  },
+  "components": {
+    "shadcn_overrides": {
+      "Button": {
+        "style": "rounded-md font-medium transition-all active:scale-95",
+        "variants": {
+          "default": "bg-primary text-primary-foreground hover:bg-primary/90",
+          "outline": "border-input bg-background hover:bg-accent hover:text-accent-foreground"
+        }
+      },
+      "Card": {
+        "style": "rounded-xl border bg-card text-card-foreground shadow-sm",
+        "header": "flex flex-col space-y-1.5 p-6",
+        "content": "p-6 pt-0"
+      },
+      "Table": {
+        "style": "w-full caption-bottom text-sm",
+        "header": "[&_tr]:border-b",
+        "row": "border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
+      },
+      "Dialog": {
+        "overlay": "bg-black/80 backdrop-blur-sm",
+        "content": "bg-background p-6 shadow-lg duration-200 sm:rounded-lg"
+      }
+    },
+    "custom_components": [
+      {
+        "name": "MetricCard",
+        "description": "Small stats card with trend indicator."
+      },
+      {
+        "name": "StatusBadge",
+        "description": "Pill-shaped badge for payroll status (Draft/Locked/Paid)."
+      }
+    ]
+  },
+  "assets": {
+    "images": [
+      {
+        "category": "Login Background",
+        "url": "https://images.unsplash.com/photo-1763251177167-85a9ca1966a8?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzd8MHwxfHNlYXJjaHwyfHxtb2Rlcm4lMjBvZmZpY2UlMjBtaW5pbWFsaXN0JTIwYXJjaGl0ZWN0dXJlJTIwYmx1ZXxlbnwwfHx8fDE3NzA5MzgxNDh8MA&ixlib=rb-4.1.0&q=85",
+        "description": "Modern glass building corner - Use for Login/Auth pages side panel."
+      },
+      {
+        "category": "Dashboard Placeholder",
+        "url": "https://images.unsplash.com/photo-1770816307507-5dc610ffa704?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzd8MHwxfHNlYXJjaHw0fHxtb2Rlcm4lMjBvZmZpY2UlMjBtaW5pbWFsaXN0JTIwYXJjaGl0ZWN0dXJlJTIwYmx1ZXxlbnwwfHx8fDE3NzA5MzgxNDh8MA&ixlib=rb-4.1.0&q=85",
+        "description": "Modern office interior - Use for 'Company Profile' or Empty States."
+      }
+    ],
+    "icons": {
+      "library": "lucide-react",
+      "style": "Stroke width 1.5px or 2px. Consistent sizing (w-4 h-4 or w-5 h-5)."
+    },
+    "logo": {
+       "url": "https://customer-assets.emergentagent.com/job_payroll-import-on/artifacts/6c0udnd7_image.png",
+       "description": "Any Minute branding logo"
+    }
+  },
+  "accessibility": {
+    "rules": [
+      "Text < 18px must have 4.5:1 contrast.",
+      "Interactive elements must have :focus-visible styles.",
+      "Use data-testid for all interactive elements (buttons, inputs)."
+    ]
+  },
+  "instructions_to_main_agent": [
+    "PHASE 1: Setup Theme. Install 'next-themes' (if using Next.js) or simple context for Vite. Configure Tailwind colors.",
+    "PHASE 2: Build Layouts. Create the 'DashboardLayout' with sidebar and topbar.",
+    "PHASE 3: Build Core Components. Customize Shadcn Button, Input, Card, Table.",
+    "PHASE 4: Implement Pages. Login -> Dashboard -> Payroll Run.",
+    "CRITICAL: Do not ask user questions. Use the provided defaults.",
+    "CRITICAL: Use the Unsplash URLs provided for visuals. Do not use placeholders."
+  ],
+  "universal_guidelines": [
+     "Dark colors look good when used independently without gradients. DO NOT use dark colors as gradients",
+     "Don't make generic centered layouts, simplistic gradients, and uniform styling.",
+     "Create depth through layered design elements with z-index hierarchy",
+     "Use glass-morphism effects with backdrop filters (12-24px blur)",
+     "You MUST NOT apply universal transition. Eg: transition: all. This results in breaking transforms. Always add transitions for specific interactive elements like button, input excluding transforms",
+     "You MUST NOT center align the app container, ie do not add .App { text-align: center; } in the css file. This disrupts the human natural reading flow of text",
+     "Always use modern button styles like pill-shaped, or sharp button with interaction animations & color relevant to the app style",
+     "NEVER: use AI assistant Emoji characters like 🤖🧠 etc for icons.",
+     "Every interaction needs micro-animations - hover states, transitions, parallax effects, and entrance animations. Static = dead.",
+     "Use 2-3x more spacing than feels comfortable. Cramped designs look cheap.",
+     "Subtle grain textures, noise overlays, custom cursors, selection states, and loading animations: separates good from extraordinary.",
+     "Main agent relies on these image URLs. Missing categories = main agent will use placeholder text which is FORBIDDEN",
+     "Components MUST use named exports (export const ComponentName = ...)",
+     "Pages MUST use default exports (export default function PageName() {...})",
+     "Use sonner for toasts"
+  ]
+}
