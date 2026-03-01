@@ -9,6 +9,16 @@ from datetime import datetime, timezone, date, timedelta
 import jwt
 import bcrypt
 import secrets
+import logging
+
+# Import email service
+from any_minute.email_service import (
+    send_ticket_created_notification,
+    send_ticket_reply_notification,
+    send_timesheet_approved_notification
+)
+
+logger = logging.getLogger("any_minute")
 
 # Create router with /api/am prefix (to work with existing proxy)
 am_router = APIRouter(prefix="/api/am")
