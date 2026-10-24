@@ -524,6 +524,8 @@ public partial class Add_Business : System.Web.UI.Page
         if (!String.IsNullOrWhiteSpace(Label_Maximum_Limit.Text))
         { SaveFeedback("Business changes are unavailable under the current plan or account status."); return; }
         EnableAddressFields();
+        // v3: Status is not on the Add Business form (deck slide 1); a new business starts Active.
+        if (Request.QueryString["BusinessIDEdit"] == null && ddlClientStats.SelectedValue == "") ddlClientStats.SelectedValue = "1";
         string error = ValidateBusinessAndAddress();
         if (error != null) { ExtraBusinessDetails.Attributes["open"] = "open"; SaveFeedback(error); return; }
         int business = 0;
@@ -610,9 +612,7 @@ public partial class Add_Business : System.Web.UI.Page
         if (!Regex.IsMatch(postal, @"^[A-Z0-9-]{5,10}$")) return "Enter a valid postal code.";
         if (String.IsNullOrWhiteSpace(Country.Text) || Country.Text.Trim().Length > 100)
             return "Enter a country (maximum 100 characters).";
-        if ((!String.IsNullOrWhiteSpace(txtMainPhone.Text) && Regex.Replace(txtMainPhone.Text, @"\D", "").Length != 10) ||
-            (!String.IsNullOrWhiteSpace(txtMobile.Text) && Regex.Replace(txtMobile.Text, @"\D", "").Length != 10))
-            return "Enter valid 10-digit contact phone and mobile numbers, or leave the optional fields blank.";
+        // v3: Contact Phone / Mobile are no longer on the form (not in the deck); stored values are kept as they are.
         if (!IsValidEmail(txtMainEmail.Text.Trim())) return "Enter a valid primary email address.";
         // "0" = Not Active (same value the Dashboard Active/Not Active menu writes); a legacy stored "2" is kept as-is.
         if (ddlClientStats.SelectedValue != "1" && ddlClientStats.SelectedValue != "0" && ddlClientStats.SelectedValue != "2")
@@ -832,6 +832,11 @@ public partial class Add_Business : System.Web.UI.Page
         bool editing = Request.QueryString["BusinessIDEdit"] != null || ViewState["SavedBusinessId"] != null;
         BusinessPageTitle.Text = BusinessBreadcrumb.Text = editing ? "Update Business Profile" : "Add Business";
         SaveTopText.Text = editing ? "Save Changes" : "Save";
+        // v3 field layout per deck: Add = 2 columns, no Status/Country/Clear Address; Update = 2/3/4 columns with Status and Country.
+        BusinessDetailsCard.Attributes["class"] = "am-business-card am-fields-v3 " + (editing ? "am-mode-edit" : "am-mode-add");
+        divAdd.Attributes["class"] = "am-business-card " + (editing ? "am-mode-edit" : "am-mode-add");
+        StatusField.Visible = editing; CountryField.Style["display"] = editing ? "" : "none";
+        ClearBusinessAddress.Visible = editing;
         // Logo: picture when one exists, otherwise initials (edit) or the upload prompt (add).
         bool hasLogo = !String.IsNullOrEmpty(previewImage.ImageUrl);
         string initials = BusinessInitials(txtCompanyName.Text);

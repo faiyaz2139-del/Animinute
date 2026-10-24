@@ -1,7 +1,7 @@
 <%@ Page Title="Business" Language="C#" MasterPageFile="~/Main.master" AutoEventWireup="true" CodeFile="Add_Business.aspx.cs" Inherits="Add_Business" %>
 <%@ Register Assembly="AjaxControlToolkit" Namespace="AjaxControlToolkit" TagPrefix="cc1" %>
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
- <link rel="stylesheet" href="css/AnyminuteBusinessEditor.css?v=20261024v2" />
+ <link rel="stylesheet" href="css/AnyminuteBusinessEditor.css?v=20261024v3" />
  <script src="Scripts/AnyminuteBusinessEditor.js?v=20261024v2" defer="defer"></script>
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
@@ -39,32 +39,32 @@
    <p id="business-logo-error" class="am-business-error" role="alert" hidden="hidden"></p>
    <asp:Button ID="RemoveBusinessLogo" runat="server" Text="Remove logo" CssClass="am-logo-remove" CausesValidation="false" />
   </section>
-  <section class="am-business-card" aria-labelledby="business-details-heading">
+  <section id="BusinessDetailsCard" runat="server" class="am-business-card am-fields-v3" aria-labelledby="business-details-heading">
    <h2 id="business-details-heading">Business Details</h2>
-   <div class="am-business-grid am-business-grid-two">
-<div class="am-business-field"><asp:Label runat="server" AssociatedControlID="txtCompanyName" Text="Company Name" /> <span class="am-required">(Required)</span><asp:TextBox ID="txtCompanyName" runat="server" CssClass="am-business-input" MaxLength="200" autocomplete="organization" aria-required="true" /></div>
-<div class="am-business-field"><asp:Label runat="server" AssociatedControlID="txtOperatingName" Text="Operating Name" /><asp:TextBox ID="txtOperatingName" runat="server" CssClass="am-business-input" MaxLength="200" /></div>
-<div class="am-business-field"><asp:Label runat="server" AssociatedControlID="PrmContName" Text="Primary Contact Name" /> <span class="am-required">(Required)</span><asp:TextBox ID="PrmContName" runat="server" CssClass="am-business-input" autocomplete="name" aria-required="true" /></div>
-<div class="am-business-field"><asp:Label runat="server" AssociatedControlID="PrmContNmbr" Text="Primary Contact Number" /> <span class="am-required">(Required)</span><asp:TextBox ID="PrmContNmbr" runat="server" CssClass="am-business-input" TextMode="Phone" MaxLength="24" autocomplete="tel" aria-required="true" /></div>
-<div class="am-business-field"><asp:Label runat="server" AssociatedControlID="txtMainEmail" Text="Email" /> <span class="am-required">(Required)</span><asp:TextBox ID="txtMainEmail" runat="server" CssClass="am-business-input" TextMode="Email" autocomplete="email" aria-required="true" /></div>
-<div class="am-business-field"><asp:Label runat="server" AssociatedControlID="txtBusinessNumber" Text="Business Number" /><asp:TextBox ID="txtBusinessNumber" runat="server" CssClass="am-business-input"  /></div>
-<div class="am-business-field"><asp:Label runat="server" AssociatedControlID="ddlLegalEnityType" Text="Legal Entity Type" /><asp:DropDownList ID="ddlLegalEnityType" runat="server" CssClass="am-business-input">
+   <div class="am-business-grid am-grid-12">
+<div class="am-business-field am-f-company"><asp:Label runat="server" AssociatedControlID="txtCompanyName" Text="Company Name" /> <span class="am-required">(Required)</span><asp:TextBox ID="txtCompanyName" runat="server" CssClass="am-business-input" MaxLength="200" autocomplete="organization" aria-required="true" placeholder="Enter company name" /></div>
+<div class="am-business-field am-f-operating"><asp:Label runat="server" AssociatedControlID="txtOperatingName" Text="Operating Name" /><asp:TextBox ID="txtOperatingName" runat="server" CssClass="am-business-input" MaxLength="200" placeholder="Enter operating name" /></div>
+<div class="am-business-field am-f-cname"><asp:Label runat="server" AssociatedControlID="PrmContName" Text="Primary Contact Name" /> <span class="am-required">(Required)</span><asp:TextBox ID="PrmContName" runat="server" CssClass="am-business-input" autocomplete="name" aria-required="true" placeholder="Enter primary contact name" /></div>
+<div class="am-business-field am-f-cnumber"><asp:Label runat="server" AssociatedControlID="PrmContNmbr" Text="Primary Contact Number" /> <span class="am-required">(Required)</span><asp:TextBox ID="PrmContNmbr" runat="server" CssClass="am-business-input" TextMode="Phone" MaxLength="24" autocomplete="tel" aria-required="true" placeholder="Enter primary contact number" /></div>
+<div class="am-business-field am-f-email"><asp:Label runat="server" AssociatedControlID="txtMainEmail" Text="Email" /> <span class="am-required">(Required)</span><span class="am-input-icon am-icon-mail"><asp:TextBox ID="txtMainEmail" runat="server" CssClass="am-business-input" TextMode="Email" autocomplete="email" aria-required="true" placeholder="Enter email address" /></span></div>
+<div class="am-business-field am-f-bnumber"><asp:Label runat="server" AssociatedControlID="txtBusinessNumber" Text="Business Number" /><asp:TextBox ID="txtBusinessNumber" runat="server" CssClass="am-business-input" placeholder="Enter business number" /></div>
+<div class="am-business-field am-f-legal"><asp:Label runat="server" AssociatedControlID="ddlLegalEnityType" Text="Legal Entity Type" /><asp:DropDownList ID="ddlLegalEnityType" runat="server" CssClass="am-business-input">
                                                 
-                                                <asp:ListItem>Select</asp:ListItem>
-                                                <asp:ListItem>Sole Proprietorships</asp:ListItem>
-                                                <asp:ListItem>Partnerships</asp:ListItem>
-                                                <asp:ListItem>Corporations</asp:ListItem>
-                                                <asp:ListItem>S Corporations</asp:ListItem>
+                                                <asp:ListItem Value="Select">Select legal entity type</asp:ListItem>
+                                                <asp:ListItem Value="Sole Proprietorships">Sole Proprietorship</asp:ListItem>
+                                                <asp:ListItem Value="Partnerships">Partnership</asp:ListItem>
+                                                <asp:ListItem Value="Corporations">Corporation</asp:ListItem>
+                                                <asp:ListItem Value="S Corporations">S Corporation</asp:ListItem>
                                                 <asp:ListItem>Limited Liability Company (LLC) </asp:ListItem>
                                             </asp:DropDownList></div>
-<div class="am-business-field"><asp:Label runat="server" AssociatedControlID="txtWebsite" Text="Website" /><asp:TextBox ID="txtWebsite" runat="server" CssClass="am-business-input" placeholder="www.example.com" /></div>
-<div class="am-business-field"><asp:Label runat="server" AssociatedControlID="ddlClientStats" Text="Status" /><asp:DropDownList ID="ddlClientStats" runat="server" CssClass="am-business-input">
+<div class="am-business-field am-f-website"><asp:Label runat="server" AssociatedControlID="txtWebsite" Text="Website" /><span class="am-input-icon am-icon-globe"><asp:TextBox ID="txtWebsite" runat="server" CssClass="am-business-input" placeholder="Enter website (e.g. www.example.com)" /></span></div>
+<div id="StatusField" runat="server" class="am-business-field am-f-status"><asp:Label runat="server" AssociatedControlID="ddlClientStats" Text="Status" /><asp:DropDownList ID="ddlClientStats" runat="server" CssClass="am-business-input">
                                                 <asp:ListItem Value=""> Select</asp:ListItem>
                                                 <asp:ListItem Value="1" Selected="True">Active</asp:ListItem>
                                                 <asp:ListItem Value="0">Not Active</asp:ListItem>
                                             </asp:DropDownList></div>
    </div>
-   <details ID="ExtraBusinessDetails" runat="server" class="am-business-extra" open="open"><summary>Additional contact and registration details</summary><div class="am-business-grid am-business-grid-two">
+   <%-- v3: not on the deck; kept hidden so existing values are preserved on save --%><details ID="ExtraBusinessDetails" runat="server" class="am-business-extra" hidden="hidden" aria-hidden="true"><summary>Additional contact and registration details</summary><div class="am-business-grid am-business-grid-two">
 <div class="am-business-field"><asp:Label runat="server" AssociatedControlID="txtMainPhone" Text="Contact Phone" /><asp:TextBox ID="txtMainPhone" runat="server" CssClass="am-business-input" TextMode="Phone" MaxLength="24" /></div>
 <div class="am-business-field"><asp:Label runat="server" AssociatedControlID="txtMobile" Text="Mobile" /><asp:TextBox ID="txtMobile" runat="server" CssClass="am-business-input" TextMode="Phone" MaxLength="24" /></div>
 <div class="am-business-field"><asp:Label runat="server" AssociatedControlID="txtWorkPhone" Text="Work Phone" /><asp:TextBox ID="txtWorkPhone" runat="server" CssClass="am-business-input" TextMode="Phone" /></div>
@@ -79,44 +79,45 @@
  <asp:UpdatePanel ID="UpdatePanel1" runat="server" UpdateMode="Conditional"><ContentTemplate>
   <section class="am-business-card" aria-labelledby="address-lookup-heading">
    <h2 id="address-lookup-heading">Address Lookup</h2>
-   <p>Enter a postal code to search, then select an address or add one manually.</p>
+   <p>Enter a postal code to search for an address, then select one from the list below or add a new address.</p>
    <div class="am-business-lookup">
-    <div class="am-business-field"><asp:Label runat="server" AssociatedControlID="txtSearchPostalCode" Text="Enter Postal Code" /><asp:Panel ID="AddressSearchPanel" runat="server" DefaultButton="lnkSearch" CssClass="am-business-search-group">
-     <asp:TextBox ID="txtSearchPostalCode" ClientIDMode="Static" runat="server" MaxLength="10" CssClass="am-business-input" autocomplete="postal-code" />
-     <asp:LinkButton ID="lnkSearch" runat="server" Text="Search" OnClick="lnkSearch_Click" CausesValidation="false" CssClass="am-business-button" />
+    <div class="am-business-field"><asp:Label runat="server" AssociatedControlID="txtSearchPostalCode" Text="Enter Postal Code" /> <span class="am-required">(Required)</span><asp:Panel ID="AddressSearchPanel" runat="server" DefaultButton="lnkSearch" CssClass="am-business-search-group">
+     <asp:TextBox ID="txtSearchPostalCode" ClientIDMode="Static" runat="server" MaxLength="10" CssClass="am-business-input" autocomplete="postal-code" placeholder="Enter postal code" />
+     <asp:LinkButton ID="lnkSearch" runat="server" OnClick="lnkSearch_Click" CausesValidation="false" CssClass="am-business-button am-search-icon" ToolTip="Search postal code"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg><span class="am-visually-hidden">Search</span></asp:LinkButton>
     </asp:Panel></div>
     <div id="resultdiv" runat="server" class="am-business-results">
-     <asp:Label runat="server" AssociatedControlID="AddressChoices" Text="Select Address from List or Add New" />
+     <asp:Label runat="server" AssociatedControlID="AddressChoices" Text="Select Address from List or Add New" /> <span class="am-required">(Required)</span>
      <asp:DropDownList ID="AddressChoices" runat="server" AutoPostBack="true" OnSelectedIndexChanged="AddressChoices_SelectedIndexChanged" CssClass="am-business-input" />
-     <asp:LinkButton ID="UseThisAddress" runat="server" Enabled="false" Text="Use This Address" CausesValidation="false" OnClick="UseThisAddress_Click" CssClass="am-business-button am-business-secondary" />
+     <asp:LinkButton ID="UseThisAddress" runat="server" Enabled="false" Text="Use This Address" CausesValidation="false" OnClick="UseThisAddress_Click" CssClass="am-business-button am-business-secondary" style="display:none" />
     </div>
    </div>
    <div class="am-business-actions">
-    <asp:LinkButton ID="AddNewAddress" runat="server" Text="Add New Address" OnClick="AddNewAddress_Click" CausesValidation="false" CssClass="am-business-button am-business-secondary" />
+    <asp:LinkButton ID="AddNewAddress" runat="server" Text="+&nbsp; Add New Address" OnClick="AddNewAddress_Click" CausesValidation="false" CssClass="am-business-button am-business-secondary" />
     <asp:LinkButton ID="ClearBusinessAddress" runat="server" Text="Clear Address" OnClick="ClearBusinessAddress_Click" CausesValidation="false" CssClass="am-business-button am-business-secondary" />
    </div>
   </section>
   <asp:Label ID="AddressMessage" ClientIDMode="Static" runat="server" Visible="false" CssClass="am-business-error" role="alert" tabindex="-1" />
   <div id="divAdd" runat="server" class="am-business-card" style="display:block;" aria-labelledby="business-address-heading">
    <h2 id="business-address-heading">Business Address</h2>
-   <p class="am-business-hint">Selecting an address fills the fields below. Check the street number, add a suite if needed, and correct any details before saving.</p>
-   <div class="am-business-grid am-business-grid-three">
-<div class="am-business-field"><asp:Label runat="server" AssociatedControlID="txtStreetNo" Text="Street Number" /> <span class="am-required">(Required)</span><asp:TextBox ID="txtStreetNo" runat="server" CssClass="am-business-input" ClientIDMode="Static" aria-required="true" /></div>
-<div class="am-business-field"><asp:Label runat="server" AssociatedControlID="txtStreetName" Text="Address Line 1" /> <span class="am-required">(Required)</span><asp:TextBox ID="txtStreetName" runat="server" CssClass="am-business-input" ClientIDMode="Static" autocomplete="address-line1" aria-required="true" /></div>
-<div class="am-business-field"><asp:Label runat="server" AssociatedControlID="txtStreetType" Text="Address Line 2" /><asp:TextBox ID="txtStreetType" runat="server" CssClass="am-business-input" autocomplete="address-line2" /></div>
-<div class="am-business-field"><asp:Label runat="server" AssociatedControlID="txtSuiteNumber" Text="Suite Number" /><asp:TextBox ID="txtSuiteNumber" runat="server" CssClass="am-business-input"  /></div>
-<div class="am-business-field"><asp:Label runat="server" AssociatedControlID="ddlSuitType" Text="Suite Type" /><asp:DropDownList ID="ddlSuitType" runat="server" CssClass="am-business-input">
+   <p class="am-business-hint">When an address is selected from the list, the fields below will be automatically filled. You can also enter or edit the address manually.</p>
+   <div class="am-business-grid am-grid-12 am-address-v3">
+<div class="am-business-field am-a3"><asp:Label runat="server" AssociatedControlID="txtStreetNo" Text="Street Number" /> <span class="am-required">(Required)</span><asp:TextBox ID="txtStreetNo" runat="server" CssClass="am-business-input" ClientIDMode="Static" aria-required="true" /></div>
+<div class="am-business-field am-a3"><asp:Label runat="server" AssociatedControlID="txtStreetName" Text="Address Line 1" /> <span class="am-required">(Required)</span><asp:TextBox ID="txtStreetName" runat="server" CssClass="am-business-input" ClientIDMode="Static" autocomplete="address-line1" aria-required="true" /></div>
+<div class="am-business-field am-a3"><asp:Label runat="server" AssociatedControlID="txtStreetType" Text="Address Line 2" /><asp:TextBox ID="txtStreetType" runat="server" CssClass="am-business-input" autocomplete="address-line2" placeholder="Enter address line 2 (e.g. Unit, Floor, etc.)" /></div>
+<div class="am-business-field am-a3"><asp:Label runat="server" AssociatedControlID="txtSuiteNumber" Text="Suite Number" /><asp:TextBox ID="txtSuiteNumber" runat="server" CssClass="am-business-input"  /></div>
+<div class="am-business-field am-a3"><asp:Label runat="server" AssociatedControlID="ddlSuitType" Text="Suite Type" /><asp:DropDownList ID="ddlSuitType" runat="server" CssClass="am-business-input">
                                                         <asp:ListItem Value="" Text="Please Select"></asp:ListItem>
                                                         <asp:ListItem Value="Apartment" Text="Apartment"></asp:ListItem>
                                                         <asp:ListItem Value="Suite" Text="Suite"></asp:ListItem>
                                                         <asp:ListItem Value="Unit" Text="Unit"></asp:ListItem>
                                                     </asp:DropDownList></div>
-<div class="am-business-field"><asp:Label runat="server" AssociatedControlID="txtCity" Text="City" /> <span class="am-required">(Required)</span><asp:TextBox ID="txtCity" runat="server" CssClass="am-business-input" ClientIDMode="Static" autocomplete="address-level2" aria-required="true" /></div>
-<div class="am-business-field"><asp:Label runat="server" AssociatedControlID="txtProvince" Text="Province / State" /> <span class="am-required">(Required)</span><asp:TextBox ID="txtProvince" runat="server" CssClass="am-business-input" ClientIDMode="Static" autocomplete="address-level1" aria-required="true" /></div>
-<div class="am-business-field"><asp:Label runat="server" AssociatedControlID="txtPostalCode" Text="Postal Code" /> <span class="am-required">(Required)</span><asp:TextBox ID="txtPostalCode" runat="server" CssClass="am-business-input" ClientIDMode="Static" MaxLength="10" autocomplete="postal-code" aria-required="true" /></div>
-<div class="am-business-field"><asp:Label runat="server" AssociatedControlID="Country" Text="Country" /> <span class="am-required">(Required)</span><asp:TextBox ID="Country" runat="server" CssClass="am-business-input" Text="Canada" MaxLength="100" autocomplete="country-name" aria-required="true" /></div>
+<div class="am-business-field am-a4 am-row-start"><asp:Label runat="server" AssociatedControlID="txtCity" Text="City" /> <span class="am-required">(Required)</span><asp:TextBox ID="txtCity" runat="server" CssClass="am-business-input" ClientIDMode="Static" autocomplete="address-level2" aria-required="true" /></div>
+<div class="am-business-field am-a4"><asp:Label runat="server" AssociatedControlID="txtProvince" Text="Province/State" /> <span class="am-required">(Required)</span><asp:TextBox ID="txtProvince" runat="server" CssClass="am-business-input am-select-look" list="am-provinces" ClientIDMode="Static" autocomplete="address-level1" aria-required="true" /></div>
+<div class="am-business-field am-a4"><asp:Label runat="server" AssociatedControlID="txtPostalCode" Text="Postal Code" /> <span class="am-required">(Required)</span><asp:TextBox ID="txtPostalCode" runat="server" CssClass="am-business-input" ClientIDMode="Static" MaxLength="10" autocomplete="postal-code" aria-required="true" /></div>
+<div id="CountryField" runat="server" class="am-business-field am-a4"><asp:Label runat="server" AssociatedControlID="Country" Text="Country" /> <span class="am-required">(Required)</span><asp:TextBox ID="Country" runat="server" CssClass="am-business-input am-select-look" list="am-countries" Text="Canada" MaxLength="100" autocomplete="country-name" aria-required="true" /></div>
    </div>
   </div>
+  <datalist id="am-provinces"><option value="ALBERTA"></option><option value="BRITISH COLUMBIA"></option><option value="MANITOBA"></option><option value="NEW BRUNSWICK"></option><option value="NEWFOUNDLAND AND LABRADOR"></option><option value="NORTHWEST TERRITORIES"></option><option value="NOVA SCOTIA"></option><option value="NUNAVUT"></option><option value="ONTARIO"></option><option value="PRINCE EDWARD ISLAND"></option><option value="QUEBEC"></option><option value="SASKATCHEWAN"></option><option value="YUKON"></option></datalist><datalist id="am-countries"><option value="Canada"></option><option value="United States"></option></datalist>
   <div class="am-business-compat" hidden="hidden" aria-hidden="true">
    <asp:GridView ID="gvAddressList" runat="server" Visible="false" AutoGenerateColumns="false"><Columns><asp:TemplateField><ItemTemplate>
     <asp:LinkButton ID="StartDate" runat="server" CausesValidation="false" Text='<%#DataBinder.Eval(Container.DataItem, "SEARCHADDRESS")%>' OnClick="StartDate_Click" />
