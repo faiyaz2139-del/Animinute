@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Text;
@@ -54,57 +54,93 @@ public static class AnyminuteUiNavigation
         if(!items.Any(item=>String.Equals(item.Href,href,StringComparison.OrdinalIgnoreCase)))
             items.Add(new MenuViewModel {Id=id,Seq=900-id,Name=name,Href=href,Icon="",SubMenu=new List<MenuViewModel>()});
     }
+    // 2026-10-24 v5 sidebar order: Dashboard, Quick Actions, Businesses, Employees, Projects, Time Cards, Approvals,
+    // Reports, Settings, Notifications, Payroll, Calendar, Account, Need Help. "More tools" (the old catch-all) is gone:
+    // Assign Accountant lives under Businesses, Assign User under Employees, tickets under Need Help.
+    // Every link still comes from the role-permitted menu; only Change Password, Help Center and Chat are added,
+    // and those were already offered to every signed-in user in the header menus.
+    const int GDashboard=0,GQuick=1,GBusinesses=2,GEmployees=3,GProjects=4,GTimeCards=5,GApprovals=6,GReports=7,GSettings=8,GNotifications=9,GPayroll=10,GCalendar=11,GAccount=12,GHelp=13;
     private static IEnumerable<MenuViewModel> UiMenuGroups(IEnumerable<MenuViewModel> permitted)
     {
+        var all = permitted.ToList();
         var leaves = new List<MenuViewModel>();
-        foreach (var item in permitted) CollectUiMenuItems(item, leaves);
-        string[] names = { "Dashboard", "Businesses", "Employees", "Projects", "Time Cards", "Approvals", "Reports", "Settings", "Notifications", "Payroll", "Calendar", "Account" };
+        foreach (var item in all) CollectUiMenuItems(item, leaves);
+        string[] names = { "Dashboard", "Quick Actions", "Businesses", "Employees", "Projects", "Time Cards", "Approvals", "Reports", "Settings", "Notifications", "Payroll", "Calendar", "Account", "Need Help" };
         var groups = new List<MenuViewModel>();
         for (int i = 0; i < names.Length; i++)
             groups.Add(new MenuViewModel { Id = -500-i, Seq = i, Name = names[i], Href = "#", Icon = "", SubMenu = new List<MenuViewModel>() });
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var labels = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         MenuViewModel employeesFallback = null;
         foreach (var item in leaves)
         {
             string href = UiMenuHref(item), key = CanonicalRoute(href);
             if (!seen.Add(key)) continue;
-            string route = href.ToLowerInvariant(), label = Convert.ToString(item.Name).ToLowerInvariant();
-            // Account links have one home in the account menu, never a duplicate sidebar row.
+            string route = href.ToLowerInvariant(), label = Convert.ToString(item.Name).Trim().ToLowerInvariant();
+            // Change Password and Plan Upgrade are added once, together, at the top of Account (below).
             if (route.Contains("enterprise_plan") || route.Contains("change%20password") || route.Contains("change password") || label.Contains("plan upgrade")) continue;
-            int group = 11;
-            if (label.Contains("accountant") || route.Contains("businessactions")) group=1;
-            else if (label.Contains("setting")) group=7;
-            else if (route.Contains("notification")) group=8;
-            else if (route.Contains("payroll")) group=9;
-            else if (route.Contains("schedular") || route.Contains("scheduler")) group=10;
-            else if (route.Contains("view=businesses")) group=1;
-            else if (route.Contains("dashboard") || label == "home" || label == "dashboard" || route.EndsWith("home_page.aspx")) group=0;
-            else if (route.Contains("report") || label.Contains("report")) group=6;
-            else if (label.Contains("approv")) group=5;
-            else if (route.Contains("time_sheet") || route.Contains("timecard") || label.Contains("time card")) group=4;
-            else if (route.Contains("project")) group=3;
-            else if (route.Contains("employee") || route.Contains("users.aspx") || label=="users" || label=="employees") group=2;
-            else if (route.Contains("business") || route.Contains("bussiness")) group=1;
-            // Canonical dashboard aliases all resolve to the same top-level item.
-            if (group==0 && groups[group].SubMenu.Count>0) continue;
-            // Employees submenu matches the design: exactly "Add User" and "Edit User".
-            // Legacy employee pages stay reachable from the Employees list, they are just not repeated here.
-            if (group==2)
+            int group = GAccount;
+            if (label.Contains("accountant")) group=GBusinesses;
+            else if (label == "assign user" || route.Contains("assignuser")) group=GEmployees;
+            else if (route.Contains("ticket") || label.Contains("ticket")) group=GHelp;
+            else if (route.Contains("businessactions")) group=GBusinesses;
+            else if (label.Contains("setting")) group=GSettings;
+            else if (route.Contains("notification")) group=GNotifications;
+            else if (route.Contains("payroll")) group=GPayroll;
+            else if (route.Contains("schedular") || route.Contains("scheduler")) group=GCalendar;
+            else if (route.Contains("view=businesses")) group=GBusinesses;
+            else if (route.Contains("dashboard") || label == "home" || label == "dashboard" || route.EndsWith("home_page.aspx")) group=GDashboard;
+            else if (route.Contains("report") || label.Contains("report")) group=GReports;
+            else if (label.Contains("approv")) group=GApprovals;
+            else if (route.Contains("time_sheet") || route.Contains("timecard") || label.Contains("time card")) group=GTimeCards;
+            else if (route.Contains("project")) group=GProjects;
+            else if (route.Contains("employee") || route.Contains("users.aspx") || label=="users" || label=="employees" || label=="add user" || label=="edit user") group=GEmployees;
+            else if (route.Contains("business") || route.Contains("bussiness")) group=GBusinesses;
+            // One Dashboard only: every dashboard alias (Home, role dashboards) collapses into the single top item.
+            if (group==GDashboard && groups[group].SubMenu.Count>0) continue;
+            if (group==GEmployees)
             {
                 string page = route.Split('?')[0];
-                if (page.EndsWith("employeeeditor.aspx")) item.Name="Add User";
-                else if (route.Contains("users.aspx?action=edit")) item.Name="Edit User";
-                else { if (employeesFallback == null) employeesFallback = item; continue; }
+                if (page.EndsWith("employeeeditor.aspx") || page.EndsWith("add_employeev2.aspx")) item.Name="Add Employee";
+                else if (route.Contains("users.aspx?action=edit") || page.EndsWith("addeditrole_add_employee.aspx")) item.Name="Edit Employee";
+                else if (label != "assign user") { if (employeesFallback == null) employeesFallback = item; continue; }
             }
-            if (group==3 && route.Contains("add_project.aspx?mode=add")) item.Name="Add Project";
-            if (group==3 && route.Contains("add_project.aspx?mode=edit")) item.Name="Edit Project";
+            if (group==GProjects && route.Contains("add_project.aspx?mode=add")) item.Name="Add Project";
+            if (group==GProjects && route.Contains("add_project.aspx?mode=edit")) item.Name="Edit Project";
+            if (group==GBusinesses && label.Contains("assign") && label.Contains("accountant")) item.Name="Assign Accountant";
+            // Same label twice in one menu (e.g. two Assign Accountant routes, two Dashboards) is shown once.
+            if (!labels.Add(group + "|" + item.Name.Trim())) continue;
             groups[group].SubMenu.Add(item);
         }
-        if (groups[2].SubMenu.Count == 0 && employeesFallback != null) { employeesFallback.Name = "Edit User"; groups[2].SubMenu.Add(employeesFallback); }
-        groups[2].SubMenu = groups[2].SubMenu.OrderBy(m => m.Name == "Add User" ? 0 : 1).ToList();
+        if (!groups[GEmployees].SubMenu.Any(m => m.Name == "Edit Employee") && employeesFallback != null) { employeesFallback.Name = "Edit Employee"; groups[GEmployees].SubMenu.Add(employeesFallback); }
+        Func<string,string[],int> rank = (n, order) => { int i = Array.IndexOf(order, n); return i < 0 ? order.Length : i; };
+        groups[GBusinesses].SubMenu = groups[GBusinesses].SubMenu.OrderBy(m => rank(m.Name, new[] { "Add Business", "Edit Business", "Assign Accountant" })).ToList();
+        groups[GEmployees].SubMenu = groups[GEmployees].SubMenu.OrderBy(m => rank(m.Name, new[] { "Add Employee", "Edit Employee", "Assign User" })).ToList();
+        groups[GProjects].SubMenu = groups[GProjects].SubMenu.OrderBy(m => rank(m.Name, new[] { "Add Project", "Edit Project" })).ToList();
+        // Account: Change Password, then Plan Upgrade directly below it (only where the role already has an upgrade page).
+        var account = new List<MenuViewModel> { Link(-601, "Change Password", VirtualPathUtility.ToAbsolute("~/Change%20Password.aspx")) };
+        string upgrade = PermittedHref(all, "Enterprise_Plan_Upgrade.aspx", "Enterprise_Plan.aspx", "Enterprise_Plan_Reseller.aspx");
+        if (upgrade != null) account.Add(Link(-602, "Plan Upgrade", upgrade));
+        account.AddRange(groups[GAccount].SubMenu); groups[GAccount].SubMenu = account;
+        // Need Help: Help Center, the role's ticket pages, then Chat (the existing HelpChat.aspx page).
+        var help = new List<MenuViewModel> { Link(-611, "Help Center", VirtualPathUtility.ToAbsolute("~/Help.aspx")) };
+        help.AddRange(groups[GHelp].SubMenu);
+        help.Add(Link(-612, "Chat", VirtualPathUtility.ToAbsolute("~/HelpChat.aspx")));
+        groups[GHelp].SubMenu = help;
+        // Quick Actions: shortcuts to links this role already has.
+        var quick = new List<MenuViewModel>();
+        foreach (var pick in new[] { new object[] { GBusinesses, "Add Business" }, new object[] { GEmployees, "Add Employee" }, new object[] { GProjects, "Add Project" }, new object[] { GApprovals, null } })
+        {
+            var source = groups[(int)pick[0]].SubMenu.FirstOrDefault(m => pick[1] == null || m.Name == (string)pick[1]);
+            if (source != null) quick.Add(Link(-620 - quick.Count, pick[1] == null ? "View Approvals" : (string)pick[1], UiMenuHref(source)));
+        }
+        groups[GQuick].SubMenu = quick;
         foreach (var group in groups.Where(g => g.SubMenu.Count > 0))
         {
+            if (group.Seq == GQuick || group.Seq == GAccount || group.Seq == GHelp) continue; // pure sections: the header only opens/closes
             group.Href = group.SubMenu[0].Href;
+            // Without a landing page, Businesses/Employees/Projects open as sections so Add X stays visible as a child link.
+            if ((group.Seq == GBusinesses || group.Seq == GEmployees || group.Seq == GProjects) && group.SubMenu.Count > 1) group.Href = "#";
             if (group.Name == "Dashboard" && HasAccount()) group.Href = VirtualPathUtility.ToAbsolute("~/Dashboard.aspx");
             if (group.Name == "Businesses" && HasAccount()) group.Href = VirtualPathUtility.ToAbsolute("~/Dashboard.aspx?view=businesses");
             if (group.Name == "Projects" && HasAccount()) group.Href = VirtualPathUtility.ToAbsolute("~/Projects.aspx");
@@ -112,6 +148,7 @@ public static class AnyminuteUiNavigation
         }
         return groups.Where(g => g.SubMenu.Count > 0);
     }
+    static MenuViewModel Link(int id, string name, string href) { return new MenuViewModel { Id = id, Seq = 0, Name = name, Href = href, Icon = "", SubMenu = new List<MenuViewModel>() }; }
 
     // Compare resolved destinations, not labels or relative/rooted spelling.
     private static string CanonicalRoute(string href)
