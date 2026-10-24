@@ -1,0 +1,10 @@
+/* 2026-10-24 v2 (old deck slide 3): the hamburger opens the menu as a slide-in drawer over the page */
+html body.am-drawer-nav .am-sidebar,html body.am-drawer-nav #sidebar-wrapper,html body.am-drawer-nav #wrapper.active #sidebar-wrapper{transform:translateX(-105%)!important;visibility:hidden;transition:transform .25s ease,visibility 0s linear .25s!important;z-index:1035!important;box-shadow:none!important}
+html body.am-drawer-nav.am-drawer-open .am-sidebar,html body.am-drawer-nav.am-drawer-open #sidebar-wrapper,html body.am-drawer-nav.am-drawer-open #wrapper.active #sidebar-wrapper{transform:translateX(0)!important;visibility:visible;transition:transform .25s ease!important;box-shadow:10px 0 28px rgba(15,35,60,.22)!important}
+html body.am-drawer-nav .am-main,html body.am-drawer-nav #page-content-wrapper,html body.am-drawer-nav #wrapper.active #page-content-wrapper{margin-left:0!important;width:100%!important}
+.am-drawer-shade{position:fixed;left:0;right:0;top:64px;bottom:0;background:rgba(15,35,60,.32);z-index:1034;border:0;padding:0;opacity:0;pointer-events:none;transition:opacity .2s}
+body.am-drawer-open .am-drawer-shade{opacity:1;pointer-events:auto}
+html body.am-drawer-nav [data-toggle-sidebar],html body.am-drawer-nav #menu-toggle{display:inline-flex!important;align-items:center;justify-content:center;width:38px;height:38px;padding:0!important;border:1px solid #cfd9e5!important;border-radius:8px!important;background:#fff!important;color:#1d2f45!important;cursor:pointer}
+html body.am-drawer-nav [data-toggle-sidebar]:hover,html body.am-drawer-nav #menu-toggle:hover{background:#eef4fb!important}
+html body.am-drawer-nav.am-drawer-open [data-toggle-sidebar],html body.am-drawer-nav.am-drawer-open #menu-toggle{color:#1768d6!important;border-color:#1768d6!important;background:#e8f1ff!important}
+html body.am-drawer-nav [data-toggle-sidebar]:focus-visible,html body.am-drawer-nav #menu-toggle:focus-visible{outline:3px solid #a8d1ff;outline-offset:2px}

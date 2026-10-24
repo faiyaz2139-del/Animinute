@@ -139,7 +139,7 @@
     </asp:ContentPlaceHolder>
     <link href="css/AnyminuteUI2026.css?v=20261017" rel="stylesheet" />
 <link href="css/AnyminuteUIUnified.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUiBugFixes.css?v=20261024e1" rel="stylesheet" />
-</head>
+<link href="css/AnyminuteNavDrawer.css?v=20261024v2" rel="stylesheet" /></head>
 <script type="text/javascript">  
     window.onload = window.history.forward(0);
 </script>
@@ -259,7 +259,7 @@
     <script src="Scripts/AnyminuteUI2026.js?v=20261017"></script>
     <script src="Scripts/AnyminuteUIUnified.js?v=20261024e1"></script>
     <script src="Scripts/AnyminuteUiBugFixes.js?v=20261024e1"></script>
-<script src="Scripts/AnyminuteNavigationActions.js?v=20261024e1"></script></form>
+<script src="Scripts/AnyminuteNavigationActions.js?v=20261024e1"></script><script src="Scripts/AnyminuteNavDrawer.js?v=20261024v2"></script></form>
     <!-- Datatables -->
     <script src="Assets/assets/js/plugin/datatables/datatables.min.js"></script>
     <script>
