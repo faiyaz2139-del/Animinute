@@ -11,14 +11,17 @@
   var input=editor.querySelector('input[type=file]'),preview=document.getElementById('previewImage'),area=document.getElementById('uploadArea'),error=document.getElementById('business-logo-error');
   if(input&&!input.dataset.amBusinessBound){
    input.dataset.amBusinessBound='true';
-   var previous=preview.getAttribute('src')||'';
+   var previous=preview.getAttribute('src')||'',baseClass=area.className;
+   // The circle shows the picture when there is one, otherwise the initials/upload prompt.
+   function mark(){var src=preview.getAttribute('src')||'';area.className=src?baseClass.replace(/\s*has-initials/,'').replace(/\s*has-logo/,'')+' has-logo':baseClass;}
+   var setSrc=function(v){preview.setAttribute('src',v);mark();};
    function show(){
     var selected=input.files&&input.files[0];
-    if(!selected){error.hidden=true;preview.setAttribute('src',previous);return;}
+    if(!selected){error.hidden=true;setSrc(previous);return;}
     var message=fileError(selected);error.textContent=message;error.hidden=!message;
-    if(message){input.value='';preview.setAttribute('src',previous);return;}
-    var reader=new FileReader();reader.onload=function(){if(input.files&&input.files[0]===selected)preview.src=reader.result;};
-    reader.onerror=function(){if(input.files&&input.files[0]===selected){input.value='';preview.setAttribute('src',previous);error.textContent='The logo could not be read. Choose another PNG or JPEG.';error.hidden=false;}};
+    if(message){input.value='';setSrc(previous);return;}
+    var reader=new FileReader();reader.onload=function(){if(input.files&&input.files[0]===selected)setSrc(reader.result);};
+    reader.onerror=function(){if(input.files&&input.files[0]===selected){input.value='';setSrc(previous);error.textContent='The logo could not be read. Choose another PNG or JPEG.';error.hidden=false;}};
     reader.readAsDataURL(selected);
    }
    input.addEventListener('change',show);
@@ -32,6 +35,8 @@
     try{input.files=files;show();}catch(unavailable){error.textContent='Use Choose File to select the logo.';error.hidden=false;}
    });
   }
+  var flash=document.getElementById('BusinessFlash')||document.getElementById('SaveError');
+  if(flash&&!flash.dataset.amShown){flash.dataset.amShown='true';flash.setAttribute('tabindex','-1');try{flash.focus({preventScroll:false});}catch(x){flash.focus();}}
   var notice=document.getElementById('AddressMessage');
   if(notice&&notice.textContent&&notice.dataset.amNotice!==notice.textContent){notice.dataset.amNotice=notice.textContent;notice.focus();}
  }

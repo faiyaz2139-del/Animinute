@@ -20,10 +20,12 @@ public static class AnyminuteBusinessSave
         using (var c = AnyminuteTimesheetRepair.Open())
         using (var tx = c.BeginTransaction(IsolationLevel.Serializable))
         {
-            // Fail before ANY write when the explicitly reviewed schema prerequisite is absent.
+            // Country is optional storage: the production schema has no BusinessAddress.Country column
+            // unless the separate optional script (DB_OPTIONAL/OPTIONAL_01_BusinessAddress_Country.sql in the fix package; not deployed with the site) was applied.
+            // A missing column must never block saving a business; the country is then simply not stored.
+            bool countryColumn;
             using (var schema = new SqlCommand("SELECT COL_LENGTH('dbo.BusinessAddress','Country')", c, tx))
-                if (schema.ExecuteScalar() == DBNull.Value)
-                    throw new InvalidOperationException("The business address Country migration is missing in this database. Apply sql/07_BUSINESS_ADDRESS_COUNTRY.sql to LIVETEST first.");
+                countryColumn = schema.ExecuteScalar() != DBNull.Value;
             bool creating = business == 0;
             if (!creating) AnyminuteApprovalAssignments.RequireOwner(c, tx, business);
             else AnyminuteFormAccess.Subscriber();
@@ -87,9 +89,11 @@ public static class AnyminuteBusinessSave
             addressParameters["Cityid"] = MasterId(c, tx, "CityMaster", "CityName", "CityId", Convert.ToString(address["City"]));
             addressParameters["Provinceid"] = MasterId(c, tx, "ProvinceMaster", "ProvinceName", "ProvinceId", Convert.ToString(address["Province"]));
             using (var cmd = Procedure(c, tx, "dbo.Sp_InsertBusinessAddress", addressParameters)) cmd.ExecuteNonQuery();
-            using (var cmd = new SqlCommand("UPDATE ba SET Country=@country FROM dbo.BusinessAddress ba JOIN dbo.AddBusiness b ON b.ADDRESSID=ba.BusinessAddressId WHERE b.BusinessID=@b; SELECT @@ROWCOUNT;", c, tx))
+            using (var cmd = new SqlCommand(countryColumn
+                ? "UPDATE ba SET Country=@country FROM dbo.BusinessAddress ba JOIN dbo.AddBusiness b ON b.ADDRESSID=ba.BusinessAddressId WHERE b.BusinessID=@b; SELECT @@ROWCOUNT;"
+                : "SELECT COUNT(*) FROM dbo.BusinessAddress ba JOIN dbo.AddBusiness b ON b.ADDRESSID=ba.BusinessAddressId WHERE b.BusinessID=@b;", c, tx))
             {
-                cmd.Parameters.Add("@country", SqlDbType.NVarChar, 100).Value = country;
+                if (countryColumn) cmd.Parameters.Add("@country", SqlDbType.NVarChar, 100).Value = country;
                 cmd.Parameters.Add("@b", SqlDbType.Int).Value = business;
                 if (Convert.ToInt32(cmd.ExecuteScalar()) != 1) throw new InvalidOperationException("Business address was not linked to the saved business.");
             }

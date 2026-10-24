@@ -1,6 +1,7 @@
 <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="Dashboard.aspx.cs" Inherits="AnyminuteDashboard" %>
-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server" />
+<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteFlash.css?v=20261024v2" rel="stylesheet" /></asp:Content>
 <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+<asp:Panel ID="SavedFlash" runat="server" Visible="false" CssClass="am-flash" role="status" aria-live="polite" ClientIDMode="Static" tabindex="-1"><span class="am-flash-icon" aria-hidden="true">&#10003;</span><asp:Literal ID="SavedFlashText" runat="server" /><button type="button" class="am-flash-close" aria-label="Dismiss message" onclick="this.parentNode.style.display='none';">&times;</button></asp:Panel><script>document.addEventListener("DOMContentLoaded",function(){var f=document.getElementById("SavedFlash");if(f){f.focus();}});</script>
 <div class="am-dashboard-overview"><div class="am-stats">
 <div class="am-card am-stat"><span class="am-stat-icon" data-am-icon="business" aria-hidden="true"></span><div><small>Total Businesses</small><strong><asp:Literal ID="BusinessCount" runat="server" /></strong><small>Businesses you can access</small></div></div>
 <div class="am-card am-stat"><span class="am-stat-icon" data-am-icon="people" aria-hidden="true"></span><div><small>Total Employees</small><strong><asp:Literal ID="EmployeeCount" runat="server" /></strong><small>Within your access</small></div></div>

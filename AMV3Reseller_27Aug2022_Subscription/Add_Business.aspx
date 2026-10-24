@@ -1,32 +1,43 @@
 <%@ Page Title="Business" Language="C#" MasterPageFile="~/Main.master" AutoEventWireup="true" CodeFile="Add_Business.aspx.cs" Inherits="Add_Business" %>
 <%@ Register Assembly="AjaxControlToolkit" Namespace="AjaxControlToolkit" TagPrefix="cc1" %>
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
- <link rel="stylesheet" href="css/AnyminuteBusinessEditor.css?v=20261023r2" />
- <script src="Scripts/AnyminuteBusinessEditor.js?v=20261023r2" defer="defer"></script>
+ <link rel="stylesheet" href="css/AnyminuteBusinessEditor.css?v=20261024v2" />
+ <script src="Scripts/AnyminuteBusinessEditor.js?v=20261024v2" defer="defer"></script>
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
 <div class="am-business-editor" id="amBusinessEditor">
- <nav aria-label="Breadcrumb" class="am-business-breadcrumb"><a href="Dashboard.aspx">Home</a><span aria-hidden="true">/</span><a href="Dashboard.aspx?view=businesses">Businesses</a><span aria-hidden="true">/</span><asp:Label ID="BusinessBreadcrumb" runat="server" Text="Add Business" /></nav>
- <header class="am-business-header">
-  <div><h1><asp:Label ID="BusinessPageTitle" runat="server" Text="Add Business" /></h1><p>Business details, logo, contacts and address.</p></div>
+ <header class="am-business-header am-business-header-v2">
+  <nav aria-label="Breadcrumb" class="am-business-breadcrumb"><a href="Dashboard.aspx">Home</a><span aria-hidden="true">&rsaquo;</span><a href="Dashboard.aspx?view=businesses">Business</a><span aria-hidden="true">&rsaquo;</span><asp:Label ID="BusinessBreadcrumb" runat="server" Text="Add Business" /></nav>
+  <h1 class="am-business-title"><asp:Label ID="BusinessPageTitle" runat="server" Text="Add Business" /></h1>
   <div class="am-business-actions">
-   <a id="btnback" runat="server" href="Dashboard.aspx?view=businesses" class="am-business-button am-business-secondary">Back to List</a>
-   <asp:Button ID="SaveBusinessTop" runat="server" Text="Save" OnClick="btnSaveBusinessDetails_Click" CausesValidation="false" CssClass="am-business-button" />
+   <asp:Label ID="BusinessStatusBadge" runat="server" Visible="false" CssClass="am-business-status" />
+   <a id="btnback" runat="server" href="Dashboard.aspx?view=businesses" class="am-business-button am-business-secondary"><span aria-hidden="true">&larr;</span> Back to List</a>
+   <asp:LinkButton ID="SaveBusinessTop" runat="server" OnClick="btnSaveBusinessDetails_Click" CausesValidation="false" CssClass="am-business-button"><svg class="am-business-save-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path fill="currentColor" d="M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7l-4-4zm-5 16a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm3-10H5V5h10v4z"/></svg><asp:Literal ID="SaveTopText" runat="server" Text="Save" /></asp:LinkButton>
   </div>
  </header>
+ <asp:Panel ID="BusinessFlash" runat="server" Visible="false" CssClass="am-business-flash" role="status" aria-live="polite" ClientIDMode="Static"><span class="am-business-flash-icon" aria-hidden="true">&#10003;</span><asp:Literal ID="BusinessFlashText" runat="server" /><button type="button" class="am-business-flash-close" aria-label="Dismiss message" onclick="this.parentNode.style.display='none';">&times;</button></asp:Panel>
+ <asp:Label ID="SaveError" runat="server" Visible="false" CssClass="am-business-flash am-business-flash-error" role="alert" ClientIDMode="Static" />
  <asp:Label ID="Label_Maximum_Limit" runat="server" CssClass="am-business-error" role="alert" />
  <asp:HiddenField ID="hdn_companyname" runat="server" /><asp:HiddenField ID="hfdBusinessId" runat="server" />
  <div class="am-business-details-layout">
   <section class="am-business-card am-business-logo-box" aria-labelledby="business-logo-heading">
-   <h2 id="business-logo-heading">Business Logo</h2>
-   <div id="uploadArea" class="am-business-upload">
-    <asp:Image ID="previewImage" runat="server" ClientIDMode="Static" CssClass="am-business-preview" AlternateText="Business logo preview" ImageUrl="" />
-    <asp:Label runat="server" AssociatedControlID="FileUpload1" CssClass="am-business-upload-label" Text="Click to upload or change logo" />
-    <asp:FileUpload ID="FileUpload1" runat="server" accept="image/png,image/jpeg" CssClass="am-business-file" aria-describedby="business-logo-help business-logo-error" />
+   <h2 id="business-logo-heading" class="am-visually-hidden">Business Logo</h2>
+   <div id="uploadArea" class="am-logo-uploader" runat="server" ClientIDMode="Static">
+    <label for="FileUpload1" class="am-logo-circle" title="Click to upload a logo">
+     <asp:Image ID="previewImage" runat="server" ClientIDMode="Static" CssClass="am-business-preview" AlternateText="Business logo preview" ImageUrl="" />
+     <span class="am-logo-initials" aria-hidden="true"><asp:Literal ID="LogoInitials" runat="server" /></span>
+     <span class="am-logo-empty">
+      <svg viewBox="0 0 64 48" width="58" height="44" aria-hidden="true" focusable="false"><path fill="#1768d6" d="M51.6 18.2A19 19 0 0 0 15.1 13 14.5 14.5 0 0 0 16 42h11V31h-6.5L32 19.5 43.5 31H37v11h13a12 12 0 0 0 1.6-23.8z"/></svg>
+      <strong>Click to upload</strong>
+      <small>400 &times; 400 px</small>
+     </span>
+    </label>
+    <asp:FileUpload ID="FileUpload1" runat="server" ClientIDMode="Static" accept="image/png,image/jpeg" CssClass="am-business-file am-visually-hidden-input" aria-describedby="business-logo-help business-logo-error" />
    </div>
-   <p id="business-logo-help" class="am-business-help">PNG or JPG · Max 2 MB<br />Recommended 400 × 400 px</p>
+   <label for="FileUpload1" id="ChangeLogoButton" runat="server" class="am-business-button am-business-secondary am-logo-change"><span aria-hidden="true">&#10548;</span> Change Logo</label>
+   <p id="business-logo-help" class="am-business-help">PNG or JPG &middot; Max 2 MB<br />(Recommended 400 &times; 400 px)</p>
    <p id="business-logo-error" class="am-business-error" role="alert" hidden="hidden"></p>
-   <asp:Button ID="RemoveBusinessLogo" runat="server" Text="Remove Logo" CssClass="am-business-button am-business-secondary" CausesValidation="false" />
+   <asp:Button ID="RemoveBusinessLogo" runat="server" Text="Remove logo" CssClass="am-logo-remove" CausesValidation="false" />
   </section>
   <section class="am-business-card" aria-labelledby="business-details-heading">
    <h2 id="business-details-heading">Business Details</h2>
@@ -50,7 +61,7 @@
 <div class="am-business-field"><asp:Label runat="server" AssociatedControlID="ddlClientStats" Text="Status" /><asp:DropDownList ID="ddlClientStats" runat="server" CssClass="am-business-input">
                                                 <asp:ListItem Value=""> Select</asp:ListItem>
                                                 <asp:ListItem Value="1" Selected="True">Active</asp:ListItem>
-                                                <asp:ListItem Value="2">Not Active</asp:ListItem>
+                                                <asp:ListItem Value="0">Not Active</asp:ListItem>
                                             </asp:DropDownList></div>
    </div>
    <details ID="ExtraBusinessDetails" runat="server" class="am-business-extra" open="open"><summary>Additional contact and registration details</summary><div class="am-business-grid am-business-grid-two">
@@ -74,8 +85,8 @@
      <asp:TextBox ID="txtSearchPostalCode" ClientIDMode="Static" runat="server" MaxLength="10" CssClass="am-business-input" autocomplete="postal-code" />
      <asp:LinkButton ID="lnkSearch" runat="server" Text="Search" OnClick="lnkSearch_Click" CausesValidation="false" CssClass="am-business-button" />
     </asp:Panel></div>
-    <div id="resultdiv" runat="server" visible="false" class="am-business-results">
-     <asp:Label runat="server" AssociatedControlID="AddressChoices" Text="Select an address from the list" />
+    <div id="resultdiv" runat="server" class="am-business-results">
+     <asp:Label runat="server" AssociatedControlID="AddressChoices" Text="Select Address from List or Add New" />
      <asp:DropDownList ID="AddressChoices" runat="server" AutoPostBack="true" OnSelectedIndexChanged="AddressChoices_SelectedIndexChanged" CssClass="am-business-input" />
      <asp:LinkButton ID="UseThisAddress" runat="server" Enabled="false" Text="Use This Address" CausesValidation="false" OnClick="UseThisAddress_Click" CssClass="am-business-button am-business-secondary" />
     </div>

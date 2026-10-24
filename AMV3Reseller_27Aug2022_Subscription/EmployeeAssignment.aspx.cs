@@ -11,7 +11,9 @@ public partial class AnyminuteEmployeeAssignmentPage : System.Web.UI.Page
         AnyminuteModernScope.Login();AnyminuteFormAccess.OwnerSomewhere();ViewStateUserKey=Session.SessionID;
         if(!Int32.TryParse(Request.QueryString["EmployeeId"],out employee)||employee<=0)throw new HttpException(400,"Select an employee.");
         var card=AnyminuteEmployeesView.RequireEmployee(employee);if(!card.Assignments.All(a=>a.Manage))throw new HttpException(403,"Subscriber ownership is required.");
-        Person.Text=HttpUtility.HtmlEncode(card.Name);Cancel.NavigateUrl="EmployeeDetails.aspx?EmployeeId="+employee+"&tab=assignments";
+        Person.Text=HttpUtility.HtmlEncode(card.Name);PersonInitials.Text=HttpUtility.HtmlEncode(card.Initials);PersonEmail.Text=HttpUtility.HtmlEncode(card.Email);PersonPhone.Text=HttpUtility.HtmlEncode(card.Phone);
+        PersonStatus.Text=HttpUtility.HtmlEncode(card.Status);PersonStatus.CssClass="am-badge "+card.StatusCss;
+        Existing.DataSource=card.Assignments;Existing.DataBind();Cancel.NavigateUrl="EmployeeDetails.aspx?EmployeeId="+employee+"&tab=assignments";
     }
     protected void Page_Load(object sender,EventArgs e)
     {

@@ -1,0 +1,6 @@
+/* 2026-10-24 v2: one-time success / error banner shown after a save redirect */
+body.am-ui .am-flash{display:flex;align-items:center;gap:12px;margin:0 0 18px;padding:14px 18px;border:1px solid #9fd8b2;border-left:5px solid #1f9d55;border-radius:8px;background:#e9f8ef;color:#145c34;font-size:15px;font-weight:600;}
+body.am-ui .am-flash:focus{outline:3px solid #a8d1ff;outline-offset:2px;}
+body.am-ui .am-flash-icon{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:#1f9d55;color:#fff;font-size:15px;flex:none;}
+body.am-ui .am-flash-close{margin-left:auto;border:0;background:none;font-size:22px;line-height:1;color:inherit;cursor:pointer;}
+body.am-ui .am-flash.am-flash-error{border-color:#efb4b4;border-left-color:#c23030;background:#fdeeee;color:#8f1d1d;}

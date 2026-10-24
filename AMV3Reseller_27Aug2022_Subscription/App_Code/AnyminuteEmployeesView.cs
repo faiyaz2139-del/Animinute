@@ -33,7 +33,11 @@ public sealed class AnyminuteEmployeeCardView
     public string Phone {get{return First.Phone;}}
     public string Initials {get {var words=(Name??"").Split(new[]{' '},StringSplitOptions.RemoveEmptyEntries);return words.Length==0?"?":String.Concat(words[0][0],words.Length>1?words[words.Length-1][0]:' ').Trim().ToUpperInvariant();}}
     public int BusinessCount {get{return Assignments.Select(a=>a.BusinessId).Distinct().Count();}}
-    public string Roles {get{return String.Join(", ",Assignments.Select(a=>a.Role).Distinct().OrderBy(x=>x));}}
+    public string Roles {get{return String.Join(", ",RoleNames);}}
+    public string[] RoleNames {get{return Assignments.Select(a=>a.Role).Where(x=>!String.IsNullOrWhiteSpace(x)).Distinct().OrderBy(x=>x).ToArray();}}
+    public string BusinessLabel {get{int count=BusinessCount;return count+(count==1?" Business":" Businesses");}}
+    // CSS-safe status token for the badge colour (display text stays in Status).
+    public string StatusCss {get{string s=Status;return s=="Active"?"Active":s=="On Leave"?"OnLeave":s=="Mixed"?"Mixed":"Inactive";}}
     public string Type {get{return String.Join(", ",Assignments.Select(a=>a.Type).Distinct());}}
     public bool Active {get{return Assignments.Any(a=>a.Status=="Active");}}
     public string Status {get{var values=Assignments.Select(a=>a.Status).Distinct().ToArray();return values.Length==1?values[0]:"Mixed";}}

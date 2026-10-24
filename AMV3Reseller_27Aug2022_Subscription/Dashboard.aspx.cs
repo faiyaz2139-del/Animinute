@@ -5,7 +5,16 @@ using System.Web;
 using System.Web.UI.WebControls;
 public partial class AnyminuteDashboard : System.Web.UI.Page
 {
- protected void Page_Load(object s,EventArgs e) {if(!IsPostBack)Bind();}
+ protected void Page_Load(object s,EventArgs e)
+ {
+  if(!IsPostBack)
+  {
+   // Confirmation set by Add_Business after a successful save (shown once).
+   string flash=AnyminuteFlash.Take("dashboard");
+   if(flash!=null){SavedFlashText.Text=HttpUtility.HtmlEncode(flash);SavedFlash.Visible=true;}
+   Bind();
+  }
+ }
  protected void FilterChanged(object s,EventArgs e) {Bind();}
  void Bind()
  {

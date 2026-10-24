@@ -21,9 +21,9 @@ public partial class AnyminuteEmployeeDetails : System.Web.UI.Page
             foreach(var a in card.Assignments.GroupBy(x=>new{x.BusinessId,x.EmployeeId}).Select(x=>x.First()))ContextAssignment.Items.Add(new ListItem(a.Business,a.BusinessId+":"+a.EmployeeId));
             if(Request.QueryString["BusinessId"]!=null || Request.QueryString["RecordId"]!=null)
             {
-                int b,e;
-                if(!Int32.TryParse(Request.QueryString["BusinessId"],out b)||!Int32.TryParse(Request.QueryString["RecordId"],out e)||ContextAssignment.Items.FindByValue(b+":"+e)==null)throw new HttpException(403,"Assignment outside your access.");
-                ContextAssignment.SelectedValue=b+":"+e;
+                int b,record; // "record" (not "e"): a local named e clashes with the EventArgs parameter (CS0136) and stops the page compiling.
+                if(!Int32.TryParse(Request.QueryString["BusinessId"],out b)||!Int32.TryParse(Request.QueryString["RecordId"],out record)||ContextAssignment.Items.FindByValue(b+":"+record)==null)throw new HttpException(403,"Assignment outside your access.");
+                ContextAssignment.SelectedValue=b+":"+record;
             }
         }
         Bind();
@@ -59,7 +59,7 @@ public partial class AnyminuteEmployeeDetails : System.Web.UI.Page
             if(!manage)throw new HttpException(403,"You cannot edit the account-wide details of this employee.");
             Response.Redirect(editor,false);Context.ApplicationInstance.CompleteRequest();return;
         }
-        Assignments.DataSource=card.Assignments;Assignments.DataBind();AddAssignment.Visible=manage;AddAssignment.NavigateUrl="EmployeeAssignment.aspx?EmployeeId="+context.EmployeeId;
+        Assignments.DataSource=card.Assignments;Assignments.DataBind();AssignmentCount.Text=card.Assignments.Count().ToString();AddAssignment.Visible=manage;AddAssignment.NavigateUrl="EmployeeAssignment.aspx?EmployeeId="+context.EmployeeId;
         using(var c=AnyminuteTimesheetRepair.Open())
         {
             if(ProfilePane.Visible)
@@ -72,13 +72,14 @@ public partial class AnyminuteEmployeeDetails : System.Web.UI.Page
                 AddressScope.Text=manage?"":"Address is restricted to owners who can manage the employee's shared record.";
                 if(manage){AddressGrid.DataSource=AnyminuteTimesheetRepair.Query(c,null,"SELECT ad.StreetNo AS [Street Number],ad.StreetName AS [Address Line 1],ad.StreetType AS [Address Line 2],ad.SuiteNumber AS [Suite],ad.City,ad.Province,ad.Postalcode FROM EmpAddress ad JOIN AddEmployee e ON e.ADDRESSID=ad.EmpAddressId WHERE e.EmployeeID=@e","@e",context.EmployeeId);AddressGrid.DataBind();}
             }
-            if(PayPane.Visible){Rates.DataSource=AnyminuteTimesheetRepair.Query(c,null,"SELECT RateId,Rate,RateType,StartDate,EndDate,effectivedate FROM RateDetails WHERE EmployeeId=@e ORDER BY effectivedate DESC,RateId DESC","@e",context.EmployeeId);Rates.DataBind();}
+            if(PayPane.Visible){Rates.DataSource=AnyminuteTimesheetRepair.Query(c,null,"SELECT RateId,Rate,RateType,StartDate,EndDate,effectivedate,CASE WHEN ROW_NUMBER() OVER(ORDER BY effectivedate DESC,RateId DESC)=1 THEN 'Current' ELSE 'Historical' END AS RateStatus,CASE WHEN ROW_NUMBER() OVER(ORDER BY effectivedate DESC,RateId DESC)=1 THEN 'Editable' ELSE 'Locked' END AS Editing FROM RateDetails WHERE EmployeeId=@e ORDER BY effectivedate DESC,RateId DESC","@e",context.EmployeeId);Rates.DataBind();}
             if(ProjectsPane.Visible){Projects.DataSource=AnyminuteTimesheetRepair.Query(c,null,"SELECT DISTINCT p.ProjectName,p.StartDate,p.EndDate FROM ASSIGNPROJECT a JOIN AddProject p ON p.ProjectID=a.PROJECTID AND p.BusinessID=a.BUSINESSID WHERE a.BUSINESSID=@b AND a.EMPLOYEEID=@e","@b",context.BusinessId,"@e",context.EmployeeId);Projects.DataBind();}
             if(TimePane.Visible)OpenTime.NavigateUrl="WeekTimeCard.aspx?BusinessId="+context.BusinessId+"&EmployeeId="+context.EmployeeId;
             if(AccessPane.Visible)
             {
                 AccessMessage.Text=manage?"Use the employee sign-in email shown below. Passwords are never displayed.":"Account details are restricted to authorized owners.";
-                if(manage){int user=AnyminuteFormAccess.TargetAccount(context.BusinessId,context.EmployeeId);if(user>0){AccessGrid.DataSource=AnyminuteTimesheetRepair.Query(c,null,"SELECT Email AS [Login Email],Status AS [Account Enabled] FROM UserAcc WHERE UserId=@u","@u",user);AccessGrid.DataBind();}else AccessMessage.Text="No linked login account is recorded for this assignment.";}
+                if(manage){int user=AnyminuteFormAccess.TargetAccount(context.BusinessId,context.EmployeeId);if(user>0){AccessGrid.DataSource=AnyminuteTimesheetRepair.Query(c,null,"SELECT Email AS [Login Email],CASE WHEN Status=1 THEN 'Enabled' ELSE 'Disabled' END AS [Login Access],CASE WHEN Is_First_Time_Login=1 THEN 'Pending first sign-in' ELSE 'Has signed in' END AS [Invitation],@role AS [Role in this business] FROM UserAcc WHERE UserId=@u","@u",user,"@role",context.Role??"");AccessGrid.DataBind();
+                    AccessHistory.DataSource=AnyminuteTimesheetRepair.Query(c,null,"SELECT TOP(10) Kind AS [Activity],ShiftDate AS [Shift Date],ActivityAtUTC AS [Recorded UTC] FROM AnyminuteActivity WHERE BusinessID=@b AND EmployeeID=@e ORDER BY ActivityAtUTC DESC,ActivityID DESC","@b",context.BusinessId,"@e",context.EmployeeId);AccessHistory.DataBind();AccessHistoryPanel.Visible=true;}else AccessMessage.Text="No linked login account is recorded for this assignment.";}
             }
             if(ActivityPane.Visible){Activity.DataSource=AnyminuteTimesheetRepair.Query(c,null,"SELECT Action,ActorID AS [Changed By Employee ID],RecordedAtUTC AS [Recorded UTC] FROM AnyminuteApprovalAudit WHERE BusinessID=@b AND EmployeeID=@e ORDER BY RecordedAtUTC DESC,AuditID DESC","@b",context.BusinessId,"@e",context.EmployeeId);Activity.DataBind();}
         }

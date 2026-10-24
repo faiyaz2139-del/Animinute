@@ -107,6 +107,11 @@ public partial class Add_Business : System.Web.UI.Page
         }
         if (!IsPostBack)
         {
+            string flash = AnyminuteFlash.Take("business");
+            if (flash != null) { BusinessFlashText.Text = HttpUtility.HtmlEncode(flash); BusinessFlash.Visible = true; }
+        }
+        if (!IsPostBack)
+        {
             #region show message if maximum limit is reached. This region code is same as of in Save button.
             if (Request.QueryString["BusinessIDEdit"] == null)
             {
@@ -350,6 +355,7 @@ public partial class Add_Business : System.Web.UI.Page
                 return;
             }
             BsnsRegDate.Attributes.Add("max", System.DateTime.Now.Date.ToString("yyyy-MM-dd"));
+            ResetAddressChoices("Search a postal code first");
             try
             {
                 if (Session["Redirect"] != null)
@@ -453,7 +459,10 @@ public partial class Add_Business : System.Web.UI.Page
 
         }
         DateBusnsAssgnDate.Text = DateTime.Parse(dtBusinessEdit.Rows[0]["BusinessAgreementDate"].ToString()).ToString("yyyy-MM-dd");
-        SelectStoredOption(ddlClientStats, dtBusinessEdit.Rows[0]["Status"].ToString());
+        string storedStatus = dtBusinessEdit.Rows[0]["Status"].ToString().Trim();
+        if (storedStatus == "2" && ddlClientStats.Items.FindByValue("2") == null)
+            ddlClientStats.Items.Add(new ListItem("Not Active (deactivated by plan)", "2"));
+        SelectStoredOption(ddlClientStats, storedStatus);
         hfdBusinessId.Value = BusinessIDEdit.ToString();
         if (dtBusinessEdit.Rows[0]["ADDRESSID"].ToString() != "")
         {
@@ -513,10 +522,10 @@ public partial class Add_Business : System.Web.UI.Page
     {
         AddressMessage.Visible = false;
         if (!String.IsNullOrWhiteSpace(Label_Maximum_Limit.Text))
-        { AddressFeedback("Business changes are unavailable under the current plan or account status."); return; }
+        { SaveFeedback("Business changes are unavailable under the current plan or account status."); return; }
         EnableAddressFields();
         string error = ValidateBusinessAndAddress();
-        if (error != null) { ExtraBusinessDetails.Attributes["open"] = "open"; AddressFeedback(error); return; }
+        if (error != null) { ExtraBusinessDetails.Attributes["open"] = "open"; SaveFeedback(error); return; }
         int business = 0;
         if (Request.QueryString["BusinessIDEdit"] != null)
             business = Int32.Parse(Request.QueryString["BusinessIDEdit"]);
@@ -525,7 +534,7 @@ public partial class Add_Business : System.Web.UI.Page
         bool updating = business > 0;
         string logo;
         try { logo = GenerateUniqueFileName(); }
-        catch (InvalidOperationException imageError) { AddressFeedback(imageError.Message); return; }
+        catch (InvalidOperationException imageError) { SaveFeedback(imageError.Message); return; }
         var details = new Dictionary<string, object> {
             {"CompanyName", txtCompanyName.Text.Trim()}, {"OperatingName", txtOperatingName.Text.Trim()},
             {"BusinessNumber", txtBusinessNumber.Text.Trim()}, {"LegalEntityType", ddlLegalEnityType.SelectedValue},
@@ -550,17 +559,42 @@ public partial class Add_Business : System.Web.UI.Page
             business = AnyminuteBusinessSave.Save(business, details, address, Country.Text.Trim(),
                 FileUpload1.HasFile, Convert.ToString(Session["email"]));
         }
-        catch
+        catch (Exception saveError)
         {
             // Only the newly generated upload belongs to this failed save. Never touch an existing logo.
             if (!String.IsNullOrEmpty(logo))
                 try { File.Delete(Server.MapPath("~/Uploads/" + logo)); }
                 catch (Exception cleanupError) { Trace.Warn("BusinessLogoCleanup", "Could not remove an unreferenced upload.", cleanupError); }
-            throw; // Preserve SQL/permission/migration exceptions; no success feedback after failure.
+            // Expected business-rule failures (duplicate name, missing owner record, unlinked address)
+            // are shown on the form instead of the generic error page. Nothing was committed.
+            if (saveError is InvalidOperationException)
+            { ExtraBusinessDetails.Attributes["open"] = "open"; SaveFeedback(saveError.Message + " No changes were saved."); return; }
+            throw; // Preserve SQL/permission exceptions; no success feedback after failure.
         }
         ViewState["SavedBusinessId"] = business; hfdBusinessId.Value = business.ToString();
         btnSaveBusinessDetails.Text = "Update"; btnSaveAddres.Text = "Update";
-        AddressFeedback(updating ? "Business and address updated successfully." : "Business and address saved successfully.", false);
+        // Post/Redirect/Get: the confirmation is shown at the top of the page the user lands on,
+        // and refreshing that page cannot submit the form a second time.
+        string savedName = txtCompanyName.Text.Trim();
+        if (updating)
+        {
+            AnyminuteFlash.Set("business", "Business details for \u201C" + savedName + "\u201D were updated successfully.");
+            Response.Redirect("Add_Business.aspx?BusinessIDEdit=" + business, false);
+        }
+        else
+        {
+            AnyminuteFlash.Set("dashboard", "Business \u201C" + savedName + "\u201D was saved successfully.");
+            Response.Redirect("Dashboard.aspx?view=businesses&saved=" + business, false);
+        }
+        Context.ApplicationInstance.CompleteRequest();
+    }
+
+    // Save problems are shown in a banner directly under the page header (always visible after the postback).
+    private void SaveFeedback(string message)
+    {
+        SaveError.Text = HttpUtility.HtmlEncode(message);
+        SaveError.Visible = true;
+        AddressMessage.Visible = false;
     }
 
     private string ValidateBusinessAndAddress()
@@ -580,6 +614,9 @@ public partial class Add_Business : System.Web.UI.Page
             (!String.IsNullOrWhiteSpace(txtMobile.Text) && Regex.Replace(txtMobile.Text, @"\D", "").Length != 10))
             return "Enter valid 10-digit contact phone and mobile numbers, or leave the optional fields blank.";
         if (!IsValidEmail(txtMainEmail.Text.Trim())) return "Enter a valid primary email address.";
+        // "0" = Not Active (same value the Dashboard Active/Not Active menu writes); a legacy stored "2" is kept as-is.
+        if (ddlClientStats.SelectedValue != "1" && ddlClientStats.SelectedValue != "0" && ddlClientStats.SelectedValue != "2")
+            return "Select a status (Active or Not Active).";
         return null;
     }
 
@@ -606,7 +643,7 @@ public partial class Add_Business : System.Web.UI.Page
     public void ClearAddressContactDetails()
     {
         txtSearchPostalCode.Text = "";
-        resultdiv.Visible = false;
+        ResetAddressChoices("Search a postal code first");
         txtStreetNo.Text = "";
         txtStreetName.Text = "";
         txtStreetType.Text = "";
@@ -654,7 +691,7 @@ public partial class Add_Business : System.Web.UI.Page
     protected void lnkSearch_Click(object sender, EventArgs e)
     {
         AddressMessage.Visible = false;
-        AddressChoices.Items.Clear(); UseThisAddress.Enabled = false;
+        ResetAddressChoices("Search a postal code first");
         gvAddressList.DataSource = null; gvAddressList.DataBind();
         string postal = AnyminuteBusinessAddressInput.Postal(txtSearchPostalCode.Text);
         if (!Regex.IsMatch(postal, @"^[A-Z0-9-]{5,10}$"))
@@ -663,6 +700,7 @@ public partial class Add_Business : System.Web.UI.Page
         ViewState["BusinessAddressMatches"] = matches;
         ViewState["BusinessAddressLookupPostal"] = postal;
         resultdiv.Visible = true;
+        AddressChoices.Items.Clear();
         AddressChoices.Items.Add(new ListItem("Select an address", ""));
         for (int i = 0; i < matches.Rows.Count; i++)
         {
@@ -670,8 +708,12 @@ public partial class Add_Business : System.Web.UI.Page
             if (label.Length > 0 && !String.Equals(label, "ADD NEW ADDRESS", StringComparison.OrdinalIgnoreCase))
                 AddressChoices.Items.Add(new ListItem(label, i.ToString(System.Globalization.CultureInfo.InvariantCulture)));
         }
+        AddressChoices.Enabled = AddressChoices.Items.Count > 1;
         if (AddressChoices.Items.Count == 1)
+        {
+            AddressChoices.Items[0].Text = "No matching addresses found";
             AddressFeedback("No matching addresses found. Please check the postal code or enter the address manually using Add New Address.");
+        }
         // Searching is read-only. Never select or save the first result automatically.
     }
 
@@ -789,11 +831,29 @@ public partial class Add_Business : System.Web.UI.Page
         if (Page.Form != null) Page.Form.Enctype = "multipart/form-data";
         bool editing = Request.QueryString["BusinessIDEdit"] != null || ViewState["SavedBusinessId"] != null;
         BusinessPageTitle.Text = BusinessBreadcrumb.Text = editing ? "Update Business Profile" : "Add Business";
-        SaveBusinessTop.Text = editing ? "Save Changes" : "Save";
+        SaveTopText.Text = editing ? "Save Changes" : "Save";
+        // Logo: picture when one exists, otherwise initials (edit) or the upload prompt (add).
+        bool hasLogo = !String.IsNullOrEmpty(previewImage.ImageUrl);
+        string initials = BusinessInitials(txtCompanyName.Text);
+        LogoInitials.Text = HttpUtility.HtmlEncode(initials);
+        uploadArea.Attributes["class"] = "am-logo-uploader" + (hasLogo ? " has-logo" : editing && initials.Length > 0 ? " has-initials" : "");
+        ChangeLogoButton.Visible = editing && FileUpload1.Visible;
+        RemoveBusinessLogo.Visible = editing && hasLogo && FileUpload1.Visible;
         SaveBusinessTop.Visible = (btnSaveBusinessDetails.Visible || btnUpdateBusinessDetails.Visible) && String.IsNullOrWhiteSpace(Label_Maximum_Limit.Text);
         btnSaveBusinessDetails.Text = editing ? "Save Changes" : "Save";
+        BusinessStatusBadge.Visible = editing && ddlClientStats.SelectedValue != "";
+        BusinessStatusBadge.Text = ddlClientStats.SelectedValue == "1" ? "Active" : "Not Active";
+        BusinessStatusBadge.CssClass = "am-business-status " + (ddlClientStats.SelectedValue == "1" ? "Active" : "Inactive");
         if(Convert.ToBoolean(ViewState["ManualBusinessAddress"] ?? false))
         { divAdd.Visible = true; divAdd.Style["display"] = "block"; }
+    }
+
+    private static string BusinessInitials(string name)
+    {
+        var words = (name ?? "").Split(new[] { ' ', '.', '-', ',' }, StringSplitOptions.RemoveEmptyEntries)
+            .Where(w => Char.IsLetterOrDigit(w[0])).ToArray();
+        if (words.Length == 0) return "";
+        return (words.Length == 1 ? words[0].Substring(0, Math.Min(2, words[0].Length)) : String.Concat(words[0][0], words[1][0])).ToUpperInvariant();
     }
 
     protected void AddNewAddress_Click(object sender, EventArgs e)
@@ -808,10 +868,18 @@ public partial class Add_Business : System.Web.UI.Page
     protected void ClearBusinessAddress_Click(object sender, EventArgs e)
     {
         ResetAddressFields(); txtSearchPostalCode.Text = "";
-        AddressChoices.Items.Clear(); UseThisAddress.Enabled = false;
-        ViewState.Remove("BusinessAddressMatches"); ViewState.Remove("BusinessAddressLookupPostal"); resultdiv.Visible = false;
+        ResetAddressChoices("Search a postal code first");
+        ViewState.Remove("BusinessAddressMatches"); ViewState.Remove("BusinessAddressLookupPostal");
         ViewState["ManualBusinessAddress"] = true;
         EnableAddressFields(); AddressMessage.Visible = false;
+    }
+
+    private void ResetAddressChoices(string placeholder)
+    {
+        AddressChoices.Items.Clear();
+        AddressChoices.Items.Add(new ListItem(placeholder, ""));
+        AddressChoices.Enabled = false; UseThisAddress.Enabled = false;
+        resultdiv.Visible = true;
     }
 
     private void ResetAddressFields()
@@ -834,7 +902,7 @@ public partial class Add_Business : System.Web.UI.Page
     }
 
     protected void CancelBusiness_Click(object sender, EventArgs e)
-    { Response.Redirect("Dashboard.aspx", false); Context.ApplicationInstance.CompleteRequest(); }
+    { Response.Redirect("Dashboard.aspx?view=businesses", false); Context.ApplicationInstance.CompleteRequest(); }
 
     protected void StartDate_Click(object sender, EventArgs e)
     {
@@ -904,6 +972,6 @@ public partial class Add_Business : System.Web.UI.Page
         using(var c=AnyminuteTimesheetRepair.Open())using(var tx=c.BeginTransaction(System.Data.IsolationLevel.Serializable))
         {int actor=AnyminuteApprovalAssignments.RequireOwner(c,tx,b);
          AnyminuteTimesheetRepair.Execute(c,tx,"UPDATE AddBusiness SET Status=0 WHERE BusinessID=@b; INSERT AnyminuteApprovalAudit(BusinessID,ActorID,EmployeeID,Action,AfterValue,RecordedAtUTC) VALUES(@b,@a,@a,'DeactivateBusiness','0',SYSUTCDATETIME())","@b",b,"@a",actor);tx.Commit();}
-        Response.Redirect("Dashboard.aspx");
+        Response.Redirect("Dashboard.aspx?view=businesses");
     }
 }
