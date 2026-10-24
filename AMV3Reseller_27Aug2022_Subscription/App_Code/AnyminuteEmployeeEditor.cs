@@ -296,6 +296,28 @@ public static class AnyminuteEmployeeEditor
         return list;
     }
 
+    // v7 slide 9 trash icon: soft-ends one business assignment (status Not Active + end date today), never deletes rows.
+    public static void EndAssignment(int employee, int business)
+    {
+        var card = RequireEditable(employee);
+        var a = card.Assignments.FirstOrDefault(x => x.BusinessId == business);
+        if (a == null) throw new InvalidOperationException("That assignment was not found.");
+        if (a.Status != "Active") throw new InvalidOperationException("That assignment is already not active.");
+        if (!card.Assignments.Any(x => x.BusinessId != business && x.Status == "Active")) throw new InvalidOperationException("The last active assignment cannot be removed. Use Deactivate Employee instead.");
+        using (var c = AnyminuteTimesheetRepair.Open())
+        using (var tx = c.BeginTransaction(IsolationLevel.Serializable))
+        {
+            AnyminuteApprovalAssignments.RequireOwner(c, tx, business);
+            if (HasTable(c, tx, "AnyminuteAssignmentDetail"))
+                X(c, tx, @"IF EXISTS(SELECT 1 FROM AnyminuteAssignmentDetail WHERE BusinessID=@b AND EmployeeID=@e)
+                    UPDATE AnyminuteAssignmentDetail SET EndDate=CAST(GETDATE() AS date),UpdatedAtUTC=SYSUTCDATETIME(),UpdatedBy=@a WHERE BusinessID=@b AND EmployeeID=@e
+                    ELSE INSERT AnyminuteAssignmentDetail(BusinessID,EmployeeID,EndDate,UpdatedBy) VALUES(@b,@e,CAST(GETDATE() AS date),@a);", "@b", business, "@e", a.EmployeeId, "@a", Actor());
+            Audit(c, tx, business, a.EmployeeId, "EndAssignment", "Active", "Not Active (ended " + DateTime.Today.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) + ")");
+            tx.Commit();
+        }
+        AnyminuteEmployeeRepair.UpdateStatus(Actor(), 1, business, a.EmployeeId, "Not Active", DateTime.Today);
+    }
+
     // Add a business to an existing employee, or edit one assignment.
     public static void SaveAssignment(int employee, AnyminuteAssignmentInput r)
     {
@@ -410,7 +432,7 @@ public static class AnyminuteEmployeeEditor
     // ---------- login & access ----------
     public sealed class AccessState
     {
-        public int UserId; public string Email = "", Username = "", Role = "", State = "No login", SentText = "\u2014", LastChange = "\u2014";
+        public int UserId; public string Email = "", Username = "", Role = "", State = "No login", SentText = "\u2014", LastChange = "\u2014", LastLogin = "Never";
         public bool Enabled, Pending, RequireChange, TwoFactor, TablesReady;
     }
     public static AccessState Access(AnyminuteEmployeeCardView card)
@@ -429,6 +451,11 @@ public static class AnyminuteEmployeeEditor
             {
                 var sec = Q(c, null, "SELECT LoginDisabled,RequirePasswordChange,TwoFactorEnabled FROM AnyminuteLoginSecurity WHERE UserId=@u", "@u", s.UserId);
                 if (sec.Rows.Count == 1) { s.Enabled = !Convert.ToBoolean(sec.Rows[0][0]); s.RequireChange = Convert.ToBoolean(sec.Rows[0][1]); s.TwoFactor = Convert.ToBoolean(sec.Rows[0][2]); }
+                if (HasColumn(c, null, "AnyminuteLoginSecurity", "LastLoginDate"))
+                {
+                    var last = Q(c, null, "SELECT LastLoginDate FROM AnyminuteLoginSecurity WHERE UserId=@u AND LastLoginDate IS NOT NULL", "@u", s.UserId);
+                    if (last.Rows.Count == 1) s.LastLogin = DateTime.SpecifyKind(Convert.ToDateTime(last.Rows[0][0]), DateTimeKind.Utc).ToLocalTime().ToString("yyyy-MM-dd hh:mm tt", CultureInfo.InvariantCulture);
+                }
             }
             s.State = !s.Enabled ? "Disabled" : s.Pending ? "Invitation Pending" : "Enabled";
             var sent = Q(c, null, "SELECT MAX(RecordedAtUTC) FROM AnyminuteApprovalAudit WHERE EmployeeID IN(SELECT EmployeeID FROM MappingTable WHERE USERID=@u) AND Action IN('SendInvitation','CreateEmployee')", "@u", s.UserId);
@@ -547,6 +574,21 @@ public static class AnyminuteEmployeeEditor
                 return HasTable(c, null, "AnyminuteLoginSecurity") && Q(c, null, "SELECT 1 FROM AnyminuteLoginSecurity WHERE UserId=@u AND LoginDisabled=1", "@u", user).Rows.Count > 0;
         }
         catch (SqlException) { return false; }
+    }
+    // v7: remembers the last successful sign-in (DB_REQUIRED/REQUIRED_02_LastLogin.sql). Never throws: login must not depend on it.
+    public static void RecordLogin(string userId)
+    {
+        int user; if (!Int32.TryParse(userId, out user) || user <= 0) return;
+        try
+        {
+            using (var c = AnyminuteTimesheetRepair.Open())
+            {
+                if (!HasColumn(c, null, "AnyminuteLoginSecurity", "LastLoginDate")) return;
+                X(c, null, @"UPDATE AnyminuteLoginSecurity SET LastLoginDate=SYSUTCDATETIME() WHERE UserId=@u;
+                    IF @@ROWCOUNT=0 INSERT AnyminuteLoginSecurity(UserId,LastLoginDate) VALUES(@u,SYSUTCDATETIME());", "@u", user);
+            }
+        }
+        catch (Exception) { }
     }
     public static string RoleCss(object role)
     {

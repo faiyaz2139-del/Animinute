@@ -38,7 +38,8 @@ public partial class AnyminuteEmployeeEditorPage : System.Web.UI.Page
     private void SetupAdd()
     {
         PageTitle.Text = "Add Employee"; PageSubtitle.Text = "Enter the employee details and assign to one or more businesses with roles and pay details.";
-        NewAssignments.Visible = NewAccess.Visible = LookupSection.Visible = true; SaveEmployee.Text = "Save Employee";
+        // v7 Deck D slide 8: Login & Access block removed from Add mode, replaced by an info banner (panel kept, managed after save).
+        NewAssignments.Visible = LookupSection.Visible = AddNotice.Visible = true; NewAccess.Visible = false; SaveEmployee.Text = "Save Employee";
         if (IsPostBack) return;
         HireDate.Text = NewEffective.Text = DateTime.Today.ToString("yyyy-MM-dd", Inv);
         NewBusiness.Items.Add(new ListItem("Select a business", ""));
@@ -123,7 +124,7 @@ public partial class AnyminuteEmployeeEditorPage : System.Web.UI.Page
         HeadBusiness.Text = HttpUtility.HtmlEncode(String.Join(", ", card.Assignments.Select(x => x.Business).Distinct()));
         var access = AnyminuteEmployeeEditor.Access(card);
         HeadAccess.Text = HttpUtility.HtmlEncode(access.State); HeadAccess.CssClass = access.State == "Enabled" ? "am-pill-green" : access.State == "Disabled" ? "am-pill-red" : "am-pill-amber";
-        HeadAccessLink.NavigateUrl = Url("access");
+        HeadAccessLink.NavigateUrl = Url("access"); HeadLastLogin.Text = HttpUtility.HtmlEncode(access.LastLogin);
         var tabs = new[] { new[] { "profile", "Employee Information" }, new[] { "address", "Address" }, new[] { "assignments", "Business Assignments" }, new[] { "rate", "Rate History" }, new[] { "access", "Login &amp; Access" } };
         var sb = new StringBuilder();
         foreach (var t in tabs) sb.Append("<a role=\"tab\" href=\"").Append(HttpUtility.HtmlAttributeEncode(ResolveUrl(Url(t[0])))).Append("\"").Append(t[0] == tab ? " class=\"is-active\" aria-selected=\"true\"" : "").Append(">").Append(t[1]).Append("</a>");
@@ -179,13 +180,20 @@ public partial class AnyminuteEmployeeEditorPage : System.Web.UI.Page
                 Go(Url(tab)); return;
             }
             var rows = PendingRows.Select(r => new AnyminuteAssignmentInput { BusinessId = Int32.Parse(r[0], Inv), Roles = r[2].Split(',').Select(x => Int32.Parse(x, Inv)).ToArray(), EmployeeType = r[4], PayType = r[5], PayRate = Decimal.Parse(r[6], Inv), EffectiveDate = DateTime.Parse(r[7], Inv), ProjectId = Int32.Parse(r[8], Inv), EndDate = r[9].Length > 0 ? (DateTime?)DateTime.Parse(r[9], Inv) : null, Status = r[10], BillingRate = r[11].Length > 0 ? (decimal?)Decimal.Parse(r[11], Inv) : null, Notes = r[12] }).ToList();
-            string notice; int created = AnyminuteEmployeeEditor.Create(p, rows, LoginOn.Checked, SendInvite.Checked && LoginOn.Checked, out notice);
+            string notice; int created = AnyminuteEmployeeEditor.Create(p, rows, NewAccess.Visible ? LoginOn.Checked : true, NewAccess.Visible ? SendInvite.Checked && LoginOn.Checked : false, out notice);
+            if (!NewAccess.Visible) notice = (notice + " Send the login invitation from the employee's Login & Access tab.").Trim();
             // Assignment status other than Active is applied after the legacy create (which always starts Active).
             foreach (var r in rows.Where(x => x.Status != "Active"))
                 try { AnyminuteEmployeeEditor.SaveAssignment(created, r); } catch (InvalidOperationException statusError) { notice = (notice + " " + statusError.Message).Trim(); }
             AnyminuteFlash.Set("employees", "Employee \u201c" + p.FirstName + " " + p.LastName + "\u201d was added successfully." + (String.IsNullOrEmpty(notice) ? "" : " " + notice));
             Go("~/Users.aspx");
         }
+        catch (InvalidOperationException error) { ShowError(error.Message); }
+    }
+    protected void Assignments_ItemCommand(object source, RepeaterCommandEventArgs e)
+    {
+        int b; if (e.CommandName != "End" || !Int32.TryParse(Convert.ToString(e.CommandArgument), out b)) return;
+        try { AnyminuteEmployeeEditor.EndAssignment(employee, b); AnyminuteFlash.Set("editor", "Assignment removed (set to Not Active, end date today)."); Go(Url(tab)); }
         catch (InvalidOperationException error) { ShowError(error.Message); }
     }
     protected void Deactivate_Click(object sender, EventArgs e)

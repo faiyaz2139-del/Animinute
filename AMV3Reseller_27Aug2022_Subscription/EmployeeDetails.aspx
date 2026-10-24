@@ -1,5 +1,5 @@
 <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="EmployeeDetails.aspx.cs" Inherits="AnyminuteEmployeeDetails" %>
-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteEmployees.css?v=20261024v2" rel="stylesheet" /><link href="css/AnyminuteEmployeesV2.css?v=20261024v6" rel="stylesheet" /><link href="css/AnyminuteFlash.css?v=20261024v2" rel="stylesheet" /></asp:Content>
+<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteEmployees.css?v=20261024v2" rel="stylesheet" /><link href="css/AnyminuteEmployeesV2.css?v=20261024v7" rel="stylesheet" /><link href="css/AnyminuteFlash.css?v=20261024v2" rel="stylesheet" /></asp:Content>
 <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
 <section class="am-employees am-employees-v2 am-profile-v2"><header class="am-employee-heading am-profile-head"><a href="Users.aspx" class="am-button secondary">&larr; Back to List</a><h1>Employee Profile</h1><asp:HyperLink ID="EditBasic" runat="server" CssClass="am-button" Visible="false">&#9998; Edit Basic Info</asp:HyperLink></header>
 <asp:Panel ID="Flash" runat="server" Visible="false" CssClass="am-flash" role="status"><span class="am-flash-icon" aria-hidden="true">&#10003;</span><asp:Literal ID="FlashText" runat="server" /></asp:Panel>

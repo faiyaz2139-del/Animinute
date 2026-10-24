@@ -195,3 +195,21 @@ body .am-editor-v3 .am-outline-blue,body .am-mode-add .am-dialog-foot .am-cancel
 .am-mode-edit .am-head-v3 .am-info-main>div:first-child{display:flex;align-items:center;gap:12px;margin-bottom:8px}
 .am-mode-edit .am-head-v3 .am-info-main>div:first-child>span[class^="am-pill"]:before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:currentColor;margin-right:6px;vertical-align:1px}
 .am-editor-v3 .am-trash-ic{stroke:#d92d20}
+/* v7: yyyy-mm-dd date boxes, last login, assignment remove */
+.am-editor-v3 .am-date-text{position:relative;display:block}
+.am-editor-v3 .am-date-text .am-date-shown{width:100%;padding-right:36px!important}
+.am-editor-v3 .am-date-text .am-date-native{position:absolute!important;right:0;bottom:0;width:36px!important;height:100%!important;opacity:0;pointer-events:none;padding:0!important;border:0!important}
+.am-editor-v3 .am-date-btn{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:28px;height:28px;border:0;background:none;padding:4px;cursor:pointer;border-radius:6px}
+.am-editor-v3 .am-date-btn:hover:not([disabled]){background:#eef4fd}
+.am-editor-v3 .am-date-btn[disabled]{cursor:default}
+.am-editor-v3 .am-date-btn svg{width:18px;height:18px;fill:none;stroke:#344054;stroke-width:1.8}
+.am-editor-v3 .am-date-locked .am-date-shown{background:#fff!important;color:#101828;cursor:default}
+.am-mode-edit .am-info-v4 .am-o-hire .am-date-text input[readonly]{background-image:none!important}
+.am-last-login{display:none;font-size:12px;color:#344054;margin:2px 0 4px 32px}
+.am-access-s9 .am-last-login{display:block}
+.am-assign-v6 .am-act-danger{display:inline-flex;align-items:center;justify-content:center;margin-left:8px;border:1px solid #f3b4b4;border-radius:6px;padding:3px 5px}
+.am-assign-v6 .am-act-danger .am-trash-ic{margin:0}
+.am-note.am-note-info{display:flex;align-items:center;gap:10px;border-color:#cfe0f7;background:#eaf3fd;color:#344054}
+.am-note-info .am-note-ic{width:18px;height:18px;flex:none;fill:#1565d8;stroke:#fff;stroke-width:2.2}
+.am-mode-add .am-section>h2.am-band-title{font-size:16px;color:#123a63}
+.am-mode-add .am-o-hire .am-req.am-small{color:#d92d20!important;font-size:11px}

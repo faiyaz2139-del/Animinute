@@ -1,5 +1,5 @@
 <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="EmployeeAssignment.aspx.cs" Inherits="AnyminuteEmployeeAssignmentPage" %>
-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteEmployees.css?v=20261024v2" rel="stylesheet" /><link href="css/AnyminuteEmployeesV2.css?v=20261024v6" rel="stylesheet" /><link href="css/AnyminuteFlash.css?v=20261024v2" rel="stylesheet" /></asp:Content>
+<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteEmployees.css?v=20261024v2" rel="stylesheet" /><link href="css/AnyminuteEmployeesV2.css?v=20261024v7" rel="stylesheet" /><link href="css/AnyminuteFlash.css?v=20261024v2" rel="stylesheet" /></asp:Content>
 <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
 <section class="am-dialog-page am-employees-v2">
  <header class="am-dialog-head"><div><h1>Edit Business Assignment</h1><p>Manage the businesses, roles and pay for this employee.</p></div>

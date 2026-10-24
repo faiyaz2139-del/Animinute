@@ -50,6 +50,7 @@ public partial class Login : System.Web.UI.Page
                 Session["UserId"] = dt.Rows[0]["UserId"].ToString();
                 Session["EmployeeId"] = dt.Rows[0]["EmployeeId"].ToString();
                 Session["email"] = dt.Rows[0]["Email"].ToString();
+                AnyminuteEmployeeEditor.RecordLogin(dt.Rows[0]["UserId"].ToString()); // v7 last login, never throws
                 Session["MotherOrgid"] = dt.Rows[0]["MotherOrgid"].ToString();
                 DataTable dataTable = comm.GetAllDataFromTable("AddEmployee with (Nolock)", "MotherOrgid", "EmployeeID=" + strEmployeeID + "", "");
                 if (dataTable.Rows.Count > 0)
