@@ -43,8 +43,8 @@ public static class AnyminuteUiNavigation
                 Add(items,"Assign Accountant","BusinessActions.aspx?action=accountant",-211);
                 Add(items,"Add User","EmployeeEditor.aspx",-212);
                 Add(items,"Edit User","Users.aspx?action=edit",-213);
-                Add(items,"Add Project","Add_Project.aspx?mode=add#add_project",-214);
-                Add(items,"Edit Project","Add_Project.aspx?mode=edit#view_business_wise_project",-215);
+                Add(items,"Add Project","ProjectEditor.aspx",-214); // v8 Deck F: new Add Project page
+                Add(items,"Edit Project","Projects.aspx",-215); // v8 Deck F: edit from the Projects list
             }
         }
         return items.OrderBy(item=>item.Seq);
@@ -105,8 +105,10 @@ public static class AnyminuteUiNavigation
                 else if (route.Contains("users.aspx?action=edit") || page.EndsWith("addeditrole_add_employee.aspx")) item.Name="Edit Employee";
                 else if (label != "assign user") { if (employeesFallback == null) employeesFallback = item; continue; }
             }
-            if (group==GProjects && route.Contains("add_project.aspx?mode=add")) item.Name="Add Project";
-            if (group==GProjects && route.Contains("add_project.aspx?mode=edit")) item.Name="Edit Project";
+            // v8 Deck F: legacy Add_Project routes open the new Projects UI.
+            if (group==GProjects && (route.Contains("add_project.aspx?mode=add") || route.Split('?')[0].EndsWith("projecteditor.aspx"))) { item.Name="Add Project"; item.Href="ProjectEditor.aspx"; }
+            else if (group==GProjects && route.Contains("add_project.aspx?mode=edit")) { item.Name="Edit Project"; item.Href="Projects.aspx"; }
+            else if (group==GProjects && route.Split('?')[0].EndsWith("add_project.aspx")) { item.Name="Add Project"; item.Href="ProjectEditor.aspx"; }
             if (group==GBusinesses && label.Contains("assign") && label.Contains("accountant")) item.Name="Assign Accountant";
             // Same label twice in one menu (e.g. two Assign Accountant routes, two Dashboards) is shown once.
             if (!labels.Add(group + "|" + item.Name.Trim())) continue;
@@ -177,7 +179,7 @@ public static class AnyminuteUiNavigation
         if (HasAccount() && (page=="dashboard.aspx" || page=="home_page.aspx" || page=="owner_dashboard.aspx" || page=="employee_dashboard.aspx" || page=="manager_dashboard.aspx"))
             return VirtualPathUtility.ToAbsolute("~/Dashboard.aspx");
         if(page=="add_project.aspx" && href.IndexOf('?')<0 && href.IndexOf('#')<0)
-            return VirtualPathUtility.ToAbsolute("~/Add_Project.aspx")+"?mode=add#add_project";
+            return VirtualPathUtility.ToAbsolute("~/ProjectEditor.aspx");
         if (item.Id < 0) return href;
         if (label.Equals("Employees", StringComparison.OrdinalIgnoreCase) ||
             label.Equals("Users", StringComparison.OrdinalIgnoreCase) ||
