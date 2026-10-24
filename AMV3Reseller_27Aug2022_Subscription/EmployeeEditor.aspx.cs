@@ -36,8 +36,8 @@ public partial class AnyminuteEmployeeEditorPage : System.Web.UI.Page
     // ---------- Add Employee ----------
     private void SetupAdd()
     {
-        PageTitle.Text = "Add Employee"; PageSubtitle.Text = "Enter the employee details, assign businesses and set up login access.";
-        NewAssignments.Visible = NewAccess.Visible = true; SaveEmployee.Text = "Save Employee";
+        PageTitle.Text = "Add Employee"; PageSubtitle.Text = "Enter the employee details and assign to one or more businesses with roles and pay details.";
+        NewAssignments.Visible = NewAccess.Visible = LookupSection.Visible = true; SaveEmployee.Text = "Save Employee";
         if (IsPostBack) return;
         HireDate.Text = NewEffective.Text = DateTime.Today.ToString("yyyy-MM-dd", Inv);
         NewBusiness.Items.Add(new ListItem("Select a business", ""));
@@ -53,10 +53,10 @@ public partial class AnyminuteEmployeeEditorPage : System.Web.UI.Page
         var employeeRole = NewRoles.Items.FindByValue("4"); if (employeeRole != null) employeeRole.Selected = true;
         foreach (DataRow p in AnyminuteEmployeeEditor.Projects(b).Rows) NewProject.Items.Add(new ListItem(Convert.ToString(p["ProjectName"]), Convert.ToString(p["ProjectID"])));
     }
-    protected void NewBusinessChanged(object sender, EventArgs e) { BindNewChoices(); }
+    protected void NewBusinessChanged(object sender, EventArgs e) { BindNewChoices(); AssignmentModal.Visible = true; }
     private void BindPending()
     {
-        Pending.DataSource = PendingRows.Select(r => new { Business = r[1], RoleText = r[3], EmployeeType = r[4], PayType = r[5], RateText = "$" + Decimal.Parse(r[6], Inv).ToString("N2", Inv), EffectiveText = DateTime.Parse(r[7], Inv).ToString("MMM d, yyyy", Inv), Status = "Active" }).ToList();
+        Pending.DataSource = PendingRows.Select(r => new { Business = r[1], RoleText = r[3], EmployeeType = r[4], PayType = r[5], RateText = "$" + Decimal.Parse(r[6], Inv).ToString("N2", Inv), EffectiveText = DateTime.Parse(r[7], Inv).ToString("MMM d, yyyy", Inv), EndText = r[9].Length > 0 ? DateTime.Parse(r[9], Inv).ToString("MMM d, yyyy", Inv) : "\u2014", Status = r[10] }).ToList();
         Pending.DataBind(); NoPending.Visible = PendingRows.Count == 0;
     }
     protected void AddPending_Click(object sender, EventArgs e)
@@ -69,10 +69,40 @@ public partial class AnyminuteEmployeeEditorPage : System.Web.UI.Page
             var roles = NewRoles.Items.Cast<ListItem>().Where(i => i.Selected).ToList(); if (roles.Count == 0) throw new InvalidOperationException("Select at least one role.");
             if (!Decimal.TryParse(NewRate.Text, NumberStyles.Number, Inv, out rate) || rate <= 0) throw new InvalidOperationException("Enter a pay rate greater than zero.");
             if (!DateTime.TryParse(NewEffective.Text, Inv, DateTimeStyles.None, out eff)) throw new InvalidOperationException("Enter the effective date.");
-            PendingRows.Add(new[] { b.ToString(Inv), NewBusiness.SelectedItem.Text, String.Join(",", roles.Select(r => r.Value)), String.Join(", ", roles.Select(r => r.Text)), NewType.SelectedValue, NewPayType.SelectedValue, rate.ToString(Inv), eff.ToString("yyyy-MM-dd", Inv), NewProject.SelectedValue });
-            NewRate.Text = ""; BindPending();
+            DateTime end; string endText = "";
+            if (NewEnd.Text.Trim().Length > 0) { if (!DateTime.TryParse(NewEnd.Text, Inv, DateTimeStyles.None, out end) || end.Date < eff.Date) throw new InvalidOperationException("End date cannot be before the effective date."); endText = end.ToString("yyyy-MM-dd", Inv); }
+            decimal billing; string billingText = "";
+            if (NewBilling.Text.Trim().Length > 0) { if (!Decimal.TryParse(NewBilling.Text, NumberStyles.Number, Inv, out billing) || billing < 0) throw new InvalidOperationException("Enter a valid billing rate."); billingText = billing.ToString(Inv); }
+            string notes = NewNotes.Text.Trim(); if (notes.Length > 500) throw new InvalidOperationException("Notes can be up to 500 characters.");
+            PendingRows.Add(new[] { b.ToString(Inv), NewBusiness.SelectedItem.Text, String.Join(",", roles.Select(r => r.Value)), String.Join(", ", roles.Select(r => r.Text)), NewType.SelectedValue, NewPayType.SelectedValue, rate.ToString(Inv), eff.ToString("yyyy-MM-dd", Inv), NewProject.SelectedValue, endText, NewStatus.SelectedValue, billingText, notes });
+            NewRate.Text = NewBilling.Text = NewEnd.Text = NewNotes.Text = ""; AssignmentModal.Visible = false; BindPending();
         }
-        catch (InvalidOperationException error) { ShowError(error.Message); }
+        catch (InvalidOperationException error) { ModalError.Text = HttpUtility.HtmlEncode(error.Message); ModalError.Visible = true; AssignmentModal.Visible = true; }
+    }
+    protected void OpenAssignment_Click(object sender, EventArgs e) { ModalError.Visible = false; AssignmentModal.Visible = true; if (NewEffective.Text.Length == 0) NewEffective.Text = DateTime.Today.ToString("yyyy-MM-dd", Inv); }
+    protected void CloseAssignment_Click(object sender, EventArgs e) { AssignmentModal.Visible = false; }
+    // ---------- Address lookup (same postal-code search as Add Business) ----------
+    protected void SearchPostal_Click(object sender, EventArgs e)
+    {
+        string postal = AnyminuteBusinessAddressInput.Postal(LookupPostal.Text);
+        LookupChoices.Items.Clear();
+        if (!System.Text.RegularExpressions.Regex.IsMatch(postal, @"^[A-Z0-9-]{5,10}$")) { LookupChoices.Items.Add(new ListItem("Search a postal code first", "")); ShowError("Enter a postal code of 5 to 10 letters or digits."); return; }
+        DataTable matches = new CommanClass().GetSearchAddress(postal); ViewState["EmpMatches"] = matches; ViewState["EmpPostal"] = postal;
+        LookupChoices.Items.Add(new ListItem("Select an address", ""));
+        for (int i = 0; i < matches.Rows.Count; i++) { string label = Convert.ToString(matches.Rows[i]["SEARCHADDRESS"]).Trim(); if (label.Length > 0 && !String.Equals(label, "ADD NEW ADDRESS", StringComparison.OrdinalIgnoreCase)) LookupChoices.Items.Add(new ListItem(label, i.ToString(Inv))); }
+        if (LookupChoices.Items.Count == 1) { LookupChoices.Items[0].Text = "No matching addresses found"; ShowError("No matching addresses found. Check the postal code or use Add New Address to enter it manually."); }
+    }
+    protected void LookupChoice_Changed(object sender, EventArgs e)
+    {
+        var matches = ViewState["EmpMatches"] as DataTable; int i;
+        if (matches == null || !Int32.TryParse(LookupChoices.SelectedValue, out i) || i < 0 || i >= matches.Rows.Count) return;
+        var a = AnyminuteBusinessAddressInput.FromRow(matches.Rows[i], Convert.ToString(ViewState["EmpPostal"]));
+        StreetNo.Text = a.Number; Line1.Text = a.Street; Line2.Text = a.Line2; City.Text = a.City; Province.Text = a.Province; PostalCode.Text = a.PostalCode; Select(Country, a.Country);
+    }
+    protected void AddNewAddress_Click(object sender, EventArgs e)
+    {
+        StreetNo.Text = Line1.Text = Line2.Text = SuiteNumber.Text = City.Text = Province.Text = ""; SuiteType.SelectedIndex = 0;
+        PostalCode.Text = AnyminuteBusinessAddressInput.Postal(LookupPostal.Text); Select(Country, "Canada"); StreetNo.Focus();
     }
     protected void Pending_ItemCommand(object source, RepeaterCommandEventArgs e)
     {
@@ -83,22 +113,29 @@ public partial class AnyminuteEmployeeEditorPage : System.Web.UI.Page
     // ---------- Edit Employee ----------
     private void SetupEdit()
     {
-        PageTitle.Text = "Edit Employee"; PageSubtitle.Text = "Update employee details, assignments, pay and login access.";
-        NewAssignments.Visible = NewAccess.Visible = false; HeaderCard.Visible = Tabs.Visible = true; Deactivate.Visible = card.Status != "Terminated";
+        PageTitle.Text = "Edit Employee"; PageSubtitle.Text = "Update employee details, manage business assignments, pay rate history, and control login access.";
+        NewAssignments.Visible = NewAccess.Visible = LookupSection.Visible = false; HeaderCard.Visible = Tabs.Visible = true; Deactivate.Visible = card.Status != "Terminated";
         CloseLink.NavigateUrl = CancelLink.NavigateUrl = "~/Users.aspx"; SaveEmployee.Text = "Save Employee";
         HeadInitials.Text = HttpUtility.HtmlEncode(card.Initials); HeadName.Text = HttpUtility.HtmlEncode(card.Name); HeadEmail.Text = HttpUtility.HtmlEncode(card.Email);
-        HeadPhone.Text = HttpUtility.HtmlEncode(card.Phone); HeadId.Text = employee.ToString(Inv); HeadStatus.Text = HttpUtility.HtmlEncode(card.Status); HeadStatus.CssClass = AnyminuteEmployeeEditor.StatusPill(card.Status);
-        var access = AnyminuteEmployeeEditor.Access(card); HeadAccess.Text = HttpUtility.HtmlEncode(access.State); HeadAccessLink.NavigateUrl = Url("access");
+        HeadPhone.Text = HttpUtility.HtmlEncode(card.Phone);
+        HeadStatus.Text = HttpUtility.HtmlEncode(tab == "access" ? "Employee " + card.Status : card.Status); HeadStatus.CssClass = AnyminuteEmployeeEditor.StatusPill(card.Status);
+        HeadBusiness.Text = HttpUtility.HtmlEncode(String.Join(", ", card.Assignments.Select(x => x.Business).Distinct()));
+        var access = AnyminuteEmployeeEditor.Access(card);
+        HeadAccess.Text = HttpUtility.HtmlEncode(access.State); HeadAccess.CssClass = access.State == "Enabled" ? "am-pill-green" : access.State == "Disabled" ? "am-pill-red" : "am-pill-amber";
+        HeadAccessLink.NavigateUrl = Url("access");
         var tabs = new[] { new[] { "profile", "Employee Information" }, new[] { "address", "Address" }, new[] { "assignments", "Business Assignments" }, new[] { "rate", "Rate History" }, new[] { "access", "Login &amp; Access" } };
         var sb = new StringBuilder();
         foreach (var t in tabs) sb.Append("<a role=\"tab\" href=\"").Append(HttpUtility.HtmlAttributeEncode(ResolveUrl(Url(t[0])))).Append("\"").Append(t[0] == tab ? " class=\"is-active\" aria-selected=\"true\"" : "").Append(">").Append(t[1]).Append("</a>");
         TabLinks.Text = sb.ToString();
         bool form = tab == "profile" || tab == "address";
-        InfoSection.Visible = AddressSection.Visible = form; SaveEmployee.Visible = form;
+        InfoSection.Visible = AddressSection.Visible = form; SaveEmployee.Visible = form; SaveAccess.Visible = tab == "access";
         if (form) { (tab == "profile" ? AddressSection : InfoSection).Style["display"] = "none"; if (!IsPostBack) LoadProfile(); }
         AssignmentsTab.Visible = tab == "assignments"; RateTab.Visible = tab == "rate"; AccessTab.Visible = tab == "access";
         if (tab == "assignments") { AddAssignmentLink.NavigateUrl = "~/EmployeeAssignment.aspx?EmployeeId=" + employee + "&mode=add"; Assignments.DataSource = AnyminuteEmployeeEditor.Assignments(card); Assignments.DataBind(); }
-        if (tab == "rate") SetupRate();
+        // Slide 11 header shows date of birth; slide 10 header shows the role and a Business selector instead of the access box.
+        HeadDobWrap.Visible = false;
+        if (tab == "access") { string dob = IsoDate(AnyminuteEmployeeEditor.LoadProfile(employee).DateOfBirth); HeadDob.Text = dob; HeadDobWrap.Visible = dob.Length > 0; }
+        if (tab == "rate") { HeadAccessBox.Visible = false; HeadBusinessBox.Visible = true; HeadRole.Visible = true; HeadBusinessWrap.Visible = false; Footer.Visible = false; SetupRate(); }
         if (tab == "access") BindAccess(access, !IsPostBack);
     }
     private string Url(string t) { return "~/EmployeeEditor.aspx?EmployeeId=" + employee + "&tab=" + t; }
@@ -110,7 +147,7 @@ public partial class AnyminuteEmployeeEditorPage : System.Web.UI.Page
         Select(Gender, p.Gender); Sin.Text = p.Sin; Select(Status, p.Status);
         HireDate.Text = p.HireDate.HasValue ? p.HireDate.Value.ToString("yyyy-MM-dd", Inv) : ""; HireDate.Enabled = false; HireDate.ToolTip = "Hire date is kept from the original record.";
         StreetNo.Text = p.StreetNo; Line1.Text = p.Line1; Line2.Text = p.Line2; Select(SuiteType, p.SuiteType); SuiteNumber.Text = p.SuiteNumber;
-        City.Text = p.City; Province.Text = p.Province; PostalCode.Text = p.PostalCode; Country.Text = p.Country ?? "";
+        City.Text = p.City; Province.Text = p.Province; PostalCode.Text = p.PostalCode; Select(Country, String.IsNullOrWhiteSpace(p.Country) ? "Canada" : p.Country);
     }
     private static string IsoDate(string value) { DateTime d; return !String.IsNullOrWhiteSpace(value) && DateTime.TryParse(value, out d) ? d.ToString("yyyy-MM-dd", Inv) : ""; }
     private static void Select(DropDownList list, string value) { if (value != null && list.Items.FindByValue(value) == null && value.Trim().Length > 0) list.Items.Add(value); if (value != null && list.Items.FindByValue(value) != null) list.SelectedValue = value; }
@@ -124,7 +161,7 @@ public partial class AnyminuteEmployeeEditorPage : System.Web.UI.Page
         p.Gender = Gender.SelectedValue; p.Sin = Sin.Text.Trim(); p.Status = Status.SelectedValue;
         DateTime hire; if (DateTime.TryParse(HireDate.Text, Inv, DateTimeStyles.None, out hire)) p.HireDate = hire;
         p.StreetNo = StreetNo.Text.Trim(); p.Line1 = Line1.Text.Trim(); p.Line2 = Line2.Text.Trim(); p.SuiteType = SuiteType.SelectedValue; p.SuiteNumber = SuiteNumber.Text.Trim();
-        p.City = City.Text.Trim(); p.Province = Province.Text.Trim(); p.PostalCode = PostalCode.Text.Trim(); p.Country = Country.Text.Trim();
+        p.City = City.Text.Trim(); p.Province = Province.Text.Trim(); p.PostalCode = PostalCode.Text.Trim(); p.Country = Country.SelectedValue;
         return p;
     }
     protected void Save_Click(object sender, EventArgs e)
@@ -138,8 +175,11 @@ public partial class AnyminuteEmployeeEditorPage : System.Web.UI.Page
                 AnyminuteFlash.Set("editor", "Employee details for \u201c" + p.FirstName + " " + p.LastName + "\u201d were updated successfully.");
                 Go(Url(tab)); return;
             }
-            var rows = PendingRows.Select(r => new AnyminuteAssignmentInput { BusinessId = Int32.Parse(r[0], Inv), Roles = r[2].Split(',').Select(x => Int32.Parse(x, Inv)).ToArray(), EmployeeType = r[4], PayType = r[5], PayRate = Decimal.Parse(r[6], Inv), EffectiveDate = DateTime.Parse(r[7], Inv), ProjectId = Int32.Parse(r[8], Inv) }).ToList();
-            string notice; AnyminuteEmployeeEditor.Create(p, rows, LoginOn.Checked, SendInvite.Checked && LoginOn.Checked, out notice);
+            var rows = PendingRows.Select(r => new AnyminuteAssignmentInput { BusinessId = Int32.Parse(r[0], Inv), Roles = r[2].Split(',').Select(x => Int32.Parse(x, Inv)).ToArray(), EmployeeType = r[4], PayType = r[5], PayRate = Decimal.Parse(r[6], Inv), EffectiveDate = DateTime.Parse(r[7], Inv), ProjectId = Int32.Parse(r[8], Inv), EndDate = r[9].Length > 0 ? (DateTime?)DateTime.Parse(r[9], Inv) : null, Status = r[10], BillingRate = r[11].Length > 0 ? (decimal?)Decimal.Parse(r[11], Inv) : null, Notes = r[12] }).ToList();
+            string notice; int created = AnyminuteEmployeeEditor.Create(p, rows, LoginOn.Checked, SendInvite.Checked && LoginOn.Checked, out notice);
+            // Assignment status other than Active is applied after the legacy create (which always starts Active).
+            foreach (var r in rows.Where(x => x.Status != "Active"))
+                try { AnyminuteEmployeeEditor.SaveAssignment(created, r); } catch (InvalidOperationException statusError) { notice = (notice + " " + statusError.Message).Trim(); }
             AnyminuteFlash.Set("employees", "Employee \u201c" + p.FirstName + " " + p.LastName + "\u201d was added successfully." + (String.IsNullOrEmpty(notice) ? "" : " " + notice));
             Go("~/Users.aspx");
         }
@@ -156,16 +196,25 @@ public partial class AnyminuteEmployeeEditorPage : System.Web.UI.Page
         catch (InvalidOperationException error) { ShowError(error.Message); }
     }
 
-    // ---------- Rate History ----------
+    // ---------- Rate History (slide 10) ----------
+    private bool AddingRate { get { return Convert.ToBoolean(ViewState["AddingRate"] ?? false); } set { ViewState["AddingRate"] = value; } }
     private void SetupRate()
     {
-        RateCancel.NavigateUrl = Url("rate");
         if (!IsPostBack)
         {
-            foreach (var a in card.Assignments.GroupBy(x => x.BusinessId).Select(g => g.First())) RateBusiness.Items.Add(new ListItem(a.Business, a.BusinessId.ToString(Inv)));
-            string q = Request.QueryString["BusinessId"]; if (q != null && RateBusiness.Items.FindByValue(q) != null) RateBusiness.SelectedValue = q;
-            RateBusinessField.Visible = RateBusiness.Items.Count > 1; BindRate(true);
+            foreach (var a in card.Assignments.GroupBy(x => x.BusinessId).Select(g => g.First())) { RateBusiness.Items.Add(new ListItem(a.Business, a.BusinessId.ToString(Inv))); HeadBusinessSelect.Items.Add(new ListItem(a.Business, a.BusinessId.ToString(Inv))); }
+            string q = Request.QueryString["BusinessId"]; if (q != null && RateBusiness.Items.FindByValue(q) != null) RateBusiness.SelectedValue = HeadBusinessSelect.SelectedValue = q;
+            BindRate(true);
         }
+        SetRateMode();
+    }
+    private void SetRateMode()
+    {
+        RateFormTitle.Text = AddingRate ? "Add New Rate" : "Current Pay Rate";
+        RateFormHint.Text = AddingRate ? "Create a new rate for a future change. The current rate will end the day before the new effective date." : "Update the employee's current pay rate. Changes will take effect from the selected effective date.";
+        RateValueLabel.Text = AddingRate ? "New Pay Rate" : "Current Pay Rate"; UpdateRateText.Text = AddingRate ? "Add New Rate" : "Update Current Rate";
+        int b; var a = Int32.TryParse(RateBusiness.SelectedValue, out b) ? card.Assignments.FirstOrDefault(x => x.BusinessId == b) : null;
+        HeadRole.Text = a == null ? "" : HttpUtility.HtmlEncode(a.Role);
     }
     private void BindRate(bool fill)
     {
@@ -173,34 +222,57 @@ public partial class AnyminuteEmployeeEditorPage : System.Web.UI.Page
         var t = AnyminuteEmployeeEditor.RateHistory(AnyminuteEmployeeEditor.RecordFor(card, b)); RateRows.DataSource = t; RateRows.DataBind();
         if (!fill) return;
         var current = t.Rows.Cast<DataRow>().FirstOrDefault(r => (bool)r["Current"]);
-        if (current != null) { Select(RateType, Convert.ToString(current["RateType"])); RateValue.Text = Convert.ToDecimal(current["Rate"]).ToString("0.00", Inv); }
-        RateEffective.Text = DateTime.Today.ToString("yyyy-MM-dd", Inv); RateReason.Text = "";
+        if (AddingRate || current == null) { RateValue.Text = ""; RateEffective.Text = DateTime.Today.AddDays(1).ToString("yyyy-MM-dd", Inv); if (current != null) Select(RateType, Convert.ToString(current["RateType"])); }
+        else { Select(RateType, Convert.ToString(current["RateType"])); RateValue.Text = Convert.ToDecimal(current["Rate"]).ToString("0.00", Inv); RateEffective.Text = Convert.ToDateTime(current["effectivedate"]).ToString("yyyy-MM-dd", Inv); }
+        RateReason.Text = "";
     }
-    protected void RateBusinessChanged(object sender, EventArgs e) { BindRate(true); }
+    private void SwitchBusiness(string value) { RateBusiness.SelectedValue = HeadBusinessSelect.SelectedValue = value; AddingRate = false; BindRate(true); SetRateMode(); }
+    protected void RateBusinessChanged(object sender, EventArgs e) { SwitchBusiness(RateBusiness.SelectedValue); }
+    protected void HeadBusinessChanged(object sender, EventArgs e) { SwitchBusiness(HeadBusinessSelect.SelectedValue); }
+    protected void AddNewRate_Click(object sender, EventArgs e) { AddingRate = true; BindRate(true); SetRateMode(); RateValue.Focus(); }
+    protected void RateCancel_Click(object sender, EventArgs e) { AddingRate = false; BindRate(true); SetRateMode(); }
+    protected void RateRows_ItemCommand(object source, RepeaterCommandEventArgs e) { if (e.CommandName == "EditCurrent") { AddingRate = false; BindRate(true); SetRateMode(); RateValue.Focus(); } }
     protected void UpdateRate_Click(object sender, EventArgs e)
     {
         try
         {
             int b; decimal rate; DateTime eff;
             if (!Int32.TryParse(RateBusiness.SelectedValue, out b)) throw new InvalidOperationException("Select a business.");
-            if (!Decimal.TryParse(RateValue.Text, NumberStyles.Number, Inv, out rate)) throw new InvalidOperationException("Enter the rate.");
+            if (!Decimal.TryParse(RateValue.Text, NumberStyles.Number, Inv, out rate)) throw new InvalidOperationException("Enter the pay rate.");
             if (!DateTime.TryParse(RateEffective.Text, Inv, DateTimeStyles.None, out eff)) throw new InvalidOperationException("Enter the effective date.");
-            AnyminuteEmployeeEditor.ChangeRate(employee, b, RateType.SelectedValue, rate, eff, RateReason.Text);
-            AnyminuteFlash.Set("editor", "Pay rate updated successfully."); Go(Url("rate") + "&BusinessId=" + b);
+            if (AddingRate) AnyminuteEmployeeEditor.ChangeRate(employee, b, RateType.SelectedValue, rate, eff, RateReason.Text);
+            else AnyminuteEmployeeEditor.UpdateCurrentRate(employee, b, RateType.SelectedValue, rate, eff, RateReason.Text);
+            AnyminuteFlash.Set("editor", AddingRate ? "New pay rate added successfully." : "Current pay rate updated successfully."); Go(Url("rate") + "&BusinessId=" + b);
         }
         catch (InvalidOperationException error) { ShowError(error.Message); BindRate(false); }
     }
 
-    // ---------- Login & Access ----------
+    // ---------- Login & Access (slide 11) ----------
+    private static readonly Dictionary<string, string> ActionNames = new Dictionary<string, string> { { "SendInvitation", "Invitation Sent" }, { "CreateEmployee", "Account Created" }, { "LoginEnabled", "Login Access Enabled" }, { "LoginDisabled", "Login Access Disabled" }, { "CancelInvitation", "Invitation Cancelled" }, { "CopyInvitationLink", "Invitation Link Copied" }, { "RequirePasswordChange", "Password Change Required" }, { "TwoFactorChanged", "2FA Setting Changed" }, { "PortalRoleChanged", "Portal Role Changed" } };
     private void BindAccess(AnyminuteEmployeeEditor.AccessState a, bool fill)
     {
-        AccessState.Text = HttpUtility.HtmlEncode(a.State); AccessSent.Text = HttpUtility.HtmlEncode(a.SentText); AccessChanged.Text = HttpUtility.HtmlEncode(a.LastChange);
-        AccessUser.Text = HttpUtility.HtmlEncode(a.Username.Length > 0 ? a.Username : a.Email); AccessRole.Text = HttpUtility.HtmlEncode(a.Role);
+        AccessState.Text = HttpUtility.HtmlEncode(a.State);
+        AccessStateText.Text = HttpUtility.HtmlEncode(a.UserId == 0 ? "No login account is linked to this employee yet."
+            : !a.Enabled ? "Login access is disabled. The employee cannot sign in until access is enabled."
+            : a.Pending ? "A secure invitation email has been sent to " + (a.Email.Length > 0 ? a.Email : "the employee") + (a.SentText != "\u2014" ? " on " + a.SentText : "") + ". The employee needs to set their password to activate login access."
+            : "The employee has activated their account and can sign in to AnyMinute.");
+        AccessStatusBox.CssClass = "am-status-box " + (!a.Enabled ? "am-off" : a.Pending ? "am-pending" : "am-on");
+        AccessUser.Text = a.Username; AccessEmail.Text = a.Email;
         ResendInvite.Enabled = CopyLink.Enabled = a.UserId > 0; CancelInvite.Enabled = a.UserId > 0 && a.Enabled;
-        if (fill) { AccessOn.Checked = a.Enabled; AccessOff.Checked = !a.Enabled; RequireChange.Checked = a.RequireChange; TwoFactor.Checked = a.TwoFactor; }
-        if (!a.TablesReady) ShowError(AnyminuteEmployeeEditor.MissingTables.Replace(" Nothing was changed.", " Settings below are read-only until it is installed."));
-        var h = AnyminuteEmployeeEditor.AccessHistory(card); h.Columns.Add("WhenText");
-        foreach (DataRow r in h.Rows) r["WhenText"] = r["RecordedAtUTC"] == DBNull.Value ? "" : DateTime.SpecifyKind(Convert.ToDateTime(r["RecordedAtUTC"]), DateTimeKind.Utc).ToLocalTime().ToString("MMM d, yyyy h:mm tt", Inv);
+        if (fill)
+        {
+            AccessOn.Checked = a.Enabled; AccessOff.Checked = !a.Enabled; RequireChange.Checked = a.RequireChange; TwoFactor.Checked = a.TwoFactor;
+            var first = card.First; AccessRole.Items.Clear();
+            foreach (DataRow r in AnyminuteEmployeeEditor.Roles(first.BusinessId).Rows) AccessRole.Items.Add(new ListItem(Convert.ToString(r["UserType"]), Convert.ToString(r["User_TypeId"])));
+            Select(AccessRole, first.RoleId.ToString(Inv)); AccessRole.ToolTip = "Role in " + first.Business;
+        }
+        if (!a.TablesReady) ShowError(AnyminuteEmployeeEditor.MissingTables.Replace(" Nothing was changed.", " Login settings cannot be saved until it is installed."));
+        var h = AnyminuteEmployeeEditor.AccessHistory(card); h.Columns.Add("WhenText"); h.Columns.Add("ActionText");
+        foreach (DataRow r in h.Rows)
+        {
+            r["WhenText"] = r["RecordedAtUTC"] == DBNull.Value ? "" : DateTime.SpecifyKind(Convert.ToDateTime(r["RecordedAtUTC"]), DateTimeKind.Utc).ToLocalTime().ToString("yyyy-MM-dd hh:mm tt", Inv);
+            string k = Convert.ToString(r["Action"]); r["ActionText"] = ActionNames.ContainsKey(k) ? ActionNames[k] : k;
+        }
         AccessRows.DataSource = h; AccessRows.DataBind(); NoAccessRows.Visible = h.Rows.Count == 0;
     }
     private void AccessResult(Func<string> action)
@@ -213,11 +285,16 @@ public partial class AnyminuteEmployeeEditorPage : System.Web.UI.Page
         AccessResult(() =>
         {
             string m = AnyminuteEmployeeEditor.SaveAccess(employee, AccessOn.Checked, RequireChange.Checked, TwoFactor.Checked);
-            if (m != AnyminuteEmployeeEditor.MissingTables && AccessOn.Checked && WelcomeEmail.Checked) m += " " + AnyminuteEmployeeEditor.SendInvitation(employee, true);
+            int role; var first = card.First;
+            if (Int32.TryParse(AccessRole.SelectedValue, out role) && role != first.RoleId && AccessRole.Items.FindByValue(role.ToString(Inv)) != null)
+            {
+                AnyminuteEmployeeAssignmentService.SaveRole(AnyminuteEmployeeEditor.RecordFor(card, first.BusinessId), first.BusinessId, role);
+                m = (m == AnyminuteEmployeeEditor.MissingTables ? "Portal role updated. Login settings need the database update." : m + " Portal role updated.");
+            }
             return m;
         });
     }
-    protected void Resend_Click(object sender, EventArgs e) { AccessResult(() => AnyminuteEmployeeEditor.SendInvitation(employee, false)); }
+    protected void Resend_Click(object sender, EventArgs e) { AccessResult(() => AnyminuteEmployeeEditor.SendInvitation(employee, WelcomeEmail.Checked)); }
     protected void CancelInvite_Click(object sender, EventArgs e) { AccessResult(() => AnyminuteEmployeeEditor.CancelInvitation(employee)); }
     protected void CopyLink_Click(object sender, EventArgs e)
     {

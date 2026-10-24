@@ -355,6 +355,35 @@ public static class AnyminuteEmployeeEditor
             tx.Commit();
         }
     }
+    // v3 (deck slide 10): "Update Current Rate" corrects the current rate row in place; "Add New Rate" uses ChangeRate.
+    public static void UpdateCurrentRate(int employee, int business, string type, decimal rate, DateTime effective, string reason)
+    {
+        var card = RequireEditable(employee);
+        if (!card.Assignments.Any(a => a.BusinessId == business)) throw new InvalidOperationException("Select one of this employee's businesses.");
+        if (!PayTypes.Contains(type)) throw new InvalidOperationException("Select a rate type.");
+        if (rate <= 0 || rate > 1000000) throw new InvalidOperationException("Enter a pay rate greater than zero.");
+        if (String.IsNullOrWhiteSpace(reason) || reason.Trim().Length > 200) throw new InvalidOperationException("Enter a reason for the change (up to 200 characters).");
+        int record = RecordFor(card, business);
+        using (var c = AnyminuteTimesheetRepair.Open())
+        using (var tx = c.BeginTransaction(IsolationLevel.Serializable))
+        {
+            AnyminuteApprovalAssignments.RequireOwner(c, tx, business);
+            var all = Q(c, tx, "SELECT RateId,effectivedate,Rate,RateType FROM RateDetails WITH(UPDLOCK,HOLDLOCK) WHERE EmployeeId=@e ORDER BY effectivedate DESC,RateId DESC", "@e", record);
+            int cur = -1;
+            for (int i = 0; i < all.Rows.Count; i++) if (all.Rows[i]["effectivedate"] != DBNull.Value && Convert.ToDateTime(all.Rows[i]["effectivedate"]) <= DateTime.Now) { cur = i; break; }
+            if (cur < 0) { InsertRate(c, tx, record, type, rate, effective, reason, null); tx.Commit(); return; }
+            if (cur > 0) throw new InvalidOperationException("A future rate is already scheduled, so the current rate cannot be edited. Use Add New Rate instead.");
+            var row = all.Rows[cur];
+            if (cur + 1 < all.Rows.Count && all.Rows[cur + 1]["effectivedate"] != DBNull.Value && effective.Date <= Convert.ToDateTime(all.Rows[cur + 1]["effectivedate"]).Date)
+                throw new InvalidOperationException("The effective date must be after the previous rate's start date. Historical rates are locked.");
+            X(c, tx, "UPDATE RateDetails SET Rate=@r,RateType=@t,StartDate=@s,effectivedate=@s WHERE RateId=@id", "@r", (double)rate, "@t", type, "@s", effective.Date, "@id", row["RateId"]);
+            if (cur + 1 < all.Rows.Count) X(c, tx, "UPDATE RateDetails SET EndDate=@d,Is_Having_EndDate=1 WHERE RateId=@id", "@d", effective.Date.AddDays(-1), "@id", all.Rows[cur + 1]["RateId"]);
+            if (HasTable(c, tx, "AnyminuteRateChangeReason"))
+                X(c, tx, "MERGE AnyminuteRateChangeReason t USING(SELECT @id RateId) s ON t.RateId=s.RateId WHEN MATCHED THEN UPDATE SET Reason=@why,ChangedBy=@a,ChangedAtUTC=SYSUTCDATETIME() WHEN NOT MATCHED THEN INSERT(RateId,Reason,ChangedBy,ChangedAtUTC) VALUES(@id,@why,@a,SYSUTCDATETIME());", "@id", row["RateId"], "@why", reason.Trim(), "@a", Actor());
+            Audit(c, tx, business, record, "EditCurrentRate", S(row["RateType"]) + " " + S(row["Rate"]), type + " " + rate.ToString(CultureInfo.InvariantCulture) + " from " + effective.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) + ": " + reason.Trim());
+            tx.Commit();
+        }
+    }
     public static DataTable RateHistory(int record)
     {
         using (var c = AnyminuteTimesheetRepair.Open())
