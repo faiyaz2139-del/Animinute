@@ -76,3 +76,11 @@ body.am-ui .am-visually-hidden{position:absolute!important;width:1px!important;h
 .am-modal-shade .am-dialog-page{width:100%;max-width:900px}
 @media(max-width:900px){.am-grid,.am-grid.am-cols-3,.am-cards-3{grid-template-columns:1fr 1fr}.am-side-layout{grid-template-columns:1fr}}
 @media(max-width:600px){.am-grid,.am-grid.am-cols-3,.am-grid.am-cols-2,.am-cards-3{grid-template-columns:1fr}.am-span-2{grid-column:auto}}
+
+/* v2 profile + editor extras */
+.am-side-nav hr{border:0;border-top:1px solid #e3eaf2;margin:6px 0}
+.am-side-main>.am-card{margin-top:0}
+.am-profile-head{display:flex;align-items:center;gap:12px;justify-content:space-between}
+.am-profile-head h1{flex:1;text-align:center;margin:0}
+.am-invite-link{width:100%;margin:0 0 16px;padding:9px 12px;border:1px solid #cfdae6;border-radius:8px;font-family:monospace;background:#f7fafc}
+.am-info-card .am-access-box{display:flex;flex-direction:column;gap:2px}

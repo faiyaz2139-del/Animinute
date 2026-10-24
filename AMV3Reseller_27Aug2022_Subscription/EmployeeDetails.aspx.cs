@@ -7,7 +7,8 @@ public partial class AnyminuteEmployeeDetails : System.Web.UI.Page
 {
     private AnyminuteEmployeeCardView card;
     private int employee;
-    private string Tab {get {string value=Request.QueryString["tab"]??"profile";return new[]{"profile","address","assignments","pay","projects","time","access","activity"}.Contains(value)?value:"profile";}}
+    protected bool CanManage;
+    private string Tab {get {string value=Request.QueryString["tab"]??"profile";return new[]{"profile","address","assignments","pay","projects","time","documents","access","activity"}.Contains(value)?value:"profile";}}
     protected void Page_Init(object sender,EventArgs e)
     {
         AnyminuteDirectoryScope.RequireDirectoryRole();ViewStateUserKey=Session.SessionID;
@@ -16,6 +17,7 @@ public partial class AnyminuteEmployeeDetails : System.Web.UI.Page
     }
     protected void Page_Load(object sender,EventArgs e)
     {
+        string flash=AnyminuteFlash.Take("details");if(flash!=null){FlashText.Text=HttpUtility.HtmlEncode(flash);Flash.Visible=true;}
         if(!IsPostBack)
         {
             foreach(var a in card.Assignments.GroupBy(x=>new{x.BusinessId,x.EmployeeId}).Select(x=>x.First()))ContextAssignment.Items.Add(new ListItem(a.Business,a.BusinessId+":"+a.EmployeeId));
@@ -29,7 +31,14 @@ public partial class AnyminuteEmployeeDetails : System.Web.UI.Page
         Bind();
     }
     protected void ContextChanged(object sender,EventArgs e){ /* Page_Load already binds posted, reauthorized selection. */ }
-    protected void AssignmentCommand(object sender,GridViewCommandEventArgs e) { }
+    protected void AssignmentCommand(object sender,RepeaterCommandEventArgs e)
+    {
+        int b;if(e.CommandName!="RemoveAssignment"||!Int32.TryParse(Convert.ToString(e.CommandArgument),out b))return;
+        try{AnyminuteEmployeeEditor.RemoveAssignment(employee,b);AnyminuteFlash.Set("details","Business assignment removed.");
+            bool exists=true;try{AnyminuteEmployeesView.RequireEmployee(employee);}catch(HttpException){exists=false;}
+            Response.Redirect(exists?"EmployeeDetails.aspx?EmployeeId="+employee+"&tab=assignments":"Users.aspx",false);Context.ApplicationInstance.CompleteRequest();}
+        catch(InvalidOperationException error){Notice.Text=HttpUtility.HtmlEncode(error.Message);Notice.Visible=true;}
+    }
     protected void Deactivate_Click(object sender,EventArgs e)
     {
         if(Request.QueryString["action"]!="deactivate")throw new HttpException(400,"Open the Deactivate Employee action first.");
@@ -42,8 +51,9 @@ public partial class AnyminuteEmployeeDetails : System.Web.UI.Page
         var context=card.Assignments.FirstOrDefault(a=>ContextAssignment.SelectedValue==a.BusinessId+":"+a.EmployeeId);
         if(context==null)throw new HttpException(403,"This assignment is outside your current access.");
         Initials.Text=HttpUtility.HtmlEncode(card.Initials);EmployeeName.Text=HttpUtility.HtmlEncode(card.Name);Email.Text=HttpUtility.HtmlEncode(card.Email);Phone.Text=HttpUtility.HtmlEncode(card.Phone);EmployeeStatus.Text=HttpUtility.HtmlEncode(card.Status);
-        ProfileTab.NavigateUrl=Url("profile");AddressTab.NavigateUrl=Url("address");AssignmentsTab.NavigateUrl=Url("assignments");PayTab.NavigateUrl=Url("pay");ProjectsTab.NavigateUrl=Url("projects");TimeTab.NavigateUrl=Url("time");AccessTab.NavigateUrl=Url("access");ActivityTab.NavigateUrl=Url("activity");
-        ProfilePane.Visible=Tab=="profile";AddressPane.Visible=Tab=="address";AssignmentsPane.Visible=Tab=="assignments";PayPane.Visible=Tab=="pay";ProjectsPane.Visible=Tab=="projects";TimePane.Visible=Tab=="time";AccessPane.Visible=Tab=="access";ActivityPane.Visible=Tab=="activity";
+        ProfileTab.NavigateUrl=Url("profile");AddressTab.NavigateUrl=Url("address");AssignmentsTab.NavigateUrl=Url("assignments");PayTab.NavigateUrl=Url("pay");ProjectsTab.NavigateUrl=Url("projects");TimeTab.NavigateUrl=Url("time");DocumentsTab.NavigateUrl=Url("documents");AccessTab.NavigateUrl=Url("access");ActivityTab.NavigateUrl=Url("activity");
+        foreach(var t in new[]{new{L=ProfileTab,K="profile"},new{L=AddressTab,K="address"},new{L=AssignmentsTab,K="assignments"},new{L=PayTab,K="pay"},new{L=ProjectsTab,K="projects"},new{L=TimeTab,K="time"},new{L=DocumentsTab,K="documents"},new{L=AccessTab,K="access"},new{L=ActivityTab,K="activity"}})t.L.CssClass=t.K==Tab?"is-active":"";
+        ProfilePane.Visible=Tab=="profile";AddressPane.Visible=Tab=="address";AssignmentsPane.Visible=Tab=="assignments";PayPane.Visible=Tab=="pay";ProjectsPane.Visible=Tab=="projects";TimePane.Visible=Tab=="time";DocumentsPane.Visible=Tab=="documents";AccessPane.Visible=Tab=="access";ActivityPane.Visible=Tab=="activity";
         bool manage=false;string editor=null;
         if(context.Manage)
             try{editor=AnyminuteEmployeesView.EditUrl(context,"profile");manage=true;}
@@ -59,7 +69,9 @@ public partial class AnyminuteEmployeeDetails : System.Web.UI.Page
             if(!manage)throw new HttpException(403,"You cannot edit the account-wide details of this employee.");
             Response.Redirect(editor,false);Context.ApplicationInstance.CompleteRequest();return;
         }
-        Assignments.DataSource=card.Assignments;Assignments.DataBind();AssignmentCount.Text=card.Assignments.Count().ToString();AddAssignment.Visible=manage;AddAssignment.NavigateUrl="EmployeeAssignment.aspx?EmployeeId="+context.EmployeeId;
+        // 2026-10-24 v2 (new ppt slide 7): Edit Basic Info opens the new Edit Employee screen; assignment rows show roles/pay and edit/delete.
+        CanManage=card.Assignments.All(a=>a.Manage);if(CanManage){EditBasic.Visible=true;EditBasic.NavigateUrl="EmployeeEditor.aspx?EmployeeId="+employee+"&tab=profile";PayEditor.Visible=true;PayEditor.NavigateUrl="EmployeeEditor.aspx?EmployeeId="+employee+"&tab=rate&BusinessId="+context.BusinessId;}
+        var rows=AnyminuteEmployeeEditor.Assignments(card);Assignments.DataSource=rows;Assignments.DataBind();AssignmentCount.Text=rows.Count.ToString();AddAssignment.Visible=CanManage;AddAssignment.NavigateUrl="EmployeeAssignment.aspx?EmployeeId="+employee+"&mode=add";
         using(var c=AnyminuteTimesheetRepair.Open())
         {
             if(ProfilePane.Visible)
