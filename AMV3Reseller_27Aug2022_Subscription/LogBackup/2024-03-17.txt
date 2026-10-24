@@ -1,0 +1,998 @@
+17 Mar 2024 22:04:59,198 [7152] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) Start
+17 Mar 2024 22:05:00,852 [7152] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) end
+17 Mar 2024 22:05:00,877 [7152] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+17 Mar 2024 22:05:01,047 [7152] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+17 Mar 2024 22:05:01,063 [7152] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+17 Mar 2024 22:05:01,128 [7152] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+17 Mar 2024 22:05:01,142 [7152] INFO  Log - GetNameFromId(UserType,1) Start
+17 Mar 2024 22:05:01,656 [7152] INFO  Log - GetNameFromId(UserType,1) end
+17 Mar 2024 22:05:01,888 [10656] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) Start
+17 Mar 2024 22:05:02,193 [10656] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) end
+17 Mar 2024 22:05:02,196 [10656] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+17 Mar 2024 22:05:02,243 [10656] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+17 Mar 2024 22:05:02,244 [10656] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+17 Mar 2024 22:05:02,295 [10656] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+17 Mar 2024 22:05:02,298 [10656] INFO  Log - GetNameFromId(UserType,1) Start
+17 Mar 2024 22:05:02,538 [10656] INFO  Log - GetNameFromId(UserType,1) end
+17 Mar 2024 22:05:07,028 [14044] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 3268 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) Start
+17 Mar 2024 22:05:07,360 [14044] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 3268 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) end
+17 Mar 2024 22:05:07,504 [14044] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (2078, 2079, 2082, 2095, 2096, 2097, 6126, 7125, 7126, 7127, 7128, 7129, 7130, 7131, 7132, 7134, 7135, 7136, 7137, 7143, 8161, 12224, 14229, 14230, 14232, 14234, 14235, 14236, 15235, 15236, 15237, 15238, 15239, 15240, 15241) orderby Yr desc) Start
+17 Mar 2024 22:05:07,724 [14044] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (2078, 2079, 2082, 2095, 2096, 2097, 6126, 7125, 7126, 7127, 7128, 7129, 7130, 7131, 7132, 7134, 7135, 7136, 7137, 7143, 8161, 12224, 14229, 14230, 14232, 14234, 14235, 14236, 15235, 15236, 15237, 15238, 15239, 15240, 15241) orderby Yr desc) end
+17 Mar 2024 22:05:07,729 [14044] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=3268) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) Start
+17 Mar 2024 22:05:07,798 [14044] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=3268) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) end
+17 Mar 2024 22:05:10,509 [14044] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+17 Mar 2024 22:05:10,782 [14044] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+17 Mar 2024 22:05:10,783 [14044] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+17 Mar 2024 22:05:10,828 [14044] INFO  Log - GetMenuDataFromLoginTable(4246) end
+17 Mar 2024 22:05:10,842 [14044] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+17 Mar 2024 22:05:10,873 [14044] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+17 Mar 2024 22:05:10,874 [14044] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+17 Mar 2024 22:05:10,886 [14044] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+17 Mar 2024 22:05:10,892 [14044] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+17 Mar 2024 22:05:10,946 [14044] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+17 Mar 2024 22:05:10,951 [14044] INFO  Log - Fetching menu details - Started
+17 Mar 2024 22:05:11,020 [14044] INFO  Log - Fetching menu details - Finished
+17 Mar 2024 22:05:53,799 [10656] INFO  Log - IfExistsInTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID='3268' and IsActive='NO        ' and UserType='1' ) Start
+17 Mar 2024 22:05:53,845 [10656] INFO  Log - IfExistsInTable(Select IsActive, from AddEmployee with (Nolock) where EmployeeID='3268' and IsActive='NO        ' and UserType='1' ) end
+17 Mar 2024 22:05:53,857 [10656] INFO  Log - GetAllDataFromTable(Select ad.EmployeeID,ua.UserId from AddEmployee ad with (nolock) join EmpAddress ea with (nolock) on ad.ADDRESSID=ea.EmpAddressId join UserAcc ua with (nolock) on ua.Email=ea.MainEmail where ua.Email='independent_bo_pk_two@gmail.com' orderby ) Start
+17 Mar 2024 22:05:54,008 [10656] INFO  Log - GetAllDataFromTable(Select ad.EmployeeID,ua.UserId from AddEmployee ad with (nolock) join EmpAddress ea with (nolock) on ad.ADDRESSID=ea.EmpAddressId join UserAcc ua with (nolock) on ua.Email=ea.MainEmail where ua.Email='independent_bo_pk_two@gmail.com' orderby ) end
+17 Mar 2024 22:05:54,009 [10656] INFO  Log - GetAllDataFromTable(Select * from MappingTable with (Nolock) where USERID in(4246) orderby BusinessID,UserTypeId) Start
+17 Mar 2024 22:05:54,130 [10656] INFO  Log - GetAllDataFromTable(Select * from MappingTable with (Nolock) where USERID in(4246) orderby BusinessID,UserTypeId) end
+17 Mar 2024 22:05:54,134 [10656] INFO  Log - GetBussList_BusinessOwnerForDashBord1(4,3268,1) Start
+17 Mar 2024 22:05:54,469 [10656] INFO  Log - GetBussList_BusinessOwnerForDashBord1(4,3268,1) end
+17 Mar 2024 22:05:54,470 [10656] INFO  Log - GetAllDataFromTable(Select * from AddEmployee with (nolock) where EmployeeID=3268 orderby ) Start
+17 Mar 2024 22:05:54,482 [10656] INFO  Log - GetAllDataFromTable(Select * from AddEmployee with (nolock) where EmployeeID=3268 orderby ) end
+17 Mar 2024 22:05:54,603 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=2078 and assb.UserTypeId not in (1) orderby ) Start
+17 Mar 2024 22:05:54,625 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=2078 and assb.UserTypeId not in (1) orderby ) end
+17 Mar 2024 22:05:54,627 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=2079 and assb.UserTypeId not in (1) orderby ) Start
+17 Mar 2024 22:05:54,642 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=2079 and assb.UserTypeId not in (1) orderby ) end
+17 Mar 2024 22:05:54,643 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=2082 and assb.UserTypeId not in (1) orderby ) Start
+17 Mar 2024 22:05:54,663 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=2082 and assb.UserTypeId not in (1) orderby ) end
+17 Mar 2024 22:05:54,665 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=2095 and assb.UserTypeId not in (1) orderby ) Start
+17 Mar 2024 22:05:54,682 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=2095 and assb.UserTypeId not in (1) orderby ) end
+17 Mar 2024 22:05:54,683 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=2096 and assb.UserTypeId not in (1) orderby ) Start
+17 Mar 2024 22:05:54,697 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=2096 and assb.UserTypeId not in (1) orderby ) end
+17 Mar 2024 22:05:54,698 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=2097 and assb.UserTypeId not in (1) orderby ) Start
+17 Mar 2024 22:05:54,715 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=2097 and assb.UserTypeId not in (1) orderby ) end
+17 Mar 2024 22:05:54,716 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=6126 and assb.UserTypeId not in (1) orderby ) Start
+17 Mar 2024 22:05:54,739 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=6126 and assb.UserTypeId not in (1) orderby ) end
+17 Mar 2024 22:05:54,740 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7125 and assb.UserTypeId not in (1) orderby ) Start
+17 Mar 2024 22:05:54,770 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7125 and assb.UserTypeId not in (1) orderby ) end
+17 Mar 2024 22:05:54,771 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7126 and assb.UserTypeId not in (1) orderby ) Start
+17 Mar 2024 22:05:54,796 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7126 and assb.UserTypeId not in (1) orderby ) end
+17 Mar 2024 22:05:54,797 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7127 and assb.UserTypeId not in (1) orderby ) Start
+17 Mar 2024 22:05:54,823 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7127 and assb.UserTypeId not in (1) orderby ) end
+17 Mar 2024 22:05:54,824 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7128 and assb.UserTypeId not in (1) orderby ) Start
+17 Mar 2024 22:05:54,858 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7128 and assb.UserTypeId not in (1) orderby ) end
+17 Mar 2024 22:05:54,859 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7129 and assb.UserTypeId not in (1) orderby ) Start
+17 Mar 2024 22:05:54,882 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7129 and assb.UserTypeId not in (1) orderby ) end
+17 Mar 2024 22:05:54,883 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7130 and assb.UserTypeId not in (1) orderby ) Start
+17 Mar 2024 22:05:54,906 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7130 and assb.UserTypeId not in (1) orderby ) end
+17 Mar 2024 22:05:54,907 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7131 and assb.UserTypeId not in (1) orderby ) Start
+17 Mar 2024 22:05:54,927 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7131 and assb.UserTypeId not in (1) orderby ) end
+17 Mar 2024 22:05:54,928 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7132 and assb.UserTypeId not in (1) orderby ) Start
+17 Mar 2024 22:05:54,987 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7132 and assb.UserTypeId not in (1) orderby ) end
+17 Mar 2024 22:05:54,988 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7134 and assb.UserTypeId not in (1) orderby ) Start
+17 Mar 2024 22:05:55,012 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7134 and assb.UserTypeId not in (1) orderby ) end
+17 Mar 2024 22:05:55,013 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7135 and assb.UserTypeId not in (1) orderby ) Start
+17 Mar 2024 22:05:55,029 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7135 and assb.UserTypeId not in (1) orderby ) end
+17 Mar 2024 22:05:55,030 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7136 and assb.UserTypeId not in (1) orderby ) Start
+17 Mar 2024 22:05:55,045 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7136 and assb.UserTypeId not in (1) orderby ) end
+17 Mar 2024 22:05:55,046 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7137 and assb.UserTypeId not in (1) orderby ) Start
+17 Mar 2024 22:05:55,070 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7137 and assb.UserTypeId not in (1) orderby ) end
+17 Mar 2024 22:05:55,071 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7143 and assb.UserTypeId not in (1) orderby ) Start
+17 Mar 2024 22:05:55,101 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7143 and assb.UserTypeId not in (1) orderby ) end
+17 Mar 2024 22:05:55,103 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=8161 and assb.UserTypeId not in (1) orderby ) Start
+17 Mar 2024 22:05:55,124 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=8161 and assb.UserTypeId not in (1) orderby ) end
+17 Mar 2024 22:05:55,126 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=12224 and assb.UserTypeId not in (1) orderby ) Start
+17 Mar 2024 22:05:55,204 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=12224 and assb.UserTypeId not in (1) orderby ) end
+17 Mar 2024 22:05:55,205 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=14229 and assb.UserTypeId not in (1) orderby ) Start
+17 Mar 2024 22:05:55,229 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=14229 and assb.UserTypeId not in (1) orderby ) end
+17 Mar 2024 22:05:55,231 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=14230 and assb.UserTypeId not in (1) orderby ) Start
+17 Mar 2024 22:05:55,250 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=14230 and assb.UserTypeId not in (1) orderby ) end
+17 Mar 2024 22:05:55,251 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=14232 and assb.UserTypeId not in (1) orderby ) Start
+17 Mar 2024 22:05:55,269 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=14232 and assb.UserTypeId not in (1) orderby ) end
+17 Mar 2024 22:05:55,270 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=14234 and assb.UserTypeId not in (1) orderby ) Start
+17 Mar 2024 22:05:55,290 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=14234 and assb.UserTypeId not in (1) orderby ) end
+17 Mar 2024 22:05:55,291 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=14235 and assb.UserTypeId not in (1) orderby ) Start
+17 Mar 2024 22:05:55,323 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=14235 and assb.UserTypeId not in (1) orderby ) end
+17 Mar 2024 22:05:55,324 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=14236 and assb.UserTypeId not in (1) orderby ) Start
+17 Mar 2024 22:05:55,345 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=14236 and assb.UserTypeId not in (1) orderby ) end
+17 Mar 2024 22:05:55,346 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15235 and assb.UserTypeId not in (1) orderby ) Start
+17 Mar 2024 22:05:55,363 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15235 and assb.UserTypeId not in (1) orderby ) end
+17 Mar 2024 22:05:55,364 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15236 and assb.UserTypeId not in (1) orderby ) Start
+17 Mar 2024 22:05:55,395 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15236 and assb.UserTypeId not in (1) orderby ) end
+17 Mar 2024 22:05:55,396 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15237 and assb.UserTypeId not in (1) orderby ) Start
+17 Mar 2024 22:05:55,433 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15237 and assb.UserTypeId not in (1) orderby ) end
+17 Mar 2024 22:05:55,434 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15238 and assb.UserTypeId not in (1) orderby ) Start
+17 Mar 2024 22:05:55,463 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15238 and assb.UserTypeId not in (1) orderby ) end
+17 Mar 2024 22:05:55,465 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15239 and assb.UserTypeId not in (1) orderby ) Start
+17 Mar 2024 22:05:55,485 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15239 and assb.UserTypeId not in (1) orderby ) end
+17 Mar 2024 22:05:55,486 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15240 and assb.UserTypeId not in (1) orderby ) Start
+17 Mar 2024 22:05:55,504 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15240 and assb.UserTypeId not in (1) orderby ) end
+17 Mar 2024 22:05:55,505 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15241 and assb.UserTypeId not in (1) orderby ) Start
+17 Mar 2024 22:05:55,521 [10656] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15241 and assb.UserTypeId not in (1) orderby ) end
+17 Mar 2024 22:05:55,522 [10656] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) Start
+17 Mar 2024 22:05:55,542 [10656] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) end
+17 Mar 2024 22:05:55,542 [10656] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) Start
+17 Mar 2024 22:05:55,591 [10656] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) end
+17 Mar 2024 22:05:55,593 [10656] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='3268' ) Start
+17 Mar 2024 22:05:55,640 [10656] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='3268' ) End
+17 Mar 2024 22:05:55,641 [10656] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='3268' and Is_Cancelled=1 ) Start
+17 Mar 2024 22:05:55,654 [10656] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='3268' and Is_Cancelled=1 ) End
+17 Mar 2024 22:05:55,655 [10656] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+17 Mar 2024 22:05:55,757 [10656] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+17 Mar 2024 22:05:55,758 [10656] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+17 Mar 2024 22:05:55,854 [10656] INFO  Log - GetMenuDataFromLoginTable(4246) end
+17 Mar 2024 22:05:55,855 [10656] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+17 Mar 2024 22:05:55,878 [10656] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+17 Mar 2024 22:05:55,878 [10656] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+17 Mar 2024 22:05:55,905 [10656] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+17 Mar 2024 22:05:55,906 [10656] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+17 Mar 2024 22:05:55,973 [10656] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+17 Mar 2024 22:05:55,974 [10656] INFO  Log - Fetching menu details - Started
+17 Mar 2024 22:05:55,995 [10656] INFO  Log - Fetching menu details - Finished
+17 Mar 2024 22:07:26,775 [7152] INFO  Log - GetAllDataFromTable(Select ab.BusinessID,(ab.CompanyName)BusinessName from AssginBussiness assb with (Nolock) join AddBusiness ab with (Nolock) on assb.BusinessID = ab.BusinessID where EmployeeID=3268 and ab.Status=1 orderby ab.BusinessID) Start
+17 Mar 2024 22:07:26,823 [7152] INFO  Log - GetAllDataFromTable(Select ab.BusinessID,(ab.CompanyName)BusinessName from AssginBussiness assb with (Nolock) join AddBusiness ab with (Nolock) on assb.BusinessID = ab.BusinessID where EmployeeID=3268 and ab.Status=1 orderby ab.BusinessID) end
+17 Mar 2024 22:07:26,824 [7152] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+17 Mar 2024 22:07:27,156 [7152] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+17 Mar 2024 22:07:27,156 [7152] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+17 Mar 2024 22:07:27,219 [7152] INFO  Log - GetMenuDataFromLoginTable(4246) end
+17 Mar 2024 22:07:27,219 [7152] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+17 Mar 2024 22:07:27,308 [7152] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+17 Mar 2024 22:07:27,309 [7152] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+17 Mar 2024 22:07:27,348 [7152] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+17 Mar 2024 22:07:27,349 [7152] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+17 Mar 2024 22:07:27,975 [7152] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+17 Mar 2024 22:07:27,976 [7152] INFO  Log - Fetching menu details - Started
+17 Mar 2024 22:07:28,097 [7152] INFO  Log - Fetching menu details - Finished
+17 Mar 2024 22:07:34,661 [7152] INFO  Log - FillDropDownList(Select ab.EmployeeID, dbo.FN_DESC('AddEmployee',ab.EmployeeID) as empname from AddEmployee ab join AssginBussiness asb on ab.EmployeeID=asb.EmployeeID where UserTypeid=2 and asb.BusinessID=2078 and ab.IsActive='YES       ' orderby ab.EmployeeID) Start
+17 Mar 2024 22:07:34,875 [7152] INFO  Log - FillDropDownList(Select ab.EmployeeID, dbo.FN_DESC('AddEmployee',ab.EmployeeID) as empname from AddEmployee ab join AssginBussiness asb on ab.EmployeeID=asb.EmployeeID where UserTypeid=2 and asb.BusinessID=2078 and ab.IsActive='YES       ' orderby ab.EmployeeID) end
+17 Mar 2024 22:07:38,707 [10656] INFO  Log - GetAllDataFromTable(Select ab.EmployeeID , dbo.FN_DESC('AddEmployee',ab.EmployeeID) as empname from AddEmployee ab join AssginBussiness asb on ab.EmployeeID=asb.EmployeeID where UserTypeid=2 and asb.BusinessID=2078  and ab.EmployeeID='11636' orderby ab.EmployeeID) Start
+17 Mar 2024 22:07:38,787 [10656] INFO  Log - GetAllDataFromTable(Select ab.EmployeeID , dbo.FN_DESC('AddEmployee',ab.EmployeeID) as empname from AddEmployee ab join AssginBussiness asb on ab.EmployeeID=asb.EmployeeID where UserTypeid=2 and asb.BusinessID=2078  and ab.EmployeeID='11636' orderby ab.EmployeeID) end
+17 Mar 2024 22:07:38,788 [10656] INFO  Log - GetAllDataFromTable(Select ab.EmployeeID,dbo.FN_DESC('AddEmployee',ab.EmployeeID) as empname from AddEmployee ab join AssginBussiness asb on ab.EmployeeID=asb.EmployeeID where UserTypeid not in (1,2,5,12) and asb.BusinessID=2078 and ab.IsActive='YES       '  orderby ab.EmployeeID) Start
+17 Mar 2024 22:07:38,897 [10656] INFO  Log - GetAllDataFromTable(Select ab.EmployeeID,dbo.FN_DESC('AddEmployee',ab.EmployeeID) as empname from AddEmployee ab join AssginBussiness asb on ab.EmployeeID=asb.EmployeeID where UserTypeid not in (1,2,5,12) and asb.BusinessID=2078 and ab.IsActive='YES       '  orderby ab.EmployeeID) end
+17 Mar 2024 22:07:38,925 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=8481 and ManagerID=11636) Start
+17 Mar 2024 22:07:38,956 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=8481 and ManagerID=11636) end
+17 Mar 2024 22:07:38,958 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=11618 and ManagerID=11636) Start
+17 Mar 2024 22:07:38,961 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=11618 and ManagerID=11636) end
+17 Mar 2024 22:07:38,962 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=11641 and ManagerID=11636) Start
+17 Mar 2024 22:07:38,973 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=11641 and ManagerID=11636) end
+17 Mar 2024 22:07:38,973 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=11652 and ManagerID=11636) Start
+17 Mar 2024 22:07:38,978 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=11652 and ManagerID=11636) end
+17 Mar 2024 22:07:38,979 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=11661 and ManagerID=11636) Start
+17 Mar 2024 22:07:38,988 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=11661 and ManagerID=11636) end
+17 Mar 2024 22:07:38,988 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=11674 and ManagerID=11636) Start
+17 Mar 2024 22:07:38,998 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=11674 and ManagerID=11636) end
+17 Mar 2024 22:07:38,998 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=11678 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,005 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=11678 and ManagerID=11636) end
+17 Mar 2024 22:07:39,006 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=11694 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,013 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=11694 and ManagerID=11636) end
+17 Mar 2024 22:07:39,013 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=11755 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,021 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=11755 and ManagerID=11636) end
+17 Mar 2024 22:07:39,022 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=11763 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,030 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=11763 and ManagerID=11636) end
+17 Mar 2024 22:07:39,030 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=11783 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,040 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=11783 and ManagerID=11636) end
+17 Mar 2024 22:07:39,041 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=11788 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,048 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=11788 and ManagerID=11636) end
+17 Mar 2024 22:07:39,048 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=11793 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,056 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=11793 and ManagerID=11636) end
+17 Mar 2024 22:07:39,057 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=11811 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,062 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=11811 and ManagerID=11636) end
+17 Mar 2024 22:07:39,063 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=13830 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,069 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=13830 and ManagerID=11636) end
+17 Mar 2024 22:07:39,069 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=13832 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,076 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=13832 and ManagerID=11636) end
+17 Mar 2024 22:07:39,076 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=13837 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,085 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=13837 and ManagerID=11636) end
+17 Mar 2024 22:07:39,086 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=13843 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,090 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=13843 and ManagerID=11636) end
+17 Mar 2024 22:07:39,090 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=14882 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,101 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=14882 and ManagerID=11636) end
+17 Mar 2024 22:07:39,102 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=14889 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,106 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=14889 and ManagerID=11636) end
+17 Mar 2024 22:07:39,107 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=14891 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,117 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=14891 and ManagerID=11636) end
+17 Mar 2024 22:07:39,118 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=14892 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,125 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=14892 and ManagerID=11636) end
+17 Mar 2024 22:07:39,125 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=14893 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,134 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=14893 and ManagerID=11636) end
+17 Mar 2024 22:07:39,135 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=18986 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,154 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=18986 and ManagerID=11636) end
+17 Mar 2024 22:07:39,155 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=18996 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,166 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=18996 and ManagerID=11636) end
+17 Mar 2024 22:07:39,167 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=19006 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,171 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=19006 and ManagerID=11636) end
+17 Mar 2024 22:07:39,172 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=20006 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,175 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=20006 and ManagerID=11636) end
+17 Mar 2024 22:07:39,176 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=20008 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,183 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=20008 and ManagerID=11636) end
+17 Mar 2024 22:07:39,184 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=22012 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,203 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=22012 and ManagerID=11636) end
+17 Mar 2024 22:07:39,203 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=22015 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,216 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=22015 and ManagerID=11636) end
+17 Mar 2024 22:07:39,218 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=34232 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,225 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=34232 and ManagerID=11636) end
+17 Mar 2024 22:07:39,226 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=35257 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,235 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=35257 and ManagerID=11636) end
+17 Mar 2024 22:07:39,236 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=35271 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,252 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=35271 and ManagerID=11636) end
+17 Mar 2024 22:07:39,252 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=35272 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,261 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=35272 and ManagerID=11636) end
+17 Mar 2024 22:07:39,262 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=35273 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,271 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=35273 and ManagerID=11636) end
+17 Mar 2024 22:07:39,272 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=35276 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,281 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=35276 and ManagerID=11636) end
+17 Mar 2024 22:07:39,282 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=35279 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,286 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=35279 and ManagerID=11636) end
+17 Mar 2024 22:07:39,286 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=35288 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,294 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=35288 and ManagerID=11636) end
+17 Mar 2024 22:07:39,294 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=35290 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,313 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=35290 and ManagerID=11636) end
+17 Mar 2024 22:07:39,313 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=35292 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,364 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=35292 and ManagerID=11636) end
+17 Mar 2024 22:07:39,364 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=36292 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,387 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=36292 and ManagerID=11636) end
+17 Mar 2024 22:07:39,387 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=41294 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,396 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=41294 and ManagerID=11636) end
+17 Mar 2024 22:07:39,397 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=42294 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,403 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=42294 and ManagerID=11636) end
+17 Mar 2024 22:07:39,404 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=42295 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,419 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=42295 and ManagerID=11636) end
+17 Mar 2024 22:07:39,420 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=42296 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,425 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=42296 and ManagerID=11636) end
+17 Mar 2024 22:07:39,425 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=42301 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,439 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=42301 and ManagerID=11636) end
+17 Mar 2024 22:07:39,440 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=42302 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,457 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=42302 and ManagerID=11636) end
+17 Mar 2024 22:07:39,458 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=42303 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,468 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=42303 and ManagerID=11636) end
+17 Mar 2024 22:07:39,469 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=42306 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,476 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=42306 and ManagerID=11636) end
+17 Mar 2024 22:07:39,477 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=42308 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,493 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=42308 and ManagerID=11636) end
+17 Mar 2024 22:07:39,494 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=42316 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,511 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=42316 and ManagerID=11636) end
+17 Mar 2024 22:07:39,511 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=43316 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,527 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=43316 and ManagerID=11636) end
+17 Mar 2024 22:07:39,528 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=43319 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,559 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=43319 and ManagerID=11636) end
+17 Mar 2024 22:07:39,560 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=44323 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,591 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=44323 and ManagerID=11636) end
+17 Mar 2024 22:07:39,592 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=45325 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,622 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=45325 and ManagerID=11636) end
+17 Mar 2024 22:07:39,622 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=45326 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,649 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=45326 and ManagerID=11636) end
+17 Mar 2024 22:07:39,649 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=45327 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,665 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=45327 and ManagerID=11636) end
+17 Mar 2024 22:07:39,666 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=45334 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,673 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=45334 and ManagerID=11636) end
+17 Mar 2024 22:07:39,674 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=45335 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,688 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=45335 and ManagerID=11636) end
+17 Mar 2024 22:07:39,689 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=45336 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,705 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=45336 and ManagerID=11636) end
+17 Mar 2024 22:07:39,706 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=45349 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,723 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=45349 and ManagerID=11636) end
+17 Mar 2024 22:07:39,723 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=45358 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,733 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=45358 and ManagerID=11636) end
+17 Mar 2024 22:07:39,734 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=45359 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,774 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=45359 and ManagerID=11636) end
+17 Mar 2024 22:07:39,774 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=45362 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,806 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=45362 and ManagerID=11636) end
+17 Mar 2024 22:07:39,807 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=45364 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,824 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=45364 and ManagerID=11636) end
+17 Mar 2024 22:07:39,825 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=45368 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,854 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=45368 and ManagerID=11636) end
+17 Mar 2024 22:07:39,854 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=45370 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,871 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=45370 and ManagerID=11636) end
+17 Mar 2024 22:07:39,872 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=45372 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,888 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=45372 and ManagerID=11636) end
+17 Mar 2024 22:07:39,888 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=45373 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,907 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=45373 and ManagerID=11636) end
+17 Mar 2024 22:07:39,908 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=45376 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,920 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=45376 and ManagerID=11636) end
+17 Mar 2024 22:07:39,921 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=45381 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,931 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=45381 and ManagerID=11636) end
+17 Mar 2024 22:07:39,932 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=45390 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,950 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=45390 and ManagerID=11636) end
+17 Mar 2024 22:07:39,950 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=45392 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,963 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=45392 and ManagerID=11636) end
+17 Mar 2024 22:07:39,963 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=46412 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,977 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=46412 and ManagerID=11636) end
+17 Mar 2024 22:07:39,979 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=46426 and ManagerID=11636) Start
+17 Mar 2024 22:07:39,999 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=46426 and ManagerID=11636) end
+17 Mar 2024 22:07:40,000 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=46434 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,026 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=46434 and ManagerID=11636) end
+17 Mar 2024 22:07:40,027 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=46435 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,042 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=46435 and ManagerID=11636) end
+17 Mar 2024 22:07:40,043 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=47425 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,057 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=47425 and ManagerID=11636) end
+17 Mar 2024 22:07:40,058 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=47426 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,072 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=47426 and ManagerID=11636) end
+17 Mar 2024 22:07:40,073 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=47429 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,089 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=47429 and ManagerID=11636) end
+17 Mar 2024 22:07:40,090 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=49429 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,104 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=49429 and ManagerID=11636) end
+17 Mar 2024 22:07:40,105 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=49430 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,135 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=49430 and ManagerID=11636) end
+17 Mar 2024 22:07:40,135 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=49434 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,158 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=49434 and ManagerID=11636) end
+17 Mar 2024 22:07:40,159 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=50445 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,169 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=50445 and ManagerID=11636) end
+17 Mar 2024 22:07:40,170 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=51445 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,184 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=51445 and ManagerID=11636) end
+17 Mar 2024 22:07:40,185 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=51447 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,194 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=51447 and ManagerID=11636) end
+17 Mar 2024 22:07:40,195 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=51449 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,214 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=51449 and ManagerID=11636) end
+17 Mar 2024 22:07:40,216 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=51450 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,228 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=51450 and ManagerID=11636) end
+17 Mar 2024 22:07:40,229 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=52449 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,244 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=52449 and ManagerID=11636) end
+17 Mar 2024 22:07:40,245 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=52450 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,261 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=52450 and ManagerID=11636) end
+17 Mar 2024 22:07:40,262 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=53449 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,282 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=53449 and ManagerID=11636) end
+17 Mar 2024 22:07:40,283 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=55456 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,304 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=55456 and ManagerID=11636) end
+17 Mar 2024 22:07:40,305 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=58485 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,332 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=58485 and ManagerID=11636) end
+17 Mar 2024 22:07:40,333 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=58507 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,348 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=58507 and ManagerID=11636) end
+17 Mar 2024 22:07:40,349 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=58515 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,364 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=58515 and ManagerID=11636) end
+17 Mar 2024 22:07:40,365 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=59523 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,377 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=59523 and ManagerID=11636) end
+17 Mar 2024 22:07:40,378 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=59555 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,395 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=59555 and ManagerID=11636) end
+17 Mar 2024 22:07:40,396 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=60564 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,415 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=60564 and ManagerID=11636) end
+17 Mar 2024 22:07:40,416 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=60567 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,439 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=60567 and ManagerID=11636) end
+17 Mar 2024 22:07:40,440 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=60568 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,457 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=60568 and ManagerID=11636) end
+17 Mar 2024 22:07:40,457 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=60569 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,467 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=60569 and ManagerID=11636) end
+17 Mar 2024 22:07:40,469 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=60570 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,484 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=60570 and ManagerID=11636) end
+17 Mar 2024 22:07:40,484 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=60571 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,508 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=60571 and ManagerID=11636) end
+17 Mar 2024 22:07:40,508 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=60573 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,538 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=60573 and ManagerID=11636) end
+17 Mar 2024 22:07:40,539 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=60574 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,549 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=60574 and ManagerID=11636) end
+17 Mar 2024 22:07:40,550 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=60593 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,559 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=60593 and ManagerID=11636) end
+17 Mar 2024 22:07:40,560 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=60603 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,565 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=60603 and ManagerID=11636) end
+17 Mar 2024 22:07:40,566 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=60611 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,580 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=60611 and ManagerID=11636) end
+17 Mar 2024 22:07:40,581 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=60614 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,588 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=60614 and ManagerID=11636) end
+17 Mar 2024 22:07:40,588 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=60615 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,599 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=60615 and ManagerID=11636) end
+17 Mar 2024 22:07:40,600 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=60622 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,605 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=60622 and ManagerID=11636) end
+17 Mar 2024 22:07:40,606 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=62639 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,624 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=62639 and ManagerID=11636) end
+17 Mar 2024 22:07:40,625 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=62640 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,661 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=62640 and ManagerID=11636) end
+17 Mar 2024 22:07:40,662 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=62641 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,667 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=62641 and ManagerID=11636) end
+17 Mar 2024 22:07:40,668 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=62642 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,674 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=62642 and ManagerID=11636) end
+17 Mar 2024 22:07:40,675 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=63642 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,680 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=63642 and ManagerID=11636) end
+17 Mar 2024 22:07:40,681 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=63643 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,686 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=63643 and ManagerID=11636) end
+17 Mar 2024 22:07:40,687 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=63644 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,693 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=63644 and ManagerID=11636) end
+17 Mar 2024 22:07:40,694 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=63645 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,701 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=63645 and ManagerID=11636) end
+17 Mar 2024 22:07:40,702 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=63646 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,708 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=63646 and ManagerID=11636) end
+17 Mar 2024 22:07:40,709 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=63647 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,711 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=63647 and ManagerID=11636) end
+17 Mar 2024 22:07:40,711 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=63648 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,715 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=63648 and ManagerID=11636) end
+17 Mar 2024 22:07:40,715 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=63649 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,719 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=63649 and ManagerID=11636) end
+17 Mar 2024 22:07:40,720 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=63650 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,724 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=63650 and ManagerID=11636) end
+17 Mar 2024 22:07:40,726 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=63651 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,735 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=63651 and ManagerID=11636) end
+17 Mar 2024 22:07:40,736 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=63652 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,740 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=63652 and ManagerID=11636) end
+17 Mar 2024 22:07:40,741 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=63653 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,747 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=63653 and ManagerID=11636) end
+17 Mar 2024 22:07:40,747 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=63654 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,760 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=63654 and ManagerID=11636) end
+17 Mar 2024 22:07:40,761 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=63655 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,769 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=63655 and ManagerID=11636) end
+17 Mar 2024 22:07:40,770 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=63656 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,780 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=63656 and ManagerID=11636) end
+17 Mar 2024 22:07:40,781 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=63657 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,786 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=63657 and ManagerID=11636) end
+17 Mar 2024 22:07:40,787 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=63658 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,799 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=63658 and ManagerID=11636) end
+17 Mar 2024 22:07:40,801 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=63659 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,807 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=63659 and ManagerID=11636) end
+17 Mar 2024 22:07:40,808 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=63662 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,825 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=63662 and ManagerID=11636) end
+17 Mar 2024 22:07:40,827 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=63675 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,894 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=63675 and ManagerID=11636) end
+17 Mar 2024 22:07:40,894 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=64677 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,900 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=64677 and ManagerID=11636) end
+17 Mar 2024 22:07:40,900 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=64679 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,903 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=64679 and ManagerID=11636) end
+17 Mar 2024 22:07:40,905 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=64681 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,913 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=64681 and ManagerID=11636) end
+17 Mar 2024 22:07:40,913 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=64683 and ManagerID=11636) Start
+17 Mar 2024 22:07:40,920 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=64683 and ManagerID=11636) end
+17 Mar 2024 22:07:45,878 [10656] INFO  Log - GetAllDataFromTable(Select ab.EmployeeID , dbo.FN_DESC('AddEmployee',ab.EmployeeID) as empname from AddEmployee ab join AssginBussiness asb on ab.EmployeeID=asb.EmployeeID where UserTypeid=2 and asb.BusinessID=2078  and ab.EmployeeID='11638' orderby ab.EmployeeID) Start
+17 Mar 2024 22:07:45,968 [10656] INFO  Log - GetAllDataFromTable(Select ab.EmployeeID , dbo.FN_DESC('AddEmployee',ab.EmployeeID) as empname from AddEmployee ab join AssginBussiness asb on ab.EmployeeID=asb.EmployeeID where UserTypeid=2 and asb.BusinessID=2078  and ab.EmployeeID='11638' orderby ab.EmployeeID) end
+17 Mar 2024 22:07:45,969 [10656] INFO  Log - GetAllDataFromTable(Select ab.EmployeeID,dbo.FN_DESC('AddEmployee',ab.EmployeeID) as empname from AddEmployee ab join AssginBussiness asb on ab.EmployeeID=asb.EmployeeID where UserTypeid not in (1,2,5,12) and asb.BusinessID=2078 and ab.IsActive='YES       '  orderby ab.EmployeeID) Start
+17 Mar 2024 22:07:46,134 [10656] INFO  Log - GetAllDataFromTable(Select ab.EmployeeID,dbo.FN_DESC('AddEmployee',ab.EmployeeID) as empname from AddEmployee ab join AssginBussiness asb on ab.EmployeeID=asb.EmployeeID where UserTypeid not in (1,2,5,12) and asb.BusinessID=2078 and ab.IsActive='YES       '  orderby ab.EmployeeID) end
+17 Mar 2024 22:07:46,142 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=8481 and ManagerID=11638) Start
+17 Mar 2024 22:07:46,329 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=8481 and ManagerID=11638) end
+17 Mar 2024 22:07:46,330 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=11618 and ManagerID=11638) Start
+17 Mar 2024 22:07:46,334 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=11618 and ManagerID=11638) end
+17 Mar 2024 22:07:46,335 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=11641 and ManagerID=11638) Start
+17 Mar 2024 22:07:46,343 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=11641 and ManagerID=11638) end
+17 Mar 2024 22:07:46,344 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=11652 and ManagerID=11638) Start
+17 Mar 2024 22:07:46,352 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=11652 and ManagerID=11638) end
+17 Mar 2024 22:07:46,353 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=11661 and ManagerID=11638) Start
+17 Mar 2024 22:07:46,388 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=11661 and ManagerID=11638) end
+17 Mar 2024 22:07:46,389 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=11674 and ManagerID=11638) Start
+17 Mar 2024 22:07:46,507 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=11674 and ManagerID=11638) end
+17 Mar 2024 22:07:46,508 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=11678 and ManagerID=11638) Start
+17 Mar 2024 22:07:46,526 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=11678 and ManagerID=11638) end
+17 Mar 2024 22:07:46,527 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=11694 and ManagerID=11638) Start
+17 Mar 2024 22:07:46,530 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=11694 and ManagerID=11638) end
+17 Mar 2024 22:07:46,531 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=11755 and ManagerID=11638) Start
+17 Mar 2024 22:07:46,548 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=11755 and ManagerID=11638) end
+17 Mar 2024 22:07:46,549 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=11763 and ManagerID=11638) Start
+17 Mar 2024 22:07:46,554 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=11763 and ManagerID=11638) end
+17 Mar 2024 22:07:46,555 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=11783 and ManagerID=11638) Start
+17 Mar 2024 22:07:46,563 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=11783 and ManagerID=11638) end
+17 Mar 2024 22:07:46,564 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=11788 and ManagerID=11638) Start
+17 Mar 2024 22:07:46,571 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=11788 and ManagerID=11638) end
+17 Mar 2024 22:07:46,572 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=11793 and ManagerID=11638) Start
+17 Mar 2024 22:07:46,584 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=11793 and ManagerID=11638) end
+17 Mar 2024 22:07:46,584 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=11811 and ManagerID=11638) Start
+17 Mar 2024 22:07:46,590 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=11811 and ManagerID=11638) end
+17 Mar 2024 22:07:46,590 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=13830 and ManagerID=11638) Start
+17 Mar 2024 22:07:46,599 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=13830 and ManagerID=11638) end
+17 Mar 2024 22:07:46,600 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=13832 and ManagerID=11638) Start
+17 Mar 2024 22:07:46,604 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=13832 and ManagerID=11638) end
+17 Mar 2024 22:07:46,605 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=13837 and ManagerID=11638) Start
+17 Mar 2024 22:07:46,609 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=13837 and ManagerID=11638) end
+17 Mar 2024 22:07:46,609 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=13843 and ManagerID=11638) Start
+17 Mar 2024 22:07:46,615 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=13843 and ManagerID=11638) end
+17 Mar 2024 22:07:46,615 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=14882 and ManagerID=11638) Start
+17 Mar 2024 22:07:46,629 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=14882 and ManagerID=11638) end
+17 Mar 2024 22:07:46,630 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=14889 and ManagerID=11638) Start
+17 Mar 2024 22:07:46,639 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=14889 and ManagerID=11638) end
+17 Mar 2024 22:07:46,639 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=14891 and ManagerID=11638) Start
+17 Mar 2024 22:07:46,652 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=14891 and ManagerID=11638) end
+17 Mar 2024 22:07:46,653 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=14892 and ManagerID=11638) Start
+17 Mar 2024 22:07:46,658 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=14892 and ManagerID=11638) end
+17 Mar 2024 22:07:46,659 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=14893 and ManagerID=11638) Start
+17 Mar 2024 22:07:46,667 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=14893 and ManagerID=11638) end
+17 Mar 2024 22:07:46,667 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=18986 and ManagerID=11638) Start
+17 Mar 2024 22:07:46,689 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=18986 and ManagerID=11638) end
+17 Mar 2024 22:07:46,690 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=18996 and ManagerID=11638) Start
+17 Mar 2024 22:07:46,721 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=18996 and ManagerID=11638) end
+17 Mar 2024 22:07:46,722 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=19006 and ManagerID=11638) Start
+17 Mar 2024 22:07:46,732 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=19006 and ManagerID=11638) end
+17 Mar 2024 22:07:46,733 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=20006 and ManagerID=11638) Start
+17 Mar 2024 22:07:46,747 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=20006 and ManagerID=11638) end
+17 Mar 2024 22:07:46,748 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=20008 and ManagerID=11638) Start
+17 Mar 2024 22:07:46,762 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=20008 and ManagerID=11638) end
+17 Mar 2024 22:07:46,763 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=22012 and ManagerID=11638) Start
+17 Mar 2024 22:07:46,772 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=22012 and ManagerID=11638) end
+17 Mar 2024 22:07:46,773 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=22015 and ManagerID=11638) Start
+17 Mar 2024 22:07:46,777 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=22015 and ManagerID=11638) end
+17 Mar 2024 22:07:46,778 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=34232 and ManagerID=11638) Start
+17 Mar 2024 22:07:46,790 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=34232 and ManagerID=11638) end
+17 Mar 2024 22:07:46,792 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=35257 and ManagerID=11638) Start
+17 Mar 2024 22:07:46,796 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=35257 and ManagerID=11638) end
+17 Mar 2024 22:07:46,797 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=35271 and ManagerID=11638) Start
+17 Mar 2024 22:07:46,811 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=35271 and ManagerID=11638) end
+17 Mar 2024 22:07:46,813 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=35272 and ManagerID=11638) Start
+17 Mar 2024 22:07:46,818 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=35272 and ManagerID=11638) end
+17 Mar 2024 22:07:46,818 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=35273 and ManagerID=11638) Start
+17 Mar 2024 22:07:46,830 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=35273 and ManagerID=11638) end
+17 Mar 2024 22:07:46,830 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=35276 and ManagerID=11638) Start
+17 Mar 2024 22:07:46,840 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=35276 and ManagerID=11638) end
+17 Mar 2024 22:07:46,840 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=35279 and ManagerID=11638) Start
+17 Mar 2024 22:07:46,848 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=35279 and ManagerID=11638) end
+17 Mar 2024 22:07:46,848 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=35288 and ManagerID=11638) Start
+17 Mar 2024 22:07:46,858 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=35288 and ManagerID=11638) end
+17 Mar 2024 22:07:46,859 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=35290 and ManagerID=11638) Start
+17 Mar 2024 22:07:46,870 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=35290 and ManagerID=11638) end
+17 Mar 2024 22:07:46,871 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=35292 and ManagerID=11638) Start
+17 Mar 2024 22:07:46,880 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=35292 and ManagerID=11638) end
+17 Mar 2024 22:07:46,880 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=36292 and ManagerID=11638) Start
+17 Mar 2024 22:07:46,902 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=36292 and ManagerID=11638) end
+17 Mar 2024 22:07:46,902 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=41294 and ManagerID=11638) Start
+17 Mar 2024 22:07:46,935 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=41294 and ManagerID=11638) end
+17 Mar 2024 22:07:46,935 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=42294 and ManagerID=11638) Start
+17 Mar 2024 22:07:46,955 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=42294 and ManagerID=11638) end
+17 Mar 2024 22:07:46,956 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=42295 and ManagerID=11638) Start
+17 Mar 2024 22:07:46,976 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=42295 and ManagerID=11638) end
+17 Mar 2024 22:07:46,976 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=42296 and ManagerID=11638) Start
+17 Mar 2024 22:07:46,991 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=42296 and ManagerID=11638) end
+17 Mar 2024 22:07:46,992 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=42301 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,010 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=42301 and ManagerID=11638) end
+17 Mar 2024 22:07:47,011 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=42302 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,016 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=42302 and ManagerID=11638) end
+17 Mar 2024 22:07:47,017 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=42303 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,025 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=42303 and ManagerID=11638) end
+17 Mar 2024 22:07:47,026 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=42306 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,034 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=42306 and ManagerID=11638) end
+17 Mar 2024 22:07:47,035 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=42308 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,044 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=42308 and ManagerID=11638) end
+17 Mar 2024 22:07:47,045 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=42316 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,049 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=42316 and ManagerID=11638) end
+17 Mar 2024 22:07:47,049 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=43316 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,055 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=43316 and ManagerID=11638) end
+17 Mar 2024 22:07:47,055 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=43319 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,062 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=43319 and ManagerID=11638) end
+17 Mar 2024 22:07:47,062 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=44323 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,076 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=44323 and ManagerID=11638) end
+17 Mar 2024 22:07:47,077 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=45325 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,080 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=45325 and ManagerID=11638) end
+17 Mar 2024 22:07:47,081 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=45326 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,089 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=45326 and ManagerID=11638) end
+17 Mar 2024 22:07:47,090 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=45327 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,093 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=45327 and ManagerID=11638) end
+17 Mar 2024 22:07:47,094 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=45334 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,101 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=45334 and ManagerID=11638) end
+17 Mar 2024 22:07:47,102 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=45335 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,113 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=45335 and ManagerID=11638) end
+17 Mar 2024 22:07:47,114 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=45336 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,132 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=45336 and ManagerID=11638) end
+17 Mar 2024 22:07:47,133 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=45349 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,165 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=45349 and ManagerID=11638) end
+17 Mar 2024 22:07:47,166 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=45358 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,172 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=45358 and ManagerID=11638) end
+17 Mar 2024 22:07:47,173 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=45359 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,184 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=45359 and ManagerID=11638) end
+17 Mar 2024 22:07:47,184 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=45362 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,189 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=45362 and ManagerID=11638) end
+17 Mar 2024 22:07:47,189 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=45364 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,194 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=45364 and ManagerID=11638) end
+17 Mar 2024 22:07:47,195 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=45368 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,199 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=45368 and ManagerID=11638) end
+17 Mar 2024 22:07:47,200 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=45370 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,209 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=45370 and ManagerID=11638) end
+17 Mar 2024 22:07:47,210 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=45372 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,217 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=45372 and ManagerID=11638) end
+17 Mar 2024 22:07:47,218 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=45373 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,229 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=45373 and ManagerID=11638) end
+17 Mar 2024 22:07:47,229 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=45376 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,233 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=45376 and ManagerID=11638) end
+17 Mar 2024 22:07:47,233 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=45381 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,246 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=45381 and ManagerID=11638) end
+17 Mar 2024 22:07:47,246 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=45390 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,256 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=45390 and ManagerID=11638) end
+17 Mar 2024 22:07:47,257 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=45392 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,264 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=45392 and ManagerID=11638) end
+17 Mar 2024 22:07:47,264 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=46412 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,274 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=46412 and ManagerID=11638) end
+17 Mar 2024 22:07:47,275 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=46426 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,285 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=46426 and ManagerID=11638) end
+17 Mar 2024 22:07:47,285 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=46434 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,294 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=46434 and ManagerID=11638) end
+17 Mar 2024 22:07:47,294 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=46435 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,297 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=46435 and ManagerID=11638) end
+17 Mar 2024 22:07:47,299 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=47425 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,305 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=47425 and ManagerID=11638) end
+17 Mar 2024 22:07:47,306 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=47426 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,313 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=47426 and ManagerID=11638) end
+17 Mar 2024 22:07:47,314 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=47429 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,329 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=47429 and ManagerID=11638) end
+17 Mar 2024 22:07:47,330 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=49429 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,343 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=49429 and ManagerID=11638) end
+17 Mar 2024 22:07:47,344 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=49430 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,398 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=49430 and ManagerID=11638) end
+17 Mar 2024 22:07:47,399 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=49434 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,404 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=49434 and ManagerID=11638) end
+17 Mar 2024 22:07:47,405 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=50445 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,409 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=50445 and ManagerID=11638) end
+17 Mar 2024 22:07:47,410 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=51445 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,420 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=51445 and ManagerID=11638) end
+17 Mar 2024 22:07:47,421 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=51447 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,431 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=51447 and ManagerID=11638) end
+17 Mar 2024 22:07:47,432 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=51449 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,446 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=51449 and ManagerID=11638) end
+17 Mar 2024 22:07:47,447 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=51450 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,460 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=51450 and ManagerID=11638) end
+17 Mar 2024 22:07:47,461 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=52449 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,470 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=52449 and ManagerID=11638) end
+17 Mar 2024 22:07:47,470 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=52450 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,478 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=52450 and ManagerID=11638) end
+17 Mar 2024 22:07:47,479 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=53449 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,492 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=53449 and ManagerID=11638) end
+17 Mar 2024 22:07:47,493 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=55456 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,503 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=55456 and ManagerID=11638) end
+17 Mar 2024 22:07:47,504 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=58485 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,513 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=58485 and ManagerID=11638) end
+17 Mar 2024 22:07:47,513 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=58507 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,525 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=58507 and ManagerID=11638) end
+17 Mar 2024 22:07:47,526 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=58515 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,535 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=58515 and ManagerID=11638) end
+17 Mar 2024 22:07:47,535 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=59523 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,544 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=59523 and ManagerID=11638) end
+17 Mar 2024 22:07:47,544 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=59555 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,558 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=59555 and ManagerID=11638) end
+17 Mar 2024 22:07:47,559 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=60564 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,567 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=60564 and ManagerID=11638) end
+17 Mar 2024 22:07:47,570 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=60567 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,576 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=60567 and ManagerID=11638) end
+17 Mar 2024 22:07:47,576 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=60568 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,586 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=60568 and ManagerID=11638) end
+17 Mar 2024 22:07:47,586 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=60569 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,611 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=60569 and ManagerID=11638) end
+17 Mar 2024 22:07:47,613 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=60570 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,624 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=60570 and ManagerID=11638) end
+17 Mar 2024 22:07:47,625 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=60571 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,635 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=60571 and ManagerID=11638) end
+17 Mar 2024 22:07:47,635 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=60573 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,645 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=60573 and ManagerID=11638) end
+17 Mar 2024 22:07:47,645 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=60574 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,651 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=60574 and ManagerID=11638) end
+17 Mar 2024 22:07:47,652 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=60593 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,660 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=60593 and ManagerID=11638) end
+17 Mar 2024 22:07:47,661 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=60603 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,678 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=60603 and ManagerID=11638) end
+17 Mar 2024 22:07:47,678 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=60611 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,687 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=60611 and ManagerID=11638) end
+17 Mar 2024 22:07:47,688 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=60614 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,694 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=60614 and ManagerID=11638) end
+17 Mar 2024 22:07:47,694 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=60615 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,712 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=60615 and ManagerID=11638) end
+17 Mar 2024 22:07:47,713 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=60622 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,747 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=60622 and ManagerID=11638) end
+17 Mar 2024 22:07:47,748 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=62639 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,766 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=62639 and ManagerID=11638) end
+17 Mar 2024 22:07:47,767 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=62640 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,775 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=62640 and ManagerID=11638) end
+17 Mar 2024 22:07:47,776 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=62641 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,820 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=62641 and ManagerID=11638) end
+17 Mar 2024 22:07:47,821 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=62642 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,854 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=62642 and ManagerID=11638) end
+17 Mar 2024 22:07:47,855 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=63642 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,871 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=63642 and ManagerID=11638) end
+17 Mar 2024 22:07:47,872 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=63643 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,893 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=63643 and ManagerID=11638) end
+17 Mar 2024 22:07:47,894 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=63644 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,914 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=63644 and ManagerID=11638) end
+17 Mar 2024 22:07:47,915 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=63645 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,930 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=63645 and ManagerID=11638) end
+17 Mar 2024 22:07:47,930 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=63646 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,945 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=63646 and ManagerID=11638) end
+17 Mar 2024 22:07:47,946 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=63647 and ManagerID=11638) Start
+17 Mar 2024 22:07:47,961 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=63647 and ManagerID=11638) end
+17 Mar 2024 22:07:47,962 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=63648 and ManagerID=11638) Start
+17 Mar 2024 22:07:48,025 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=63648 and ManagerID=11638) end
+17 Mar 2024 22:07:48,026 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=63649 and ManagerID=11638) Start
+17 Mar 2024 22:07:48,037 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=63649 and ManagerID=11638) end
+17 Mar 2024 22:07:48,038 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=63650 and ManagerID=11638) Start
+17 Mar 2024 22:07:48,052 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=63650 and ManagerID=11638) end
+17 Mar 2024 22:07:48,053 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=63651 and ManagerID=11638) Start
+17 Mar 2024 22:07:48,066 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=63651 and ManagerID=11638) end
+17 Mar 2024 22:07:48,066 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=63652 and ManagerID=11638) Start
+17 Mar 2024 22:07:48,077 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=63652 and ManagerID=11638) end
+17 Mar 2024 22:07:48,078 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=63653 and ManagerID=11638) Start
+17 Mar 2024 22:07:48,094 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=63653 and ManagerID=11638) end
+17 Mar 2024 22:07:48,094 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=63654 and ManagerID=11638) Start
+17 Mar 2024 22:07:48,114 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=63654 and ManagerID=11638) end
+17 Mar 2024 22:07:48,115 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=63655 and ManagerID=11638) Start
+17 Mar 2024 22:07:48,133 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=63655 and ManagerID=11638) end
+17 Mar 2024 22:07:48,134 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=63656 and ManagerID=11638) Start
+17 Mar 2024 22:07:48,163 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=63656 and ManagerID=11638) end
+17 Mar 2024 22:07:48,164 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=63657 and ManagerID=11638) Start
+17 Mar 2024 22:07:48,211 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=63657 and ManagerID=11638) end
+17 Mar 2024 22:07:48,212 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=63658 and ManagerID=11638) Start
+17 Mar 2024 22:07:48,255 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=63658 and ManagerID=11638) end
+17 Mar 2024 22:07:48,256 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=63659 and ManagerID=11638) Start
+17 Mar 2024 22:07:48,270 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=63659 and ManagerID=11638) end
+17 Mar 2024 22:07:48,271 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=63662 and ManagerID=11638) Start
+17 Mar 2024 22:07:48,287 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=63662 and ManagerID=11638) end
+17 Mar 2024 22:07:48,287 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=63675 and ManagerID=11638) Start
+17 Mar 2024 22:07:48,301 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=63675 and ManagerID=11638) end
+17 Mar 2024 22:07:48,301 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=64677 and ManagerID=11638) Start
+17 Mar 2024 22:07:48,316 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=64677 and ManagerID=11638) end
+17 Mar 2024 22:07:48,317 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=64679 and ManagerID=11638) Start
+17 Mar 2024 22:07:48,334 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=64679 and ManagerID=11638) end
+17 Mar 2024 22:07:48,335 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=64681 and ManagerID=11638) Start
+17 Mar 2024 22:07:48,348 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=64681 and ManagerID=11638) end
+17 Mar 2024 22:07:48,348 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2078 and EmpId=64683 and ManagerID=11638) Start
+17 Mar 2024 22:07:48,366 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2078 and EmpId=64683 and ManagerID=11638) end
+17 Mar 2024 22:07:52,086 [7152] INFO  Log - FillDropDownList(Select ab.EmployeeID, dbo.FN_DESC('AddEmployee',ab.EmployeeID) as empname from AddEmployee ab join AssginBussiness asb on ab.EmployeeID=asb.EmployeeID where UserTypeid NOT IN (1,2,4,5,12) and asb.BusinessID=2078 and ab.IsActive='YES       '  orderby ab.EmployeeID) Start
+17 Mar 2024 22:07:52,197 [7152] INFO  Log - FillDropDownList(Select ab.EmployeeID, dbo.FN_DESC('AddEmployee',ab.EmployeeID) as empname from AddEmployee ab join AssginBussiness asb on ab.EmployeeID=asb.EmployeeID where UserTypeid NOT IN (1,2,4,5,12) and asb.BusinessID=2078 and ab.IsActive='YES       '  orderby ab.EmployeeID) end
+17 Mar 2024 22:08:02,888 [10656] INFO  Log - FillDropDownList(Select ab.EmployeeID, dbo.FN_DESC('AddEmployee',ab.EmployeeID) as empname from AddEmployee ab join AssginBussiness asb on ab.EmployeeID=asb.EmployeeID where UserTypeid=2 and asb.BusinessID=2079 and ab.IsActive='YES       ' orderby ab.EmployeeID) Start
+17 Mar 2024 22:08:03,034 [10656] INFO  Log - FillDropDownList(Select ab.EmployeeID, dbo.FN_DESC('AddEmployee',ab.EmployeeID) as empname from AddEmployee ab join AssginBussiness asb on ab.EmployeeID=asb.EmployeeID where UserTypeid=2 and asb.BusinessID=2079 and ab.IsActive='YES       ' orderby ab.EmployeeID) end
+17 Mar 2024 22:08:10,581 [10656] INFO  Log - GetAllDataFromTable(Select ab.EmployeeID , dbo.FN_DESC('AddEmployee',ab.EmployeeID) as empname from AddEmployee ab join AssginBussiness asb on ab.EmployeeID=asb.EmployeeID where UserTypeid=2 and asb.BusinessID=2079  and ab.EmployeeID='8482' orderby ab.EmployeeID) Start
+17 Mar 2024 22:08:10,650 [10656] INFO  Log - GetAllDataFromTable(Select ab.EmployeeID , dbo.FN_DESC('AddEmployee',ab.EmployeeID) as empname from AddEmployee ab join AssginBussiness asb on ab.EmployeeID=asb.EmployeeID where UserTypeid=2 and asb.BusinessID=2079  and ab.EmployeeID='8482' orderby ab.EmployeeID) end
+17 Mar 2024 22:08:10,651 [10656] INFO  Log - GetAllDataFromTable(Select ab.EmployeeID,dbo.FN_DESC('AddEmployee',ab.EmployeeID) as empname from AddEmployee ab join AssginBussiness asb on ab.EmployeeID=asb.EmployeeID where UserTypeid not in (1,2,5,12) and asb.BusinessID=2079 and ab.IsActive='YES       '  orderby ab.EmployeeID) Start
+17 Mar 2024 22:08:10,803 [10656] INFO  Log - GetAllDataFromTable(Select ab.EmployeeID,dbo.FN_DESC('AddEmployee',ab.EmployeeID) as empname from AddEmployee ab join AssginBussiness asb on ab.EmployeeID=asb.EmployeeID where UserTypeid not in (1,2,5,12) and asb.BusinessID=2079 and ab.IsActive='YES       '  orderby ab.EmployeeID) end
+17 Mar 2024 22:08:10,810 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=3301 and ManagerID=8482) Start
+17 Mar 2024 22:08:10,830 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=3301 and ManagerID=8482) end
+17 Mar 2024 22:08:10,831 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=3310 and ManagerID=8482) Start
+17 Mar 2024 22:08:10,834 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=3310 and ManagerID=8482) end
+17 Mar 2024 22:08:10,835 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=8490 and ManagerID=8482) Start
+17 Mar 2024 22:08:10,842 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=8490 and ManagerID=8482) end
+17 Mar 2024 22:08:10,842 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=8499 and ManagerID=8482) Start
+17 Mar 2024 22:08:10,851 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=8499 and ManagerID=8482) end
+17 Mar 2024 22:08:10,852 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=8503 and ManagerID=8482) Start
+17 Mar 2024 22:08:10,863 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=8503 and ManagerID=8482) end
+17 Mar 2024 22:08:10,864 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=8508 and ManagerID=8482) Start
+17 Mar 2024 22:08:10,872 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=8508 and ManagerID=8482) end
+17 Mar 2024 22:08:10,873 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=8511 and ManagerID=8482) Start
+17 Mar 2024 22:08:10,892 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=8511 and ManagerID=8482) end
+17 Mar 2024 22:08:10,893 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=8515 and ManagerID=8482) Start
+17 Mar 2024 22:08:10,904 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=8515 and ManagerID=8482) end
+17 Mar 2024 22:08:10,906 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=8518 and ManagerID=8482) Start
+17 Mar 2024 22:08:10,914 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=8518 and ManagerID=8482) end
+17 Mar 2024 22:08:10,915 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=8529 and ManagerID=8482) Start
+17 Mar 2024 22:08:10,924 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=8529 and ManagerID=8482) end
+17 Mar 2024 22:08:10,925 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=8531 and ManagerID=8482) Start
+17 Mar 2024 22:08:10,929 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=8531 and ManagerID=8482) end
+17 Mar 2024 22:08:10,930 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=8533 and ManagerID=8482) Start
+17 Mar 2024 22:08:10,934 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=8533 and ManagerID=8482) end
+17 Mar 2024 22:08:10,934 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=9527 and ManagerID=8482) Start
+17 Mar 2024 22:08:10,940 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=9527 and ManagerID=8482) end
+17 Mar 2024 22:08:10,941 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=10550 and ManagerID=8482) Start
+17 Mar 2024 22:08:10,958 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=10550 and ManagerID=8482) end
+17 Mar 2024 22:08:10,959 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=10551 and ManagerID=8482) Start
+17 Mar 2024 22:08:10,967 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=10551 and ManagerID=8482) end
+17 Mar 2024 22:08:10,968 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=10552 and ManagerID=8482) Start
+17 Mar 2024 22:08:10,994 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=10552 and ManagerID=8482) end
+17 Mar 2024 22:08:10,995 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=10554 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,004 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=10554 and ManagerID=8482) end
+17 Mar 2024 22:08:11,004 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=10559 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,013 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=10559 and ManagerID=8482) end
+17 Mar 2024 22:08:11,015 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=10570 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,023 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=10570 and ManagerID=8482) end
+17 Mar 2024 22:08:11,024 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=10574 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,028 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=10574 and ManagerID=8482) end
+17 Mar 2024 22:08:11,028 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=10577 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,040 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=10577 and ManagerID=8482) end
+17 Mar 2024 22:08:11,040 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=10580 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,046 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=10580 and ManagerID=8482) end
+17 Mar 2024 22:08:11,047 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=10588 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,053 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=10588 and ManagerID=8482) end
+17 Mar 2024 22:08:11,054 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=10614 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,063 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=10614 and ManagerID=8482) end
+17 Mar 2024 22:08:11,064 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=10615 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,071 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=10615 and ManagerID=8482) end
+17 Mar 2024 22:08:11,072 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=10618 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,079 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=10618 and ManagerID=8482) end
+17 Mar 2024 22:08:11,079 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=10632 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,088 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=10632 and ManagerID=8482) end
+17 Mar 2024 22:08:11,089 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=11625 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,102 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=11625 and ManagerID=8482) end
+17 Mar 2024 22:08:11,103 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=11643 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,107 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=11643 and ManagerID=8482) end
+17 Mar 2024 22:08:11,108 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=11655 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,116 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=11655 and ManagerID=8482) end
+17 Mar 2024 22:08:11,117 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=11679 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,122 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=11679 and ManagerID=8482) end
+17 Mar 2024 22:08:11,123 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=11683 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,128 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=11683 and ManagerID=8482) end
+17 Mar 2024 22:08:11,129 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=11688 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,133 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=11688 and ManagerID=8482) end
+17 Mar 2024 22:08:11,133 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=11704 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,140 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=11704 and ManagerID=8482) end
+17 Mar 2024 22:08:11,140 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=11710 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,146 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=11710 and ManagerID=8482) end
+17 Mar 2024 22:08:11,146 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=11733 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,155 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=11733 and ManagerID=8482) end
+17 Mar 2024 22:08:11,156 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=11735 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,162 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=11735 and ManagerID=8482) end
+17 Mar 2024 22:08:11,163 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=11747 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,179 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=11747 and ManagerID=8482) end
+17 Mar 2024 22:08:11,180 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=11758 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,267 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=11758 and ManagerID=8482) end
+17 Mar 2024 22:08:11,268 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=11773 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,275 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=11773 and ManagerID=8482) end
+17 Mar 2024 22:08:11,277 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=11775 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,283 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=11775 and ManagerID=8482) end
+17 Mar 2024 22:08:11,284 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=11781 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,292 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=11781 and ManagerID=8482) end
+17 Mar 2024 22:08:11,293 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=11784 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,300 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=11784 and ManagerID=8482) end
+17 Mar 2024 22:08:11,301 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=11802 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,309 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=11802 and ManagerID=8482) end
+17 Mar 2024 22:08:11,310 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=11807 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,316 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=11807 and ManagerID=8482) end
+17 Mar 2024 22:08:11,317 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=11809 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,330 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=11809 and ManagerID=8482) end
+17 Mar 2024 22:08:11,331 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=13841 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,334 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=13841 and ManagerID=8482) end
+17 Mar 2024 22:08:11,335 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=13856 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,343 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=13856 and ManagerID=8482) end
+17 Mar 2024 22:08:11,344 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=13864 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,354 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=13864 and ManagerID=8482) end
+17 Mar 2024 22:08:11,355 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=13865 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,359 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=13865 and ManagerID=8482) end
+17 Mar 2024 22:08:11,359 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=13870 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,427 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=13870 and ManagerID=8482) end
+17 Mar 2024 22:08:11,428 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=14883 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,437 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=14883 and ManagerID=8482) end
+17 Mar 2024 22:08:11,438 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=14900 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,443 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=14900 and ManagerID=8482) end
+17 Mar 2024 22:08:11,443 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=14937 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,453 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=14937 and ManagerID=8482) end
+17 Mar 2024 22:08:11,453 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=14938 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,460 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=14938 and ManagerID=8482) end
+17 Mar 2024 22:08:11,460 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=14939 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,476 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=14939 and ManagerID=8482) end
+17 Mar 2024 22:08:11,476 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=15950 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,482 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=15950 and ManagerID=8482) end
+17 Mar 2024 22:08:11,484 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=15953 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,501 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=15953 and ManagerID=8482) end
+17 Mar 2024 22:08:11,501 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=15959 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,505 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=15959 and ManagerID=8482) end
+17 Mar 2024 22:08:11,506 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=16957 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,520 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=16957 and ManagerID=8482) end
+17 Mar 2024 22:08:11,521 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=16963 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,528 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=16963 and ManagerID=8482) end
+17 Mar 2024 22:08:11,529 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=17975 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,535 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=17975 and ManagerID=8482) end
+17 Mar 2024 22:08:11,536 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=18988 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,546 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=18988 and ManagerID=8482) end
+17 Mar 2024 22:08:11,547 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=18994 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,550 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=18994 and ManagerID=8482) end
+17 Mar 2024 22:08:11,550 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=18998 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,557 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=18998 and ManagerID=8482) end
+17 Mar 2024 22:08:11,558 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=19001 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,566 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=19001 and ManagerID=8482) end
+17 Mar 2024 22:08:11,566 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=19003 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,573 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=19003 and ManagerID=8482) end
+17 Mar 2024 22:08:11,574 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=19007 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,584 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=19007 and ManagerID=8482) end
+17 Mar 2024 22:08:11,585 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=19009 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,594 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=19009 and ManagerID=8482) end
+17 Mar 2024 22:08:11,595 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=19010 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,608 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=19010 and ManagerID=8482) end
+17 Mar 2024 22:08:11,609 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=20007 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,625 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=20007 and ManagerID=8482) end
+17 Mar 2024 22:08:11,626 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=20009 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,653 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=20009 and ManagerID=8482) end
+17 Mar 2024 22:08:11,654 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=22011 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,669 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=22011 and ManagerID=8482) end
+17 Mar 2024 22:08:11,670 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=22013 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,676 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=22013 and ManagerID=8482) end
+17 Mar 2024 22:08:11,677 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=22016 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,697 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=22016 and ManagerID=8482) end
+17 Mar 2024 22:08:11,698 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=22018 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,706 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=22018 and ManagerID=8482) end
+17 Mar 2024 22:08:11,707 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=22020 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,720 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=22020 and ManagerID=8482) end
+17 Mar 2024 22:08:11,721 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=34233 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,729 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=34233 and ManagerID=8482) end
+17 Mar 2024 22:08:11,730 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=35274 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,734 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=35274 and ManagerID=8482) end
+17 Mar 2024 22:08:11,735 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=35277 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,742 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=35277 and ManagerID=8482) end
+17 Mar 2024 22:08:11,743 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=35278 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,757 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=35278 and ManagerID=8482) end
+17 Mar 2024 22:08:11,758 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=35285 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,769 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=35285 and ManagerID=8482) end
+17 Mar 2024 22:08:11,769 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=35286 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,772 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=35286 and ManagerID=8482) end
+17 Mar 2024 22:08:11,773 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=35287 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,782 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=35287 and ManagerID=8482) end
+17 Mar 2024 22:08:11,783 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=35289 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,791 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=35289 and ManagerID=8482) end
+17 Mar 2024 22:08:11,792 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=36293 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,799 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=36293 and ManagerID=8482) end
+17 Mar 2024 22:08:11,800 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=40292 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,808 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=40292 and ManagerID=8482) end
+17 Mar 2024 22:08:11,809 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=42304 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,816 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=42304 and ManagerID=8482) end
+17 Mar 2024 22:08:11,817 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=42307 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,827 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=42307 and ManagerID=8482) end
+17 Mar 2024 22:08:11,828 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=42309 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,834 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=42309 and ManagerID=8482) end
+17 Mar 2024 22:08:11,835 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=42311 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,843 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=42311 and ManagerID=8482) end
+17 Mar 2024 22:08:11,844 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=43317 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,867 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=43317 and ManagerID=8482) end
+17 Mar 2024 22:08:11,868 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=43320 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,874 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=43320 and ManagerID=8482) end
+17 Mar 2024 22:08:11,875 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=44324 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,884 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=44324 and ManagerID=8482) end
+17 Mar 2024 22:08:11,885 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=45328 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,897 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=45328 and ManagerID=8482) end
+17 Mar 2024 22:08:11,898 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=45347 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,908 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=45347 and ManagerID=8482) end
+17 Mar 2024 22:08:11,909 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=45348 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,917 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=45348 and ManagerID=8482) end
+17 Mar 2024 22:08:11,918 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=45366 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,934 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=45366 and ManagerID=8482) end
+17 Mar 2024 22:08:11,935 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=45382 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,945 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=45382 and ManagerID=8482) end
+17 Mar 2024 22:08:11,945 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=45383 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,949 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=45383 and ManagerID=8482) end
+17 Mar 2024 22:08:11,950 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=46428 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,953 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=46428 and ManagerID=8482) end
+17 Mar 2024 22:08:11,954 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=46444 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,965 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=46444 and ManagerID=8482) end
+17 Mar 2024 22:08:11,966 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=49427 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,970 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=49427 and ManagerID=8482) end
+17 Mar 2024 22:08:11,971 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=49431 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,985 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=49431 and ManagerID=8482) end
+17 Mar 2024 22:08:11,986 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=49435 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,990 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=49435 and ManagerID=8482) end
+17 Mar 2024 22:08:11,991 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=49441 and ManagerID=8482) Start
+17 Mar 2024 22:08:11,996 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=49441 and ManagerID=8482) end
+17 Mar 2024 22:08:11,997 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=58477 and ManagerID=8482) Start
+17 Mar 2024 22:08:12,007 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=58477 and ManagerID=8482) end
+17 Mar 2024 22:08:12,007 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=59548 and ManagerID=8482) Start
+17 Mar 2024 22:08:12,012 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=59548 and ManagerID=8482) end
+17 Mar 2024 22:08:12,013 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=59551 and ManagerID=8482) Start
+17 Mar 2024 22:08:12,020 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=59551 and ManagerID=8482) end
+17 Mar 2024 22:08:12,021 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=60551 and ManagerID=8482) Start
+17 Mar 2024 22:08:12,029 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=60551 and ManagerID=8482) end
+17 Mar 2024 22:08:12,030 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=60579 and ManagerID=8482) Start
+17 Mar 2024 22:08:12,040 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=60579 and ManagerID=8482) end
+17 Mar 2024 22:08:12,041 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=60583 and ManagerID=8482) Start
+17 Mar 2024 22:08:12,046 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=60583 and ManagerID=8482) end
+17 Mar 2024 22:08:12,047 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=60585 and ManagerID=8482) Start
+17 Mar 2024 22:08:12,050 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=60585 and ManagerID=8482) end
+17 Mar 2024 22:08:12,051 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=60588 and ManagerID=8482) Start
+17 Mar 2024 22:08:12,059 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=60588 and ManagerID=8482) end
+17 Mar 2024 22:08:12,060 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=60594 and ManagerID=8482) Start
+17 Mar 2024 22:08:12,076 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=60594 and ManagerID=8482) end
+17 Mar 2024 22:08:12,077 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=60600 and ManagerID=8482) Start
+17 Mar 2024 22:08:12,083 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=60600 and ManagerID=8482) end
+17 Mar 2024 22:08:12,084 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=60618 and ManagerID=8482) Start
+17 Mar 2024 22:08:12,093 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=60618 and ManagerID=8482) end
+17 Mar 2024 22:08:12,093 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=60623 and ManagerID=8482) Start
+17 Mar 2024 22:08:12,106 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=60623 and ManagerID=8482) end
+17 Mar 2024 22:08:12,106 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=60633 and ManagerID=8482) Start
+17 Mar 2024 22:08:12,116 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=60633 and ManagerID=8482) end
+17 Mar 2024 22:08:12,117 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=61640 and ManagerID=8482) Start
+17 Mar 2024 22:08:12,126 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=61640 and ManagerID=8482) end
+17 Mar 2024 22:08:12,126 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=63665 and ManagerID=8482) Start
+17 Mar 2024 22:08:12,134 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=63665 and ManagerID=8482) end
+17 Mar 2024 22:08:12,135 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=64676 and ManagerID=8482) Start
+17 Mar 2024 22:08:12,140 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=64676 and ManagerID=8482) end
+17 Mar 2024 22:08:12,140 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=64678 and ManagerID=8482) Start
+17 Mar 2024 22:08:12,153 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=64678 and ManagerID=8482) end
+17 Mar 2024 22:08:12,154 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=64680 and ManagerID=8482) Start
+17 Mar 2024 22:08:12,164 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=64680 and ManagerID=8482) end
+17 Mar 2024 22:08:12,165 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=2079 and EmpId=64682 and ManagerID=8482) Start
+17 Mar 2024 22:08:12,174 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=2079 and EmpId=64682 and ManagerID=8482) end
+17 Mar 2024 22:08:17,889 [10656] INFO  Log - FillDropDownList(Select ab.EmployeeID, dbo.FN_DESC('AddEmployee',ab.EmployeeID) as empname from AddEmployee ab join AssginBussiness asb on ab.EmployeeID=asb.EmployeeID where UserTypeid NOT IN (1,2,4,5,12) and asb.BusinessID=2079 and ab.IsActive='YES       '  orderby ab.EmployeeID) Start
+17 Mar 2024 22:08:18,032 [10656] INFO  Log - FillDropDownList(Select ab.EmployeeID, dbo.FN_DESC('AddEmployee',ab.EmployeeID) as empname from AddEmployee ab join AssginBussiness asb on ab.EmployeeID=asb.EmployeeID where UserTypeid NOT IN (1,2,4,5,12) and asb.BusinessID=2079 and ab.IsActive='YES       '  orderby ab.EmployeeID) end
+17 Mar 2024 22:08:36,575 [10656] INFO  Log - FillDropDownList(Select ab.EmployeeID, dbo.FN_DESC('AddEmployee',ab.EmployeeID) as empname from AddEmployee ab join AssginBussiness asb on ab.EmployeeID=asb.EmployeeID where UserTypeid=2 and asb.BusinessID=7126 and ab.IsActive='YES       ' orderby ab.EmployeeID) Start
+17 Mar 2024 22:08:36,595 [10656] INFO  Log - FillDropDownList(Select ab.EmployeeID, dbo.FN_DESC('AddEmployee',ab.EmployeeID) as empname from AddEmployee ab join AssginBussiness asb on ab.EmployeeID=asb.EmployeeID where UserTypeid=2 and asb.BusinessID=7126 and ab.IsActive='YES       ' orderby ab.EmployeeID) end
+17 Mar 2024 22:08:41,703 [10656] INFO  Log - FillDropDownList(Select ab.EmployeeID, dbo.FN_DESC('AddEmployee',ab.EmployeeID) as empname from AddEmployee ab join AssginBussiness asb on ab.EmployeeID=asb.EmployeeID where UserTypeid NOT IN (1,2,4,5,12) and asb.BusinessID=7126 and ab.IsActive='YES       '  orderby ab.EmployeeID) Start
+17 Mar 2024 22:08:41,788 [10656] INFO  Log - FillDropDownList(Select ab.EmployeeID, dbo.FN_DESC('AddEmployee',ab.EmployeeID) as empname from AddEmployee ab join AssginBussiness asb on ab.EmployeeID=asb.EmployeeID where UserTypeid NOT IN (1,2,4,5,12) and asb.BusinessID=7126 and ab.IsActive='YES       '  orderby ab.EmployeeID) end
+17 Mar 2024 22:08:45,315 [10656] INFO  Log - FillDropDownList(Select max(EmployeeID) as EmployeeID, temp.empname from (Select ab.EmployeeID, dbo.FN_DESC('AddEmployee',ab.EmployeeID) as empname from AddEmployee ab join AssginBussiness asb on ab.EmployeeID = asb.EmployeeID where UserTypeid IN (12) and asb.BusinessID IN (Select asb.BusinessID from AssginBussiness AsB join AddBusiness ab on ab.BusinessID = asb.BusinessID where AsB.UserTypeId=1 and AsB.EmployeeID='3268' AND AsB.BusinessID IS NOT NULL) and ab.IsActive = 'YES')temp group by temp.empname orderby EmployeeID) Start
+17 Mar 2024 22:08:45,509 [10656] INFO  Log - FillDropDownList(Select max(EmployeeID) as EmployeeID, temp.empname from (Select ab.EmployeeID, dbo.FN_DESC('AddEmployee',ab.EmployeeID) as empname from AddEmployee ab join AssginBussiness asb on ab.EmployeeID = asb.EmployeeID where UserTypeid IN (12) and asb.BusinessID IN (Select asb.BusinessID from AssginBussiness AsB join AddBusiness ab on ab.BusinessID = asb.BusinessID where AsB.UserTypeId=1 and AsB.EmployeeID='3268' AND AsB.BusinessID IS NOT NULL) and ab.IsActive = 'YES')temp group by temp.empname orderby EmployeeID) end
+17 Mar 2024 22:08:54,091 [10656] INFO  Log - FillDropDownList(Select ab.EmployeeID, dbo.FN_DESC('AddEmployee',ab.EmployeeID) as empname from AddEmployee ab join AssginBussiness asb on ab.EmployeeID=asb.EmployeeID where UserTypeid NOT IN (1,2,4,5,12) and asb.BusinessID=7126 and ab.IsActive='YES       '  orderby ab.EmployeeID) Start
+17 Mar 2024 22:08:54,147 [10656] INFO  Log - FillDropDownList(Select ab.EmployeeID, dbo.FN_DESC('AddEmployee',ab.EmployeeID) as empname from AddEmployee ab join AssginBussiness asb on ab.EmployeeID=asb.EmployeeID where UserTypeid NOT IN (1,2,4,5,12) and asb.BusinessID=7126 and ab.IsActive='YES       '  orderby ab.EmployeeID) end
+17 Mar 2024 22:08:56,052 [10656] INFO  Log - GetAllDataFromTable(Select ab.EmployeeID , dbo.FN_DESC('AddEmployee',ab.EmployeeID) as empname from AddEmployee ab join AssginBussiness asb on ab.EmployeeID=asb.EmployeeID where UserTypeid NOT IN (1,2,4,5,12) and asb.BusinessID=7126  and ab.EmployeeID='14917' orderby ab.EmployeeID) Start
+17 Mar 2024 22:08:56,106 [10656] INFO  Log - GetAllDataFromTable(Select ab.EmployeeID , dbo.FN_DESC('AddEmployee',ab.EmployeeID) as empname from AddEmployee ab join AssginBussiness asb on ab.EmployeeID=asb.EmployeeID where UserTypeid NOT IN (1,2,4,5,12) and asb.BusinessID=7126  and ab.EmployeeID='14917' orderby ab.EmployeeID) end
+17 Mar 2024 22:08:56,106 [10656] INFO  Log - GetAllDataFromTable(Select ab.EmployeeID,dbo.FN_DESC('AddEmployee',ab.EmployeeID) as empname from AddEmployee ab join AssginBussiness asb on ab.EmployeeID=asb.EmployeeID where UserTypeid not in (1,2,5,12) and asb.BusinessID=7126 and ab.IsActive='YES       ' and ab.EmployeeID!='14917' orderby ab.EmployeeID) Start
+17 Mar 2024 22:08:56,139 [10656] INFO  Log - GetAllDataFromTable(Select ab.EmployeeID,dbo.FN_DESC('AddEmployee',ab.EmployeeID) as empname from AddEmployee ab join AssginBussiness asb on ab.EmployeeID=asb.EmployeeID where UserTypeid not in (1,2,5,12) and asb.BusinessID=7126 and ab.IsActive='YES       ' and ab.EmployeeID!='14917' orderby ab.EmployeeID) end
+17 Mar 2024 22:08:56,145 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=7126 and EmpId=18979 and ManagerID=14917) Start
+17 Mar 2024 22:08:56,158 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=7126 and EmpId=18979 and ManagerID=14917) end
+17 Mar 2024 22:08:56,159 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=7126 and EmpId=64675 and ManagerID=14917) Start
+17 Mar 2024 22:08:56,168 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=7126 and EmpId=64675 and ManagerID=14917) end
+17 Mar 2024 22:08:58,517 [10656] INFO  Log - GetAllDataFromTable(Select ab.EmployeeID , dbo.FN_DESC('AddEmployee',ab.EmployeeID) as empname from AddEmployee ab join AssginBussiness asb on ab.EmployeeID=asb.EmployeeID where UserTypeid NOT IN (1,2,4,5,12) and asb.BusinessID=7126  and ab.EmployeeID='18979' orderby ab.EmployeeID) Start
+17 Mar 2024 22:08:58,604 [10656] INFO  Log - GetAllDataFromTable(Select ab.EmployeeID , dbo.FN_DESC('AddEmployee',ab.EmployeeID) as empname from AddEmployee ab join AssginBussiness asb on ab.EmployeeID=asb.EmployeeID where UserTypeid NOT IN (1,2,4,5,12) and asb.BusinessID=7126  and ab.EmployeeID='18979' orderby ab.EmployeeID) end
+17 Mar 2024 22:08:58,605 [10656] INFO  Log - GetAllDataFromTable(Select ab.EmployeeID,dbo.FN_DESC('AddEmployee',ab.EmployeeID) as empname from AddEmployee ab join AssginBussiness asb on ab.EmployeeID=asb.EmployeeID where UserTypeid not in (1,2,5,12) and asb.BusinessID=7126 and ab.IsActive='YES       ' and ab.EmployeeID!='18979' orderby ab.EmployeeID) Start
+17 Mar 2024 22:08:58,720 [10656] INFO  Log - GetAllDataFromTable(Select ab.EmployeeID,dbo.FN_DESC('AddEmployee',ab.EmployeeID) as empname from AddEmployee ab join AssginBussiness asb on ab.EmployeeID=asb.EmployeeID where UserTypeid not in (1,2,5,12) and asb.BusinessID=7126 and ab.IsActive='YES       ' and ab.EmployeeID!='18979' orderby ab.EmployeeID) end
+17 Mar 2024 22:08:58,721 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=7126 and EmpId=14917 and ManagerID=18979) Start
+17 Mar 2024 22:08:58,729 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=7126 and EmpId=14917 and ManagerID=18979) end
+17 Mar 2024 22:08:58,730 [10656] INFO  Log - IfExistsInTable(Select * from AssgineManager where BusinessID=7126 and EmpId=64675 and ManagerID=18979) Start
+17 Mar 2024 22:08:58,744 [10656] INFO  Log - IfExistsInTable(Select *, from AssgineManager where BusinessID=7126 and EmpId=64675 and ManagerID=18979) end

@@ -1,0 +1,114 @@
+﻿/*Navigation bar*/
+.header {
+    height: 50px;
+}
+
+/*Navbar style*/
+.navbar {
+    position: fixed;
+    /*padding-top:10px;*/
+    text-align: center;
+    width: 100%;
+    background-color: white;
+    /*Added for MOBILE-ISSUE-SURYA*/
+    padding: 0px 0px 0px 15px;
+}
+
+/*Navbar header*/
+.navbar .navbar-brand {
+    color: #0275d8;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.navbar-default {
+    background-color: white !important;
+    border-color: #e7e7e7;
+}
+
+/*Dropdown content*/
+#dropdownUserMenu li a {
+    text-align: center;
+}
+
+#dropdownUserMenu li {
+    padding:0 10px;
+}
+
+#dropdownUserMenu li a:hover {
+    text-align: center;
+    color: white;
+    background-color: #0275d8;
+}
+
+#menu-toggle .fa-2x {
+    font-size: 28px !important;
+}
+
+/*.form-group {
+    font-size: 14px !important;
+}*/
+
+.tab-sm-fs {
+    font-size: 15px !important;
+}
+
+/*Added for MOBILE-ISSUE-SURYA*/
+@media (max-width:767px) {
+    #lblwelcome {
+        font-size: medium !important;
+    }
+
+    .navbar-toggle {
+        margin-top: 16px !important;
+        margin-left: 15px;
+    }
+
+    .navbar-header div {
+        margin-top: 15px !important;
+        float: none !important;
+    }
+
+    #nav-toggle .dropdown-toggle {
+        display: none !important;
+    }
+
+    #nav-toggle ul.navbar-nav > li:first-child {
+        display: none !important;
+    }
+
+    #logo {
+        margin-left: -22px;
+    }
+
+    #wrapper {
+        margin-top: -45px !important;
+    }
+
+    .modalPopup {
+        left: 0px !important;
+        width: -webkit-fill-available !important;
+    }
+
+    .form-control {
+        width: 100% !important;
+    }
+
+    .tab-sm-fs {
+        padding: 5px !important;
+        font-size: 12px !important;
+    }
+
+    #page-content-wrapper .page-content .row > .panel h2 {
+        font-size: medium !important;
+    }
+    .mselect{
+        width:150px !important;
+    }
+    .xs-mselect {
+        width: 90px !important;
+    }
+    .xs-mmmselect {
+        width: 200px !important;
+    }
+}

@@ -1,0 +1,1121 @@
+02 Feb 2026 18:43:44,356 [17856] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) Start
+02 Feb 2026 18:43:45,426 [17856] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) end
+02 Feb 2026 18:43:45,436 [17856] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+02 Feb 2026 18:43:45,468 [17856] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+02 Feb 2026 18:43:45,469 [17856] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+02 Feb 2026 18:43:45,485 [17856] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+02 Feb 2026 18:43:45,487 [17856] INFO  Log - GetNameFromId(UserType,1) Start
+02 Feb 2026 18:43:45,528 [17856] INFO  Log - GetNameFromId(UserType,1) end
+02 Feb 2026 18:43:52,317 [2740] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 3268 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) Start
+02 Feb 2026 18:43:52,452 [2740] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 3268 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) end
+02 Feb 2026 18:43:52,575 [2740] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (2078, 2079, 2082, 2095, 2096, 2097, 6126, 7125, 7126, 7127, 7128, 7129, 7130, 7131, 7132, 7134, 7135, 7136, 7137, 7143, 8161, 12224, 14229, 14230, 14232, 14234, 14235, 14236, 15235, 15236, 15237, 15238, 15239, 15240, 15241, 15243, 15246, 15248) orderby Yr desc) Start
+02 Feb 2026 18:43:52,624 [2740] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (2078, 2079, 2082, 2095, 2096, 2097, 6126, 7125, 7126, 7127, 7128, 7129, 7130, 7131, 7132, 7134, 7135, 7136, 7137, 7143, 8161, 12224, 14229, 14230, 14232, 14234, 14235, 14236, 15235, 15236, 15237, 15238, 15239, 15240, 15241, 15243, 15246, 15248) orderby Yr desc) end
+02 Feb 2026 18:43:52,630 [2740] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=3268) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) Start
+02 Feb 2026 18:43:52,675 [2740] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=3268) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) end
+02 Feb 2026 18:43:53,887 [2740] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+02 Feb 2026 18:43:53,976 [2740] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+02 Feb 2026 18:43:53,978 [2740] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+02 Feb 2026 18:43:54,036 [2740] INFO  Log - GetMenuDataFromLoginTable(4246) end
+02 Feb 2026 18:43:54,051 [2740] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+02 Feb 2026 18:43:54,102 [2740] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+02 Feb 2026 18:43:54,102 [2740] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+02 Feb 2026 18:43:54,144 [2740] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+02 Feb 2026 18:43:54,148 [2740] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+02 Feb 2026 18:43:54,242 [2740] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+02 Feb 2026 18:43:54,246 [2740] INFO  Log - Fetching menu details - Started
+02 Feb 2026 18:43:54,286 [2740] INFO  Log - Fetching menu details - Finished
+02 Feb 2026 18:44:45,677 [17856] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg where MotherOrgID = '4' orderby ) Start
+02 Feb 2026 18:44:45,687 [17856] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg where MotherOrgID = '4' orderby ) end
+02 Feb 2026 18:44:45,689 [17856] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner where EMail_primary = 'shamsuthakor@gmail.com' ) Start
+02 Feb 2026 18:44:45,705 [17856] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner where EMail_primary = 'shamsuthakor@gmail.com' ) end
+02 Feb 2026 18:44:45,706 [17856] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory where EmpId='3268' and IsActive=1 ) Start
+02 Feb 2026 18:44:45,755 [17856] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory where EmpId='3268' and IsActive=1 ) End
+02 Feb 2026 18:44:45,756 [17856] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory where EmpId='3268' and Is_Cancelled=1 ) Start
+02 Feb 2026 18:44:45,762 [17856] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory where EmpId='3268' and Is_Cancelled=1 ) End
+02 Feb 2026 18:44:45,763 [17856] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 orderby ) Start
+02 Feb 2026 18:44:45,776 [17856] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 orderby ) end
+02 Feb 2026 18:44:45,777 [17856] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 and Is_Requested_Plan=1 orderby ) Start
+02 Feb 2026 18:44:45,791 [17856] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 and Is_Requested_Plan=1 orderby ) end
+02 Feb 2026 18:44:45,792 [17856] INFO  Log - IfExistsInTable(Select IsActive from AddEmployee where EmployeeID='3268' and IsActive='NO        ' and UserType='1' ) Start
+02 Feb 2026 18:44:45,803 [17856] INFO  Log - IfExistsInTable(Select IsActive, from AddEmployee where EmployeeID='3268' and IsActive='NO        ' and UserType='1' ) end
+02 Feb 2026 18:44:45,825 [17856] INFO  Log - GetAllDataFromTable(Select BusinessID from AssginBussiness where EmployeeID=3268 and BusinessID is not null and BusinessID<>'' orderby BusinessID) Start
+02 Feb 2026 18:44:45,838 [17856] INFO  Log - GetAllDataFromTable(Select BusinessID from AssginBussiness where EmployeeID=3268 and BusinessID is not null and BusinessID<>'' orderby BusinessID) end
+02 Feb 2026 18:44:45,840 [17856] INFO  Log - GetBussForSelectBUSS(3268) Start
+02 Feb 2026 18:44:45,907 [17856] INFO  Log - IfExistsInTable(Select * from MappingTable where userid=4246 and UserTypeId=2) Start
+02 Feb 2026 18:44:45,917 [17856] INFO  Log - IfExistsInTable(Select *, from MappingTable where userid=4246 and UserTypeId=2) end
+02 Feb 2026 18:44:45,918 [17856] INFO  Log - SP_UserType(2078, 2078) Start
+02 Feb 2026 18:44:45,942 [17856] INFO  Log - SP_UserType(2078, 2078) end
+02 Feb 2026 18:44:45,945 [17856] INFO  Log - SP_UserType(2078, 2078) Start
+02 Feb 2026 18:44:45,957 [17856] INFO  Log - SP_UserType(2078, 2078) end
+02 Feb 2026 18:44:45,958 [17856] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+02 Feb 2026 18:44:45,969 [17856] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+02 Feb 2026 18:44:45,971 [17856] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+02 Feb 2026 18:44:45,985 [17856] INFO  Log - GetMenuDataFromLoginTable(4246) end
+02 Feb 2026 18:44:45,986 [17856] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+02 Feb 2026 18:44:45,996 [17856] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+02 Feb 2026 18:44:45,997 [17856] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+02 Feb 2026 18:44:46,013 [17856] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+02 Feb 2026 18:44:46,014 [17856] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+02 Feb 2026 18:44:46,040 [17856] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+02 Feb 2026 18:44:46,041 [17856] INFO  Log - Fetching menu details - Started
+02 Feb 2026 18:44:46,052 [17856] INFO  Log - Fetching menu details - Finished
+02 Feb 2026 18:45:01,840 [17856] INFO  Log - Business_Owner_Pop_up_Employee_List(15248,3268) Start
+02 Feb 2026 18:45:01,945 [17856] INFO  Log - Business_Owner_Pop_up_Employee_List(15248,3268) end
+02 Feb 2026 18:45:05,127 [17856] INFO  Log - GetAllDataFromTable(Select *,convert(nvarchar(10),HireDate,120)HireDated from AddEmployee where EmployeeID=64737 orderby ) Start
+02 Feb 2026 18:45:05,252 [17856] INFO  Log - GetAllDataFromTable(Select *,convert(nvarchar(10),HireDate,120)HireDated from AddEmployee where EmployeeID=64737 orderby ) end
+02 Feb 2026 18:45:05,353 [17856] INFO  Log - GetAllDataFromTable(Select * from EmpAddress where EmpAddressId=65486 orderby ) Start
+02 Feb 2026 18:45:05,385 [17856] INFO  Log - GetAllDataFromTable(Select * from EmpAddress where EmpAddressId=65486 orderby ) end
+02 Feb 2026 18:45:05,387 [17856] INFO  Log - GetAllDataFromTable(Select * from RateDetails where RateId=48540 and EmployeeId=64737 orderby ) Start
+02 Feb 2026 18:45:05,404 [17856] INFO  Log - GetAllDataFromTable(Select * from RateDetails where RateId=48540 and EmployeeId=64737 orderby ) end
+02 Feb 2026 18:45:05,405 [17856] INFO  Log - GetAllDataFromTable(Select MainEmail from EmpAddress with (Nolock) where EmpAddressId in (select ADDRESSID from AddEmployee where EmployeeID = 64737) orderby ) Start
+02 Feb 2026 18:45:05,433 [17856] INFO  Log - GetAllDataFromTable(Select MainEmail from EmpAddress with (Nolock) where EmpAddressId in (select ADDRESSID from AddEmployee where EmployeeID = 64737) orderby ) end
+02 Feb 2026 18:45:05,437 [17856] INFO  Log - Sp_GetSubsBuss(Venkat1000.Madduri1000@gmail.com, 3268) Start
+02 Feb 2026 18:45:05,576 [17856] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '64737' orderby ) Start
+02 Feb 2026 18:45:05,604 [17856] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '64737' orderby ) end
+02 Feb 2026 18:45:05,607 [17856] INFO  Log - Sp_GetSubsBussProject(Venkat1000.Madduri1000@gmail.com, 3268) Start
+02 Feb 2026 18:45:05,679 [17856] INFO  Log - Sp_GetSubsBussRate(Venkat1000.Madduri1000@gmail.com, 3268) Start
+02 Feb 2026 18:45:05,784 [17856] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '15248' and EmployeeID = '64737' orderby ) Start
+02 Feb 2026 18:45:05,804 [17856] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '15248' and EmployeeID = '64737' orderby ) end
+02 Feb 2026 18:45:05,805 [17856] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '15248' and USERID = '59125' orderby ) Start
+02 Feb 2026 18:45:05,817 [17856] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '15248' and USERID = '59125' orderby ) end
+02 Feb 2026 18:45:05,818 [17856] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '64737' orderby ) Start
+02 Feb 2026 18:45:05,829 [17856] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '64737' orderby ) end
+02 Feb 2026 18:45:05,830 [17856] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='48540' ) Start
+02 Feb 2026 18:45:05,839 [17856] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='48540' ) End
+02 Feb 2026 18:45:05,841 [17856] INFO  Log - GetAllDataFromTable(Select Profile_Image from UserAcc where email='Venkat1000.Madduri1000@gmail.com' orderby ) Start
+02 Feb 2026 18:45:05,852 [17856] INFO  Log - GetAllDataFromTable(Select Profile_Image from UserAcc where email='Venkat1000.Madduri1000@gmail.com' orderby ) end
+02 Feb 2026 18:45:14,692 [856] INFO  Log - GetAllDataFromTable(Select [dbo].[FN_DESC]('UserType',UserTypeId) from MappingTable where userid='4246' and BusinessID='15248' orderby ) Start
+02 Feb 2026 18:45:14,736 [856] INFO  Log - GetAllDataFromTable(Select [dbo].[FN_DESC]('UserType',UserTypeId) from MappingTable where userid='4246' and BusinessID='15248' orderby ) end
+02 Feb 2026 18:45:14,737 [856] INFO  Log - IfExistsInTable(Select * from MappingTable where userid=4246 and UserTypeId=2) Start
+02 Feb 2026 18:45:14,748 [856] INFO  Log - IfExistsInTable(Select *, from MappingTable where userid=4246 and UserTypeId=2) end
+02 Feb 2026 18:45:14,749 [856] INFO  Log - SP_UserType(15248, 15248) Start
+02 Feb 2026 18:45:14,763 [856] INFO  Log - SP_UserType(15248, 15248) end
+02 Feb 2026 18:45:14,765 [856] INFO  Log - SP_UserType(15248, 15248) Start
+02 Feb 2026 18:45:14,772 [856] INFO  Log - SP_UserType(15248, 15248) end
+02 Feb 2026 18:46:04,859 [856] INFO  Log - ExecuteQuery(update AddEmployee SET UserType=4 WHERE EmployeeID=3268) Start
+02 Feb 2026 18:46:05,039 [856] INFO  Log - ExecuteQuery(update AddEmployee SET UserType=4 WHERE EmployeeID=3268) End
+02 Feb 2026 18:49:17,634 [13500] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) Start
+02 Feb 2026 18:49:17,907 [13500] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) end
+02 Feb 2026 18:49:17,908 [13500] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+02 Feb 2026 18:49:18,037 [13500] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+02 Feb 2026 18:49:18,038 [13500] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+02 Feb 2026 18:49:18,306 [13500] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+02 Feb 2026 18:49:18,307 [13500] INFO  Log - GetNameFromId(UserType,4) Start
+02 Feb 2026 18:49:18,375 [13500] INFO  Log - GetNameFromId(UserType,4) end
+02 Feb 2026 18:49:19,761 [16532] INFO  Log - FillDropDownList(Select assb.BusinessID, dbo.FN_DESC('AddBusiness',assb.BusinessID) from AssginBussiness assb join AddBusiness ab on ab.BusinessID=assb.BusinessID where  EmployeeID in (select ad.EmployeeID from  AddEmployee ad join EmpAddress empAdd on ad.ADDRESSID=empAdd.EmpAddressId where empAdd.MainEmail='independent_bo_pk_two@gmail.com') and ab.Status<>2 orderby BusinessID) Start
+02 Feb 2026 18:49:19,905 [16532] INFO  Log - FillDropDownList(Select assb.BusinessID, dbo.FN_DESC('AddBusiness',assb.BusinessID) from AssginBussiness assb join AddBusiness ab on ab.BusinessID=assb.BusinessID where  EmployeeID in (select ad.EmployeeID from  AddEmployee ad join EmpAddress empAdd on ad.ADDRESSID=empAdd.EmpAddressId where empAdd.MainEmail='independent_bo_pk_two@gmail.com') and ab.Status<>2 orderby BusinessID) end
+02 Feb 2026 18:49:19,906 [16532] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where  orderby Yr desc) Start
+02 Feb 2026 18:49:20,207 [16532] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where  orderby Yr desc) end
+02 Feb 2026 18:49:30,112 [16532] INFO  Log - GetAllDataFromTable(Select * from MappingTable where USERID = '4246' and UserTypeId = '4'  orderby UserTypeId) Start
+02 Feb 2026 18:49:30,155 [16532] INFO  Log - GetAllDataFromTable(Select * from MappingTable where USERID = '4246' and UserTypeId = '4'  orderby UserTypeId) end
+02 Feb 2026 18:50:02,352 [17860] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) Start
+02 Feb 2026 18:50:03,035 [17860] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) end
+02 Feb 2026 18:50:03,036 [17860] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+02 Feb 2026 18:50:03,126 [17860] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+02 Feb 2026 18:50:03,127 [17860] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+02 Feb 2026 18:50:03,349 [17860] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+02 Feb 2026 18:50:03,349 [17860] INFO  Log - GetNameFromId(UserType,4) Start
+02 Feb 2026 18:50:03,431 [17860] INFO  Log - GetNameFromId(UserType,4) end
+02 Feb 2026 18:50:03,696 [17860] INFO  Log - FillDropDownList(Select assb.BusinessID, dbo.FN_DESC('AddBusiness',assb.BusinessID) from AssginBussiness assb join AddBusiness ab on ab.BusinessID=assb.BusinessID where  EmployeeID in (select ad.EmployeeID from  AddEmployee ad join EmpAddress empAdd on ad.ADDRESSID=empAdd.EmpAddressId where empAdd.MainEmail='independent_bo_pk_two@gmail.com') and ab.Status<>2 orderby BusinessID) Start
+02 Feb 2026 18:50:04,094 [17860] INFO  Log - FillDropDownList(Select assb.BusinessID, dbo.FN_DESC('AddBusiness',assb.BusinessID) from AssginBussiness assb join AddBusiness ab on ab.BusinessID=assb.BusinessID where  EmployeeID in (select ad.EmployeeID from  AddEmployee ad join EmpAddress empAdd on ad.ADDRESSID=empAdd.EmpAddressId where empAdd.MainEmail='independent_bo_pk_two@gmail.com') and ab.Status<>2 orderby BusinessID) end
+02 Feb 2026 18:50:04,094 [17860] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where  orderby Yr desc) Start
+02 Feb 2026 18:50:07,841 [17860] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where  orderby Yr desc) end
+02 Feb 2026 18:50:16,325 [17860] INFO  Log - GetAllDataFromTable(Select * from MappingTable where USERID = '4246' and UserTypeId = '4'  orderby UserTypeId) Start
+02 Feb 2026 18:50:16,373 [17860] INFO  Log - GetAllDataFromTable(Select * from MappingTable where USERID = '4246' and UserTypeId = '4'  orderby UserTypeId) end
+02 Feb 2026 18:52:27,188 [9208] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) Start
+02 Feb 2026 18:52:27,257 [9208] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) end
+02 Feb 2026 18:52:27,257 [9208] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+02 Feb 2026 18:52:27,293 [9208] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+02 Feb 2026 18:52:27,294 [9208] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+02 Feb 2026 18:52:27,326 [9208] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+02 Feb 2026 18:52:27,326 [9208] INFO  Log - GetNameFromId(UserType,4) Start
+02 Feb 2026 18:52:27,442 [9208] INFO  Log - GetNameFromId(UserType,4) end
+02 Feb 2026 18:52:27,550 [13500] INFO  Log - FillDropDownList(Select assb.BusinessID, dbo.FN_DESC('AddBusiness',assb.BusinessID) from AssginBussiness assb join AddBusiness ab on ab.BusinessID=assb.BusinessID where  EmployeeID in (select ad.EmployeeID from  AddEmployee ad join EmpAddress empAdd on ad.ADDRESSID=empAdd.EmpAddressId where empAdd.MainEmail='independent_bo_pk_two@gmail.com') and ab.Status<>2 orderby BusinessID) Start
+02 Feb 2026 18:52:27,804 [13500] INFO  Log - FillDropDownList(Select assb.BusinessID, dbo.FN_DESC('AddBusiness',assb.BusinessID) from AssginBussiness assb join AddBusiness ab on ab.BusinessID=assb.BusinessID where  EmployeeID in (select ad.EmployeeID from  AddEmployee ad join EmpAddress empAdd on ad.ADDRESSID=empAdd.EmpAddressId where empAdd.MainEmail='independent_bo_pk_two@gmail.com') and ab.Status<>2 orderby BusinessID) end
+02 Feb 2026 18:52:27,804 [13500] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where  orderby Yr desc) Start
+02 Feb 2026 18:52:27,880 [13500] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where  orderby Yr desc) end
+02 Feb 2026 18:52:29,467 [13500] INFO  Log - GetAllDataFromTable(Select * from MappingTable where USERID = '4246' and UserTypeId = '4'  orderby UserTypeId) Start
+02 Feb 2026 18:52:29,517 [13500] INFO  Log - GetAllDataFromTable(Select * from MappingTable where USERID = '4246' and UserTypeId = '4'  orderby UserTypeId) end
+02 Feb 2026 19:10:32,029 [25932] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) Start
+02 Feb 2026 19:10:33,129 [25932] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) end
+02 Feb 2026 19:10:33,129 [25932] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+02 Feb 2026 19:10:33,454 [25932] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+02 Feb 2026 19:10:33,455 [25932] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+02 Feb 2026 19:10:33,496 [25932] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+02 Feb 2026 19:10:33,497 [25932] INFO  Log - GetNameFromId(UserType,4) Start
+02 Feb 2026 19:10:33,550 [25932] INFO  Log - GetNameFromId(UserType,4) end
+02 Feb 2026 19:10:47,829 [25932] INFO  Log - FillDropDownList(Select assb.BusinessID, dbo.FN_DESC('AddBusiness',assb.BusinessID) from AssginBussiness assb join AddBusiness ab on ab.BusinessID=assb.BusinessID where  EmployeeID in (select ad.EmployeeID from  AddEmployee ad join EmpAddress empAdd on ad.ADDRESSID=empAdd.EmpAddressId where empAdd.MainEmail='independent_bo_pk_two@gmail.com') and ab.Status<>2 orderby BusinessID) Start
+02 Feb 2026 19:10:47,933 [25932] INFO  Log - FillDropDownList(Select assb.BusinessID, dbo.FN_DESC('AddBusiness',assb.BusinessID) from AssginBussiness assb join AddBusiness ab on ab.BusinessID=assb.BusinessID where  EmployeeID in (select ad.EmployeeID from  AddEmployee ad join EmpAddress empAdd on ad.ADDRESSID=empAdd.EmpAddressId where empAdd.MainEmail='independent_bo_pk_two@gmail.com') and ab.Status<>2 orderby BusinessID) end
+02 Feb 2026 19:10:47,934 [25932] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where  orderby Yr desc) Start
+02 Feb 2026 19:10:47,981 [25932] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where  orderby Yr desc) end
+02 Feb 2026 19:10:49,853 [25932] INFO  Log - GetAllDataFromTable(Select * from MappingTable where USERID = '4246' and UserTypeId = '4'  orderby UserTypeId) Start
+02 Feb 2026 19:10:50,138 [25932] INFO  Log - GetAllDataFromTable(Select * from MappingTable where USERID = '4246' and UserTypeId = '4'  orderby UserTypeId) end
+02 Feb 2026 19:17:05,867 [16412] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) Start
+02 Feb 2026 19:17:05,958 [16412] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) end
+02 Feb 2026 19:17:05,960 [16412] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+02 Feb 2026 19:17:06,260 [16412] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+02 Feb 2026 19:17:06,260 [16412] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+02 Feb 2026 19:17:06,625 [16412] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+02 Feb 2026 19:17:06,626 [16412] INFO  Log - GetNameFromId(UserType,4) Start
+02 Feb 2026 19:17:06,735 [16412] INFO  Log - GetNameFromId(UserType,4) end
+02 Feb 2026 19:18:05,833 [21840] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) Start
+02 Feb 2026 19:18:07,261 [21840] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) end
+02 Feb 2026 19:18:07,268 [21840] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+02 Feb 2026 19:18:07,325 [21840] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+02 Feb 2026 19:18:07,326 [21840] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+02 Feb 2026 19:18:07,367 [21840] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+02 Feb 2026 19:18:07,368 [21840] INFO  Log - GetNameFromId(UserType,4) Start
+02 Feb 2026 19:18:07,414 [21840] INFO  Log - GetNameFromId(UserType,4) end
+02 Feb 2026 19:18:14,847 [21840] INFO  Log - FillDropDownList(Select assb.BusinessID, dbo.FN_DESC('AddBusiness',assb.BusinessID) from AssginBussiness assb join AddBusiness ab on ab.BusinessID=assb.BusinessID where  EmployeeID in (select ad.EmployeeID from  AddEmployee ad join EmpAddress empAdd on ad.ADDRESSID=empAdd.EmpAddressId where empAdd.MainEmail='independent_bo_pk_two@gmail.com') and ab.Status<>2 orderby BusinessID) Start
+02 Feb 2026 19:18:15,079 [21840] INFO  Log - FillDropDownList(Select assb.BusinessID, dbo.FN_DESC('AddBusiness',assb.BusinessID) from AssginBussiness assb join AddBusiness ab on ab.BusinessID=assb.BusinessID where  EmployeeID in (select ad.EmployeeID from  AddEmployee ad join EmpAddress empAdd on ad.ADDRESSID=empAdd.EmpAddressId where empAdd.MainEmail='independent_bo_pk_two@gmail.com') and ab.Status<>2 orderby BusinessID) end
+02 Feb 2026 19:18:15,080 [21840] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where  orderby Yr desc) Start
+02 Feb 2026 19:18:15,129 [21840] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where  orderby Yr desc) end
+02 Feb 2026 19:26:09,942 [21840] INFO  Log - GetAllDataFromTable(Select * from MappingTable where USERID = '4246' and UserTypeId = '4'  orderby UserTypeId) Start
+02 Feb 2026 19:26:10,322 [21840] INFO  Log - GetAllDataFromTable(Select * from MappingTable where USERID = '4246' and UserTypeId = '4'  orderby UserTypeId) end
+02 Feb 2026 19:27:56,976 [21840] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) Start
+02 Feb 2026 19:27:57,025 [21840] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) end
+02 Feb 2026 19:27:57,026 [21840] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+02 Feb 2026 19:27:57,080 [21840] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+02 Feb 2026 19:27:57,081 [21840] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+02 Feb 2026 19:27:57,199 [21840] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+02 Feb 2026 19:27:57,200 [21840] INFO  Log - GetNameFromId(UserType,4) Start
+02 Feb 2026 19:27:57,386 [21840] INFO  Log - GetNameFromId(UserType,4) end
+02 Feb 2026 19:28:07,514 [21840] INFO  Log - FillDropDownList(Select assb.BusinessID, dbo.FN_DESC('AddBusiness',assb.BusinessID) from AssginBussiness assb join AddBusiness ab on ab.BusinessID=assb.BusinessID where  EmployeeID in (select ad.EmployeeID from  AddEmployee ad join EmpAddress empAdd on ad.ADDRESSID=empAdd.EmpAddressId where empAdd.MainEmail='independent_bo_pk_two@gmail.com') and ab.Status<>2 orderby BusinessID) Start
+02 Feb 2026 19:28:07,634 [21840] INFO  Log - FillDropDownList(Select assb.BusinessID, dbo.FN_DESC('AddBusiness',assb.BusinessID) from AssginBussiness assb join AddBusiness ab on ab.BusinessID=assb.BusinessID where  EmployeeID in (select ad.EmployeeID from  AddEmployee ad join EmpAddress empAdd on ad.ADDRESSID=empAdd.EmpAddressId where empAdd.MainEmail='independent_bo_pk_two@gmail.com') and ab.Status<>2 orderby BusinessID) end
+02 Feb 2026 19:28:07,635 [21840] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where  orderby Yr desc) Start
+02 Feb 2026 19:28:07,680 [21840] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where  orderby Yr desc) end
+02 Feb 2026 19:30:42,902 [21840] INFO  Log - GetAllDataFromTable(Select * from MappingTable where USERID = '4246' and UserTypeId = '4'  orderby UserTypeId) Start
+02 Feb 2026 19:30:42,920 [21840] INFO  Log - GetAllDataFromTable(Select * from MappingTable where USERID = '4246' and UserTypeId = '4'  orderby UserTypeId) end
+02 Feb 2026 19:31:17,455 [21840] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) Start
+02 Feb 2026 19:31:17,757 [21840] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) end
+02 Feb 2026 19:31:17,759 [21840] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+02 Feb 2026 19:31:17,902 [21840] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+02 Feb 2026 19:31:17,903 [21840] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+02 Feb 2026 19:31:18,049 [21840] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+02 Feb 2026 19:31:18,050 [21840] INFO  Log - GetNameFromId(UserType,4) Start
+02 Feb 2026 19:31:18,387 [21840] INFO  Log - GetNameFromId(UserType,4) end
+02 Feb 2026 19:31:18,441 [18596] INFO  Log - FillDropDownList(Select assb.BusinessID, dbo.FN_DESC('AddBusiness',assb.BusinessID) from AssginBussiness assb join AddBusiness ab on ab.BusinessID=assb.BusinessID where  EmployeeID in (select ad.EmployeeID from  AddEmployee ad join EmpAddress empAdd on ad.ADDRESSID=empAdd.EmpAddressId where empAdd.MainEmail='independent_bo_pk_two@gmail.com') and ab.Status<>2 orderby BusinessID) Start
+02 Feb 2026 19:31:19,562 [18596] INFO  Log - FillDropDownList(Select assb.BusinessID, dbo.FN_DESC('AddBusiness',assb.BusinessID) from AssginBussiness assb join AddBusiness ab on ab.BusinessID=assb.BusinessID where  EmployeeID in (select ad.EmployeeID from  AddEmployee ad join EmpAddress empAdd on ad.ADDRESSID=empAdd.EmpAddressId where empAdd.MainEmail='independent_bo_pk_two@gmail.com') and ab.Status<>2 orderby BusinessID) end
+02 Feb 2026 19:31:19,562 [18596] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where  orderby Yr desc) Start
+02 Feb 2026 19:31:19,679 [18596] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where  orderby Yr desc) end
+02 Feb 2026 19:32:22,604 [18596] INFO  Log - GetAllDataFromTable(Select * from MappingTable where USERID = '4246' and UserTypeId = '4'  orderby UserTypeId) Start
+02 Feb 2026 19:32:22,806 [18596] INFO  Log - GetAllDataFromTable(Select * from MappingTable where USERID = '4246' and UserTypeId = '4'  orderby UserTypeId) end
+02 Feb 2026 19:32:22,810 [18596] INFO  Log - GetAllDataFromTable(Select Status from TimeSheetEntry where [EmpId]='3268' and [BussID]='15248' and [Year]='2026' and [WeekNo]='6' and Status='2' orderby ) Start
+02 Feb 2026 19:32:22,850 [18596] INFO  Log - GetAllDataFromTable(Select Status from TimeSheetEntry where [EmpId]='3268' and [BussID]='15248' and [Year]='2026' and [WeekNo]='6' and Status='2' orderby ) end
+02 Feb 2026 19:32:22,852 [18596] INFO  Log - GetAllDataFromTable(Select Status from TimeSheetEntry where [EmpId]='3268' and [BussID]='15248' and [Year]='2026' and [WeekNo]='6' and Status='3' orderby ) Start
+02 Feb 2026 19:32:22,887 [18596] INFO  Log - GetAllDataFromTable(Select Status from TimeSheetEntry where [EmpId]='3268' and [BussID]='15248' and [Year]='2026' and [WeekNo]='6' and Status='3' orderby ) end
+02 Feb 2026 19:32:22,888 [18596] INFO  Log - GetAllDataFromTable(Select Status from TimeSheetEntry where [EmpId]='3268' and [BussID]='15248' and [Year]='2026' and [WeekNo]='6' and Status='1' orderby ) Start
+02 Feb 2026 19:32:23,112 [18596] INFO  Log - GetAllDataFromTable(Select Status from TimeSheetEntry where [EmpId]='3268' and [BussID]='15248' and [Year]='2026' and [WeekNo]='6' and Status='1' orderby ) end
+02 Feb 2026 19:32:23,115 [18596] INFO  Log - GetAllDataFromTable(Select Status from TimeSheetEntry where [EmpId]='3268' and [BussID]='15248' and [Year]='2026' and [WeekNo]='6' and Status='4' orderby ) Start
+02 Feb 2026 19:32:23,188 [18596] INFO  Log - GetAllDataFromTable(Select Status from TimeSheetEntry where [EmpId]='3268' and [BussID]='15248' and [Year]='2026' and [WeekNo]='6' and Status='4' orderby ) end
+02 Feb 2026 19:32:23,193 [18596] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID='4' orderby ) Start
+02 Feb 2026 19:32:23,226 [18596] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID='4' orderby ) end
+02 Feb 2026 19:32:23,228 [18596] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+02 Feb 2026 19:32:23,756 [18596] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+02 Feb 2026 19:32:23,757 [18596] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+02 Feb 2026 19:32:24,117 [18596] INFO  Log - GetMenuDataFromLoginTable(4246) end
+02 Feb 2026 19:32:24,128 [18596] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+02 Feb 2026 19:32:24,167 [18596] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+02 Feb 2026 19:32:24,168 [18596] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+02 Feb 2026 19:32:24,221 [18596] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+02 Feb 2026 19:32:24,224 [18596] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+02 Feb 2026 19:32:24,280 [18596] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+02 Feb 2026 19:32:24,283 [18596] INFO  Log - Fetching menu details - Started
+02 Feb 2026 19:32:24,862 [18596] INFO  Log - Fetching menu details - Finished
+02 Feb 2026 19:32:37,128 [21840] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) Start
+02 Feb 2026 19:32:37,269 [21840] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) end
+02 Feb 2026 19:32:37,270 [21840] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+02 Feb 2026 19:32:37,483 [21840] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+02 Feb 2026 19:32:37,484 [21840] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+02 Feb 2026 19:32:37,701 [21840] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+02 Feb 2026 19:32:37,702 [21840] INFO  Log - GetNameFromId(UserType,4) Start
+02 Feb 2026 19:32:37,946 [21840] INFO  Log - GetNameFromId(UserType,4) end
+02 Feb 2026 19:32:38,089 [21840] INFO  Log - FillDropDownList(Select assb.BusinessID, dbo.FN_DESC('AddBusiness',assb.BusinessID) from AssginBussiness assb join AddBusiness ab on ab.BusinessID=assb.BusinessID where  EmployeeID in (select ad.EmployeeID from  AddEmployee ad join EmpAddress empAdd on ad.ADDRESSID=empAdd.EmpAddressId where empAdd.MainEmail='independent_bo_pk_two@gmail.com') and ab.Status<>2 orderby BusinessID) Start
+02 Feb 2026 19:32:38,266 [21840] INFO  Log - FillDropDownList(Select assb.BusinessID, dbo.FN_DESC('AddBusiness',assb.BusinessID) from AssginBussiness assb join AddBusiness ab on ab.BusinessID=assb.BusinessID where  EmployeeID in (select ad.EmployeeID from  AddEmployee ad join EmpAddress empAdd on ad.ADDRESSID=empAdd.EmpAddressId where empAdd.MainEmail='independent_bo_pk_two@gmail.com') and ab.Status<>2 orderby BusinessID) end
+02 Feb 2026 19:32:38,267 [21840] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where  orderby Yr desc) Start
+02 Feb 2026 19:32:38,445 [21840] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where  orderby Yr desc) end
+02 Feb 2026 19:32:47,704 [21840] INFO  Log - GetAllDataFromTable(Select * from MappingTable where USERID = '4246' and UserTypeId = '4'  orderby UserTypeId) Start
+02 Feb 2026 19:32:47,720 [21840] INFO  Log - GetAllDataFromTable(Select * from MappingTable where USERID = '4246' and UserTypeId = '4'  orderby UserTypeId) end
+02 Feb 2026 19:32:47,725 [21840] INFO  Log - GetAllDataFromTable(Select Status from TimeSheetEntry where [EmpId]='3268' and [BussID]='15248' and [Year]='2026' and [WeekNo]='6' and Status='2' orderby ) Start
+02 Feb 2026 19:32:47,766 [21840] INFO  Log - GetAllDataFromTable(Select Status from TimeSheetEntry where [EmpId]='3268' and [BussID]='15248' and [Year]='2026' and [WeekNo]='6' and Status='2' orderby ) end
+02 Feb 2026 19:32:47,767 [21840] INFO  Log - GetAllDataFromTable(Select Status from TimeSheetEntry where [EmpId]='3268' and [BussID]='15248' and [Year]='2026' and [WeekNo]='6' and Status='3' orderby ) Start
+02 Feb 2026 19:32:47,775 [21840] INFO  Log - GetAllDataFromTable(Select Status from TimeSheetEntry where [EmpId]='3268' and [BussID]='15248' and [Year]='2026' and [WeekNo]='6' and Status='3' orderby ) end
+02 Feb 2026 19:32:47,776 [21840] INFO  Log - GetAllDataFromTable(Select Status from TimeSheetEntry where [EmpId]='3268' and [BussID]='15248' and [Year]='2026' and [WeekNo]='6' and Status='1' orderby ) Start
+02 Feb 2026 19:32:47,790 [21840] INFO  Log - GetAllDataFromTable(Select Status from TimeSheetEntry where [EmpId]='3268' and [BussID]='15248' and [Year]='2026' and [WeekNo]='6' and Status='1' orderby ) end
+02 Feb 2026 19:32:47,790 [21840] INFO  Log - GetAllDataFromTable(Select Status from TimeSheetEntry where [EmpId]='3268' and [BussID]='15248' and [Year]='2026' and [WeekNo]='6' and Status='4' orderby ) Start
+02 Feb 2026 19:32:47,797 [21840] INFO  Log - GetAllDataFromTable(Select Status from TimeSheetEntry where [EmpId]='3268' and [BussID]='15248' and [Year]='2026' and [WeekNo]='6' and Status='4' orderby ) end
+02 Feb 2026 19:32:47,798 [21840] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID='4' orderby ) Start
+02 Feb 2026 19:32:47,815 [21840] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID='4' orderby ) end
+02 Feb 2026 19:32:47,816 [21840] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+02 Feb 2026 19:32:47,856 [21840] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+02 Feb 2026 19:32:47,856 [21840] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+02 Feb 2026 19:32:47,886 [21840] INFO  Log - GetMenuDataFromLoginTable(4246) end
+02 Feb 2026 19:32:47,887 [21840] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+02 Feb 2026 19:32:47,919 [21840] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+02 Feb 2026 19:32:47,922 [21840] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+02 Feb 2026 19:32:48,004 [21840] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+02 Feb 2026 19:32:48,007 [21840] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+02 Feb 2026 19:32:48,030 [21840] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+02 Feb 2026 19:32:48,031 [21840] INFO  Log - Fetching menu details - Started
+02 Feb 2026 19:32:48,049 [21840] INFO  Log - Fetching menu details - Finished
+02 Feb 2026 19:36:14,362 [25176] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) Start
+02 Feb 2026 19:36:14,390 [25176] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) end
+02 Feb 2026 19:36:14,391 [25176] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+02 Feb 2026 19:36:14,445 [25176] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+02 Feb 2026 19:36:14,445 [25176] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+02 Feb 2026 19:36:14,490 [25176] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+02 Feb 2026 19:36:14,491 [25176] INFO  Log - GetNameFromId(UserType,1) Start
+02 Feb 2026 19:36:14,594 [25176] INFO  Log - GetNameFromId(UserType,1) end
+02 Feb 2026 19:36:14,857 [25176] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 3268 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) Start
+02 Feb 2026 19:36:15,093 [25176] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 3268 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) end
+02 Feb 2026 19:36:15,100 [25176] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (2078, 2079, 2082, 2095, 2096, 2097, 6126, 7125, 7126, 7127, 7128, 7129, 7130, 7131, 7132, 7134, 7135, 7136, 7137, 7143, 8161, 12224, 14229, 14230, 14232, 14234, 14235, 14236, 15235, 15236, 15237, 15238, 15239, 15240, 15241, 15243, 15246, 15248) orderby Yr desc) Start
+02 Feb 2026 19:36:15,698 [25176] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (2078, 2079, 2082, 2095, 2096, 2097, 6126, 7125, 7126, 7127, 7128, 7129, 7130, 7131, 7132, 7134, 7135, 7136, 7137, 7143, 8161, 12224, 14229, 14230, 14232, 14234, 14235, 14236, 15235, 15236, 15237, 15238, 15239, 15240, 15241, 15243, 15246, 15248) orderby Yr desc) end
+02 Feb 2026 19:36:15,701 [25176] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=3268) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) Start
+02 Feb 2026 19:36:15,998 [25176] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=3268) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) end
+02 Feb 2026 19:36:19,980 [25176] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+02 Feb 2026 19:36:20,073 [25176] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+02 Feb 2026 19:36:20,073 [25176] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+02 Feb 2026 19:36:20,134 [25176] INFO  Log - GetMenuDataFromLoginTable(4246) end
+02 Feb 2026 19:36:20,134 [25176] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+02 Feb 2026 19:36:20,174 [25176] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+02 Feb 2026 19:36:20,175 [25176] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+02 Feb 2026 19:36:20,196 [25176] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+02 Feb 2026 19:36:20,197 [25176] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+02 Feb 2026 19:36:20,265 [25176] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+02 Feb 2026 19:36:20,266 [25176] INFO  Log - Fetching menu details - Started
+02 Feb 2026 19:36:20,364 [25176] INFO  Log - Fetching menu details - Finished
+02 Feb 2026 19:36:26,166 [25176] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg where MotherOrgID = '4' orderby ) Start
+02 Feb 2026 19:36:26,211 [25176] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg where MotherOrgID = '4' orderby ) end
+02 Feb 2026 19:36:26,213 [25176] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner where EMail_primary = 'shamsuthakor@gmail.com' ) Start
+02 Feb 2026 19:36:26,260 [25176] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner where EMail_primary = 'shamsuthakor@gmail.com' ) end
+02 Feb 2026 19:36:26,261 [25176] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory where EmpId='3268' and IsActive=1 ) Start
+02 Feb 2026 19:36:26,271 [25176] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory where EmpId='3268' and IsActive=1 ) End
+02 Feb 2026 19:36:26,272 [25176] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory where EmpId='3268' and Is_Cancelled=1 ) Start
+02 Feb 2026 19:36:26,291 [25176] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory where EmpId='3268' and Is_Cancelled=1 ) End
+02 Feb 2026 19:36:26,293 [25176] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 orderby ) Start
+02 Feb 2026 19:36:26,317 [25176] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 orderby ) end
+02 Feb 2026 19:36:26,319 [25176] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 and Is_Requested_Plan=1 orderby ) Start
+02 Feb 2026 19:36:26,335 [25176] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 and Is_Requested_Plan=1 orderby ) end
+02 Feb 2026 19:36:26,336 [25176] INFO  Log - IfExistsInTable(Select IsActive from AddEmployee where EmployeeID='3268' and IsActive='NO        ' and UserType='1' ) Start
+02 Feb 2026 19:36:26,379 [25176] INFO  Log - IfExistsInTable(Select IsActive, from AddEmployee where EmployeeID='3268' and IsActive='NO        ' and UserType='1' ) end
+02 Feb 2026 19:36:26,402 [25176] INFO  Log - GetAllDataFromTable(Select BusinessID from AssginBussiness where EmployeeID=3268 and BusinessID is not null and BusinessID<>'' orderby BusinessID) Start
+02 Feb 2026 19:36:26,451 [25176] INFO  Log - GetAllDataFromTable(Select BusinessID from AssginBussiness where EmployeeID=3268 and BusinessID is not null and BusinessID<>'' orderby BusinessID) end
+02 Feb 2026 19:36:26,453 [25176] INFO  Log - GetBussForSelectBUSS(3268) Start
+02 Feb 2026 19:36:26,594 [25176] INFO  Log - IfExistsInTable(Select * from MappingTable where userid=4246 and UserTypeId=2) Start
+02 Feb 2026 19:36:26,633 [25176] INFO  Log - IfExistsInTable(Select *, from MappingTable where userid=4246 and UserTypeId=2) end
+02 Feb 2026 19:36:26,635 [25176] INFO  Log - SP_UserType(2078, 2078) Start
+02 Feb 2026 19:36:26,738 [25176] INFO  Log - SP_UserType(2078, 2078) end
+02 Feb 2026 19:36:26,741 [25176] INFO  Log - SP_UserType(2078, 2078) Start
+02 Feb 2026 19:36:26,762 [25176] INFO  Log - SP_UserType(2078, 2078) end
+02 Feb 2026 19:36:26,763 [25176] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+02 Feb 2026 19:36:26,810 [25176] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+02 Feb 2026 19:36:26,811 [25176] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+02 Feb 2026 19:36:26,843 [25176] INFO  Log - GetMenuDataFromLoginTable(4246) end
+02 Feb 2026 19:36:26,844 [25176] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+02 Feb 2026 19:36:26,881 [25176] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+02 Feb 2026 19:36:26,882 [25176] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+02 Feb 2026 19:36:26,921 [25176] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+02 Feb 2026 19:36:26,922 [25176] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+02 Feb 2026 19:36:27,006 [25176] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+02 Feb 2026 19:36:27,007 [25176] INFO  Log - Fetching menu details - Started
+02 Feb 2026 19:36:27,050 [25176] INFO  Log - Fetching menu details - Finished
+02 Feb 2026 19:36:38,110 [14100] INFO  Log - Business_Owner_Pop_up_Employee_List(15248,3268) Start
+02 Feb 2026 19:36:38,254 [14100] INFO  Log - Business_Owner_Pop_up_Employee_List(15248,3268) end
+02 Feb 2026 19:36:41,658 [25176] INFO  Log - GetAllDataFromTable(Select *,convert(nvarchar(10),HireDate,120)HireDated from AddEmployee where EmployeeID=64737 orderby ) Start
+02 Feb 2026 19:36:41,684 [25176] INFO  Log - GetAllDataFromTable(Select *,convert(nvarchar(10),HireDate,120)HireDated from AddEmployee where EmployeeID=64737 orderby ) end
+02 Feb 2026 19:36:41,787 [25176] INFO  Log - GetAllDataFromTable(Select * from EmpAddress where EmpAddressId=65486 orderby ) Start
+02 Feb 2026 19:36:41,808 [25176] INFO  Log - GetAllDataFromTable(Select * from EmpAddress where EmpAddressId=65486 orderby ) end
+02 Feb 2026 19:36:41,810 [25176] INFO  Log - GetAllDataFromTable(Select * from RateDetails where RateId=48540 and EmployeeId=64737 orderby ) Start
+02 Feb 2026 19:36:41,852 [25176] INFO  Log - GetAllDataFromTable(Select * from RateDetails where RateId=48540 and EmployeeId=64737 orderby ) end
+02 Feb 2026 19:36:41,853 [25176] INFO  Log - GetAllDataFromTable(Select MainEmail from EmpAddress with (Nolock) where EmpAddressId in (select ADDRESSID from AddEmployee where EmployeeID = 64737) orderby ) Start
+02 Feb 2026 19:36:41,887 [25176] INFO  Log - GetAllDataFromTable(Select MainEmail from EmpAddress with (Nolock) where EmpAddressId in (select ADDRESSID from AddEmployee where EmployeeID = 64737) orderby ) end
+02 Feb 2026 19:36:41,897 [25176] INFO  Log - Sp_GetSubsBuss(Venkat1000.Madduri1000@gmail.com, 3268) Start
+02 Feb 2026 19:36:42,033 [25176] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '64737' orderby ) Start
+02 Feb 2026 19:36:42,079 [25176] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '64737' orderby ) end
+02 Feb 2026 19:36:42,130 [25176] INFO  Log - Sp_GetSubsBussProject(Venkat1000.Madduri1000@gmail.com, 3268) Start
+02 Feb 2026 19:36:42,202 [25176] INFO  Log - Sp_GetSubsBussRate(Venkat1000.Madduri1000@gmail.com, 3268) Start
+02 Feb 2026 19:36:42,443 [25176] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '15248' and EmployeeID = '64737' orderby ) Start
+02 Feb 2026 19:36:42,522 [25176] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '15248' and EmployeeID = '64737' orderby ) end
+02 Feb 2026 19:36:42,522 [25176] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '15248' and USERID = '59125' orderby ) Start
+02 Feb 2026 19:36:42,617 [25176] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '15248' and USERID = '59125' orderby ) end
+02 Feb 2026 19:36:42,618 [25176] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '64737' orderby ) Start
+02 Feb 2026 19:36:42,679 [25176] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '64737' orderby ) end
+02 Feb 2026 19:36:42,679 [25176] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='48540' ) Start
+02 Feb 2026 19:36:42,715 [25176] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='48540' ) End
+02 Feb 2026 19:36:42,716 [25176] INFO  Log - GetAllDataFromTable(Select Profile_Image from UserAcc where email='Venkat1000.Madduri1000@gmail.com' orderby ) Start
+02 Feb 2026 19:36:42,834 [25176] INFO  Log - GetAllDataFromTable(Select Profile_Image from UserAcc where email='Venkat1000.Madduri1000@gmail.com' orderby ) end
+02 Feb 2026 19:36:51,286 [25176] INFO  Log - GetAllDataFromTable(Select [dbo].[FN_DESC]('UserType',UserTypeId) from MappingTable where userid='4246' and BusinessID='15248' orderby ) Start
+02 Feb 2026 19:36:51,333 [25176] INFO  Log - GetAllDataFromTable(Select [dbo].[FN_DESC]('UserType',UserTypeId) from MappingTable where userid='4246' and BusinessID='15248' orderby ) end
+02 Feb 2026 19:36:51,334 [25176] INFO  Log - IfExistsInTable(Select * from MappingTable where userid=4246 and UserTypeId=2) Start
+02 Feb 2026 19:36:51,385 [25176] INFO  Log - IfExistsInTable(Select *, from MappingTable where userid=4246 and UserTypeId=2) end
+02 Feb 2026 19:36:51,386 [25176] INFO  Log - SP_UserType(15248, 15248) Start
+02 Feb 2026 19:36:51,403 [25176] INFO  Log - SP_UserType(15248, 15248) end
+02 Feb 2026 19:36:51,404 [25176] INFO  Log - SP_UserType(15248, 15248) Start
+02 Feb 2026 19:36:51,421 [25176] INFO  Log - SP_UserType(15248, 15248) end
+02 Feb 2026 19:37:35,138 [25176] INFO  Log - ExecuteQuery(update AddEmployee SET UserType=4 WHERE EmployeeID=64737) Start
+02 Feb 2026 19:37:35,173 [25176] INFO  Log - ExecuteQuery(update AddEmployee SET UserType=4 WHERE EmployeeID=64737) End
+02 Feb 2026 19:38:04,476 [14100] INFO  Log - ExecuteQuery(update AddEmployee SET UserType=4 WHERE EmployeeID=64737) Start
+02 Feb 2026 19:38:04,526 [14100] INFO  Log - ExecuteQuery(update AddEmployee SET UserType=4 WHERE EmployeeID=64737) End
+02 Feb 2026 19:38:15,843 [14100] INFO  Log - IfExistsInTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID='3268' and IsActive='NO        ' and UserType='1' ) Start
+02 Feb 2026 19:38:15,851 [14100] INFO  Log - IfExistsInTable(Select IsActive, from AddEmployee with (Nolock) where EmployeeID='3268' and IsActive='NO        ' and UserType='1' ) end
+02 Feb 2026 19:38:15,860 [14100] INFO  Log - GetAllDataFromTable(Select ad.EmployeeID,ua.UserId from AddEmployee ad with (nolock) join EmpAddress ea with (nolock) on ad.ADDRESSID=ea.EmpAddressId join UserAcc ua with (nolock) on ua.Email=ea.MainEmail where ua.Email='independent_bo_pk_two@gmail.com' orderby ) Start
+02 Feb 2026 19:38:15,878 [14100] INFO  Log - GetAllDataFromTable(Select ad.EmployeeID,ua.UserId from AddEmployee ad with (nolock) join EmpAddress ea with (nolock) on ad.ADDRESSID=ea.EmpAddressId join UserAcc ua with (nolock) on ua.Email=ea.MainEmail where ua.Email='independent_bo_pk_two@gmail.com' orderby ) end
+02 Feb 2026 19:38:15,878 [14100] INFO  Log - GetAllDataFromTable(Select * from MappingTable with (Nolock) where USERID in(4246) orderby BusinessID,UserTypeId) Start
+02 Feb 2026 19:38:15,885 [14100] INFO  Log - GetAllDataFromTable(Select * from MappingTable with (Nolock) where USERID in(4246) orderby BusinessID,UserTypeId) end
+02 Feb 2026 19:38:15,888 [14100] INFO  Log - GetBussList_BusinessOwnerForDashBord1(4,3268,1) Start
+02 Feb 2026 19:38:16,105 [14100] INFO  Log - GetBussList_BusinessOwnerForDashBord1(4,3268,1) end
+02 Feb 2026 19:38:16,106 [14100] INFO  Log - GetAllDataFromTable(Select * from AddEmployee with (nolock) where EmployeeID=3268 orderby ) Start
+02 Feb 2026 19:38:16,115 [14100] INFO  Log - GetAllDataFromTable(Select * from AddEmployee with (nolock) where EmployeeID=3268 orderby ) end
+02 Feb 2026 19:38:16,166 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=2078 and assb.UserTypeId not in (1) orderby ) Start
+02 Feb 2026 19:38:16,182 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=2078 and assb.UserTypeId not in (1) orderby ) end
+02 Feb 2026 19:38:16,183 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=2079 and assb.UserTypeId not in (1) orderby ) Start
+02 Feb 2026 19:38:16,198 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=2079 and assb.UserTypeId not in (1) orderby ) end
+02 Feb 2026 19:38:16,199 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=2082 and assb.UserTypeId not in (1) orderby ) Start
+02 Feb 2026 19:38:16,213 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=2082 and assb.UserTypeId not in (1) orderby ) end
+02 Feb 2026 19:38:16,214 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=2095 and assb.UserTypeId not in (1) orderby ) Start
+02 Feb 2026 19:38:16,267 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=2095 and assb.UserTypeId not in (1) orderby ) end
+02 Feb 2026 19:38:16,268 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=2096 and assb.UserTypeId not in (1) orderby ) Start
+02 Feb 2026 19:38:16,298 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=2096 and assb.UserTypeId not in (1) orderby ) end
+02 Feb 2026 19:38:16,299 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=2097 and assb.UserTypeId not in (1) orderby ) Start
+02 Feb 2026 19:38:16,312 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=2097 and assb.UserTypeId not in (1) orderby ) end
+02 Feb 2026 19:38:16,313 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=6126 and assb.UserTypeId not in (1) orderby ) Start
+02 Feb 2026 19:38:16,326 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=6126 and assb.UserTypeId not in (1) orderby ) end
+02 Feb 2026 19:38:16,327 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7125 and assb.UserTypeId not in (1) orderby ) Start
+02 Feb 2026 19:38:16,373 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7125 and assb.UserTypeId not in (1) orderby ) end
+02 Feb 2026 19:38:16,374 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7126 and assb.UserTypeId not in (1) orderby ) Start
+02 Feb 2026 19:38:16,414 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7126 and assb.UserTypeId not in (1) orderby ) end
+02 Feb 2026 19:38:16,415 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7127 and assb.UserTypeId not in (1) orderby ) Start
+02 Feb 2026 19:38:16,450 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7127 and assb.UserTypeId not in (1) orderby ) end
+02 Feb 2026 19:38:16,451 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7128 and assb.UserTypeId not in (1) orderby ) Start
+02 Feb 2026 19:38:16,509 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7128 and assb.UserTypeId not in (1) orderby ) end
+02 Feb 2026 19:38:16,510 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7129 and assb.UserTypeId not in (1) orderby ) Start
+02 Feb 2026 19:38:16,538 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7129 and assb.UserTypeId not in (1) orderby ) end
+02 Feb 2026 19:38:16,539 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7130 and assb.UserTypeId not in (1) orderby ) Start
+02 Feb 2026 19:38:16,553 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7130 and assb.UserTypeId not in (1) orderby ) end
+02 Feb 2026 19:38:16,554 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7131 and assb.UserTypeId not in (1) orderby ) Start
+02 Feb 2026 19:38:16,569 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7131 and assb.UserTypeId not in (1) orderby ) end
+02 Feb 2026 19:38:16,569 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7132 and assb.UserTypeId not in (1) orderby ) Start
+02 Feb 2026 19:38:16,584 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7132 and assb.UserTypeId not in (1) orderby ) end
+02 Feb 2026 19:38:16,585 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7134 and assb.UserTypeId not in (1) orderby ) Start
+02 Feb 2026 19:38:16,639 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7134 and assb.UserTypeId not in (1) orderby ) end
+02 Feb 2026 19:38:16,640 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7135 and assb.UserTypeId not in (1) orderby ) Start
+02 Feb 2026 19:38:16,678 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7135 and assb.UserTypeId not in (1) orderby ) end
+02 Feb 2026 19:38:16,679 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7136 and assb.UserTypeId not in (1) orderby ) Start
+02 Feb 2026 19:38:16,744 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7136 and assb.UserTypeId not in (1) orderby ) end
+02 Feb 2026 19:38:16,745 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7137 and assb.UserTypeId not in (1) orderby ) Start
+02 Feb 2026 19:38:16,772 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7137 and assb.UserTypeId not in (1) orderby ) end
+02 Feb 2026 19:38:16,773 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7143 and assb.UserTypeId not in (1) orderby ) Start
+02 Feb 2026 19:38:16,789 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7143 and assb.UserTypeId not in (1) orderby ) end
+02 Feb 2026 19:38:16,790 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=8161 and assb.UserTypeId not in (1) orderby ) Start
+02 Feb 2026 19:38:16,811 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=8161 and assb.UserTypeId not in (1) orderby ) end
+02 Feb 2026 19:38:16,812 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=12224 and assb.UserTypeId not in (1) orderby ) Start
+02 Feb 2026 19:38:16,832 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=12224 and assb.UserTypeId not in (1) orderby ) end
+02 Feb 2026 19:38:16,833 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=14229 and assb.UserTypeId not in (1) orderby ) Start
+02 Feb 2026 19:38:16,893 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=14229 and assb.UserTypeId not in (1) orderby ) end
+02 Feb 2026 19:38:16,894 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=14230 and assb.UserTypeId not in (1) orderby ) Start
+02 Feb 2026 19:38:16,940 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=14230 and assb.UserTypeId not in (1) orderby ) end
+02 Feb 2026 19:38:16,942 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=14232 and assb.UserTypeId not in (1) orderby ) Start
+02 Feb 2026 19:38:17,006 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=14232 and assb.UserTypeId not in (1) orderby ) end
+02 Feb 2026 19:38:17,007 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=14234 and assb.UserTypeId not in (1) orderby ) Start
+02 Feb 2026 19:38:17,022 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=14234 and assb.UserTypeId not in (1) orderby ) end
+02 Feb 2026 19:38:17,023 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=14235 and assb.UserTypeId not in (1) orderby ) Start
+02 Feb 2026 19:38:17,038 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=14235 and assb.UserTypeId not in (1) orderby ) end
+02 Feb 2026 19:38:17,039 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=14236 and assb.UserTypeId not in (1) orderby ) Start
+02 Feb 2026 19:38:17,056 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=14236 and assb.UserTypeId not in (1) orderby ) end
+02 Feb 2026 19:38:17,057 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15235 and assb.UserTypeId not in (1) orderby ) Start
+02 Feb 2026 19:38:17,078 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15235 and assb.UserTypeId not in (1) orderby ) end
+02 Feb 2026 19:38:17,079 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15236 and assb.UserTypeId not in (1) orderby ) Start
+02 Feb 2026 19:38:17,116 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15236 and assb.UserTypeId not in (1) orderby ) end
+02 Feb 2026 19:38:17,117 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15237 and assb.UserTypeId not in (1) orderby ) Start
+02 Feb 2026 19:38:17,163 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15237 and assb.UserTypeId not in (1) orderby ) end
+02 Feb 2026 19:38:17,164 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15238 and assb.UserTypeId not in (1) orderby ) Start
+02 Feb 2026 19:38:17,242 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15238 and assb.UserTypeId not in (1) orderby ) end
+02 Feb 2026 19:38:17,244 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15239 and assb.UserTypeId not in (1) orderby ) Start
+02 Feb 2026 19:38:17,262 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15239 and assb.UserTypeId not in (1) orderby ) end
+02 Feb 2026 19:38:17,263 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15240 and assb.UserTypeId not in (1) orderby ) Start
+02 Feb 2026 19:38:17,285 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15240 and assb.UserTypeId not in (1) orderby ) end
+02 Feb 2026 19:38:17,286 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15241 and assb.UserTypeId not in (1) orderby ) Start
+02 Feb 2026 19:38:17,305 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15241 and assb.UserTypeId not in (1) orderby ) end
+02 Feb 2026 19:38:17,306 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15243 and assb.UserTypeId not in (1) orderby ) Start
+02 Feb 2026 19:38:17,321 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15243 and assb.UserTypeId not in (1) orderby ) end
+02 Feb 2026 19:38:17,323 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15246 and assb.UserTypeId not in (1) orderby ) Start
+02 Feb 2026 19:38:17,340 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15246 and assb.UserTypeId not in (1) orderby ) end
+02 Feb 2026 19:38:17,341 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15248 and assb.UserTypeId not in (1) orderby ) Start
+02 Feb 2026 19:38:17,382 [14100] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15248 and assb.UserTypeId not in (1) orderby ) end
+02 Feb 2026 19:38:17,383 [14100] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) Start
+02 Feb 2026 19:38:17,414 [14100] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) end
+02 Feb 2026 19:38:17,415 [14100] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) Start
+02 Feb 2026 19:38:17,466 [14100] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) end
+02 Feb 2026 19:38:17,467 [14100] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='3268' ) Start
+02 Feb 2026 19:38:17,508 [14100] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='3268' ) End
+02 Feb 2026 19:38:17,508 [14100] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='3268' and Is_Cancelled=1 ) Start
+02 Feb 2026 19:38:17,514 [14100] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='3268' and Is_Cancelled=1 ) End
+02 Feb 2026 19:38:17,515 [14100] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+02 Feb 2026 19:38:17,560 [14100] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+02 Feb 2026 19:38:17,561 [14100] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+02 Feb 2026 19:38:17,589 [14100] INFO  Log - GetMenuDataFromLoginTable(4246) end
+02 Feb 2026 19:38:17,590 [14100] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+02 Feb 2026 19:38:17,624 [14100] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+02 Feb 2026 19:38:17,624 [14100] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+02 Feb 2026 19:38:17,662 [14100] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+02 Feb 2026 19:38:17,663 [14100] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+02 Feb 2026 19:38:17,716 [14100] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+02 Feb 2026 19:38:17,717 [14100] INFO  Log - Fetching menu details - Started
+02 Feb 2026 19:38:17,777 [14100] INFO  Log - Fetching menu details - Finished
+02 Feb 2026 19:38:26,133 [14100] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg where MotherOrgID = '4' orderby ) Start
+02 Feb 2026 19:38:26,173 [14100] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg where MotherOrgID = '4' orderby ) end
+02 Feb 2026 19:38:26,174 [14100] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner where EMail_primary = 'shamsuthakor@gmail.com' ) Start
+02 Feb 2026 19:38:26,186 [14100] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner where EMail_primary = 'shamsuthakor@gmail.com' ) end
+02 Feb 2026 19:38:26,187 [14100] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory where EmpId='3268' and IsActive=1 ) Start
+02 Feb 2026 19:38:26,203 [14100] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory where EmpId='3268' and IsActive=1 ) End
+02 Feb 2026 19:38:26,204 [14100] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory where EmpId='3268' and Is_Cancelled=1 ) Start
+02 Feb 2026 19:38:26,214 [14100] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory where EmpId='3268' and Is_Cancelled=1 ) End
+02 Feb 2026 19:38:26,214 [14100] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 orderby ) Start
+02 Feb 2026 19:38:26,227 [14100] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 orderby ) end
+02 Feb 2026 19:38:26,228 [14100] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 and Is_Requested_Plan=1 orderby ) Start
+02 Feb 2026 19:38:26,249 [14100] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 and Is_Requested_Plan=1 orderby ) end
+02 Feb 2026 19:38:26,250 [14100] INFO  Log - IfExistsInTable(Select IsActive from AddEmployee where EmployeeID='3268' and IsActive='NO        ' and UserType='1' ) Start
+02 Feb 2026 19:38:26,338 [14100] INFO  Log - IfExistsInTable(Select IsActive, from AddEmployee where EmployeeID='3268' and IsActive='NO        ' and UserType='1' ) end
+02 Feb 2026 19:38:26,340 [14100] INFO  Log - GetAllDataFromTable(Select BusinessID from AssginBussiness where EmployeeID=3268 and BusinessID is not null and BusinessID<>'' orderby BusinessID) Start
+02 Feb 2026 19:38:26,379 [14100] INFO  Log - GetAllDataFromTable(Select BusinessID from AssginBussiness where EmployeeID=3268 and BusinessID is not null and BusinessID<>'' orderby BusinessID) end
+02 Feb 2026 19:38:26,379 [14100] INFO  Log - GetBussForSelectBUSS(3268) Start
+02 Feb 2026 19:38:26,488 [14100] INFO  Log - IfExistsInTable(Select * from MappingTable where userid=4246 and UserTypeId=2) Start
+02 Feb 2026 19:38:26,496 [14100] INFO  Log - IfExistsInTable(Select *, from MappingTable where userid=4246 and UserTypeId=2) end
+02 Feb 2026 19:38:26,499 [14100] INFO  Log - SP_UserType(2078, 2078) Start
+02 Feb 2026 19:38:26,552 [14100] INFO  Log - SP_UserType(2078, 2078) end
+02 Feb 2026 19:38:26,554 [14100] INFO  Log - SP_UserType(2078, 2078) Start
+02 Feb 2026 19:38:26,590 [14100] INFO  Log - SP_UserType(2078, 2078) end
+02 Feb 2026 19:38:26,591 [14100] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+02 Feb 2026 19:38:26,660 [14100] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+02 Feb 2026 19:38:26,661 [14100] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+02 Feb 2026 19:38:26,707 [14100] INFO  Log - GetMenuDataFromLoginTable(4246) end
+02 Feb 2026 19:38:26,708 [14100] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+02 Feb 2026 19:38:26,738 [14100] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+02 Feb 2026 19:38:26,739 [14100] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+02 Feb 2026 19:38:26,752 [14100] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+02 Feb 2026 19:38:26,752 [14100] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+02 Feb 2026 19:38:26,826 [14100] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+02 Feb 2026 19:38:26,827 [14100] INFO  Log - Fetching menu details - Started
+02 Feb 2026 19:38:26,871 [14100] INFO  Log - Fetching menu details - Finished
+02 Feb 2026 19:38:33,957 [14100] INFO  Log - Business_Owner_Pop_up_Employee_List(15248,3268) Start
+02 Feb 2026 19:38:34,116 [14100] INFO  Log - Business_Owner_Pop_up_Employee_List(15248,3268) end
+02 Feb 2026 19:38:37,067 [14100] INFO  Log - GetAllDataFromTable(Select *,convert(nvarchar(10),HireDate,120)HireDated from AddEmployee where EmployeeID=64737 orderby ) Start
+02 Feb 2026 19:38:37,096 [14100] INFO  Log - GetAllDataFromTable(Select *,convert(nvarchar(10),HireDate,120)HireDated from AddEmployee where EmployeeID=64737 orderby ) end
+02 Feb 2026 19:38:37,196 [14100] INFO  Log - GetAllDataFromTable(Select * from EmpAddress where EmpAddressId=65486 orderby ) Start
+02 Feb 2026 19:38:37,212 [14100] INFO  Log - GetAllDataFromTable(Select * from EmpAddress where EmpAddressId=65486 orderby ) end
+02 Feb 2026 19:38:37,213 [14100] INFO  Log - GetAllDataFromTable(Select * from RateDetails where RateId=48540 and EmployeeId=64737 orderby ) Start
+02 Feb 2026 19:38:37,227 [14100] INFO  Log - GetAllDataFromTable(Select * from RateDetails where RateId=48540 and EmployeeId=64737 orderby ) end
+02 Feb 2026 19:38:37,228 [14100] INFO  Log - GetAllDataFromTable(Select MainEmail from EmpAddress with (Nolock) where EmpAddressId in (select ADDRESSID from AddEmployee where EmployeeID = 64737) orderby ) Start
+02 Feb 2026 19:38:37,252 [14100] INFO  Log - GetAllDataFromTable(Select MainEmail from EmpAddress with (Nolock) where EmpAddressId in (select ADDRESSID from AddEmployee where EmployeeID = 64737) orderby ) end
+02 Feb 2026 19:38:37,252 [14100] INFO  Log - Sp_GetSubsBuss(Venkat1000.Madduri1000@gmail.com, 3268) Start
+02 Feb 2026 19:38:37,356 [14100] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '64737' orderby ) Start
+02 Feb 2026 19:38:37,370 [14100] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '64737' orderby ) end
+02 Feb 2026 19:38:37,376 [14100] INFO  Log - Sp_GetSubsBussProject(Venkat1000.Madduri1000@gmail.com, 3268) Start
+02 Feb 2026 19:38:37,448 [14100] INFO  Log - Sp_GetSubsBussRate(Venkat1000.Madduri1000@gmail.com, 3268) Start
+02 Feb 2026 19:38:37,540 [14100] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '15248' and EmployeeID = '64737' orderby ) Start
+02 Feb 2026 19:38:37,556 [14100] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '15248' and EmployeeID = '64737' orderby ) end
+02 Feb 2026 19:38:37,557 [14100] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '15248' and USERID = '59125' orderby ) Start
+02 Feb 2026 19:38:37,576 [14100] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '15248' and USERID = '59125' orderby ) end
+02 Feb 2026 19:38:37,577 [14100] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '64737' orderby ) Start
+02 Feb 2026 19:38:37,591 [14100] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '64737' orderby ) end
+02 Feb 2026 19:38:37,591 [14100] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='48540' ) Start
+02 Feb 2026 19:38:37,605 [14100] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='48540' ) End
+02 Feb 2026 19:38:37,606 [14100] INFO  Log - GetAllDataFromTable(Select Profile_Image from UserAcc where email='Venkat1000.Madduri1000@gmail.com' orderby ) Start
+02 Feb 2026 19:38:37,626 [14100] INFO  Log - GetAllDataFromTable(Select Profile_Image from UserAcc where email='Venkat1000.Madduri1000@gmail.com' orderby ) end
+02 Feb 2026 19:58:18,486 [6596] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) Start
+02 Feb 2026 19:58:19,610 [6596] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) end
+02 Feb 2026 19:58:19,611 [6596] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+02 Feb 2026 19:58:20,296 [6596] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+02 Feb 2026 19:58:20,297 [6596] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+02 Feb 2026 19:58:20,749 [6596] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+02 Feb 2026 19:58:20,750 [6596] INFO  Log - GetNameFromId(UserType,1) Start
+02 Feb 2026 19:58:20,826 [6596] INFO  Log - GetNameFromId(UserType,1) end
+02 Feb 2026 19:58:20,862 [6596] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 3268 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) Start
+02 Feb 2026 19:58:21,709 [6596] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 3268 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) end
+02 Feb 2026 19:58:21,710 [6596] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (2078, 2079, 2082, 2095, 2096, 2097, 6126, 7125, 7126, 7127, 7128, 7129, 7130, 7131, 7132, 7134, 7135, 7136, 7137, 7143, 8161, 12224, 14229, 14230, 14232, 14234, 14235, 14236, 15235, 15236, 15237, 15238, 15239, 15240, 15241, 15243, 15246, 15248) orderby Yr desc) Start
+02 Feb 2026 19:58:23,536 [6596] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (2078, 2079, 2082, 2095, 2096, 2097, 6126, 7125, 7126, 7127, 7128, 7129, 7130, 7131, 7132, 7134, 7135, 7136, 7137, 7143, 8161, 12224, 14229, 14230, 14232, 14234, 14235, 14236, 15235, 15236, 15237, 15238, 15239, 15240, 15241, 15243, 15246, 15248) orderby Yr desc) end
+02 Feb 2026 19:58:23,536 [6596] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=3268) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) Start
+02 Feb 2026 19:58:23,909 [6596] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=3268) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) end
+02 Feb 2026 19:58:34,884 [6596] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+02 Feb 2026 19:58:35,154 [6596] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+02 Feb 2026 19:58:35,155 [6596] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+02 Feb 2026 19:58:35,322 [6596] INFO  Log - GetMenuDataFromLoginTable(4246) end
+02 Feb 2026 19:58:35,323 [6596] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+02 Feb 2026 19:58:35,616 [6596] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+02 Feb 2026 19:58:35,617 [6596] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+02 Feb 2026 19:58:35,657 [6596] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+02 Feb 2026 19:58:35,659 [6596] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+02 Feb 2026 19:58:36,217 [6596] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+02 Feb 2026 19:58:36,218 [6596] INFO  Log - Fetching menu details - Started
+02 Feb 2026 19:58:37,125 [6596] INFO  Log - Fetching menu details - Finished
+02 Feb 2026 19:58:48,639 [6596] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg where MotherOrgID = '4' orderby ) Start
+02 Feb 2026 19:58:48,871 [6596] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg where MotherOrgID = '4' orderby ) end
+02 Feb 2026 19:58:48,872 [6596] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner where EMail_primary = 'shamsuthakor@gmail.com' ) Start
+02 Feb 2026 19:58:49,130 [6596] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner where EMail_primary = 'shamsuthakor@gmail.com' ) end
+02 Feb 2026 19:58:49,131 [6596] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory where EmpId='3268' and IsActive=1 ) Start
+02 Feb 2026 19:58:49,483 [6596] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory where EmpId='3268' and IsActive=1 ) End
+02 Feb 2026 19:58:49,484 [6596] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory where EmpId='3268' and Is_Cancelled=1 ) Start
+02 Feb 2026 19:58:49,496 [6596] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory where EmpId='3268' and Is_Cancelled=1 ) End
+02 Feb 2026 19:58:49,497 [6596] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 orderby ) Start
+02 Feb 2026 19:58:49,507 [6596] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 orderby ) end
+02 Feb 2026 19:58:49,507 [6596] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 and Is_Requested_Plan=1 orderby ) Start
+02 Feb 2026 19:58:49,517 [6596] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 and Is_Requested_Plan=1 orderby ) end
+02 Feb 2026 19:58:49,518 [6596] INFO  Log - IfExistsInTable(Select IsActive from AddEmployee where EmployeeID='3268' and IsActive='NO        ' and UserType='1' ) Start
+02 Feb 2026 19:58:49,547 [6596] INFO  Log - IfExistsInTable(Select IsActive, from AddEmployee where EmployeeID='3268' and IsActive='NO        ' and UserType='1' ) end
+02 Feb 2026 19:58:49,550 [6596] INFO  Log - GetAllDataFromTable(Select BusinessID from AssginBussiness where EmployeeID=3268 and BusinessID is not null and BusinessID<>'' orderby BusinessID) Start
+02 Feb 2026 19:58:49,563 [6596] INFO  Log - GetAllDataFromTable(Select BusinessID from AssginBussiness where EmployeeID=3268 and BusinessID is not null and BusinessID<>'' orderby BusinessID) end
+02 Feb 2026 19:58:49,565 [6596] INFO  Log - GetBussForSelectBUSS(3268) Start
+02 Feb 2026 19:58:50,222 [6596] INFO  Log - IfExistsInTable(Select * from MappingTable where userid=4246 and UserTypeId=2) Start
+02 Feb 2026 19:58:50,553 [6596] INFO  Log - IfExistsInTable(Select *, from MappingTable where userid=4246 and UserTypeId=2) end
+02 Feb 2026 19:58:50,554 [6596] INFO  Log - SP_UserType(2078, 2078) Start
+02 Feb 2026 19:58:50,692 [6596] INFO  Log - SP_UserType(2078, 2078) end
+02 Feb 2026 19:58:50,693 [6596] INFO  Log - SP_UserType(2078, 2078) Start
+02 Feb 2026 19:58:50,733 [6596] INFO  Log - SP_UserType(2078, 2078) end
+02 Feb 2026 19:58:50,734 [6596] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+02 Feb 2026 19:58:51,048 [6596] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+02 Feb 2026 19:58:51,049 [6596] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+02 Feb 2026 19:58:51,148 [6596] INFO  Log - GetMenuDataFromLoginTable(4246) end
+02 Feb 2026 19:58:51,149 [6596] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+02 Feb 2026 19:58:51,294 [6596] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+02 Feb 2026 19:58:51,295 [6596] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+02 Feb 2026 19:58:51,329 [6596] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+02 Feb 2026 19:58:51,330 [6596] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+02 Feb 2026 19:58:51,433 [6596] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+02 Feb 2026 19:58:51,433 [6596] INFO  Log - Fetching menu details - Started
+02 Feb 2026 19:58:51,605 [6596] INFO  Log - Fetching menu details - Finished
+02 Feb 2026 19:58:59,779 [6596] INFO  Log - Business_Owner_Pop_up_Employee_List(15248,3268) Start
+02 Feb 2026 19:59:00,242 [6596] INFO  Log - Business_Owner_Pop_up_Employee_List(15248,3268) end
+02 Feb 2026 19:59:03,111 [6596] INFO  Log - GetAllDataFromTable(Select *,convert(nvarchar(10),HireDate,120)HireDated from AddEmployee where EmployeeID=64737 orderby ) Start
+02 Feb 2026 19:59:03,121 [6596] INFO  Log - GetAllDataFromTable(Select *,convert(nvarchar(10),HireDate,120)HireDated from AddEmployee where EmployeeID=64737 orderby ) end
+02 Feb 2026 19:59:03,197 [6596] INFO  Log - GetAllDataFromTable(Select * from EmpAddress where EmpAddressId=65486 orderby ) Start
+02 Feb 2026 19:59:03,265 [6596] INFO  Log - GetAllDataFromTable(Select * from EmpAddress where EmpAddressId=65486 orderby ) end
+02 Feb 2026 19:59:03,266 [6596] INFO  Log - GetAllDataFromTable(Select * from RateDetails where RateId=48540 and EmployeeId=64737 orderby ) Start
+02 Feb 2026 19:59:03,292 [6596] INFO  Log - GetAllDataFromTable(Select * from RateDetails where RateId=48540 and EmployeeId=64737 orderby ) end
+02 Feb 2026 19:59:03,293 [6596] INFO  Log - GetAllDataFromTable(Select MainEmail from EmpAddress with (Nolock) where EmpAddressId in (select ADDRESSID from AddEmployee where EmployeeID = 64737) orderby ) Start
+02 Feb 2026 19:59:03,334 [6596] INFO  Log - GetAllDataFromTable(Select MainEmail from EmpAddress with (Nolock) where EmpAddressId in (select ADDRESSID from AddEmployee where EmployeeID = 64737) orderby ) end
+02 Feb 2026 19:59:03,336 [6596] INFO  Log - Sp_GetSubsBuss(Venkat1000.Madduri1000@gmail.com, 3268) Start
+02 Feb 2026 19:59:03,917 [6596] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '64737' orderby ) Start
+02 Feb 2026 19:59:04,018 [6596] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '64737' orderby ) end
+02 Feb 2026 19:59:04,020 [6596] INFO  Log - Sp_GetSubsBussProject(Venkat1000.Madduri1000@gmail.com, 3268) Start
+02 Feb 2026 19:59:04,381 [6596] INFO  Log - Sp_GetSubsBussRate(Venkat1000.Madduri1000@gmail.com, 3268) Start
+02 Feb 2026 19:59:04,844 [6596] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '15248' and EmployeeID = '64737' orderby ) Start
+02 Feb 2026 19:59:05,053 [6596] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '15248' and EmployeeID = '64737' orderby ) end
+02 Feb 2026 19:59:05,054 [6596] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '15248' and USERID = '59125' orderby ) Start
+02 Feb 2026 19:59:05,098 [6596] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '15248' and USERID = '59125' orderby ) end
+02 Feb 2026 19:59:05,098 [6596] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '64737' orderby ) Start
+02 Feb 2026 19:59:05,120 [6596] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '64737' orderby ) end
+02 Feb 2026 19:59:05,121 [6596] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='48540' ) Start
+02 Feb 2026 19:59:05,146 [6596] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='48540' ) End
+02 Feb 2026 19:59:05,147 [6596] INFO  Log - GetAllDataFromTable(Select Profile_Image from UserAcc where email='Venkat1000.Madduri1000@gmail.com' orderby ) Start
+02 Feb 2026 19:59:05,237 [6596] INFO  Log - GetAllDataFromTable(Select Profile_Image from UserAcc where email='Venkat1000.Madduri1000@gmail.com' orderby ) end
+02 Feb 2026 19:59:12,665 [6596] INFO  Log - GetAllDataFromTable(Select [dbo].[FN_DESC]('UserType',UserTypeId) from MappingTable where userid='4246' and BusinessID='15248' orderby ) Start
+02 Feb 2026 19:59:13,144 [6596] INFO  Log - GetAllDataFromTable(Select [dbo].[FN_DESC]('UserType',UserTypeId) from MappingTable where userid='4246' and BusinessID='15248' orderby ) end
+02 Feb 2026 19:59:13,145 [6596] INFO  Log - IfExistsInTable(Select * from MappingTable where userid=4246 and UserTypeId=2) Start
+02 Feb 2026 19:59:13,175 [6596] INFO  Log - IfExistsInTable(Select *, from MappingTable where userid=4246 and UserTypeId=2) end
+02 Feb 2026 19:59:13,176 [6596] INFO  Log - SP_UserType(15248, 15248) Start
+02 Feb 2026 19:59:13,209 [6596] INFO  Log - SP_UserType(15248, 15248) end
+02 Feb 2026 19:59:13,210 [6596] INFO  Log - SP_UserType(15248, 15248) Start
+02 Feb 2026 19:59:13,266 [6596] INFO  Log - SP_UserType(15248, 15248) end
+02 Feb 2026 19:59:18,819 [6596] INFO  Log - ExecuteQuery(update AddEmployee SET UserType=2 WHERE EmployeeID=64737) Start
+02 Feb 2026 19:59:18,846 [6596] INFO  Log - ExecuteQuery(update AddEmployee SET UserType=2 WHERE EmployeeID=64737) End
+02 Feb 2026 19:59:18,913 [19044] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg where MotherOrgID = '4' orderby ) Start
+02 Feb 2026 19:59:18,945 [19044] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg where MotherOrgID = '4' orderby ) end
+02 Feb 2026 19:59:18,946 [19044] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner where EMail_primary = 'shamsuthakor@gmail.com' ) Start
+02 Feb 2026 19:59:19,184 [19044] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner where EMail_primary = 'shamsuthakor@gmail.com' ) end
+02 Feb 2026 19:59:19,184 [19044] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory where EmpId='3268' and IsActive=1 ) Start
+02 Feb 2026 19:59:19,464 [19044] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory where EmpId='3268' and IsActive=1 ) End
+02 Feb 2026 19:59:19,465 [19044] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory where EmpId='3268' and Is_Cancelled=1 ) Start
+02 Feb 2026 19:59:19,470 [19044] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory where EmpId='3268' and Is_Cancelled=1 ) End
+02 Feb 2026 19:59:19,471 [19044] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 orderby ) Start
+02 Feb 2026 19:59:19,477 [19044] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 orderby ) end
+02 Feb 2026 19:59:19,478 [19044] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 and Is_Requested_Plan=1 orderby ) Start
+02 Feb 2026 19:59:19,484 [19044] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 and Is_Requested_Plan=1 orderby ) end
+02 Feb 2026 19:59:19,485 [19044] INFO  Log - IfExistsInTable(Select IsActive from AddEmployee where EmployeeID='3268' and IsActive='NO        ' and UserType='1' ) Start
+02 Feb 2026 19:59:19,496 [19044] INFO  Log - IfExistsInTable(Select IsActive, from AddEmployee where EmployeeID='3268' and IsActive='NO        ' and UserType='1' ) end
+02 Feb 2026 19:59:19,497 [19044] INFO  Log - GetAllDataFromTable(Select BusinessID from AssginBussiness where EmployeeID=3268 and BusinessID is not null and BusinessID<>'' orderby BusinessID) Start
+02 Feb 2026 19:59:19,504 [19044] INFO  Log - GetAllDataFromTable(Select BusinessID from AssginBussiness where EmployeeID=3268 and BusinessID is not null and BusinessID<>'' orderby BusinessID) end
+02 Feb 2026 19:59:19,505 [19044] INFO  Log - GetBussForSelectBUSS(3268) Start
+02 Feb 2026 19:59:20,073 [19044] INFO  Log - IfExistsInTable(Select * from MappingTable where userid=4246 and UserTypeId=2) Start
+02 Feb 2026 19:59:20,118 [19044] INFO  Log - IfExistsInTable(Select *, from MappingTable where userid=4246 and UserTypeId=2) end
+02 Feb 2026 19:59:20,118 [19044] INFO  Log - SP_UserType(2078, 2078) Start
+02 Feb 2026 19:59:20,196 [19044] INFO  Log - SP_UserType(2078, 2078) end
+02 Feb 2026 19:59:20,198 [19044] INFO  Log - SP_UserType(2078, 2078) Start
+02 Feb 2026 19:59:20,238 [19044] INFO  Log - SP_UserType(2078, 2078) end
+02 Feb 2026 19:59:20,239 [19044] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+02 Feb 2026 19:59:20,532 [19044] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+02 Feb 2026 19:59:20,533 [19044] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+02 Feb 2026 19:59:20,591 [19044] INFO  Log - GetMenuDataFromLoginTable(4246) end
+02 Feb 2026 19:59:20,592 [19044] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+02 Feb 2026 19:59:20,661 [19044] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+02 Feb 2026 19:59:20,661 [19044] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+02 Feb 2026 19:59:20,725 [19044] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+02 Feb 2026 19:59:20,727 [19044] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+02 Feb 2026 19:59:20,785 [19044] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+02 Feb 2026 19:59:20,786 [19044] INFO  Log - Fetching menu details - Started
+02 Feb 2026 19:59:21,067 [19044] INFO  Log - Fetching menu details - Finished
+02 Feb 2026 20:05:01,496 [7272] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) Start
+02 Feb 2026 20:05:02,365 [7272] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) end
+02 Feb 2026 20:05:02,366 [7272] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+02 Feb 2026 20:05:02,531 [7272] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+02 Feb 2026 20:05:02,531 [7272] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+02 Feb 2026 20:05:02,619 [7272] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+02 Feb 2026 20:05:02,619 [7272] INFO  Log - GetNameFromId(UserType,1) Start
+02 Feb 2026 20:05:03,151 [7272] INFO  Log - GetNameFromId(UserType,1) end
+02 Feb 2026 20:05:03,414 [20200] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 3268 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) Start
+02 Feb 2026 20:05:07,549 [20200] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 3268 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) end
+02 Feb 2026 20:05:07,550 [20200] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (2078, 2079, 2082, 2095, 2096, 2097, 6126, 7125, 7126, 7127, 7128, 7129, 7130, 7131, 7132, 7134, 7135, 7136, 7137, 7143, 8161, 12224, 14229, 14230, 14232, 14234, 14235, 14236, 15235, 15236, 15237, 15238, 15239, 15240, 15241, 15243, 15246, 15248) orderby Yr desc) Start
+02 Feb 2026 20:05:07,713 [20200] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (2078, 2079, 2082, 2095, 2096, 2097, 6126, 7125, 7126, 7127, 7128, 7129, 7130, 7131, 7132, 7134, 7135, 7136, 7137, 7143, 8161, 12224, 14229, 14230, 14232, 14234, 14235, 14236, 15235, 15236, 15237, 15238, 15239, 15240, 15241, 15243, 15246, 15248) orderby Yr desc) end
+02 Feb 2026 20:05:07,714 [20200] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=3268) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) Start
+02 Feb 2026 20:05:07,820 [20200] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=3268) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) end
+02 Feb 2026 20:05:19,673 [20200] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+02 Feb 2026 20:05:22,796 [20200] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+02 Feb 2026 20:05:22,796 [20200] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+02 Feb 2026 20:05:22,942 [20200] INFO  Log - GetMenuDataFromLoginTable(4246) end
+02 Feb 2026 20:05:22,943 [20200] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+02 Feb 2026 20:05:23,107 [20200] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+02 Feb 2026 20:05:23,108 [20200] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+02 Feb 2026 20:05:23,140 [20200] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+02 Feb 2026 20:05:23,141 [20200] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+02 Feb 2026 20:05:23,371 [20200] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+02 Feb 2026 20:05:23,372 [20200] INFO  Log - Fetching menu details - Started
+02 Feb 2026 20:05:23,584 [20200] INFO  Log - Fetching menu details - Finished
+02 Feb 2026 20:05:35,013 [16344] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg where MotherOrgID = '4' orderby ) Start
+02 Feb 2026 20:05:35,296 [16344] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg where MotherOrgID = '4' orderby ) end
+02 Feb 2026 20:05:35,297 [16344] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner where EMail_primary = 'shamsuthakor@gmail.com' ) Start
+02 Feb 2026 20:05:35,557 [16344] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner where EMail_primary = 'shamsuthakor@gmail.com' ) end
+02 Feb 2026 20:05:35,558 [16344] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory where EmpId='3268' and IsActive=1 ) Start
+02 Feb 2026 20:05:35,901 [16344] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory where EmpId='3268' and IsActive=1 ) End
+02 Feb 2026 20:05:35,902 [16344] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory where EmpId='3268' and Is_Cancelled=1 ) Start
+02 Feb 2026 20:05:35,951 [16344] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory where EmpId='3268' and Is_Cancelled=1 ) End
+02 Feb 2026 20:05:35,952 [16344] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 orderby ) Start
+02 Feb 2026 20:05:35,983 [16344] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 orderby ) end
+02 Feb 2026 20:05:35,983 [16344] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 and Is_Requested_Plan=1 orderby ) Start
+02 Feb 2026 20:05:35,990 [16344] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 and Is_Requested_Plan=1 orderby ) end
+02 Feb 2026 20:05:35,991 [16344] INFO  Log - IfExistsInTable(Select IsActive from AddEmployee where EmployeeID='3268' and IsActive='NO        ' and UserType='1' ) Start
+02 Feb 2026 20:05:36,004 [16344] INFO  Log - IfExistsInTable(Select IsActive, from AddEmployee where EmployeeID='3268' and IsActive='NO        ' and UserType='1' ) end
+02 Feb 2026 20:05:36,007 [16344] INFO  Log - GetAllDataFromTable(Select BusinessID from AssginBussiness where EmployeeID=3268 and BusinessID is not null and BusinessID<>'' orderby BusinessID) Start
+02 Feb 2026 20:05:36,020 [16344] INFO  Log - GetAllDataFromTable(Select BusinessID from AssginBussiness where EmployeeID=3268 and BusinessID is not null and BusinessID<>'' orderby BusinessID) end
+02 Feb 2026 20:05:36,022 [16344] INFO  Log - GetBussForSelectBUSS(3268) Start
+02 Feb 2026 20:05:36,778 [16344] INFO  Log - IfExistsInTable(Select * from MappingTable where userid=4246 and UserTypeId=2) Start
+02 Feb 2026 20:05:36,806 [16344] INFO  Log - IfExistsInTable(Select *, from MappingTable where userid=4246 and UserTypeId=2) end
+02 Feb 2026 20:05:36,807 [16344] INFO  Log - SP_UserType(2078, 2078) Start
+02 Feb 2026 20:05:36,841 [16344] INFO  Log - SP_UserType(2078, 2078) end
+02 Feb 2026 20:05:36,843 [16344] INFO  Log - SP_UserType(2078, 2078) Start
+02 Feb 2026 20:05:36,884 [16344] INFO  Log - SP_UserType(2078, 2078) end
+02 Feb 2026 20:05:36,885 [16344] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+02 Feb 2026 20:05:37,173 [16344] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+02 Feb 2026 20:05:37,174 [16344] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+02 Feb 2026 20:05:37,472 [16344] INFO  Log - GetMenuDataFromLoginTable(4246) end
+02 Feb 2026 20:05:37,473 [16344] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+02 Feb 2026 20:05:37,487 [16344] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+02 Feb 2026 20:05:37,488 [16344] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+02 Feb 2026 20:05:37,495 [16344] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+02 Feb 2026 20:05:37,496 [16344] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+02 Feb 2026 20:05:37,544 [16344] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+02 Feb 2026 20:05:37,545 [16344] INFO  Log - Fetching menu details - Started
+02 Feb 2026 20:05:37,590 [16344] INFO  Log - Fetching menu details - Finished
+02 Feb 2026 20:05:44,255 [20200] INFO  Log - Business_Owner_Pop_up_Employee_List(15248,3268) Start
+02 Feb 2026 20:05:44,818 [20200] INFO  Log - Business_Owner_Pop_up_Employee_List(15248,3268) end
+02 Feb 2026 20:05:48,015 [16344] INFO  Log - GetAllDataFromTable(Select *,convert(nvarchar(10),HireDate,120)HireDated from AddEmployee where EmployeeID=64737 orderby ) Start
+02 Feb 2026 20:05:48,173 [16344] INFO  Log - GetAllDataFromTable(Select *,convert(nvarchar(10),HireDate,120)HireDated from AddEmployee where EmployeeID=64737 orderby ) end
+02 Feb 2026 20:05:48,242 [16344] INFO  Log - GetAllDataFromTable(Select * from EmpAddress where EmpAddressId=65486 orderby ) Start
+02 Feb 2026 20:05:48,300 [16344] INFO  Log - GetAllDataFromTable(Select * from EmpAddress where EmpAddressId=65486 orderby ) end
+02 Feb 2026 20:05:48,301 [16344] INFO  Log - GetAllDataFromTable(Select * from RateDetails where RateId=48540 and EmployeeId=64737 orderby ) Start
+02 Feb 2026 20:05:48,331 [16344] INFO  Log - GetAllDataFromTable(Select * from RateDetails where RateId=48540 and EmployeeId=64737 orderby ) end
+02 Feb 2026 20:05:48,332 [16344] INFO  Log - GetAllDataFromTable(Select MainEmail from EmpAddress with (Nolock) where EmpAddressId in (select ADDRESSID from AddEmployee where EmployeeID = 64737) orderby ) Start
+02 Feb 2026 20:05:48,360 [16344] INFO  Log - GetAllDataFromTable(Select MainEmail from EmpAddress with (Nolock) where EmpAddressId in (select ADDRESSID from AddEmployee where EmployeeID = 64737) orderby ) end
+02 Feb 2026 20:05:48,369 [16344] INFO  Log - Sp_GetSubsBuss(Venkat1000.Madduri1000@gmail.com, 3268) Start
+02 Feb 2026 20:05:48,659 [16344] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '64737' orderby ) Start
+02 Feb 2026 20:05:48,723 [16344] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '64737' orderby ) end
+02 Feb 2026 20:05:48,792 [16344] INFO  Log - Sp_GetSubsBussProject(Venkat1000.Madduri1000@gmail.com, 3268) Start
+02 Feb 2026 20:05:49,046 [16344] INFO  Log - Sp_GetSubsBussRate(Venkat1000.Madduri1000@gmail.com, 3268) Start
+02 Feb 2026 20:05:49,272 [16344] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '15248' and EmployeeID = '64737' orderby ) Start
+02 Feb 2026 20:05:49,490 [16344] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '15248' and EmployeeID = '64737' orderby ) end
+02 Feb 2026 20:05:49,491 [16344] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '15248' and USERID = '59125' orderby ) Start
+02 Feb 2026 20:05:49,538 [16344] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '15248' and USERID = '59125' orderby ) end
+02 Feb 2026 20:05:49,539 [16344] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '64737' orderby ) Start
+02 Feb 2026 20:05:49,652 [16344] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '64737' orderby ) end
+02 Feb 2026 20:05:49,653 [16344] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='48540' ) Start
+02 Feb 2026 20:05:49,680 [16344] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='48540' ) End
+02 Feb 2026 20:05:49,681 [16344] INFO  Log - GetAllDataFromTable(Select Profile_Image from UserAcc where email='Venkat1000.Madduri1000@gmail.com' orderby ) Start
+02 Feb 2026 20:05:49,764 [16344] INFO  Log - GetAllDataFromTable(Select Profile_Image from UserAcc where email='Venkat1000.Madduri1000@gmail.com' orderby ) end
+02 Feb 2026 20:06:00,646 [7272] INFO  Log - GetAllDataFromTable(Select [dbo].[FN_DESC]('UserType',UserTypeId) from MappingTable where userid='4246' and BusinessID='15248' orderby ) Start
+02 Feb 2026 20:06:00,704 [7272] INFO  Log - GetAllDataFromTable(Select [dbo].[FN_DESC]('UserType',UserTypeId) from MappingTable where userid='4246' and BusinessID='15248' orderby ) end
+02 Feb 2026 20:06:00,704 [7272] INFO  Log - IfExistsInTable(Select * from MappingTable where userid=4246 and UserTypeId=2) Start
+02 Feb 2026 20:06:00,744 [7272] INFO  Log - IfExistsInTable(Select *, from MappingTable where userid=4246 and UserTypeId=2) end
+02 Feb 2026 20:06:00,745 [7272] INFO  Log - SP_UserType(15248, 15248) Start
+02 Feb 2026 20:06:00,761 [7272] INFO  Log - SP_UserType(15248, 15248) end
+02 Feb 2026 20:06:00,763 [7272] INFO  Log - SP_UserType(15248, 15248) Start
+02 Feb 2026 20:06:00,768 [7272] INFO  Log - SP_UserType(15248, 15248) end
+02 Feb 2026 20:06:06,354 [25096] INFO  Log - ExecuteQuery(update AddEmployee SET UserType=4 WHERE EmployeeID=64737) Start
+02 Feb 2026 20:06:06,366 [25096] INFO  Log - ExecuteQuery(update AddEmployee SET UserType=4 WHERE EmployeeID=64737) End
+02 Feb 2026 20:06:29,451 [16344] INFO  Log - ExecuteQuery(update AddEmployee SET UserType=4 WHERE EmployeeID=64737) Start
+02 Feb 2026 20:06:29,464 [16344] INFO  Log - ExecuteQuery(update AddEmployee SET UserType=4 WHERE EmployeeID=64737) End
+02 Feb 2026 20:06:41,478 [16344] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg where MotherOrgID = '4' orderby ) Start
+02 Feb 2026 20:06:41,520 [16344] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg where MotherOrgID = '4' orderby ) end
+02 Feb 2026 20:06:41,521 [16344] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner where EMail_primary = 'shamsuthakor@gmail.com' ) Start
+02 Feb 2026 20:06:41,719 [16344] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner where EMail_primary = 'shamsuthakor@gmail.com' ) end
+02 Feb 2026 20:06:41,719 [16344] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory where EmpId='3268' and IsActive=1 ) Start
+02 Feb 2026 20:06:42,113 [16344] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory where EmpId='3268' and IsActive=1 ) End
+02 Feb 2026 20:06:42,114 [16344] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory where EmpId='3268' and Is_Cancelled=1 ) Start
+02 Feb 2026 20:06:42,123 [16344] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory where EmpId='3268' and Is_Cancelled=1 ) End
+02 Feb 2026 20:06:42,124 [16344] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 orderby ) Start
+02 Feb 2026 20:06:42,188 [16344] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 orderby ) end
+02 Feb 2026 20:06:42,188 [16344] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 and Is_Requested_Plan=1 orderby ) Start
+02 Feb 2026 20:06:42,227 [16344] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 and Is_Requested_Plan=1 orderby ) end
+02 Feb 2026 20:06:42,228 [16344] INFO  Log - IfExistsInTable(Select IsActive from AddEmployee where EmployeeID='3268' and IsActive='NO        ' and UserType='1' ) Start
+02 Feb 2026 20:06:42,288 [16344] INFO  Log - IfExistsInTable(Select IsActive, from AddEmployee where EmployeeID='3268' and IsActive='NO        ' and UserType='1' ) end
+02 Feb 2026 20:06:42,289 [16344] INFO  Log - GetAllDataFromTable(Select BusinessID from AssginBussiness where EmployeeID=3268 and BusinessID is not null and BusinessID<>'' orderby BusinessID) Start
+02 Feb 2026 20:06:42,304 [16344] INFO  Log - GetAllDataFromTable(Select BusinessID from AssginBussiness where EmployeeID=3268 and BusinessID is not null and BusinessID<>'' orderby BusinessID) end
+02 Feb 2026 20:06:42,304 [16344] INFO  Log - GetBussForSelectBUSS(3268) Start
+02 Feb 2026 20:06:42,677 [16344] INFO  Log - IfExistsInTable(Select * from MappingTable where userid=4246 and UserTypeId=2) Start
+02 Feb 2026 20:06:42,726 [16344] INFO  Log - IfExistsInTable(Select *, from MappingTable where userid=4246 and UserTypeId=2) end
+02 Feb 2026 20:06:42,727 [16344] INFO  Log - SP_UserType(2078, 2078) Start
+02 Feb 2026 20:06:42,773 [16344] INFO  Log - SP_UserType(2078, 2078) end
+02 Feb 2026 20:06:42,774 [16344] INFO  Log - SP_UserType(2078, 2078) Start
+02 Feb 2026 20:06:42,779 [16344] INFO  Log - SP_UserType(2078, 2078) end
+02 Feb 2026 20:06:42,780 [16344] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+02 Feb 2026 20:06:43,061 [16344] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+02 Feb 2026 20:06:43,061 [16344] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+02 Feb 2026 20:06:43,145 [16344] INFO  Log - GetMenuDataFromLoginTable(4246) end
+02 Feb 2026 20:06:43,145 [16344] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+02 Feb 2026 20:06:43,189 [16344] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+02 Feb 2026 20:06:43,190 [16344] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+02 Feb 2026 20:06:43,228 [16344] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+02 Feb 2026 20:06:43,229 [16344] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+02 Feb 2026 20:06:43,319 [16344] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+02 Feb 2026 20:06:43,320 [16344] INFO  Log - Fetching menu details - Started
+02 Feb 2026 20:06:43,482 [16344] INFO  Log - Fetching menu details - Finished
+02 Feb 2026 20:06:51,285 [16344] INFO  Log - Business_Owner_Pop_up_Employee_List(15248,3268) Start
+02 Feb 2026 20:06:51,560 [16344] INFO  Log - Business_Owner_Pop_up_Employee_List(15248,3268) end
+02 Feb 2026 20:06:54,991 [25096] INFO  Log - GetAllDataFromTable(Select *,convert(nvarchar(10),HireDate,120)HireDated from AddEmployee where EmployeeID=64737 orderby ) Start
+02 Feb 2026 20:06:55,004 [25096] INFO  Log - GetAllDataFromTable(Select *,convert(nvarchar(10),HireDate,120)HireDated from AddEmployee where EmployeeID=64737 orderby ) end
+02 Feb 2026 20:06:55,102 [25096] INFO  Log - GetAllDataFromTable(Select * from EmpAddress where EmpAddressId=65486 orderby ) Start
+02 Feb 2026 20:06:55,174 [25096] INFO  Log - GetAllDataFromTable(Select * from EmpAddress where EmpAddressId=65486 orderby ) end
+02 Feb 2026 20:06:55,175 [25096] INFO  Log - GetAllDataFromTable(Select * from RateDetails where RateId=48540 and EmployeeId=64737 orderby ) Start
+02 Feb 2026 20:06:55,216 [25096] INFO  Log - GetAllDataFromTable(Select * from RateDetails where RateId=48540 and EmployeeId=64737 orderby ) end
+02 Feb 2026 20:06:55,217 [25096] INFO  Log - GetAllDataFromTable(Select MainEmail from EmpAddress with (Nolock) where EmpAddressId in (select ADDRESSID from AddEmployee where EmployeeID = 64737) orderby ) Start
+02 Feb 2026 20:06:55,271 [25096] INFO  Log - GetAllDataFromTable(Select MainEmail from EmpAddress with (Nolock) where EmpAddressId in (select ADDRESSID from AddEmployee where EmployeeID = 64737) orderby ) end
+02 Feb 2026 20:06:55,272 [25096] INFO  Log - Sp_GetSubsBuss(Venkat1000.Madduri1000@gmail.com, 3268) Start
+02 Feb 2026 20:06:55,640 [25096] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '64737' orderby ) Start
+02 Feb 2026 20:06:55,674 [25096] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '64737' orderby ) end
+02 Feb 2026 20:06:55,675 [25096] INFO  Log - Sp_GetSubsBussProject(Venkat1000.Madduri1000@gmail.com, 3268) Start
+02 Feb 2026 20:06:55,982 [25096] INFO  Log - Sp_GetSubsBussRate(Venkat1000.Madduri1000@gmail.com, 3268) Start
+02 Feb 2026 20:06:56,108 [25096] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '15248' and EmployeeID = '64737' orderby ) Start
+02 Feb 2026 20:06:56,117 [25096] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '15248' and EmployeeID = '64737' orderby ) end
+02 Feb 2026 20:06:56,117 [25096] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '15248' and USERID = '59125' orderby ) Start
+02 Feb 2026 20:06:56,184 [25096] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '15248' and USERID = '59125' orderby ) end
+02 Feb 2026 20:06:56,185 [25096] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '64737' orderby ) Start
+02 Feb 2026 20:06:56,243 [25096] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '64737' orderby ) end
+02 Feb 2026 20:06:56,244 [25096] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='48540' ) Start
+02 Feb 2026 20:06:56,278 [25096] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='48540' ) End
+02 Feb 2026 20:06:56,279 [25096] INFO  Log - GetAllDataFromTable(Select Profile_Image from UserAcc where email='Venkat1000.Madduri1000@gmail.com' orderby ) Start
+02 Feb 2026 20:06:56,313 [25096] INFO  Log - GetAllDataFromTable(Select Profile_Image from UserAcc where email='Venkat1000.Madduri1000@gmail.com' orderby ) end
+02 Feb 2026 21:55:32,700 [16204] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) Start
+02 Feb 2026 21:55:35,342 [16204] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) end
+02 Feb 2026 21:55:35,343 [16204] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+02 Feb 2026 21:55:35,507 [16204] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+02 Feb 2026 21:55:35,508 [16204] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+02 Feb 2026 21:55:35,813 [16204] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+02 Feb 2026 21:55:35,814 [16204] INFO  Log - GetNameFromId(UserType,1) Start
+02 Feb 2026 21:55:35,927 [16204] INFO  Log - GetNameFromId(UserType,1) end
+02 Feb 2026 21:55:37,709 [25292] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 3268 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) Start
+02 Feb 2026 21:55:38,236 [25292] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 3268 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) end
+02 Feb 2026 21:55:38,237 [25292] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (2078, 2079, 2082, 2095, 2096, 2097, 6126, 7125, 7126, 7127, 7128, 7129, 7130, 7131, 7132, 7134, 7135, 7136, 7137, 7143, 8161, 12224, 14229, 14230, 14232, 14234, 14235, 14236, 15235, 15236, 15237, 15238, 15239, 15240, 15241, 15243, 15246, 15248) orderby Yr desc) Start
+02 Feb 2026 21:55:39,184 [25292] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (2078, 2079, 2082, 2095, 2096, 2097, 6126, 7125, 7126, 7127, 7128, 7129, 7130, 7131, 7132, 7134, 7135, 7136, 7137, 7143, 8161, 12224, 14229, 14230, 14232, 14234, 14235, 14236, 15235, 15236, 15237, 15238, 15239, 15240, 15241, 15243, 15246, 15248) orderby Yr desc) end
+02 Feb 2026 21:55:39,185 [25292] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=3268) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) Start
+02 Feb 2026 21:55:39,509 [25292] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=3268) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) end
+02 Feb 2026 21:55:48,172 [25292] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+02 Feb 2026 21:55:51,720 [25292] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+02 Feb 2026 21:55:51,721 [25292] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+02 Feb 2026 21:55:51,780 [25292] INFO  Log - GetMenuDataFromLoginTable(4246) end
+02 Feb 2026 21:55:51,781 [25292] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+02 Feb 2026 21:55:52,748 [25292] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+02 Feb 2026 21:55:52,748 [25292] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+02 Feb 2026 21:55:53,269 [25292] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+02 Feb 2026 21:55:53,270 [25292] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+02 Feb 2026 21:55:53,581 [25292] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+02 Feb 2026 21:55:53,582 [25292] INFO  Log - Fetching menu details - Started
+02 Feb 2026 21:55:53,644 [25292] INFO  Log - Fetching menu details - Finished
+02 Feb 2026 21:56:08,117 [16204] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg where MotherOrgID = '4' orderby ) Start
+02 Feb 2026 21:56:08,124 [16204] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg where MotherOrgID = '4' orderby ) end
+02 Feb 2026 21:56:08,125 [16204] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner where EMail_primary = 'shamsuthakor@gmail.com' ) Start
+02 Feb 2026 21:56:08,167 [16204] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner where EMail_primary = 'shamsuthakor@gmail.com' ) end
+02 Feb 2026 21:56:08,168 [16204] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory where EmpId='3268' and IsActive=1 ) Start
+02 Feb 2026 21:56:08,216 [16204] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory where EmpId='3268' and IsActive=1 ) End
+02 Feb 2026 21:56:08,216 [16204] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory where EmpId='3268' and Is_Cancelled=1 ) Start
+02 Feb 2026 21:56:08,252 [16204] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory where EmpId='3268' and Is_Cancelled=1 ) End
+02 Feb 2026 21:56:08,253 [16204] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 orderby ) Start
+02 Feb 2026 21:56:08,285 [16204] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 orderby ) end
+02 Feb 2026 21:56:08,286 [16204] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 and Is_Requested_Plan=1 orderby ) Start
+02 Feb 2026 21:56:08,325 [16204] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 and Is_Requested_Plan=1 orderby ) end
+02 Feb 2026 21:56:08,326 [16204] INFO  Log - IfExistsInTable(Select IsActive from AddEmployee where EmployeeID='3268' and IsActive='NO        ' and UserType='1' ) Start
+02 Feb 2026 21:56:08,392 [16204] INFO  Log - IfExistsInTable(Select IsActive, from AddEmployee where EmployeeID='3268' and IsActive='NO        ' and UserType='1' ) end
+02 Feb 2026 21:56:08,394 [16204] INFO  Log - GetAllDataFromTable(Select BusinessID from AssginBussiness where EmployeeID=3268 and BusinessID is not null and BusinessID<>'' orderby BusinessID) Start
+02 Feb 2026 21:56:08,404 [16204] INFO  Log - GetAllDataFromTable(Select BusinessID from AssginBussiness where EmployeeID=3268 and BusinessID is not null and BusinessID<>'' orderby BusinessID) end
+02 Feb 2026 21:56:08,407 [16204] INFO  Log - GetBussForSelectBUSS(3268) Start
+02 Feb 2026 21:56:08,929 [16204] INFO  Log - IfExistsInTable(Select * from MappingTable where userid=4246 and UserTypeId=2) Start
+02 Feb 2026 21:56:08,970 [16204] INFO  Log - IfExistsInTable(Select *, from MappingTable where userid=4246 and UserTypeId=2) end
+02 Feb 2026 21:56:08,970 [16204] INFO  Log - SP_UserType(2078, 2078) Start
+02 Feb 2026 21:56:08,993 [16204] INFO  Log - SP_UserType(2078, 2078) end
+02 Feb 2026 21:56:08,994 [16204] INFO  Log - SP_UserType(2078, 2078) Start
+02 Feb 2026 21:56:09,004 [16204] INFO  Log - SP_UserType(2078, 2078) end
+02 Feb 2026 21:56:09,005 [16204] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+02 Feb 2026 21:56:09,093 [16204] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+02 Feb 2026 21:56:09,094 [16204] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+02 Feb 2026 21:56:09,264 [16204] INFO  Log - GetMenuDataFromLoginTable(4246) end
+02 Feb 2026 21:56:09,265 [16204] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+02 Feb 2026 21:56:09,282 [16204] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+02 Feb 2026 21:56:09,283 [16204] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+02 Feb 2026 21:56:09,294 [16204] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+02 Feb 2026 21:56:09,295 [16204] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+02 Feb 2026 21:56:09,363 [16204] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+02 Feb 2026 21:56:09,364 [16204] INFO  Log - Fetching menu details - Started
+02 Feb 2026 21:56:09,419 [16204] INFO  Log - Fetching menu details - Finished
+02 Feb 2026 21:56:24,404 [25292] INFO  Log - Business_Owner_Pop_up_Employee_List(15248,3268) Start
+02 Feb 2026 21:56:24,848 [25292] INFO  Log - Business_Owner_Pop_up_Employee_List(15248,3268) end
+02 Feb 2026 21:56:27,959 [25292] INFO  Log - GetAllDataFromTable(Select *,convert(nvarchar(10),HireDate,120)HireDated from AddEmployee where EmployeeID=64737 orderby ) Start
+02 Feb 2026 21:56:27,995 [25292] INFO  Log - GetAllDataFromTable(Select *,convert(nvarchar(10),HireDate,120)HireDated from AddEmployee where EmployeeID=64737 orderby ) end
+02 Feb 2026 21:56:28,121 [25292] INFO  Log - GetAllDataFromTable(Select * from EmpAddress where EmpAddressId=65486 orderby ) Start
+02 Feb 2026 21:56:28,153 [25292] INFO  Log - GetAllDataFromTable(Select * from EmpAddress where EmpAddressId=65486 orderby ) end
+02 Feb 2026 21:56:28,154 [25292] INFO  Log - GetAllDataFromTable(Select * from RateDetails where RateId=48540 and EmployeeId=64737 orderby ) Start
+02 Feb 2026 21:56:28,195 [25292] INFO  Log - GetAllDataFromTable(Select * from RateDetails where RateId=48540 and EmployeeId=64737 orderby ) end
+02 Feb 2026 21:56:28,196 [25292] INFO  Log - GetAllDataFromTable(Select MainEmail from EmpAddress with (Nolock) where EmpAddressId in (select ADDRESSID from AddEmployee where EmployeeID = 64737) orderby ) Start
+02 Feb 2026 21:56:28,247 [25292] INFO  Log - GetAllDataFromTable(Select MainEmail from EmpAddress with (Nolock) where EmpAddressId in (select ADDRESSID from AddEmployee where EmployeeID = 64737) orderby ) end
+02 Feb 2026 21:56:28,285 [25292] INFO  Log - Sp_GetSubsBuss(Venkat1000.Madduri1000@gmail.com, 3268) Start
+02 Feb 2026 21:56:28,468 [25292] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '64737' orderby ) Start
+02 Feb 2026 21:56:28,523 [25292] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '64737' orderby ) end
+02 Feb 2026 21:56:28,557 [25292] INFO  Log - Sp_GetSubsBussProject(Venkat1000.Madduri1000@gmail.com, 3268) Start
+02 Feb 2026 21:56:28,845 [25292] INFO  Log - Sp_GetSubsBussRate(Venkat1000.Madduri1000@gmail.com, 3268) Start
+02 Feb 2026 21:56:29,268 [25292] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '15248' and EmployeeID = '64737' orderby ) Start
+02 Feb 2026 21:56:29,475 [25292] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '15248' and EmployeeID = '64737' orderby ) end
+02 Feb 2026 21:56:29,476 [25292] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '15248' and USERID = '59125' orderby ) Start
+02 Feb 2026 21:56:29,510 [25292] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '15248' and USERID = '59125' orderby ) end
+02 Feb 2026 21:56:29,511 [25292] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '64737' orderby ) Start
+02 Feb 2026 21:56:29,547 [25292] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '64737' orderby ) end
+02 Feb 2026 21:56:29,548 [25292] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='48540' ) Start
+02 Feb 2026 21:56:29,599 [25292] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='48540' ) End
+02 Feb 2026 21:56:29,600 [25292] INFO  Log - GetAllDataFromTable(Select Profile_Image from UserAcc where email='Venkat1000.Madduri1000@gmail.com' orderby ) Start
+02 Feb 2026 21:56:29,660 [25292] INFO  Log - GetAllDataFromTable(Select Profile_Image from UserAcc where email='Venkat1000.Madduri1000@gmail.com' orderby ) end
+02 Feb 2026 21:56:38,500 [25292] INFO  Log - GetAllDataFromTable(Select [dbo].[FN_DESC]('UserType',UserTypeId) from MappingTable where userid='4246' and BusinessID='15248' orderby ) Start
+02 Feb 2026 21:56:38,552 [25292] INFO  Log - GetAllDataFromTable(Select [dbo].[FN_DESC]('UserType',UserTypeId) from MappingTable where userid='4246' and BusinessID='15248' orderby ) end
+02 Feb 2026 21:56:38,552 [25292] INFO  Log - IfExistsInTable(Select * from MappingTable where userid=4246 and UserTypeId=2) Start
+02 Feb 2026 21:56:38,586 [25292] INFO  Log - IfExistsInTable(Select *, from MappingTable where userid=4246 and UserTypeId=2) end
+02 Feb 2026 21:56:38,586 [25292] INFO  Log - SP_UserType(15248, 15248) Start
+02 Feb 2026 21:56:38,616 [25292] INFO  Log - SP_UserType(15248, 15248) end
+02 Feb 2026 21:56:38,617 [25292] INFO  Log - SP_UserType(15248, 15248) Start
+02 Feb 2026 21:56:38,688 [25292] INFO  Log - SP_UserType(15248, 15248) end
+02 Feb 2026 21:56:44,145 [25292] INFO  Log - ExecuteQuery(update AddEmployee SET UserType=2 WHERE EmployeeID=64737) Start
+02 Feb 2026 21:56:44,158 [25292] INFO  Log - ExecuteQuery(update AddEmployee SET UserType=2 WHERE EmployeeID=64737) End
+02 Feb 2026 21:56:44,159 [25292] INFO  Log - Sp_GetSubsBuss(, 3268) Start
+02 Feb 2026 21:56:44,228 [25292] ERROR Log - Sp_GetSubsBussProcedure or function 'Sp_GetSubsBuss' expects parameter '@email', which was not supplied.
+02 Feb 2026 21:58:58,267 [16204] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) Start
+02 Feb 2026 21:58:58,994 [16204] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) end
+02 Feb 2026 21:58:58,995 [16204] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+02 Feb 2026 21:58:59,030 [16204] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+02 Feb 2026 21:58:59,031 [16204] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+02 Feb 2026 21:58:59,068 [16204] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+02 Feb 2026 21:58:59,069 [16204] INFO  Log - GetNameFromId(UserType,1) Start
+02 Feb 2026 21:58:59,146 [16204] INFO  Log - GetNameFromId(UserType,1) end
+02 Feb 2026 21:58:59,183 [7576] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 3268 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) Start
+02 Feb 2026 21:58:59,536 [7576] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 3268 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) end
+02 Feb 2026 21:58:59,537 [7576] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (2078, 2079, 2082, 2095, 2096, 2097, 6126, 7125, 7126, 7127, 7128, 7129, 7130, 7131, 7132, 7134, 7135, 7136, 7137, 7143, 8161, 12224, 14229, 14230, 14232, 14234, 14235, 14236, 15235, 15236, 15237, 15238, 15239, 15240, 15241, 15243, 15246, 15248) orderby Yr desc) Start
+02 Feb 2026 21:58:59,871 [7576] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (2078, 2079, 2082, 2095, 2096, 2097, 6126, 7125, 7126, 7127, 7128, 7129, 7130, 7131, 7132, 7134, 7135, 7136, 7137, 7143, 8161, 12224, 14229, 14230, 14232, 14234, 14235, 14236, 15235, 15236, 15237, 15238, 15239, 15240, 15241, 15243, 15246, 15248) orderby Yr desc) end
+02 Feb 2026 21:58:59,871 [7576] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=3268) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) Start
+02 Feb 2026 21:59:00,162 [7576] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=3268) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) end
+02 Feb 2026 21:59:03,035 [7576] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+02 Feb 2026 21:59:03,269 [7576] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+02 Feb 2026 21:59:03,270 [7576] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+02 Feb 2026 21:59:03,334 [7576] INFO  Log - GetMenuDataFromLoginTable(4246) end
+02 Feb 2026 21:59:03,335 [7576] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+02 Feb 2026 21:59:03,369 [7576] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+02 Feb 2026 21:59:03,370 [7576] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+02 Feb 2026 21:59:03,601 [7576] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+02 Feb 2026 21:59:03,602 [7576] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+02 Feb 2026 21:59:03,663 [7576] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+02 Feb 2026 21:59:03,664 [7576] INFO  Log - Fetching menu details - Started
+02 Feb 2026 21:59:03,715 [7576] INFO  Log - Fetching menu details - Finished
+02 Feb 2026 21:59:19,918 [16204] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg where MotherOrgID = '4' orderby ) Start
+02 Feb 2026 21:59:19,980 [16204] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg where MotherOrgID = '4' orderby ) end
+02 Feb 2026 21:59:19,981 [16204] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner where EMail_primary = 'shamsuthakor@gmail.com' ) Start
+02 Feb 2026 21:59:20,052 [16204] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner where EMail_primary = 'shamsuthakor@gmail.com' ) end
+02 Feb 2026 21:59:20,053 [16204] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory where EmpId='3268' and IsActive=1 ) Start
+02 Feb 2026 21:59:20,337 [16204] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory where EmpId='3268' and IsActive=1 ) End
+02 Feb 2026 21:59:20,337 [16204] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory where EmpId='3268' and Is_Cancelled=1 ) Start
+02 Feb 2026 21:59:20,394 [16204] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory where EmpId='3268' and Is_Cancelled=1 ) End
+02 Feb 2026 21:59:20,395 [16204] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 orderby ) Start
+02 Feb 2026 21:59:20,454 [16204] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 orderby ) end
+02 Feb 2026 21:59:20,455 [16204] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 and Is_Requested_Plan=1 orderby ) Start
+02 Feb 2026 21:59:20,552 [16204] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 and Is_Requested_Plan=1 orderby ) end
+02 Feb 2026 21:59:20,553 [16204] INFO  Log - IfExistsInTable(Select IsActive from AddEmployee where EmployeeID='3268' and IsActive='NO        ' and UserType='1' ) Start
+02 Feb 2026 21:59:20,585 [16204] INFO  Log - IfExistsInTable(Select IsActive, from AddEmployee where EmployeeID='3268' and IsActive='NO        ' and UserType='1' ) end
+02 Feb 2026 21:59:20,588 [16204] INFO  Log - GetAllDataFromTable(Select BusinessID from AssginBussiness where EmployeeID=3268 and BusinessID is not null and BusinessID<>'' orderby BusinessID) Start
+02 Feb 2026 21:59:20,608 [16204] INFO  Log - GetAllDataFromTable(Select BusinessID from AssginBussiness where EmployeeID=3268 and BusinessID is not null and BusinessID<>'' orderby BusinessID) end
+02 Feb 2026 21:59:20,612 [16204] INFO  Log - GetBussForSelectBUSS(3268) Start
+02 Feb 2026 21:59:20,734 [16204] INFO  Log - IfExistsInTable(Select * from MappingTable where userid=4246 and UserTypeId=2) Start
+02 Feb 2026 21:59:20,768 [16204] INFO  Log - IfExistsInTable(Select *, from MappingTable where userid=4246 and UserTypeId=2) end
+02 Feb 2026 21:59:20,768 [16204] INFO  Log - SP_UserType(2078, 2078) Start
+02 Feb 2026 21:59:20,803 [16204] INFO  Log - SP_UserType(2078, 2078) end
+02 Feb 2026 21:59:20,805 [16204] INFO  Log - SP_UserType(2078, 2078) Start
+02 Feb 2026 21:59:20,823 [16204] INFO  Log - SP_UserType(2078, 2078) end
+02 Feb 2026 21:59:20,825 [16204] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+02 Feb 2026 21:59:20,871 [16204] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+02 Feb 2026 21:59:20,871 [16204] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+02 Feb 2026 21:59:20,928 [16204] INFO  Log - GetMenuDataFromLoginTable(4246) end
+02 Feb 2026 21:59:20,928 [16204] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+02 Feb 2026 21:59:20,962 [16204] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+02 Feb 2026 21:59:20,963 [16204] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+02 Feb 2026 21:59:21,000 [16204] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+02 Feb 2026 21:59:21,001 [16204] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+02 Feb 2026 21:59:21,054 [16204] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+02 Feb 2026 21:59:21,055 [16204] INFO  Log - Fetching menu details - Started
+02 Feb 2026 21:59:21,099 [16204] INFO  Log - Fetching menu details - Finished
+02 Feb 2026 21:59:28,619 [16204] INFO  Log - Business_Owner_Pop_up_Employee_List(15248,3268) Start
+02 Feb 2026 21:59:28,724 [16204] INFO  Log - Business_Owner_Pop_up_Employee_List(15248,3268) end
+02 Feb 2026 21:59:32,003 [16204] INFO  Log - GetAllDataFromTable(Select *,convert(nvarchar(10),HireDate,120)HireDated from AddEmployee where EmployeeID=64737 orderby ) Start
+02 Feb 2026 21:59:32,068 [16204] INFO  Log - GetAllDataFromTable(Select *,convert(nvarchar(10),HireDate,120)HireDated from AddEmployee where EmployeeID=64737 orderby ) end
+02 Feb 2026 21:59:32,152 [16204] INFO  Log - GetAllDataFromTable(Select * from EmpAddress where EmpAddressId=65486 orderby ) Start
+02 Feb 2026 21:59:32,173 [16204] INFO  Log - GetAllDataFromTable(Select * from EmpAddress where EmpAddressId=65486 orderby ) end
+02 Feb 2026 21:59:32,174 [16204] INFO  Log - GetAllDataFromTable(Select * from RateDetails where RateId=48540 and EmployeeId=64737 orderby ) Start
+02 Feb 2026 21:59:32,189 [16204] INFO  Log - GetAllDataFromTable(Select * from RateDetails where RateId=48540 and EmployeeId=64737 orderby ) end
+02 Feb 2026 21:59:32,190 [16204] INFO  Log - GetAllDataFromTable(Select MainEmail from EmpAddress with (Nolock) where EmpAddressId in (select ADDRESSID from AddEmployee where EmployeeID = 64737) orderby ) Start
+02 Feb 2026 21:59:32,241 [16204] INFO  Log - GetAllDataFromTable(Select MainEmail from EmpAddress with (Nolock) where EmpAddressId in (select ADDRESSID from AddEmployee where EmployeeID = 64737) orderby ) end
+02 Feb 2026 21:59:32,243 [16204] INFO  Log - Sp_GetSubsBuss(Venkat1000.Madduri1000@gmail.com, 3268) Start
+02 Feb 2026 21:59:32,421 [16204] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '64737' orderby ) Start
+02 Feb 2026 21:59:32,455 [16204] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '64737' orderby ) end
+02 Feb 2026 21:59:32,457 [16204] INFO  Log - Sp_GetSubsBussProject(Venkat1000.Madduri1000@gmail.com, 3268) Start
+02 Feb 2026 21:59:32,560 [16204] INFO  Log - Sp_GetSubsBussRate(Venkat1000.Madduri1000@gmail.com, 3268) Start
+02 Feb 2026 21:59:32,735 [16204] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '15248' and EmployeeID = '64737' orderby ) Start
+02 Feb 2026 21:59:32,748 [16204] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '15248' and EmployeeID = '64737' orderby ) end
+02 Feb 2026 21:59:32,749 [16204] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '15248' and USERID = '59125' orderby ) Start
+02 Feb 2026 21:59:32,759 [16204] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '15248' and USERID = '59125' orderby ) end
+02 Feb 2026 21:59:32,760 [16204] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '64737' orderby ) Start
+02 Feb 2026 21:59:32,815 [16204] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '64737' orderby ) end
+02 Feb 2026 21:59:32,815 [16204] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='48540' ) Start
+02 Feb 2026 21:59:32,852 [16204] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='48540' ) End
+02 Feb 2026 21:59:32,853 [16204] INFO  Log - GetAllDataFromTable(Select Profile_Image from UserAcc where email='Venkat1000.Madduri1000@gmail.com' orderby ) Start
+02 Feb 2026 21:59:32,898 [16204] INFO  Log - GetAllDataFromTable(Select Profile_Image from UserAcc where email='Venkat1000.Madduri1000@gmail.com' orderby ) end
+02 Feb 2026 21:59:42,471 [16204] INFO  Log - GetAllDataFromTable(Select [dbo].[FN_DESC]('UserType',UserTypeId) from MappingTable where userid='4246' and BusinessID='15248' orderby ) Start
+02 Feb 2026 21:59:42,558 [16204] INFO  Log - GetAllDataFromTable(Select [dbo].[FN_DESC]('UserType',UserTypeId) from MappingTable where userid='4246' and BusinessID='15248' orderby ) end
+02 Feb 2026 21:59:42,559 [16204] INFO  Log - IfExistsInTable(Select * from MappingTable where userid=4246 and UserTypeId=2) Start
+02 Feb 2026 21:59:42,599 [16204] INFO  Log - IfExistsInTable(Select *, from MappingTable where userid=4246 and UserTypeId=2) end
+02 Feb 2026 21:59:42,600 [16204] INFO  Log - SP_UserType(15248, 15248) Start
+02 Feb 2026 21:59:42,635 [16204] INFO  Log - SP_UserType(15248, 15248) end
+02 Feb 2026 21:59:42,636 [16204] INFO  Log - SP_UserType(15248, 15248) Start
+02 Feb 2026 21:59:42,666 [16204] INFO  Log - SP_UserType(15248, 15248) end
+02 Feb 2026 21:59:48,557 [7576] INFO  Log - ExecuteQuery(update AddEmployee SET UserType=4 WHERE EmployeeID=64737) Start
+02 Feb 2026 21:59:48,569 [7576] INFO  Log - ExecuteQuery(update AddEmployee SET UserType=4 WHERE EmployeeID=64737) End
+02 Feb 2026 21:59:48,571 [7576] INFO  Log - Sp_GetSubsBuss(, 3268) Start
+02 Feb 2026 21:59:48,654 [7576] ERROR Log - Sp_GetSubsBussProcedure or function 'Sp_GetSubsBuss' expects parameter '@email', which was not supplied.
+02 Feb 2026 22:29:54,178 [20156] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) Start
+02 Feb 2026 22:29:54,825 [20156] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) end
+02 Feb 2026 22:29:54,826 [20156] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+02 Feb 2026 22:29:56,085 [20156] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+02 Feb 2026 22:29:56,086 [20156] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+02 Feb 2026 22:29:56,271 [20156] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+02 Feb 2026 22:29:56,272 [20156] INFO  Log - GetNameFromId(UserType,1) Start
+02 Feb 2026 22:29:59,762 [20156] INFO  Log - GetNameFromId(UserType,1) end
+02 Feb 2026 22:29:59,888 [20156] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 3268 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) Start
+02 Feb 2026 22:30:01,993 [20156] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 3268 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) end
+02 Feb 2026 22:30:01,994 [20156] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (2078, 2079, 2082, 2095, 2096, 2097, 6126, 7125, 7126, 7127, 7128, 7129, 7130, 7131, 7132, 7134, 7135, 7136, 7137, 7143, 8161, 12224, 14229, 14230, 14232, 14234, 14235, 14236, 15235, 15236, 15237, 15238, 15239, 15240, 15241, 15243, 15246, 15248) orderby Yr desc) Start
+02 Feb 2026 22:30:02,244 [20156] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (2078, 2079, 2082, 2095, 2096, 2097, 6126, 7125, 7126, 7127, 7128, 7129, 7130, 7131, 7132, 7134, 7135, 7136, 7137, 7143, 8161, 12224, 14229, 14230, 14232, 14234, 14235, 14236, 15235, 15236, 15237, 15238, 15239, 15240, 15241, 15243, 15246, 15248) orderby Yr desc) end
+02 Feb 2026 22:30:02,245 [20156] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=3268) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) Start
+02 Feb 2026 22:30:02,512 [20156] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=3268) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) end
+02 Feb 2026 22:30:11,846 [20156] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+02 Feb 2026 22:30:13,305 [20156] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+02 Feb 2026 22:30:13,306 [20156] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+02 Feb 2026 22:30:13,502 [20156] INFO  Log - GetMenuDataFromLoginTable(4246) end
+02 Feb 2026 22:30:13,502 [20156] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+02 Feb 2026 22:30:13,855 [20156] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+02 Feb 2026 22:30:13,856 [20156] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+02 Feb 2026 22:30:13,894 [20156] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+02 Feb 2026 22:30:13,895 [20156] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+02 Feb 2026 22:30:14,886 [20156] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+02 Feb 2026 22:30:14,887 [20156] INFO  Log - Fetching menu details - Started
+02 Feb 2026 22:30:15,392 [20156] INFO  Log - Fetching menu details - Finished
+02 Feb 2026 22:30:27,652 [20156] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg where MotherOrgID = '4' orderby ) Start
+02 Feb 2026 22:30:27,786 [20156] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg where MotherOrgID = '4' orderby ) end
+02 Feb 2026 22:30:27,786 [20156] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner where EMail_primary = 'shamsuthakor@gmail.com' ) Start
+02 Feb 2026 22:30:28,024 [20156] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner where EMail_primary = 'shamsuthakor@gmail.com' ) end
+02 Feb 2026 22:30:28,024 [20156] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory where EmpId='3268' and IsActive=1 ) Start
+02 Feb 2026 22:30:28,345 [20156] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory where EmpId='3268' and IsActive=1 ) End
+02 Feb 2026 22:30:28,346 [20156] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory where EmpId='3268' and Is_Cancelled=1 ) Start
+02 Feb 2026 22:30:28,356 [20156] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory where EmpId='3268' and Is_Cancelled=1 ) End
+02 Feb 2026 22:30:28,357 [20156] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 orderby ) Start
+02 Feb 2026 22:30:28,411 [20156] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 orderby ) end
+02 Feb 2026 22:30:28,412 [20156] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 and Is_Requested_Plan=1 orderby ) Start
+02 Feb 2026 22:30:28,463 [20156] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 and Is_Requested_Plan=1 orderby ) end
+02 Feb 2026 22:30:28,463 [20156] INFO  Log - IfExistsInTable(Select IsActive from AddEmployee where EmployeeID='3268' and IsActive='NO        ' and UserType='1' ) Start
+02 Feb 2026 22:30:28,505 [20156] INFO  Log - IfExistsInTable(Select IsActive, from AddEmployee where EmployeeID='3268' and IsActive='NO        ' and UserType='1' ) end
+02 Feb 2026 22:30:28,508 [20156] INFO  Log - GetAllDataFromTable(Select BusinessID from AssginBussiness where EmployeeID=3268 and BusinessID is not null and BusinessID<>'' orderby BusinessID) Start
+02 Feb 2026 22:30:28,549 [20156] INFO  Log - GetAllDataFromTable(Select BusinessID from AssginBussiness where EmployeeID=3268 and BusinessID is not null and BusinessID<>'' orderby BusinessID) end
+02 Feb 2026 22:30:28,551 [20156] INFO  Log - GetBussForSelectBUSS(3268) Start
+02 Feb 2026 22:30:29,761 [20156] INFO  Log - IfExistsInTable(Select * from MappingTable where userid=4246 and UserTypeId=2) Start
+02 Feb 2026 22:30:29,798 [20156] INFO  Log - IfExistsInTable(Select *, from MappingTable where userid=4246 and UserTypeId=2) end
+02 Feb 2026 22:30:29,799 [20156] INFO  Log - SP_UserType(2078, 2078) Start
+02 Feb 2026 22:30:29,859 [20156] INFO  Log - SP_UserType(2078, 2078) end
+02 Feb 2026 22:30:29,861 [20156] INFO  Log - SP_UserType(2078, 2078) Start
+02 Feb 2026 22:30:29,895 [20156] INFO  Log - SP_UserType(2078, 2078) end
+02 Feb 2026 22:30:29,896 [20156] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+02 Feb 2026 22:30:30,104 [20156] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+02 Feb 2026 22:30:30,105 [20156] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+02 Feb 2026 22:30:30,185 [20156] INFO  Log - GetMenuDataFromLoginTable(4246) end
+02 Feb 2026 22:30:30,186 [20156] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+02 Feb 2026 22:30:30,197 [20156] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+02 Feb 2026 22:30:30,198 [20156] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+02 Feb 2026 22:30:30,209 [20156] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+02 Feb 2026 22:30:30,210 [20156] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+02 Feb 2026 22:30:30,299 [20156] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+02 Feb 2026 22:30:30,300 [20156] INFO  Log - Fetching menu details - Started
+02 Feb 2026 22:30:30,349 [20156] INFO  Log - Fetching menu details - Finished
+02 Feb 2026 22:30:37,639 [16204] INFO  Log - Business_Owner_Pop_up_Employee_List(15248,3268) Start
+02 Feb 2026 22:30:37,769 [16204] INFO  Log - Business_Owner_Pop_up_Employee_List(15248,3268) end
+02 Feb 2026 22:30:40,474 [16204] INFO  Log - GetAllDataFromTable(Select *,convert(nvarchar(10),HireDate,120)HireDated from AddEmployee where EmployeeID=64737 orderby ) Start
+02 Feb 2026 22:30:40,497 [16204] INFO  Log - GetAllDataFromTable(Select *,convert(nvarchar(10),HireDate,120)HireDated from AddEmployee where EmployeeID=64737 orderby ) end
+02 Feb 2026 22:30:40,586 [16204] INFO  Log - GetAllDataFromTable(Select * from EmpAddress where EmpAddressId=65486 orderby ) Start
+02 Feb 2026 22:30:40,636 [16204] INFO  Log - GetAllDataFromTable(Select * from EmpAddress where EmpAddressId=65486 orderby ) end
+02 Feb 2026 22:30:40,638 [16204] INFO  Log - GetAllDataFromTable(Select * from RateDetails where RateId=48540 and EmployeeId=64737 orderby ) Start
+02 Feb 2026 22:30:40,712 [16204] INFO  Log - GetAllDataFromTable(Select * from RateDetails where RateId=48540 and EmployeeId=64737 orderby ) end
+02 Feb 2026 22:30:40,712 [16204] INFO  Log - GetAllDataFromTable(Select MainEmail from EmpAddress with (Nolock) where EmpAddressId in (select ADDRESSID from AddEmployee where EmployeeID = 64737) orderby ) Start
+02 Feb 2026 22:30:40,764 [16204] INFO  Log - GetAllDataFromTable(Select MainEmail from EmpAddress with (Nolock) where EmpAddressId in (select ADDRESSID from AddEmployee where EmployeeID = 64737) orderby ) end
+02 Feb 2026 22:30:40,765 [16204] INFO  Log - Sp_GetSubsBuss(Venkat1000.Madduri1000@gmail.com, 3268) Start
+02 Feb 2026 22:30:40,919 [16204] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '64737' orderby ) Start
+02 Feb 2026 22:30:41,003 [16204] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '64737' orderby ) end
+02 Feb 2026 22:30:41,005 [16204] INFO  Log - Sp_GetSubsBussProject(Venkat1000.Madduri1000@gmail.com, 3268) Start
+02 Feb 2026 22:30:41,248 [16204] INFO  Log - Sp_GetSubsBussRate(Venkat1000.Madduri1000@gmail.com, 3268) Start
+02 Feb 2026 22:30:41,478 [16204] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '15248' and EmployeeID = '64737' orderby ) Start
+02 Feb 2026 22:30:41,519 [16204] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '15248' and EmployeeID = '64737' orderby ) end
+02 Feb 2026 22:30:41,519 [16204] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '15248' and USERID = '59125' orderby ) Start
+02 Feb 2026 22:30:41,526 [16204] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '15248' and USERID = '59125' orderby ) end
+02 Feb 2026 22:30:41,527 [16204] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '64737' orderby ) Start
+02 Feb 2026 22:30:41,540 [16204] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '64737' orderby ) end
+02 Feb 2026 22:30:41,541 [16204] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='48540' ) Start
+02 Feb 2026 22:30:41,561 [16204] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='48540' ) End
+02 Feb 2026 22:30:41,562 [16204] INFO  Log - GetAllDataFromTable(Select Profile_Image from UserAcc where email='Venkat1000.Madduri1000@gmail.com' orderby ) Start
+02 Feb 2026 22:30:41,601 [16204] INFO  Log - GetAllDataFromTable(Select Profile_Image from UserAcc where email='Venkat1000.Madduri1000@gmail.com' orderby ) end
+02 Feb 2026 22:30:49,369 [16204] INFO  Log - GetAllDataFromTable(Select [dbo].[FN_DESC]('UserType',UserTypeId) from MappingTable where userid='4246' and BusinessID='15248' orderby ) Start
+02 Feb 2026 22:30:49,425 [16204] INFO  Log - GetAllDataFromTable(Select [dbo].[FN_DESC]('UserType',UserTypeId) from MappingTable where userid='4246' and BusinessID='15248' orderby ) end
+02 Feb 2026 22:30:49,426 [16204] INFO  Log - IfExistsInTable(Select * from MappingTable where userid=4246 and UserTypeId=2) Start
+02 Feb 2026 22:30:49,441 [16204] INFO  Log - IfExistsInTable(Select *, from MappingTable where userid=4246 and UserTypeId=2) end
+02 Feb 2026 22:30:49,442 [16204] INFO  Log - SP_UserType(15248, 15248) Start
+02 Feb 2026 22:30:49,462 [16204] INFO  Log - SP_UserType(15248, 15248) end
+02 Feb 2026 22:30:49,465 [16204] INFO  Log - SP_UserType(15248, 15248) Start
+02 Feb 2026 22:30:49,478 [16204] INFO  Log - SP_UserType(15248, 15248) end
+02 Feb 2026 22:30:55,272 [16204] INFO  Log - ExecuteQuery(update AddEmployee SET UserType=2 WHERE EmployeeID=64737) Start
+02 Feb 2026 22:30:55,315 [16204] INFO  Log - ExecuteQuery(update AddEmployee SET UserType=2 WHERE EmployeeID=64737) End
+02 Feb 2026 22:30:55,315 [16204] INFO  Log - GetAllDataFromTable(Select MainEmail from EmpAddress with (Nolock) where EmpAddressId in (select ADDRESSID from AddEmployee where EmployeeID = 64737) orderby ) Start
+02 Feb 2026 22:30:55,353 [16204] INFO  Log - GetAllDataFromTable(Select MainEmail from EmpAddress with (Nolock) where EmpAddressId in (select ADDRESSID from AddEmployee where EmployeeID = 64737) orderby ) end
+02 Feb 2026 22:30:55,354 [16204] INFO  Log - Sp_GetSubsBuss(Venkat1000.Madduri1000@gmail.com, 3268) Start
+02 Feb 2026 22:30:55,447 [16204] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '64737' orderby ) Start
+02 Feb 2026 22:30:55,479 [16204] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '64737' orderby ) end
+02 Feb 2026 22:30:55,480 [16204] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '64737' orderby ) Start
+02 Feb 2026 22:30:55,488 [16204] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '64737' orderby ) end
+02 Feb 2026 22:31:21,668 [16204] INFO  Log - ExecuteQuery(update AddEmployee SET UserType=4 WHERE EmployeeID=64737) Start
+02 Feb 2026 22:31:21,727 [16204] INFO  Log - ExecuteQuery(update AddEmployee SET UserType=4 WHERE EmployeeID=64737) End
+02 Feb 2026 22:31:21,728 [16204] INFO  Log - GetAllDataFromTable(Select MainEmail from EmpAddress with (Nolock) where EmpAddressId in (select ADDRESSID from AddEmployee where EmployeeID = 64737) orderby ) Start
+02 Feb 2026 22:31:21,746 [16204] INFO  Log - GetAllDataFromTable(Select MainEmail from EmpAddress with (Nolock) where EmpAddressId in (select ADDRESSID from AddEmployee where EmployeeID = 64737) orderby ) end
+02 Feb 2026 22:31:21,747 [16204] INFO  Log - Sp_GetSubsBuss(Venkat1000.Madduri1000@gmail.com, 3268) Start
+02 Feb 2026 22:31:21,821 [16204] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '64737' orderby ) Start
+02 Feb 2026 22:31:21,826 [16204] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '64737' orderby ) end
+02 Feb 2026 22:31:21,827 [16204] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '64737' orderby ) Start
+02 Feb 2026 22:31:21,835 [16204] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '64737' orderby ) end

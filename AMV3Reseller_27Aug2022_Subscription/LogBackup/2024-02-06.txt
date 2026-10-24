@@ -1,0 +1,76 @@
+06 Feb 2024 00:51:38,118 [12284] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) Start
+06 Feb 2024 00:51:38,790 [12284] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) end
+06 Feb 2024 00:51:38,798 [12284] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+06 Feb 2024 00:51:38,842 [12284] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+06 Feb 2024 00:51:38,843 [12284] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+06 Feb 2024 00:51:38,860 [12284] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+06 Feb 2024 00:51:38,862 [12284] INFO  Log - GetNameFromId(UserType,1) Start
+06 Feb 2024 00:51:38,871 [12284] INFO  Log - GetNameFromId(UserType,1) end
+06 Feb 2024 00:51:42,228 [11328] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 3268 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) Start
+06 Feb 2024 00:51:42,593 [11328] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 3268 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) end
+06 Feb 2024 00:51:42,734 [11328] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (2078, 2079, 2082, 2095, 2096, 2097, 6126, 7125, 7126, 7127, 7128, 7129, 7130, 7131, 7132, 7134, 7135, 7136, 7137, 7143, 8161, 12224, 14229, 14230, 14232, 14234, 14235, 14236, 15235, 15236, 15237, 15238, 15239, 15240, 15241) orderby Yr desc) Start
+06 Feb 2024 00:51:42,795 [11328] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (2078, 2079, 2082, 2095, 2096, 2097, 6126, 7125, 7126, 7127, 7128, 7129, 7130, 7131, 7132, 7134, 7135, 7136, 7137, 7143, 8161, 12224, 14229, 14230, 14232, 14234, 14235, 14236, 15235, 15236, 15237, 15238, 15239, 15240, 15241) orderby Yr desc) end
+06 Feb 2024 00:51:42,802 [11328] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=3268) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) Start
+06 Feb 2024 00:51:42,825 [11328] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=3268) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) end
+06 Feb 2024 00:51:43,645 [11328] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+06 Feb 2024 00:51:43,652 [11328] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+06 Feb 2024 00:51:43,653 [11328] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+06 Feb 2024 00:51:43,664 [11328] INFO  Log - GetMenuDataFromLoginTable(4246) end
+06 Feb 2024 00:51:43,678 [11328] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+06 Feb 2024 00:51:43,689 [11328] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+06 Feb 2024 00:51:43,690 [11328] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+06 Feb 2024 00:51:43,705 [11328] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+06 Feb 2024 00:51:43,708 [11328] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+06 Feb 2024 00:51:43,736 [11328] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+06 Feb 2024 00:51:43,738 [11328] INFO  Log - Fetching menu details - Started
+06 Feb 2024 00:51:43,760 [11328] INFO  Log - Fetching menu details - Finished
+06 Feb 2024 00:52:13,826 [12284] INFO  Log - FillDropDownList(Select ab.BusinessID, dbo.FN_DESC('AddBusiness',ab.BusinessID)CompanyName from AddBusiness ab join AssginBussiness assb on assb.BusinessID=ab.BusinessID where  assb.EmployeeID=3268 and UserTypeId=1 and Status=1 orderby ab.BusinessID) Start
+06 Feb 2024 00:52:13,852 [12284] INFO  Log - FillDropDownList(Select ab.BusinessID, dbo.FN_DESC('AddBusiness',ab.BusinessID)CompanyName from AddBusiness ab join AssginBussiness assb on assb.BusinessID=ab.BusinessID where  assb.EmployeeID=3268 and UserTypeId=1 and Status=1 orderby ab.BusinessID) end
+06 Feb 2024 00:52:13,853 [12284] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+06 Feb 2024 00:52:13,867 [12284] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+06 Feb 2024 00:52:13,867 [12284] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+06 Feb 2024 00:52:13,895 [12284] INFO  Log - GetMenuDataFromLoginTable(4246) end
+06 Feb 2024 00:52:13,896 [12284] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+06 Feb 2024 00:52:13,904 [12284] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+06 Feb 2024 00:52:13,904 [12284] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+06 Feb 2024 00:52:13,919 [12284] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+06 Feb 2024 00:52:13,920 [12284] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+06 Feb 2024 00:52:13,939 [12284] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+06 Feb 2024 00:52:13,940 [12284] INFO  Log - Fetching menu details - Started
+06 Feb 2024 00:52:13,949 [12284] INFO  Log - Fetching menu details - Finished
+06 Feb 2024 00:52:18,818 [12284] INFO  Log - FillDropDownList(Select ab.BusinessID, dbo.FN_DESC('AddBusiness',ab.BusinessID)CompanyName from AddBusiness ab join AssginBussiness assb on assb.BusinessID=ab.BusinessID where  assb.EmployeeID=3268 and UserTypeId=1 and Status=1 orderby ab.BusinessID) Start
+06 Feb 2024 00:52:18,850 [12284] INFO  Log - FillDropDownList(Select ab.BusinessID, dbo.FN_DESC('AddBusiness',ab.BusinessID)CompanyName from AddBusiness ab join AssginBussiness assb on assb.BusinessID=ab.BusinessID where  assb.EmployeeID=3268 and UserTypeId=1 and Status=1 orderby ab.BusinessID) end
+06 Feb 2024 00:52:18,851 [12284] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+06 Feb 2024 00:52:18,858 [12284] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+06 Feb 2024 00:52:18,859 [12284] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+06 Feb 2024 00:52:18,881 [12284] INFO  Log - GetMenuDataFromLoginTable(4246) end
+06 Feb 2024 00:52:18,881 [12284] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+06 Feb 2024 00:52:18,891 [12284] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+06 Feb 2024 00:52:18,892 [12284] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+06 Feb 2024 00:52:18,906 [12284] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+06 Feb 2024 00:52:18,907 [12284] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+06 Feb 2024 00:52:18,987 [12284] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+06 Feb 2024 00:52:18,988 [12284] INFO  Log - Fetching menu details - Started
+06 Feb 2024 00:52:18,998 [12284] INFO  Log - Fetching menu details - Finished
+06 Feb 2024 00:53:27,365 [11328] INFO  Log - ReportAcc_Report2(2078,2024-02-06 12:00:00 AM,2024-02-06 11:59:59 PM) Start
+06 Feb 2024 00:53:27,407 [11328] ERROR Log - Sp_Report_Customer_WiseError converting data type nvarchar to int.
+06 Feb 2024 00:57:10,200 [11328] INFO  Log - FillDropDownList(Select ab.BusinessID, dbo.FN_DESC('AddBusiness',ab.BusinessID)CompanyName from AddBusiness ab join AssginBussiness assb on assb.BusinessID=ab.BusinessID where  assb.EmployeeID=3268 and UserTypeId=1 and Status=1 orderby ab.BusinessID) Start
+06 Feb 2024 00:57:10,310 [11328] INFO  Log - FillDropDownList(Select ab.BusinessID, dbo.FN_DESC('AddBusiness',ab.BusinessID)CompanyName from AddBusiness ab join AssginBussiness assb on assb.BusinessID=ab.BusinessID where  assb.EmployeeID=3268 and UserTypeId=1 and Status=1 orderby ab.BusinessID) end
+06 Feb 2024 00:57:10,311 [11328] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+06 Feb 2024 00:57:10,359 [11328] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+06 Feb 2024 00:57:10,360 [11328] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+06 Feb 2024 00:57:10,389 [11328] INFO  Log - GetMenuDataFromLoginTable(4246) end
+06 Feb 2024 00:57:10,390 [11328] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+06 Feb 2024 00:57:10,405 [11328] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+06 Feb 2024 00:57:10,406 [11328] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+06 Feb 2024 00:57:10,416 [11328] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+06 Feb 2024 00:57:10,417 [11328] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+06 Feb 2024 00:57:10,460 [11328] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+06 Feb 2024 00:57:10,461 [11328] INFO  Log - Fetching menu details - Started
+06 Feb 2024 00:57:10,494 [11328] INFO  Log - Fetching menu details - Finished
+06 Feb 2024 00:57:24,937 [11328] INFO  Log - ReportAcc_Report2(2078,2024-02-06 12:00:00 AM,2024-02-06 11:59:59 PM) Start
+06 Feb 2024 00:57:25,155 [11328] INFO  Log - ReportAcc_Report2(2078,2024-02-06 12:00:00 AM,2024-02-06 11:59:59 PM) end
+06 Feb 2024 00:57:36,833 [12692] INFO  Log - ReportAcc_Report2_Excel(2078,2024-02-06 12:00:00 AM,2024-02-06 12:00:00 AM) Start
+06 Feb 2024 00:57:37,142 [12692] INFO  Log - ReportAcc_Report2_Excel(2078,2024-02-06 12:00:00 AM,2024-02-06 12:00:00 AM) end
+06 Feb 2024 00:57:42,237 [11332] INFO  Log - ReportAcc_Report_PDF(2078,2024-02-06 12:00:00 AM,2024-02-06 12:00:00 AM) Start
+06 Feb 2024 00:57:42,533 [11332] INFO  Log - ReportAcc_Report_PDF(2078,2024-02-06 12:00:00 AM,2024-02-06 12:00:00 AM) end

@@ -1,0 +1,42 @@
+﻿.buttonlooklikelinkbutton {
+    background: none !important;
+    border: none;
+    padding: 0 !important;
+    /*optional*/
+    /*font-family: arial, sans-serif;*/
+    /*input has OS specific font-family*/
+    /*color: #607DF2;*/
+    color: #069;
+    /*text-decoration: underline;*/
+    cursor: pointer;
+}
+
+.buttonhyperlink444 {
+    border: 1px solid #607DF2;
+    display: block;
+    background-color: #607DF2;
+    border-radius: 1px;
+    color: white;
+    padding: 5px 15px;
+    text-align: center;
+    text-decoration: none;
+    display: block;
+    margin-top: -1px;
+    font-family: sans-serif;
+    font-size: medium;
+}
+
+.buttonhyperlink444:hover {
+    border: 1px solid #607DF2;
+    display: block;
+    background-color: #607DF2;
+    border-radius: 1px;
+    color: white;
+    padding: 5px 15px;
+    text-align: center;
+    text-decoration: none;
+    display: block;
+    margin-top: -1px;
+    font-family: sans-serif;
+    font-size: medium;
+}

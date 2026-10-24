@@ -1,0 +1,272 @@
+<%@ Master Language="C#" AutoEventWireup="true" CodeFile="Main.master.cs" Inherits="MasterPage" runat="server" %>
+
+<%@ Register Src="~/Controls/AnyminuteUiOverview.ascx" TagPrefix="am" TagName="UiOverview" %>
+
+<!DOCTYPE html>
+
+<html>
+<head runat="server">
+    <title>AnyMinute | Record From Anywhere</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=9" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta content='width=device-width, initial-scale=1.0, shrink-to-fit=no' name='viewport' />
+    <meta http-equiv="Cache-Control" content="no-cache" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+
+    <link rel="icon" href="Assets/assets/img/logo.jpg" type="image/x-icon" />
+
+    <link href="css/header.css" rel="stylesheet" />
+    <link href="css/footer.css" rel="stylesheet" />
+    <link href="css/SiteStyle.css" rel="stylesheet" />
+    <link href="css/sidebar.css" rel="stylesheet" />
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <script src="https://use.fontawesome.com/4fed6e96ae.js"></script>
+    <!-- Fonts and icons -->
+    <script src="https://use.fontawesome.com/5b6dc8cc46.js"></script>
+    <!--select2 js cdn start-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.8/js/select2.min.js" defer></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.0.12/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.0.12/dist/js/select2.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2-bootstrap-theme/0.1.0-beta.10/select2-bootstrap.css" rel="stylesheet" />
+    <script>        
+        $(document).ready(function () {
+            /*Added for MOBILE-ISSUE-SURYA*/
+            if (window.innerWidth <= 767) {                
+                $("#wrapper").toggleClass("active");
+                setTimeout(() => {
+                    $("#wrapper").css("padding-left","1px");
+                }, 1000);
+            }
+            $('.navbar-toggle').click((e) => {
+                setTimeout(() => {
+                    $("#nav-toggle ul li.dropdown").toggleClass("open");
+                }, 5);                                
+            })
+            
+            $('.js-example-basic-single').select2({
+                theme: "bootstrap"
+            });
+        });
+        $(document).ready(function () {
+            $('.js-example-basic-multiple').select2({
+                theme: "bootstrap"
+            });            
+        });
+    </script>
+  
+    <script>
+        function Confirm() {
+            var confirm_value = document.createElement("INPUT");
+            confirm_value.type = "hidden";
+            confirm_value.name = "confirm_value";
+            if (confirm("Do you want to Delete data?")) {
+                confirm_value.value = "Yes";
+            } else {
+                confirm_value.value = "No";
+            }
+            document.forms[0].appendChild(confirm_value);
+        }
+    </script>
+
+    <script>
+        function ConfirmSave() {
+            var confirm_value = document.createElement("INPUT");
+            confirm_value.type = "hidden";
+            confirm_value.name = "confirm_value";
+            if (confirm("Do you want to Save another Record?")) {
+                confirm_value.value = "Yes";
+            } else {
+                confirm_value.value = "No";
+            }
+            document.forms[0].appendChild(confirm_value);
+        }
+    </script>
+
+    <asp:ContentPlaceHolder ID="head" runat="server">
+        <script src="Assets/assets/js/SweetAlert.js"></script>
+        <style type="text/css">
+            .swal2-container {
+                display: -webkit-box;
+                display: flex;
+                position: fixed;
+                z-index: 300000;
+            }
+
+            .buttonhyperlink1 {
+                border: 1px solid #607DF2;
+                display: block;
+                background-color: #607DF2;
+                border-radius: 30px;
+                color: white;
+                padding: 10px 25px;
+                text-align: center;
+                text-decoration: none;
+                display: block;
+                font-family: sans-serif;
+                font-size: medium;
+            }
+
+            .buttonhyperlink1:hover {
+                border: 1px solid #607DF2;
+                display: block;
+                background-color: #607DF2;
+                border-radius: 30px;
+                color: white;
+                padding: 10px 25px;
+                text-align: center;
+                text-decoration: none;
+                display: block;
+                margin-top: -1px;
+                font-family: sans-serif;
+                font-size: medium;
+            }
+
+            .linkbuttonmasterpage:hover {
+                /*ForeColor: white;*/
+                color: white;
+            }
+        </style>
+    </asp:ContentPlaceHolder>
+    <link href="css/AnyminuteUI2026.css?v=20261017" rel="stylesheet" />
+<link href="css/AnyminuteUIUnified.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUiBugFixes.css?v=20261024e1" rel="stylesheet" />
+</head>
+<script type="text/javascript">  
+    window.onload = window.history.forward(0);
+</script>
+<body class="am-ui">
+    <form id="frmMaster" runat="server">
+        <asp:ScriptManager ID="ScriptManager1" runat="server" EnablePageMethods="true"></asp:ScriptManager>
+        <%--Header Content start--%>
+        <div class="header">
+            <nav class="navbar navbar-default navbar-fixed-top">
+                <div class="container-fluid">
+                    <div class="navbar-header">
+                        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#nav-toggle">
+                            <span class="sr-only">Toggle Navigation</span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </button>
+                        <a href="#" style="float: left; margin-right: 20px; margin-top: 20px;" id="menu-toggle" role="button" aria-label="Toggle navigation" aria-controls="sidebar-wrapper" aria-expanded="true">
+                            <span class="fa fa-bars fa-2x" aria-hidden="true"></span>
+                        </a>                        
+                        <a id="logo" runat="server" class="logo navbar-brand" style="margin-top: -5px;"><%--href="Home_Page.aspx"--%>
+                            <img src="Assets/assets/img/logo.jpg" style="height: 50px;" />
+                        </a>
+                        <div class="am-welcome">
+                            <asp:Label ID="lblwelcome" runat="server" Font-Size="X-Large" Style="margin:0;"></asp:Label>
+                        </div>
+                    </div>
+                    <div class="nav navbar-nav" style="margin-top: -6px;">
+                        <h6>
+                            <asp:Label ID="lblUserType" runat="server"></asp:Label>
+                        </h6>
+                    </div>
+                    <asp:Literal ID="HeaderHelp" runat="server" />
+                    <asp:LinkButton ID="SignOutTop" runat="server" Text="Sign out" CssClass="am-sign-out" CausesValidation="false" OnClick="lnkLogout_Click" />
+<div id="nav-toggle" class="am-legacy-account">
+ <details class="am-account-menu">
+  <summary aria-label="Account menu"><img src="Assets/assets/img/profile2.jpg" runat="server" id="imgProfile" class="am-account-avatar" alt="" /><span class="am-account-chevron" aria-hidden="true"></span><span class="sr-only">Account</span></summary>
+  <div class="am-account-popover">
+   <asp:LinkButton ID="profile" runat="server" CausesValidation="false" OnClick="profile_Click"><span data-am-icon="profile" aria-hidden="true"></span>My profile</asp:LinkButton>
+   <asp:LinkButton ID="lnkLogout" runat="server" CausesValidation="false" OnClick="lnkLogout_Click"><span data-am-icon="signout" aria-hidden="true"></span>Sign out</asp:LinkButton>
+   <a href="Change%20Password.aspx"><span data-am-icon="settings" aria-hidden="true"></span>Change password</a><asp:Literal ID="AccountUpgrade" runat="server" />
+  </div>
+ </details>
+ <span style="display:none" aria-hidden="true"><img src="Assets/assets/img/profile2.jpg" id="imgProfile1" runat="server" alt="" /><asp:Label ID="lblname" runat="server" /><asp:Label ID="lblemail" runat="server" /><asp:Label ID="lbluid" runat="server" /></span>
+</div>
+                </div>
+            </nav>
+        </div>
+        <%--Header Content end--%>
+        <%--/*Removed class active for MOBILE-ISSUE-SURYA*/--%>
+        <div id="wrapper" > <%--class="active"--%>
+            <!-- Sidebar -->
+            <!-- Sidebar -->
+            <div id="sidebar-wrapper">
+                <ul id="navigation" class="sidebar-nav" runat="server"></ul>
+                <ul class="sidebar-nav" id="sidebar" runat="server" visible="false">
+                    <li style=""><a href="Business_Owner_Dashboard.aspx" id="A1" runat="server">
+                        <span class="sub_icon fa fa-home"></span>Dashboard</a></li>
+                    <li class="dropdown" runat="server" id="SuperLinkMaster" visible="false">
+                        <a class="dropdown-toggle" data-toggle="dropdown"><span class="sub_icon fa fa-cog"></span>
+                            Setting<span class="fa fa-angle-down"></span></a>
+                    </li>
+                    <li class="dropdown" runat="server" id="SuperMother" visible="false">
+                        <a class="dropdown-toggle" data-toggle="dropdown"><span class="sub_icon fa fa-headphones"></span>Support Admin<span class="fa fa-angle-down"></span></a>
+                    </li>
+                    <li class="dropdown" runat="server" id="CreateUser" visible="false">
+                        <a class="dropdown-toggle" data-toggle="dropdown"><span class="sub_icon fa fa-group"></span>User Type<span class="fa fa-angle-down"></span></a>
+                    </li>
+                    <li class="dropdown" runat="server" id="EmailSetting" visible="false">
+                        <a class="dropdown-toggle" data-toggle="dropdown"><span class="sub_icon fa fa-envelope"></span>Email Setting<span class="fa fa-angle-down"></span></a>
+                    </li>
+                    <li id="SA_Postalcode" runat="server" visible="false">
+                        <a class="dropdown-toggle" data-toggle="dropdown"><span class="sub_icon fa fa-address-card"></span>Address<span class="fa fa-angle-down"></span></a>
+                    </li>
+                    <li class="dropdown" runat="server" id="SuperAdminTicket" visible="false">
+                        <a class="dropdown-toggle" data-toggle="dropdown"><span class="sub_icon fa fa-ticket"></span>Ticket List<span class="fa fa-angle-down"></span></a>
+                    </li>
+                    <li class="dropdown" runat="server" id="AllTickets" visible="false">
+                        <a class="dropdown-toggle" data-toggle="dropdown"><span class="sub_icon fa fa-ticket"></span>Ticket List<span class="fa fa-angle-down"></span></a>
+                    </li>
+                    <li class="dropdown" runat="server" id="MenuReport" visible="false">
+                        <a class="dropdown-toggle" data-toggle="dropdown"><span class="sub_icon fa fa-file"></span>Report<span class="fa fa-angle-down"></span></a>
+                    </li>
+                    <li class="dropdown" runat="server" id="MenuReportBo" visible="false">
+                        <a class="dropdown-toggle" data-toggle="dropdown"><span class="sub_icon fa fa-file"></span>Report<span class="fa fa-angle-down"></span></a>
+                    </li>
+                    <li style=""><a href="#" id="EditProfile" runat="server">
+                        <span class="sub_icon fa fa-home"></span>Edit Profile</a></li>
+                    <asp:Repeater ID="rptCategories" runat="server" OnItemDataBound="rptMenu_OnItemBound"
+                        Visible="false">
+                        <ItemTemplate>
+                            <li class="nav-item">
+                                <a data-toggle="collapse" href="#<%#Eval("DomainName") %>" class="collapsed">
+                                    <i class="<%#Eval("Icon") %>"></i>
+                                    <p><%#Eval("DomainName") %></p>
+                                    <span class="caret"></span>
+                                </a>
+                                <asp:Literal ID="ltrlSubMenu" runat="server"></asp:Literal>
+                            </li>
+                        </ItemTemplate>
+                    </asp:Repeater>
+                </ul>
+            </div>
+            <%--Child Page Content--%>
+            <div id="page-content-wrapper">
+                <!-- Keep all page content within the page-content inset div! -->
+                <div class="page-content inset am-page" id="amPage">
+                    <div class="row">
+                        <br />
+                        <am:UiOverview ID="UnifiedOverview" runat="server" />
+                        <asp:ContentPlaceHolder ID="ContentPlaceHolder1" runat="server">
+                        </asp:ContentPlaceHolder>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <script src="Scripts/AnyminuteUI2026.js?v=20261017"></script>
+    <script src="Scripts/AnyminuteUIUnified.js?v=20261024e1"></script>
+    <script src="Scripts/AnyminuteUiBugFixes.js?v=20261024e1"></script>
+<script src="Scripts/AnyminuteNavigationActions.js?v=20261024e1"></script></form>
+    <!-- Datatables -->
+    <script src="Assets/assets/js/plugin/datatables/datatables.min.js"></script>
+    <script>
+        $("#menu-toggle").click(function (e) {
+            e.preventDefault();
+            $("#wrapper").toggleClass("active");
+        });
+    </script>
+</body>
+</html>

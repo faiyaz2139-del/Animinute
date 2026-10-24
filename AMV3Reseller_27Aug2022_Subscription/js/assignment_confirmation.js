@@ -1,0 +1,18 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert');
+const path=require('path');
+let answer=false,fields=[];
+const form={querySelector:()=>fields[0],appendChild:e=>fields.push(e)};
+const window={confirm:()=>answer};
+const document={createElement:()=>({})};
+vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../site/Scripts/AnyminuteConfirm.js'),'utf8'),{window,document});
+const one={id:'business_one',closest:()=>form},two={id:'business_two',closest:()=>form};
+assert.strictEqual(window.AnyminuteConfirmAssignmentDelete(one),false);
+assert.strictEqual(fields[0].value,'');
+answer=true; assert.strictEqual(window.AnyminuteConfirmAssignmentDelete(one),true);
+assert.strictEqual(fields[0].value,'business_one');
+assert.strictEqual(window.AnyminuteConfirmAssignmentDelete(two),true);
+assert.strictEqual(fields.length,1); assert.strictEqual(fields[0].value,'business_two');
+answer=false; assert.strictEqual(window.AnyminuteConfirmAssignmentDelete(two),false);
+assert.strictEqual(fields[0].value,'');
+assert.strictEqual(window.AnyminuteConfirmAssignmentDelete({closest:()=>null}),false);
+console.log('PASS assignment confirmation: cancel, accept, exact control, repeat, stale reset, missing form');

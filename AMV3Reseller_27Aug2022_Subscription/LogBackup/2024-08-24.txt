@@ -1,0 +1,987 @@
+24 Aug 2024 19:31:20,143 [10416] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) Start
+24 Aug 2024 19:31:20,871 [10416] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) end
+24 Aug 2024 19:31:20,878 [10416] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+24 Aug 2024 19:31:20,938 [10416] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+24 Aug 2024 19:31:20,939 [10416] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+24 Aug 2024 19:31:20,972 [10416] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+24 Aug 2024 19:31:20,974 [10416] INFO  Log - GetNameFromId(UserType,1) Start
+24 Aug 2024 19:31:21,034 [10416] INFO  Log - GetNameFromId(UserType,1) end
+24 Aug 2024 19:31:21,270 [2344] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 3268 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) Start
+24 Aug 2024 19:31:21,377 [2344] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 3268 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) end
+24 Aug 2024 19:31:21,492 [2344] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (2078, 2079, 2082, 2095, 2096, 2097, 6126, 7125, 7126, 7127, 7128, 7129, 7130, 7131, 7132, 7134, 7135, 7136, 7137, 7143, 8161, 12224, 14229, 14230, 14232, 14234, 14235, 14236, 15235, 15236, 15237, 15238, 15239, 15240, 15241, 15243) orderby Yr desc) Start
+24 Aug 2024 19:31:21,551 [2344] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (2078, 2079, 2082, 2095, 2096, 2097, 6126, 7125, 7126, 7127, 7128, 7129, 7130, 7131, 7132, 7134, 7135, 7136, 7137, 7143, 8161, 12224, 14229, 14230, 14232, 14234, 14235, 14236, 15235, 15236, 15237, 15238, 15239, 15240, 15241, 15243) orderby Yr desc) end
+24 Aug 2024 19:31:21,557 [2344] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=3268) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) Start
+24 Aug 2024 19:31:21,610 [2344] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=3268) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) end
+24 Aug 2024 19:31:22,792 [2344] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+24 Aug 2024 19:31:22,869 [2344] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+24 Aug 2024 19:31:22,872 [2344] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+24 Aug 2024 19:31:22,909 [2344] INFO  Log - GetMenuDataFromLoginTable(4246) end
+24 Aug 2024 19:31:22,924 [2344] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+24 Aug 2024 19:31:22,941 [2344] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+24 Aug 2024 19:31:22,943 [2344] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+24 Aug 2024 19:31:22,959 [2344] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+24 Aug 2024 19:31:22,963 [2344] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+24 Aug 2024 19:31:22,989 [2344] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+24 Aug 2024 19:31:22,992 [2344] INFO  Log - Fetching menu details - Started
+24 Aug 2024 19:31:23,033 [2344] INFO  Log - Fetching menu details - Finished
+24 Aug 2024 19:31:34,303 [10416] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg where MotherOrgID = '4' orderby ) Start
+24 Aug 2024 19:31:34,313 [10416] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg where MotherOrgID = '4' orderby ) end
+24 Aug 2024 19:31:34,315 [10416] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner where EMail_primary = 'shamsuthakor@gmail.com' ) Start
+24 Aug 2024 19:31:34,348 [10416] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner where EMail_primary = 'shamsuthakor@gmail.com' ) end
+24 Aug 2024 19:31:34,349 [10416] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory where EmpId='3268' and IsActive=1 ) Start
+24 Aug 2024 19:31:34,380 [10416] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory where EmpId='3268' and IsActive=1 ) End
+24 Aug 2024 19:31:34,381 [10416] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory where EmpId='3268' and Is_Cancelled=1 ) Start
+24 Aug 2024 19:31:34,388 [10416] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory where EmpId='3268' and Is_Cancelled=1 ) End
+24 Aug 2024 19:31:34,389 [10416] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 orderby ) Start
+24 Aug 2024 19:31:34,402 [10416] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 orderby ) end
+24 Aug 2024 19:31:34,404 [10416] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 and Is_Requested_Plan=1 orderby ) Start
+24 Aug 2024 19:31:34,415 [10416] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 and Is_Requested_Plan=1 orderby ) end
+24 Aug 2024 19:31:34,416 [10416] INFO  Log - IfExistsInTable(Select IsActive from AddEmployee where EmployeeID='3268' and IsActive='NO        ' and UserType='1' ) Start
+24 Aug 2024 19:31:34,424 [10416] INFO  Log - IfExistsInTable(Select IsActive, from AddEmployee where EmployeeID='3268' and IsActive='NO        ' and UserType='1' ) end
+24 Aug 2024 19:31:34,457 [10416] INFO  Log - GetAllDataFromTable(Select BusinessID from AssginBussiness where EmployeeID=3268 and BusinessID is not null and BusinessID<>'' orderby BusinessID) Start
+24 Aug 2024 19:31:34,473 [10416] INFO  Log - GetAllDataFromTable(Select BusinessID from AssginBussiness where EmployeeID=3268 and BusinessID is not null and BusinessID<>'' orderby BusinessID) end
+24 Aug 2024 19:31:34,477 [10416] INFO  Log - GetBussForSelectBUSS(3268) Start
+24 Aug 2024 19:31:34,614 [10416] INFO  Log - IfExistsInTable(Select * from MappingTable where userid=4246 and UserTypeId=2) Start
+24 Aug 2024 19:31:34,619 [10416] INFO  Log - IfExistsInTable(Select *, from MappingTable where userid=4246 and UserTypeId=2) end
+24 Aug 2024 19:31:34,620 [10416] INFO  Log - SP_UserType(2078, 2078) Start
+24 Aug 2024 19:31:34,638 [10416] INFO  Log - SP_UserType(2078, 2078) end
+24 Aug 2024 19:31:34,642 [10416] INFO  Log - SP_UserType(2078, 2078) Start
+24 Aug 2024 19:31:34,648 [10416] INFO  Log - SP_UserType(2078, 2078) end
+24 Aug 2024 19:31:34,649 [10416] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+24 Aug 2024 19:31:34,656 [10416] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+24 Aug 2024 19:31:34,657 [10416] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+24 Aug 2024 19:31:34,664 [10416] INFO  Log - GetMenuDataFromLoginTable(4246) end
+24 Aug 2024 19:31:34,665 [10416] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+24 Aug 2024 19:31:34,689 [10416] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+24 Aug 2024 19:31:34,690 [10416] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+24 Aug 2024 19:31:34,719 [10416] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+24 Aug 2024 19:31:34,719 [10416] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+24 Aug 2024 19:31:34,765 [10416] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+24 Aug 2024 19:31:34,766 [10416] INFO  Log - Fetching menu details - Started
+24 Aug 2024 19:31:34,771 [10416] INFO  Log - Fetching menu details - Finished
+24 Aug 2024 19:31:45,111 [10416] INFO  Log - Business_Owner_Pop_up_Employee_List(2078,3268) Start
+24 Aug 2024 19:31:45,429 [10416] INFO  Log - Business_Owner_Pop_up_Employee_List(2078,3268) end
+24 Aug 2024 19:31:51,653 [7980] INFO  Log - GetAllDataFromTable(Select *,convert(nvarchar(10),HireDate,120)HireDated from AddEmployee where EmployeeID=8481 orderby ) Start
+24 Aug 2024 19:31:51,682 [7980] INFO  Log - GetAllDataFromTable(Select *,convert(nvarchar(10),HireDate,120)HireDated from AddEmployee where EmployeeID=8481 orderby ) end
+24 Aug 2024 19:31:51,806 [7980] INFO  Log - GetAllDataFromTable(Select * from EmpAddress where EmpAddressId=45611 orderby ) Start
+24 Aug 2024 19:31:51,813 [7980] INFO  Log - GetAllDataFromTable(Select * from EmpAddress where EmpAddressId=45611 orderby ) end
+24 Aug 2024 19:31:51,815 [7980] INFO  Log - GetAllDataFromTable(Select * from RateDetails where RateId=21079 and EmployeeId=8481 orderby ) Start
+24 Aug 2024 19:31:51,832 [7980] INFO  Log - GetAllDataFromTable(Select * from RateDetails where RateId=21079 and EmployeeId=8481 orderby ) end
+24 Aug 2024 19:31:51,833 [7980] INFO  Log - GetAllDataFromTable(Select MainEmail from EmpAddress with (Nolock) where EmpAddressId in (select ADDRESSID from AddEmployee where EmployeeID = 8481) orderby ) Start
+24 Aug 2024 19:31:51,859 [7980] INFO  Log - GetAllDataFromTable(Select MainEmail from EmpAddress with (Nolock) where EmpAddressId in (select ADDRESSID from AddEmployee where EmployeeID = 8481) orderby ) end
+24 Aug 2024 19:31:51,870 [7980] INFO  Log - Sp_GetSubsBuss(testregularemppp@gmail.com, 3268) Start
+24 Aug 2024 19:31:51,993 [7980] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) Start
+24 Aug 2024 19:31:52,009 [7980] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) end
+24 Aug 2024 19:31:52,011 [7980] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8482' orderby ) Start
+24 Aug 2024 19:31:52,020 [7980] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8482' orderby ) end
+24 Aug 2024 19:31:52,022 [7980] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8483' orderby ) Start
+24 Aug 2024 19:31:52,033 [7980] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8483' orderby ) end
+24 Aug 2024 19:31:52,041 [7980] INFO  Log - Sp_GetSubsBussProject(testregularemppp@gmail.com, 3268) Start
+24 Aug 2024 19:31:52,157 [7980] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) Start
+24 Aug 2024 19:31:52,167 [7980] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) end
+24 Aug 2024 19:31:52,167 [7980] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) Start
+24 Aug 2024 19:31:52,191 [7980] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) end
+24 Aug 2024 19:31:52,199 [7980] INFO  Log - Sp_GetSubsBussRate(testregularemppp@gmail.com, 3268) Start
+24 Aug 2024 19:31:52,340 [7980] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '2078' and EmployeeID = '8481' orderby ) Start
+24 Aug 2024 19:31:52,348 [7980] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '2078' and EmployeeID = '8481' orderby ) end
+24 Aug 2024 19:31:52,348 [7980] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '2078' and USERID = '8405' orderby ) Start
+24 Aug 2024 19:31:52,369 [7980] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '2078' and USERID = '8405' orderby ) end
+24 Aug 2024 19:31:52,369 [7980] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) Start
+24 Aug 2024 19:31:52,382 [7980] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) end
+24 Aug 2024 19:31:52,383 [7980] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='21079' ) Start
+24 Aug 2024 19:31:52,405 [7980] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='21079' ) End
+24 Aug 2024 19:31:52,406 [7980] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '2078' and EmployeeID = '8481' orderby ) Start
+24 Aug 2024 19:31:52,441 [7980] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '2078' and EmployeeID = '8481' orderby ) end
+24 Aug 2024 19:31:52,442 [7980] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '2079' and USERID = '8405' orderby ) Start
+24 Aug 2024 19:31:52,453 [7980] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '2079' and USERID = '8405' orderby ) end
+24 Aug 2024 19:31:52,454 [7980] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8482' orderby ) Start
+24 Aug 2024 19:31:52,463 [7980] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8482' orderby ) end
+24 Aug 2024 19:31:52,464 [7980] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='21080' ) Start
+24 Aug 2024 19:31:52,468 [7980] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='21080' ) End
+24 Aug 2024 19:31:52,469 [7980] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '2078' and EmployeeID = '8481' orderby ) Start
+24 Aug 2024 19:31:52,483 [7980] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '2078' and EmployeeID = '8481' orderby ) end
+24 Aug 2024 19:31:52,484 [7980] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '2082' and USERID = '8405' orderby ) Start
+24 Aug 2024 19:31:52,504 [7980] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '2082' and USERID = '8405' orderby ) end
+24 Aug 2024 19:31:52,505 [7980] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8483' orderby ) Start
+24 Aug 2024 19:31:52,517 [7980] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8483' orderby ) end
+24 Aug 2024 19:31:52,518 [7980] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='5364' ) Start
+24 Aug 2024 19:31:52,526 [7980] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='5364' ) End
+24 Aug 2024 19:31:52,527 [7980] INFO  Log - GetAllDataFromTable(Select Profile_Image from UserAcc where email='testregularemppp@gmail.com' orderby ) Start
+24 Aug 2024 19:31:52,544 [7980] INFO  Log - GetAllDataFromTable(Select Profile_Image from UserAcc where email='testregularemppp@gmail.com' orderby ) end
+24 Aug 2024 21:31:14,423 [2540] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) Start
+24 Aug 2024 21:31:14,661 [2540] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) end
+24 Aug 2024 21:31:14,661 [2540] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+24 Aug 2024 21:31:14,978 [2540] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+24 Aug 2024 21:31:14,979 [2540] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+24 Aug 2024 21:31:15,046 [2540] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+24 Aug 2024 21:31:15,047 [2540] INFO  Log - GetNameFromId(UserType,1) Start
+24 Aug 2024 21:31:15,080 [2540] INFO  Log - GetNameFromId(UserType,1) end
+24 Aug 2024 21:31:15,104 [7444] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 3268 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) Start
+24 Aug 2024 21:31:15,192 [7444] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 3268 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) end
+24 Aug 2024 21:31:15,193 [7444] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (2078, 2079, 2082, 2095, 2096, 2097, 6126, 7125, 7126, 7127, 7128, 7129, 7130, 7131, 7132, 7134, 7135, 7136, 7137, 7143, 8161, 12224, 14229, 14230, 14232, 14234, 14235, 14236, 15235, 15236, 15237, 15238, 15239, 15240, 15241, 15243) orderby Yr desc) Start
+24 Aug 2024 21:31:15,236 [7444] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (2078, 2079, 2082, 2095, 2096, 2097, 6126, 7125, 7126, 7127, 7128, 7129, 7130, 7131, 7132, 7134, 7135, 7136, 7137, 7143, 8161, 12224, 14229, 14230, 14232, 14234, 14235, 14236, 15235, 15236, 15237, 15238, 15239, 15240, 15241, 15243) orderby Yr desc) end
+24 Aug 2024 21:31:15,237 [7444] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=3268) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) Start
+24 Aug 2024 21:31:15,264 [7444] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=3268) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) end
+24 Aug 2024 21:31:16,045 [7444] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+24 Aug 2024 21:31:16,059 [7444] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+24 Aug 2024 21:31:16,059 [7444] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+24 Aug 2024 21:31:16,072 [7444] INFO  Log - GetMenuDataFromLoginTable(4246) end
+24 Aug 2024 21:31:16,073 [7444] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+24 Aug 2024 21:31:16,084 [7444] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+24 Aug 2024 21:31:16,084 [7444] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+24 Aug 2024 21:31:16,113 [7444] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+24 Aug 2024 21:31:16,114 [7444] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+24 Aug 2024 21:31:16,150 [7444] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+24 Aug 2024 21:31:16,151 [7444] INFO  Log - Fetching menu details - Started
+24 Aug 2024 21:31:16,187 [7444] INFO  Log - Fetching menu details - Finished
+24 Aug 2024 21:31:31,794 [7444] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg where MotherOrgID = '4' orderby ) Start
+24 Aug 2024 21:31:31,798 [7444] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg where MotherOrgID = '4' orderby ) end
+24 Aug 2024 21:31:31,801 [7444] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner where EMail_primary = 'shamsuthakor@gmail.com' ) Start
+24 Aug 2024 21:31:31,815 [7444] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner where EMail_primary = 'shamsuthakor@gmail.com' ) end
+24 Aug 2024 21:31:31,816 [7444] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory where EmpId='3268' and IsActive=1 ) Start
+24 Aug 2024 21:31:31,828 [7444] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory where EmpId='3268' and IsActive=1 ) End
+24 Aug 2024 21:31:31,828 [7444] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory where EmpId='3268' and Is_Cancelled=1 ) Start
+24 Aug 2024 21:31:31,846 [7444] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory where EmpId='3268' and Is_Cancelled=1 ) End
+24 Aug 2024 21:31:31,847 [7444] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 orderby ) Start
+24 Aug 2024 21:31:31,854 [7444] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 orderby ) end
+24 Aug 2024 21:31:31,855 [7444] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 and Is_Requested_Plan=1 orderby ) Start
+24 Aug 2024 21:31:31,897 [7444] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 and Is_Requested_Plan=1 orderby ) end
+24 Aug 2024 21:31:31,898 [7444] INFO  Log - IfExistsInTable(Select IsActive from AddEmployee where EmployeeID='3268' and IsActive='NO        ' and UserType='1' ) Start
+24 Aug 2024 21:31:31,911 [7444] INFO  Log - IfExistsInTable(Select IsActive, from AddEmployee where EmployeeID='3268' and IsActive='NO        ' and UserType='1' ) end
+24 Aug 2024 21:31:31,920 [7444] INFO  Log - GetAllDataFromTable(Select BusinessID from AssginBussiness where EmployeeID=3268 and BusinessID is not null and BusinessID<>'' orderby BusinessID) Start
+24 Aug 2024 21:31:31,931 [7444] INFO  Log - GetAllDataFromTable(Select BusinessID from AssginBussiness where EmployeeID=3268 and BusinessID is not null and BusinessID<>'' orderby BusinessID) end
+24 Aug 2024 21:31:31,932 [7444] INFO  Log - GetBussForSelectBUSS(3268) Start
+24 Aug 2024 21:31:31,972 [7444] INFO  Log - IfExistsInTable(Select * from MappingTable where userid=4246 and UserTypeId=2) Start
+24 Aug 2024 21:31:31,983 [7444] INFO  Log - IfExistsInTable(Select *, from MappingTable where userid=4246 and UserTypeId=2) end
+24 Aug 2024 21:31:31,983 [7444] INFO  Log - SP_UserType(2078, 2078) Start
+24 Aug 2024 21:31:31,994 [7444] INFO  Log - SP_UserType(2078, 2078) end
+24 Aug 2024 21:31:31,995 [7444] INFO  Log - SP_UserType(2078, 2078) Start
+24 Aug 2024 21:31:32,005 [7444] INFO  Log - SP_UserType(2078, 2078) end
+24 Aug 2024 21:31:32,005 [7444] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+24 Aug 2024 21:31:32,014 [7444] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+24 Aug 2024 21:31:32,015 [7444] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+24 Aug 2024 21:31:32,029 [7444] INFO  Log - GetMenuDataFromLoginTable(4246) end
+24 Aug 2024 21:31:32,030 [7444] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+24 Aug 2024 21:31:32,036 [7444] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+24 Aug 2024 21:31:32,037 [7444] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+24 Aug 2024 21:31:32,061 [7444] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+24 Aug 2024 21:31:32,063 [7444] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+24 Aug 2024 21:31:32,104 [7444] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+24 Aug 2024 21:31:32,104 [7444] INFO  Log - Fetching menu details - Started
+24 Aug 2024 21:31:32,112 [7444] INFO  Log - Fetching menu details - Finished
+24 Aug 2024 21:31:42,406 [2540] INFO  Log - Business_Owner_Pop_up_Employee_List(2078,3268) Start
+24 Aug 2024 21:31:42,654 [2540] INFO  Log - Business_Owner_Pop_up_Employee_List(2078,3268) end
+24 Aug 2024 21:31:46,176 [2540] INFO  Log - GetAllDataFromTable(Select *,convert(nvarchar(10),HireDate,120)HireDated from AddEmployee where EmployeeID=8481 orderby ) Start
+24 Aug 2024 21:31:46,191 [2540] INFO  Log - GetAllDataFromTable(Select *,convert(nvarchar(10),HireDate,120)HireDated from AddEmployee where EmployeeID=8481 orderby ) end
+24 Aug 2024 21:31:46,292 [2540] INFO  Log - GetAllDataFromTable(Select * from EmpAddress where EmpAddressId=45611 orderby ) Start
+24 Aug 2024 21:31:46,303 [2540] INFO  Log - GetAllDataFromTable(Select * from EmpAddress where EmpAddressId=45611 orderby ) end
+24 Aug 2024 21:31:46,305 [2540] INFO  Log - GetAllDataFromTable(Select * from RateDetails where RateId=21079 and EmployeeId=8481 orderby ) Start
+24 Aug 2024 21:31:46,316 [2540] INFO  Log - GetAllDataFromTable(Select * from RateDetails where RateId=21079 and EmployeeId=8481 orderby ) end
+24 Aug 2024 21:31:46,317 [2540] INFO  Log - GetAllDataFromTable(Select MainEmail from EmpAddress with (Nolock) where EmpAddressId in (select ADDRESSID from AddEmployee where EmployeeID = 8481) orderby ) Start
+24 Aug 2024 21:31:46,334 [2540] INFO  Log - GetAllDataFromTable(Select MainEmail from EmpAddress with (Nolock) where EmpAddressId in (select ADDRESSID from AddEmployee where EmployeeID = 8481) orderby ) end
+24 Aug 2024 21:31:46,349 [2540] INFO  Log - Sp_GetSubsBuss(testregularemppp@gmail.com, 3268) Start
+24 Aug 2024 21:31:46,411 [2540] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) Start
+24 Aug 2024 21:31:46,421 [2540] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) end
+24 Aug 2024 21:31:46,423 [2540] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8482' orderby ) Start
+24 Aug 2024 21:31:46,432 [2540] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8482' orderby ) end
+24 Aug 2024 21:31:46,433 [2540] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8483' orderby ) Start
+24 Aug 2024 21:31:46,445 [2540] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8483' orderby ) end
+24 Aug 2024 21:31:46,453 [2540] INFO  Log - Sp_GetSubsBussProject(testregularemppp@gmail.com, 3268) Start
+24 Aug 2024 21:31:46,487 [2540] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) Start
+24 Aug 2024 21:31:46,497 [2540] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) end
+24 Aug 2024 21:31:46,499 [2540] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) Start
+24 Aug 2024 21:31:46,508 [2540] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) end
+24 Aug 2024 21:31:46,513 [2540] INFO  Log - Sp_GetSubsBussRate(testregularemppp@gmail.com, 3268) Start
+24 Aug 2024 21:31:46,565 [2540] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '2078' and EmployeeID = '8481' orderby ) Start
+24 Aug 2024 21:31:46,573 [2540] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '2078' and EmployeeID = '8481' orderby ) end
+24 Aug 2024 21:31:46,575 [2540] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '2078' and USERID = '8405' orderby ) Start
+24 Aug 2024 21:31:46,597 [2540] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '2078' and USERID = '8405' orderby ) end
+24 Aug 2024 21:31:46,597 [2540] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) Start
+24 Aug 2024 21:31:46,624 [2540] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) end
+24 Aug 2024 21:31:46,625 [2540] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='21079' ) Start
+24 Aug 2024 21:31:46,638 [2540] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='21079' ) End
+24 Aug 2024 21:31:46,639 [2540] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '2078' and EmployeeID = '8481' orderby ) Start
+24 Aug 2024 21:31:46,657 [2540] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '2078' and EmployeeID = '8481' orderby ) end
+24 Aug 2024 21:31:46,658 [2540] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '2079' and USERID = '8405' orderby ) Start
+24 Aug 2024 21:31:46,668 [2540] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '2079' and USERID = '8405' orderby ) end
+24 Aug 2024 21:31:46,669 [2540] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8482' orderby ) Start
+24 Aug 2024 21:31:46,679 [2540] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8482' orderby ) end
+24 Aug 2024 21:31:46,680 [2540] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='21080' ) Start
+24 Aug 2024 21:31:46,688 [2540] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='21080' ) End
+24 Aug 2024 21:31:46,689 [2540] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '2078' and EmployeeID = '8481' orderby ) Start
+24 Aug 2024 21:31:46,699 [2540] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '2078' and EmployeeID = '8481' orderby ) end
+24 Aug 2024 21:31:46,700 [2540] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '2082' and USERID = '8405' orderby ) Start
+24 Aug 2024 21:31:46,713 [2540] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '2082' and USERID = '8405' orderby ) end
+24 Aug 2024 21:31:46,715 [2540] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8483' orderby ) Start
+24 Aug 2024 21:31:46,723 [2540] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8483' orderby ) end
+24 Aug 2024 21:31:46,723 [2540] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='5364' ) Start
+24 Aug 2024 21:31:47,442 [2540] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='5364' ) End
+24 Aug 2024 21:31:47,445 [2540] INFO  Log - GetAllDataFromTable(Select Profile_Image from UserAcc where email='testregularemppp@gmail.com' orderby ) Start
+24 Aug 2024 21:31:47,463 [2540] INFO  Log - GetAllDataFromTable(Select Profile_Image from UserAcc where email='testregularemppp@gmail.com' orderby ) end
+24 Aug 2024 21:34:13,471 [7444] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) Start
+24 Aug 2024 21:34:13,500 [7444] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) end
+24 Aug 2024 21:34:13,501 [7444] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+24 Aug 2024 21:34:13,513 [7444] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+24 Aug 2024 21:34:13,514 [7444] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+24 Aug 2024 21:34:13,557 [7444] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+24 Aug 2024 21:34:13,559 [7444] INFO  Log - GetNameFromId(UserType,1) Start
+24 Aug 2024 21:34:13,565 [7444] INFO  Log - GetNameFromId(UserType,1) end
+24 Aug 2024 21:34:13,580 [6516] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 3268 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) Start
+24 Aug 2024 21:34:13,646 [6516] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 3268 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) end
+24 Aug 2024 21:34:13,648 [6516] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (2078, 2079, 2082, 2095, 2096, 2097, 6126, 7125, 7126, 7127, 7128, 7129, 7130, 7131, 7132, 7134, 7135, 7136, 7137, 7143, 8161, 12224, 14229, 14230, 14232, 14234, 14235, 14236, 15235, 15236, 15237, 15238, 15239, 15240, 15241, 15243) orderby Yr desc) Start
+24 Aug 2024 21:34:13,667 [6516] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (2078, 2079, 2082, 2095, 2096, 2097, 6126, 7125, 7126, 7127, 7128, 7129, 7130, 7131, 7132, 7134, 7135, 7136, 7137, 7143, 8161, 12224, 14229, 14230, 14232, 14234, 14235, 14236, 15235, 15236, 15237, 15238, 15239, 15240, 15241, 15243) orderby Yr desc) end
+24 Aug 2024 21:34:13,667 [6516] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=3268) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) Start
+24 Aug 2024 21:34:13,687 [6516] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=3268) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) end
+24 Aug 2024 21:34:14,225 [6516] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+24 Aug 2024 21:34:14,229 [6516] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+24 Aug 2024 21:34:14,231 [6516] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+24 Aug 2024 21:34:14,247 [6516] INFO  Log - GetMenuDataFromLoginTable(4246) end
+24 Aug 2024 21:34:14,248 [6516] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+24 Aug 2024 21:34:14,254 [6516] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+24 Aug 2024 21:34:14,254 [6516] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+24 Aug 2024 21:34:14,263 [6516] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+24 Aug 2024 21:34:14,264 [6516] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+24 Aug 2024 21:34:14,279 [6516] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+24 Aug 2024 21:34:14,280 [6516] INFO  Log - Fetching menu details - Started
+24 Aug 2024 21:34:14,287 [6516] INFO  Log - Fetching menu details - Finished
+24 Aug 2024 21:34:23,890 [7444] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg where MotherOrgID = '4' orderby ) Start
+24 Aug 2024 21:34:23,895 [7444] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg where MotherOrgID = '4' orderby ) end
+24 Aug 2024 21:34:23,897 [7444] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner where EMail_primary = 'shamsuthakor@gmail.com' ) Start
+24 Aug 2024 21:34:23,913 [7444] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner where EMail_primary = 'shamsuthakor@gmail.com' ) end
+24 Aug 2024 21:34:23,914 [7444] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory where EmpId='3268' and IsActive=1 ) Start
+24 Aug 2024 21:34:23,919 [7444] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory where EmpId='3268' and IsActive=1 ) End
+24 Aug 2024 21:34:23,919 [7444] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory where EmpId='3268' and Is_Cancelled=1 ) Start
+24 Aug 2024 21:34:23,953 [7444] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory where EmpId='3268' and Is_Cancelled=1 ) End
+24 Aug 2024 21:34:23,953 [7444] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 orderby ) Start
+24 Aug 2024 21:34:23,961 [7444] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 orderby ) end
+24 Aug 2024 21:34:23,962 [7444] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 and Is_Requested_Plan=1 orderby ) Start
+24 Aug 2024 21:34:23,966 [7444] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 and Is_Requested_Plan=1 orderby ) end
+24 Aug 2024 21:34:23,967 [7444] INFO  Log - IfExistsInTable(Select IsActive from AddEmployee where EmployeeID='3268' and IsActive='NO        ' and UserType='1' ) Start
+24 Aug 2024 21:34:23,979 [7444] INFO  Log - IfExistsInTable(Select IsActive, from AddEmployee where EmployeeID='3268' and IsActive='NO        ' and UserType='1' ) end
+24 Aug 2024 21:34:23,982 [7444] INFO  Log - GetAllDataFromTable(Select BusinessID from AssginBussiness where EmployeeID=3268 and BusinessID is not null and BusinessID<>'' orderby BusinessID) Start
+24 Aug 2024 21:34:23,988 [7444] INFO  Log - GetAllDataFromTable(Select BusinessID from AssginBussiness where EmployeeID=3268 and BusinessID is not null and BusinessID<>'' orderby BusinessID) end
+24 Aug 2024 21:34:23,989 [7444] INFO  Log - GetBussForSelectBUSS(3268) Start
+24 Aug 2024 21:34:24,026 [7444] INFO  Log - IfExistsInTable(Select * from MappingTable where userid=4246 and UserTypeId=2) Start
+24 Aug 2024 21:34:24,030 [7444] INFO  Log - IfExistsInTable(Select *, from MappingTable where userid=4246 and UserTypeId=2) end
+24 Aug 2024 21:34:24,032 [7444] INFO  Log - SP_UserType(2078, 2078) Start
+24 Aug 2024 21:34:24,040 [7444] INFO  Log - SP_UserType(2078, 2078) end
+24 Aug 2024 21:34:24,042 [7444] INFO  Log - SP_UserType(2078, 2078) Start
+24 Aug 2024 21:34:24,059 [7444] INFO  Log - SP_UserType(2078, 2078) end
+24 Aug 2024 21:34:24,060 [7444] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+24 Aug 2024 21:34:24,067 [7444] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+24 Aug 2024 21:34:24,068 [7444] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+24 Aug 2024 21:34:24,085 [7444] INFO  Log - GetMenuDataFromLoginTable(4246) end
+24 Aug 2024 21:34:24,086 [7444] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+24 Aug 2024 21:34:24,092 [7444] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+24 Aug 2024 21:34:24,093 [7444] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+24 Aug 2024 21:34:24,106 [7444] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+24 Aug 2024 21:34:24,107 [7444] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+24 Aug 2024 21:34:24,131 [7444] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+24 Aug 2024 21:34:24,132 [7444] INFO  Log - Fetching menu details - Started
+24 Aug 2024 21:34:24,146 [7444] INFO  Log - Fetching menu details - Finished
+24 Aug 2024 21:34:29,519 [7444] INFO  Log - Business_Owner_Pop_up_Employee_List(2078,3268) Start
+24 Aug 2024 21:34:29,768 [7444] INFO  Log - Business_Owner_Pop_up_Employee_List(2078,3268) end
+24 Aug 2024 21:34:33,266 [7444] INFO  Log - GetAllDataFromTable(Select *,convert(nvarchar(10),HireDate,120)HireDated from AddEmployee where EmployeeID=8481 orderby ) Start
+24 Aug 2024 21:34:33,274 [7444] INFO  Log - GetAllDataFromTable(Select *,convert(nvarchar(10),HireDate,120)HireDated from AddEmployee where EmployeeID=8481 orderby ) end
+24 Aug 2024 21:34:33,367 [7444] INFO  Log - GetAllDataFromTable(Select * from EmpAddress where EmpAddressId=45611 orderby ) Start
+24 Aug 2024 21:34:33,384 [7444] INFO  Log - GetAllDataFromTable(Select * from EmpAddress where EmpAddressId=45611 orderby ) end
+24 Aug 2024 21:34:33,385 [7444] INFO  Log - GetAllDataFromTable(Select * from RateDetails where RateId=21079 and EmployeeId=8481 orderby ) Start
+24 Aug 2024 21:34:33,408 [7444] INFO  Log - GetAllDataFromTable(Select * from RateDetails where RateId=21079 and EmployeeId=8481 orderby ) end
+24 Aug 2024 21:34:33,409 [7444] INFO  Log - GetAllDataFromTable(Select MainEmail from EmpAddress with (Nolock) where EmpAddressId in (select ADDRESSID from AddEmployee where EmployeeID = 8481) orderby ) Start
+24 Aug 2024 21:34:33,424 [7444] INFO  Log - GetAllDataFromTable(Select MainEmail from EmpAddress with (Nolock) where EmpAddressId in (select ADDRESSID from AddEmployee where EmployeeID = 8481) orderby ) end
+24 Aug 2024 21:34:33,425 [7444] INFO  Log - Sp_GetSubsBuss(testregularemppp@gmail.com, 3268) Start
+24 Aug 2024 21:34:33,468 [7444] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) Start
+24 Aug 2024 21:34:33,474 [7444] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) end
+24 Aug 2024 21:34:33,476 [7444] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8482' orderby ) Start
+24 Aug 2024 21:34:33,487 [7444] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8482' orderby ) end
+24 Aug 2024 21:34:33,488 [7444] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8483' orderby ) Start
+24 Aug 2024 21:34:33,493 [7444] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8483' orderby ) end
+24 Aug 2024 21:34:33,495 [7444] INFO  Log - Sp_GetSubsBussProject(testregularemppp@gmail.com, 3268) Start
+24 Aug 2024 21:34:33,525 [7444] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) Start
+24 Aug 2024 21:34:33,531 [7444] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) end
+24 Aug 2024 21:34:33,532 [7444] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) Start
+24 Aug 2024 21:34:33,539 [7444] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) end
+24 Aug 2024 21:34:33,540 [7444] INFO  Log - Sp_GetSubsBussRate(testregularemppp@gmail.com, 3268) Start
+24 Aug 2024 21:34:33,587 [7444] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '2078' and EmployeeID = '8481' orderby ) Start
+24 Aug 2024 21:34:33,590 [7444] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '2078' and EmployeeID = '8481' orderby ) end
+24 Aug 2024 21:34:33,591 [7444] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '2078' and USERID = '8405' orderby ) Start
+24 Aug 2024 21:34:33,596 [7444] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '2078' and USERID = '8405' orderby ) end
+24 Aug 2024 21:34:33,598 [7444] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) Start
+24 Aug 2024 21:34:33,608 [7444] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) end
+24 Aug 2024 21:34:33,609 [7444] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='21079' ) Start
+24 Aug 2024 21:34:33,623 [7444] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='21079' ) End
+24 Aug 2024 21:34:33,625 [7444] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '2078' and EmployeeID = '8481' orderby ) Start
+24 Aug 2024 21:34:33,629 [7444] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '2078' and EmployeeID = '8481' orderby ) end
+24 Aug 2024 21:34:33,630 [7444] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '2079' and USERID = '8405' orderby ) Start
+24 Aug 2024 21:34:33,655 [7444] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '2079' and USERID = '8405' orderby ) end
+24 Aug 2024 21:34:33,655 [7444] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8482' orderby ) Start
+24 Aug 2024 21:34:33,668 [7444] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8482' orderby ) end
+24 Aug 2024 21:34:33,669 [7444] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='21080' ) Start
+24 Aug 2024 21:34:33,683 [7444] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='21080' ) End
+24 Aug 2024 21:34:33,685 [7444] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '2078' and EmployeeID = '8481' orderby ) Start
+24 Aug 2024 21:34:33,696 [7444] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '2078' and EmployeeID = '8481' orderby ) end
+24 Aug 2024 21:34:33,697 [7444] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '2082' and USERID = '8405' orderby ) Start
+24 Aug 2024 21:34:33,709 [7444] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '2082' and USERID = '8405' orderby ) end
+24 Aug 2024 21:34:33,709 [7444] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8483' orderby ) Start
+24 Aug 2024 21:34:33,720 [7444] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8483' orderby ) end
+24 Aug 2024 21:34:33,721 [7444] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='5364' ) Start
+24 Aug 2024 21:34:33,730 [7444] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='5364' ) End
+24 Aug 2024 21:34:33,731 [7444] INFO  Log - GetAllDataFromTable(Select Profile_Image from UserAcc where email='testregularemppp@gmail.com' orderby ) Start
+24 Aug 2024 21:34:33,750 [7444] INFO  Log - GetAllDataFromTable(Select Profile_Image from UserAcc where email='testregularemppp@gmail.com' orderby ) end
+24 Aug 2024 21:48:48,468 [3228] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) Start
+24 Aug 2024 21:48:48,663 [3228] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) end
+24 Aug 2024 21:48:48,663 [3228] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+24 Aug 2024 21:48:48,765 [3228] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+24 Aug 2024 21:48:48,766 [3228] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+24 Aug 2024 21:48:48,794 [3228] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+24 Aug 2024 21:48:48,795 [3228] INFO  Log - GetNameFromId(UserType,1) Start
+24 Aug 2024 21:48:48,827 [3228] INFO  Log - GetNameFromId(UserType,1) end
+24 Aug 2024 21:48:48,865 [11572] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 3268 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) Start
+24 Aug 2024 21:48:48,982 [11572] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 3268 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) end
+24 Aug 2024 21:48:48,983 [11572] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (2078, 2079, 2082, 2095, 2096, 2097, 6126, 7125, 7126, 7127, 7128, 7129, 7130, 7131, 7132, 7134, 7135, 7136, 7137, 7143, 8161, 12224, 14229, 14230, 14232, 14234, 14235, 14236, 15235, 15236, 15237, 15238, 15239, 15240, 15241, 15243) orderby Yr desc) Start
+24 Aug 2024 21:48:49,021 [11572] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (2078, 2079, 2082, 2095, 2096, 2097, 6126, 7125, 7126, 7127, 7128, 7129, 7130, 7131, 7132, 7134, 7135, 7136, 7137, 7143, 8161, 12224, 14229, 14230, 14232, 14234, 14235, 14236, 15235, 15236, 15237, 15238, 15239, 15240, 15241, 15243) orderby Yr desc) end
+24 Aug 2024 21:48:49,022 [11572] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=3268) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) Start
+24 Aug 2024 21:48:49,068 [11572] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=3268) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) end
+24 Aug 2024 21:48:49,854 [11572] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+24 Aug 2024 21:48:49,896 [11572] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+24 Aug 2024 21:48:49,897 [11572] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+24 Aug 2024 21:48:49,918 [11572] INFO  Log - GetMenuDataFromLoginTable(4246) end
+24 Aug 2024 21:48:49,922 [11572] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+24 Aug 2024 21:48:49,932 [11572] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+24 Aug 2024 21:48:49,933 [11572] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+24 Aug 2024 21:48:49,943 [11572] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+24 Aug 2024 21:48:49,945 [11572] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+24 Aug 2024 21:48:49,982 [11572] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+24 Aug 2024 21:48:49,983 [11572] INFO  Log - Fetching menu details - Started
+24 Aug 2024 21:49:25,138 [8216] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) Start
+24 Aug 2024 21:49:25,946 [8216] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) end
+24 Aug 2024 21:49:25,961 [8216] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+24 Aug 2024 21:49:26,003 [8216] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+24 Aug 2024 21:49:26,004 [8216] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+24 Aug 2024 21:49:26,044 [8216] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+24 Aug 2024 21:49:26,046 [8216] INFO  Log - GetNameFromId(UserType,1) Start
+24 Aug 2024 21:49:26,053 [8216] INFO  Log - GetNameFromId(UserType,1) end
+24 Aug 2024 21:49:27,877 [8408] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 3268 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) Start
+24 Aug 2024 21:49:27,968 [8408] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 3268 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) end
+24 Aug 2024 21:49:28,104 [8408] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (2078, 2079, 2082, 2095, 2096, 2097, 6126, 7125, 7126, 7127, 7128, 7129, 7130, 7131, 7132, 7134, 7135, 7136, 7137, 7143, 8161, 12224, 14229, 14230, 14232, 14234, 14235, 14236, 15235, 15236, 15237, 15238, 15239, 15240, 15241, 15243) orderby Yr desc) Start
+24 Aug 2024 21:49:28,142 [8408] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (2078, 2079, 2082, 2095, 2096, 2097, 6126, 7125, 7126, 7127, 7128, 7129, 7130, 7131, 7132, 7134, 7135, 7136, 7137, 7143, 8161, 12224, 14229, 14230, 14232, 14234, 14235, 14236, 15235, 15236, 15237, 15238, 15239, 15240, 15241, 15243) orderby Yr desc) end
+24 Aug 2024 21:49:28,145 [8408] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=3268) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) Start
+24 Aug 2024 21:49:28,209 [8408] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=3268) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) end
+24 Aug 2024 21:49:28,988 [8408] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+24 Aug 2024 21:49:29,000 [8408] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+24 Aug 2024 21:49:29,002 [8408] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+24 Aug 2024 21:49:29,017 [8408] INFO  Log - GetMenuDataFromLoginTable(4246) end
+24 Aug 2024 21:49:29,033 [8408] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+24 Aug 2024 21:49:29,046 [8408] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+24 Aug 2024 21:49:29,047 [8408] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+24 Aug 2024 21:49:29,059 [8408] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+24 Aug 2024 21:49:29,064 [8408] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+24 Aug 2024 21:49:29,116 [8408] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+24 Aug 2024 21:49:29,119 [8408] INFO  Log - Fetching menu details - Started
+24 Aug 2024 21:49:29,170 [8408] INFO  Log - Fetching menu details - Finished
+24 Aug 2024 21:49:41,177 [8216] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg where MotherOrgID = '4' orderby ) Start
+24 Aug 2024 21:49:41,188 [8216] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg where MotherOrgID = '4' orderby ) end
+24 Aug 2024 21:49:41,190 [8216] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner where EMail_primary = 'shamsuthakor@gmail.com' ) Start
+24 Aug 2024 21:49:41,196 [8216] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner where EMail_primary = 'shamsuthakor@gmail.com' ) end
+24 Aug 2024 21:49:41,197 [8216] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory where EmpId='3268' and IsActive=1 ) Start
+24 Aug 2024 21:49:41,211 [8216] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory where EmpId='3268' and IsActive=1 ) End
+24 Aug 2024 21:49:41,212 [8216] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory where EmpId='3268' and Is_Cancelled=1 ) Start
+24 Aug 2024 21:49:41,222 [8216] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory where EmpId='3268' and Is_Cancelled=1 ) End
+24 Aug 2024 21:49:41,223 [8216] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 orderby ) Start
+24 Aug 2024 21:49:41,236 [8216] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 orderby ) end
+24 Aug 2024 21:49:41,237 [8216] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 and Is_Requested_Plan=1 orderby ) Start
+24 Aug 2024 21:49:41,248 [8216] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 and Is_Requested_Plan=1 orderby ) end
+24 Aug 2024 21:49:41,250 [8216] INFO  Log - IfExistsInTable(Select IsActive from AddEmployee where EmployeeID='3268' and IsActive='NO        ' and UserType='1' ) Start
+24 Aug 2024 21:49:41,260 [8216] INFO  Log - IfExistsInTable(Select IsActive, from AddEmployee where EmployeeID='3268' and IsActive='NO        ' and UserType='1' ) end
+24 Aug 2024 21:49:41,298 [8216] INFO  Log - GetAllDataFromTable(Select BusinessID from AssginBussiness where EmployeeID=3268 and BusinessID is not null and BusinessID<>'' orderby BusinessID) Start
+24 Aug 2024 21:49:41,314 [8216] INFO  Log - GetAllDataFromTable(Select BusinessID from AssginBussiness where EmployeeID=3268 and BusinessID is not null and BusinessID<>'' orderby BusinessID) end
+24 Aug 2024 21:49:41,318 [8216] INFO  Log - GetBussForSelectBUSS(3268) Start
+24 Aug 2024 21:49:41,368 [8216] INFO  Log - IfExistsInTable(Select * from MappingTable where userid=4246 and UserTypeId=2) Start
+24 Aug 2024 21:49:41,393 [8216] INFO  Log - IfExistsInTable(Select *, from MappingTable where userid=4246 and UserTypeId=2) end
+24 Aug 2024 21:49:41,394 [8216] INFO  Log - SP_UserType(2078, 2078) Start
+24 Aug 2024 21:49:41,402 [8216] INFO  Log - SP_UserType(2078, 2078) end
+24 Aug 2024 21:49:41,404 [8216] INFO  Log - SP_UserType(2078, 2078) Start
+24 Aug 2024 21:49:41,415 [8216] INFO  Log - SP_UserType(2078, 2078) end
+24 Aug 2024 21:49:41,416 [8216] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+24 Aug 2024 21:49:41,426 [8216] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+24 Aug 2024 21:49:41,427 [8216] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+24 Aug 2024 21:49:41,443 [8216] INFO  Log - GetMenuDataFromLoginTable(4246) end
+24 Aug 2024 21:49:41,444 [8216] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+24 Aug 2024 21:49:41,458 [8216] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+24 Aug 2024 21:49:41,459 [8216] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+24 Aug 2024 21:49:41,479 [8216] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+24 Aug 2024 21:49:41,481 [8216] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+24 Aug 2024 21:49:41,511 [8216] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+24 Aug 2024 21:49:41,512 [8216] INFO  Log - Fetching menu details - Started
+24 Aug 2024 21:49:41,522 [8216] INFO  Log - Fetching menu details - Finished
+24 Aug 2024 21:49:48,985 [8408] INFO  Log - Business_Owner_Pop_up_Employee_List(2078,3268) Start
+24 Aug 2024 21:49:49,315 [8408] INFO  Log - Business_Owner_Pop_up_Employee_List(2078,3268) end
+24 Aug 2024 21:49:51,892 [8408] INFO  Log - GetAllDataFromTable(Select *,convert(nvarchar(10),HireDate,120)HireDated from AddEmployee where EmployeeID=8481 orderby ) Start
+24 Aug 2024 21:49:51,907 [8408] INFO  Log - GetAllDataFromTable(Select *,convert(nvarchar(10),HireDate,120)HireDated from AddEmployee where EmployeeID=8481 orderby ) end
+24 Aug 2024 21:49:52,033 [8408] INFO  Log - GetAllDataFromTable(Select * from EmpAddress where EmpAddressId=45611 orderby ) Start
+24 Aug 2024 21:49:52,038 [8408] INFO  Log - GetAllDataFromTable(Select * from EmpAddress where EmpAddressId=45611 orderby ) end
+24 Aug 2024 21:49:52,041 [8408] INFO  Log - GetAllDataFromTable(Select * from RateDetails where RateId=21079 and EmployeeId=8481 orderby ) Start
+24 Aug 2024 21:49:52,071 [8408] INFO  Log - GetAllDataFromTable(Select * from RateDetails where RateId=21079 and EmployeeId=8481 orderby ) end
+24 Aug 2024 21:49:52,072 [8408] INFO  Log - GetAllDataFromTable(Select MainEmail from EmpAddress with (Nolock) where EmpAddressId in (select ADDRESSID from AddEmployee where EmployeeID = 8481) orderby ) Start
+24 Aug 2024 21:49:52,102 [8408] INFO  Log - GetAllDataFromTable(Select MainEmail from EmpAddress with (Nolock) where EmpAddressId in (select ADDRESSID from AddEmployee where EmployeeID = 8481) orderby ) end
+24 Aug 2024 21:49:52,106 [8408] INFO  Log - Sp_GetSubsBuss(testregularemppp@gmail.com, 3268) Start
+24 Aug 2024 21:49:52,169 [8408] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) Start
+24 Aug 2024 21:49:52,175 [8408] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) end
+24 Aug 2024 21:49:52,177 [8408] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8482' orderby ) Start
+24 Aug 2024 21:49:52,185 [8408] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8482' orderby ) end
+24 Aug 2024 21:49:52,186 [8408] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8483' orderby ) Start
+24 Aug 2024 21:49:52,192 [8408] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8483' orderby ) end
+24 Aug 2024 21:49:52,197 [8408] INFO  Log - Sp_GetSubsBussProject(testregularemppp@gmail.com, 3268) Start
+24 Aug 2024 21:49:52,231 [8408] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) Start
+24 Aug 2024 21:49:52,239 [8408] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) end
+24 Aug 2024 21:49:52,240 [8408] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) Start
+24 Aug 2024 21:49:52,253 [8408] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) end
+24 Aug 2024 21:49:52,256 [8408] INFO  Log - Sp_GetSubsBussRate(testregularemppp@gmail.com, 3268) Start
+24 Aug 2024 21:49:52,346 [8408] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '2078' and EmployeeID = '8481' orderby ) Start
+24 Aug 2024 21:49:52,349 [8408] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '2078' and EmployeeID = '8481' orderby ) end
+24 Aug 2024 21:49:52,351 [8408] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '2078' and USERID = '8405' orderby ) Start
+24 Aug 2024 21:49:52,363 [8408] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '2078' and USERID = '8405' orderby ) end
+24 Aug 2024 21:49:52,364 [8408] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) Start
+24 Aug 2024 21:49:52,369 [8408] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) end
+24 Aug 2024 21:49:52,370 [8408] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='21079' ) Start
+24 Aug 2024 21:49:52,375 [8408] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='21079' ) End
+24 Aug 2024 21:49:52,381 [8408] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '2078' and EmployeeID = '8481' orderby ) Start
+24 Aug 2024 21:49:52,399 [8408] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '2078' and EmployeeID = '8481' orderby ) end
+24 Aug 2024 21:49:52,399 [8408] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '2079' and USERID = '8405' orderby ) Start
+24 Aug 2024 21:49:52,406 [8408] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '2079' and USERID = '8405' orderby ) end
+24 Aug 2024 21:49:52,407 [8408] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8482' orderby ) Start
+24 Aug 2024 21:49:52,424 [8408] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8482' orderby ) end
+24 Aug 2024 21:49:52,425 [8408] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='21080' ) Start
+24 Aug 2024 21:49:52,428 [8408] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='21080' ) End
+24 Aug 2024 21:49:52,430 [8408] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '2078' and EmployeeID = '8481' orderby ) Start
+24 Aug 2024 21:49:52,435 [8408] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '2078' and EmployeeID = '8481' orderby ) end
+24 Aug 2024 21:49:52,436 [8408] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '2082' and USERID = '8405' orderby ) Start
+24 Aug 2024 21:49:52,445 [8408] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '2082' and USERID = '8405' orderby ) end
+24 Aug 2024 21:49:52,446 [8408] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8483' orderby ) Start
+24 Aug 2024 21:49:52,453 [8408] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8483' orderby ) end
+24 Aug 2024 21:49:52,454 [8408] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='5364' ) Start
+24 Aug 2024 21:49:52,457 [8408] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='5364' ) End
+24 Aug 2024 21:49:52,458 [8408] INFO  Log - GetAllDataFromTable(Select Profile_Image from UserAcc where email='testregularemppp@gmail.com' orderby ) Start
+24 Aug 2024 21:49:52,471 [8408] INFO  Log - GetAllDataFromTable(Select Profile_Image from UserAcc where email='testregularemppp@gmail.com' orderby ) end
+24 Aug 2024 21:49:55,417 [8408] INFO  Log - ExecuteQuery(select  mp_Stauts,ateTime_Stamp from Emp_Active_Inactive_Status EmpId=3268 order by DateTime_Stamp DESC) Start
+24 Aug 2024 21:49:55,505 [8408] ERROR Log - ExecuteQuery(select  mp_Stauts,ateTime_Stamp from Emp_Active_Inactive_Status EmpId=3268 order by DateTime_Stamp DESC) Incorrect syntax near '='.
+24 Aug 2024 21:51:59,929 [7532] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) Start
+24 Aug 2024 21:52:01,580 [7532] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) end
+24 Aug 2024 21:52:01,581 [7532] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+24 Aug 2024 21:52:03,575 [7532] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+24 Aug 2024 21:52:03,576 [7532] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+24 Aug 2024 21:52:03,705 [7532] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+24 Aug 2024 21:52:03,706 [7532] INFO  Log - GetNameFromId(UserType,1) Start
+24 Aug 2024 21:52:03,766 [7532] INFO  Log - GetNameFromId(UserType,1) end
+24 Aug 2024 21:52:03,800 [7532] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 3268 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) Start
+24 Aug 2024 21:52:04,069 [7532] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 3268 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) end
+24 Aug 2024 21:52:04,070 [7532] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (2078, 2079, 2082, 2095, 2096, 2097, 6126, 7125, 7126, 7127, 7128, 7129, 7130, 7131, 7132, 7134, 7135, 7136, 7137, 7143, 8161, 12224, 14229, 14230, 14232, 14234, 14235, 14236, 15235, 15236, 15237, 15238, 15239, 15240, 15241, 15243) orderby Yr desc) Start
+24 Aug 2024 21:52:04,134 [7532] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (2078, 2079, 2082, 2095, 2096, 2097, 6126, 7125, 7126, 7127, 7128, 7129, 7130, 7131, 7132, 7134, 7135, 7136, 7137, 7143, 8161, 12224, 14229, 14230, 14232, 14234, 14235, 14236, 15235, 15236, 15237, 15238, 15239, 15240, 15241, 15243) orderby Yr desc) end
+24 Aug 2024 21:52:04,135 [7532] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=3268) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) Start
+24 Aug 2024 21:52:04,329 [7532] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=3268) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) end
+24 Aug 2024 21:52:05,201 [7532] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+24 Aug 2024 21:52:06,161 [7532] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+24 Aug 2024 21:52:06,162 [7532] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+24 Aug 2024 21:52:06,313 [7532] INFO  Log - GetMenuDataFromLoginTable(4246) end
+24 Aug 2024 21:52:06,313 [7532] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+24 Aug 2024 21:52:06,423 [7532] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+24 Aug 2024 21:52:06,424 [7532] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+24 Aug 2024 21:52:06,497 [7532] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+24 Aug 2024 21:52:06,498 [7532] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+24 Aug 2024 21:52:06,776 [7532] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+24 Aug 2024 21:52:06,777 [7532] INFO  Log - Fetching menu details - Started
+24 Aug 2024 21:52:06,807 [7532] INFO  Log - Fetching menu details - Finished
+24 Aug 2024 21:52:18,219 [2796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg where MotherOrgID = '4' orderby ) Start
+24 Aug 2024 21:52:18,224 [2796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg where MotherOrgID = '4' orderby ) end
+24 Aug 2024 21:52:18,225 [2796] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner where EMail_primary = 'shamsuthakor@gmail.com' ) Start
+24 Aug 2024 21:52:18,238 [2796] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner where EMail_primary = 'shamsuthakor@gmail.com' ) end
+24 Aug 2024 21:52:18,239 [2796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory where EmpId='3268' and IsActive=1 ) Start
+24 Aug 2024 21:52:18,249 [2796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory where EmpId='3268' and IsActive=1 ) End
+24 Aug 2024 21:52:18,250 [2796] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory where EmpId='3268' and Is_Cancelled=1 ) Start
+24 Aug 2024 21:52:18,260 [2796] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory where EmpId='3268' and Is_Cancelled=1 ) End
+24 Aug 2024 21:52:18,261 [2796] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 orderby ) Start
+24 Aug 2024 21:52:18,276 [2796] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 orderby ) end
+24 Aug 2024 21:52:18,277 [2796] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 and Is_Requested_Plan=1 orderby ) Start
+24 Aug 2024 21:52:18,287 [2796] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 and Is_Requested_Plan=1 orderby ) end
+24 Aug 2024 21:52:18,288 [2796] INFO  Log - IfExistsInTable(Select IsActive from AddEmployee where EmployeeID='3268' and IsActive='NO        ' and UserType='1' ) Start
+24 Aug 2024 21:52:18,302 [2796] INFO  Log - IfExistsInTable(Select IsActive, from AddEmployee where EmployeeID='3268' and IsActive='NO        ' and UserType='1' ) end
+24 Aug 2024 21:52:18,308 [2796] INFO  Log - GetAllDataFromTable(Select BusinessID from AssginBussiness where EmployeeID=3268 and BusinessID is not null and BusinessID<>'' orderby BusinessID) Start
+24 Aug 2024 21:52:18,325 [2796] INFO  Log - GetAllDataFromTable(Select BusinessID from AssginBussiness where EmployeeID=3268 and BusinessID is not null and BusinessID<>'' orderby BusinessID) end
+24 Aug 2024 21:52:18,327 [2796] INFO  Log - GetBussForSelectBUSS(3268) Start
+24 Aug 2024 21:52:18,385 [2796] INFO  Log - IfExistsInTable(Select * from MappingTable where userid=4246 and UserTypeId=2) Start
+24 Aug 2024 21:52:18,395 [2796] INFO  Log - IfExistsInTable(Select *, from MappingTable where userid=4246 and UserTypeId=2) end
+24 Aug 2024 21:52:18,396 [2796] INFO  Log - SP_UserType(2078, 2078) Start
+24 Aug 2024 21:52:18,447 [2796] INFO  Log - SP_UserType(2078, 2078) end
+24 Aug 2024 21:52:18,448 [2796] INFO  Log - SP_UserType(2078, 2078) Start
+24 Aug 2024 21:52:18,470 [2796] INFO  Log - SP_UserType(2078, 2078) end
+24 Aug 2024 21:52:18,471 [2796] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+24 Aug 2024 21:52:18,481 [2796] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+24 Aug 2024 21:52:18,482 [2796] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+24 Aug 2024 21:52:18,495 [2796] INFO  Log - GetMenuDataFromLoginTable(4246) end
+24 Aug 2024 21:52:18,496 [2796] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+24 Aug 2024 21:52:18,505 [2796] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+24 Aug 2024 21:52:18,506 [2796] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+24 Aug 2024 21:52:18,520 [2796] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+24 Aug 2024 21:52:18,521 [2796] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+24 Aug 2024 21:52:18,563 [2796] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+24 Aug 2024 21:52:18,564 [2796] INFO  Log - Fetching menu details - Started
+24 Aug 2024 21:52:18,574 [2796] INFO  Log - Fetching menu details - Finished
+24 Aug 2024 21:52:23,345 [11800] INFO  Log - Business_Owner_Pop_up_Employee_List(2078,3268) Start
+24 Aug 2024 21:52:23,608 [11800] INFO  Log - Business_Owner_Pop_up_Employee_List(2078,3268) end
+24 Aug 2024 21:52:27,167 [2796] INFO  Log - GetAllDataFromTable(Select *,convert(nvarchar(10),HireDate,120)HireDated from AddEmployee where EmployeeID=8481 orderby ) Start
+24 Aug 2024 21:52:27,184 [2796] INFO  Log - GetAllDataFromTable(Select *,convert(nvarchar(10),HireDate,120)HireDated from AddEmployee where EmployeeID=8481 orderby ) end
+24 Aug 2024 21:52:27,301 [2796] INFO  Log - GetAllDataFromTable(Select * from EmpAddress where EmpAddressId=45611 orderby ) Start
+24 Aug 2024 21:52:27,307 [2796] INFO  Log - GetAllDataFromTable(Select * from EmpAddress where EmpAddressId=45611 orderby ) end
+24 Aug 2024 21:52:27,308 [2796] INFO  Log - GetAllDataFromTable(Select * from RateDetails where RateId=21079 and EmployeeId=8481 orderby ) Start
+24 Aug 2024 21:52:27,318 [2796] INFO  Log - GetAllDataFromTable(Select * from RateDetails where RateId=21079 and EmployeeId=8481 orderby ) end
+24 Aug 2024 21:52:27,319 [2796] INFO  Log - GetAllDataFromTable(Select MainEmail from EmpAddress with (Nolock) where EmpAddressId in (select ADDRESSID from AddEmployee where EmployeeID = 8481) orderby ) Start
+24 Aug 2024 21:52:27,333 [2796] INFO  Log - GetAllDataFromTable(Select MainEmail from EmpAddress with (Nolock) where EmpAddressId in (select ADDRESSID from AddEmployee where EmployeeID = 8481) orderby ) end
+24 Aug 2024 21:52:27,335 [2796] INFO  Log - Sp_GetSubsBuss(testregularemppp@gmail.com, 3268) Start
+24 Aug 2024 21:52:27,372 [2796] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) Start
+24 Aug 2024 21:52:27,378 [2796] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) end
+24 Aug 2024 21:52:27,380 [2796] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8482' orderby ) Start
+24 Aug 2024 21:52:27,387 [2796] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8482' orderby ) end
+24 Aug 2024 21:52:27,388 [2796] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8483' orderby ) Start
+24 Aug 2024 21:52:27,396 [2796] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8483' orderby ) end
+24 Aug 2024 21:52:27,397 [2796] INFO  Log - Sp_GetSubsBussProject(testregularemppp@gmail.com, 3268) Start
+24 Aug 2024 21:52:27,430 [2796] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) Start
+24 Aug 2024 21:52:27,438 [2796] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) end
+24 Aug 2024 21:52:27,439 [2796] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) Start
+24 Aug 2024 21:52:27,452 [2796] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) end
+24 Aug 2024 21:52:27,455 [2796] INFO  Log - Sp_GetSubsBussRate(testregularemppp@gmail.com, 3268) Start
+24 Aug 2024 21:52:27,556 [2796] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '2078' and EmployeeID = '8481' orderby ) Start
+24 Aug 2024 21:52:27,584 [2796] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '2078' and EmployeeID = '8481' orderby ) end
+24 Aug 2024 21:52:27,585 [2796] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '2078' and USERID = '8405' orderby ) Start
+24 Aug 2024 21:52:27,609 [2796] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '2078' and USERID = '8405' orderby ) end
+24 Aug 2024 21:52:27,610 [2796] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) Start
+24 Aug 2024 21:52:27,634 [2796] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) end
+24 Aug 2024 21:52:27,635 [2796] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='21079' ) Start
+24 Aug 2024 21:52:27,654 [2796] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='21079' ) End
+24 Aug 2024 21:52:27,655 [2796] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '2078' and EmployeeID = '8481' orderby ) Start
+24 Aug 2024 21:52:27,683 [2796] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '2078' and EmployeeID = '8481' orderby ) end
+24 Aug 2024 21:52:27,684 [2796] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '2079' and USERID = '8405' orderby ) Start
+24 Aug 2024 21:52:27,708 [2796] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '2079' and USERID = '8405' orderby ) end
+24 Aug 2024 21:52:27,709 [2796] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8482' orderby ) Start
+24 Aug 2024 21:52:27,736 [2796] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8482' orderby ) end
+24 Aug 2024 21:52:27,737 [2796] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='21080' ) Start
+24 Aug 2024 21:52:27,760 [2796] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='21080' ) End
+24 Aug 2024 21:52:27,761 [2796] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '2078' and EmployeeID = '8481' orderby ) Start
+24 Aug 2024 21:52:27,785 [2796] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '2078' and EmployeeID = '8481' orderby ) end
+24 Aug 2024 21:52:27,786 [2796] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '2082' and USERID = '8405' orderby ) Start
+24 Aug 2024 21:52:27,809 [2796] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '2082' and USERID = '8405' orderby ) end
+24 Aug 2024 21:52:27,810 [2796] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8483' orderby ) Start
+24 Aug 2024 21:52:27,834 [2796] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8483' orderby ) end
+24 Aug 2024 21:52:27,835 [2796] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='5364' ) Start
+24 Aug 2024 21:52:27,857 [2796] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='5364' ) End
+24 Aug 2024 21:52:27,858 [2796] INFO  Log - GetAllDataFromTable(Select Profile_Image from UserAcc where email='testregularemppp@gmail.com' orderby ) Start
+24 Aug 2024 21:52:27,886 [2796] INFO  Log - GetAllDataFromTable(Select Profile_Image from UserAcc where email='testregularemppp@gmail.com' orderby ) end
+24 Aug 2024 21:52:30,434 [8408] INFO  Log - ExecuteQuery(select  mp_Stauts,DateTime_Stamp from Emp_Active_Inactive_Status EmpId=3268 order by DateTime_Stamp DESC) Start
+24 Aug 2024 21:52:30,483 [8408] ERROR Log - ExecuteQuery(select  mp_Stauts,DateTime_Stamp from Emp_Active_Inactive_Status EmpId=3268 order by DateTime_Stamp DESC) Incorrect syntax near '='.
+24 Aug 2024 21:54:18,497 [2796] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) Start
+24 Aug 2024 21:54:18,602 [2796] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) end
+24 Aug 2024 21:54:18,603 [2796] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+24 Aug 2024 21:54:19,457 [2796] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+24 Aug 2024 21:54:19,458 [2796] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+24 Aug 2024 21:54:19,766 [2796] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+24 Aug 2024 21:54:19,767 [2796] INFO  Log - GetNameFromId(UserType,1) Start
+24 Aug 2024 21:54:19,807 [2796] INFO  Log - GetNameFromId(UserType,1) end
+24 Aug 2024 21:54:20,403 [11800] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 3268 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) Start
+24 Aug 2024 21:54:20,907 [11800] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 3268 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) end
+24 Aug 2024 21:54:20,909 [11800] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (2078, 2079, 2082, 2095, 2096, 2097, 6126, 7125, 7126, 7127, 7128, 7129, 7130, 7131, 7132, 7134, 7135, 7136, 7137, 7143, 8161, 12224, 14229, 14230, 14232, 14234, 14235, 14236, 15235, 15236, 15237, 15238, 15239, 15240, 15241, 15243) orderby Yr desc) Start
+24 Aug 2024 21:54:20,946 [11800] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (2078, 2079, 2082, 2095, 2096, 2097, 6126, 7125, 7126, 7127, 7128, 7129, 7130, 7131, 7132, 7134, 7135, 7136, 7137, 7143, 8161, 12224, 14229, 14230, 14232, 14234, 14235, 14236, 15235, 15236, 15237, 15238, 15239, 15240, 15241, 15243) orderby Yr desc) end
+24 Aug 2024 21:54:20,947 [11800] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=3268) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) Start
+24 Aug 2024 21:54:20,995 [11800] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=3268) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) end
+24 Aug 2024 21:54:22,198 [11800] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+24 Aug 2024 21:54:22,234 [11800] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+24 Aug 2024 21:54:22,235 [11800] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+24 Aug 2024 21:54:22,275 [11800] INFO  Log - GetMenuDataFromLoginTable(4246) end
+24 Aug 2024 21:54:22,276 [11800] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+24 Aug 2024 21:54:22,570 [11800] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+24 Aug 2024 21:54:22,571 [11800] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+24 Aug 2024 21:54:22,670 [11800] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+24 Aug 2024 21:54:22,671 [11800] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+24 Aug 2024 21:54:22,804 [11800] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+24 Aug 2024 21:54:22,805 [11800] INFO  Log - Fetching menu details - Started
+24 Aug 2024 21:54:22,934 [11800] INFO  Log - Fetching menu details - Finished
+24 Aug 2024 21:54:36,959 [11800] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg where MotherOrgID = '4' orderby ) Start
+24 Aug 2024 21:54:36,965 [11800] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg where MotherOrgID = '4' orderby ) end
+24 Aug 2024 21:54:36,966 [11800] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner where EMail_primary = 'shamsuthakor@gmail.com' ) Start
+24 Aug 2024 21:54:36,981 [11800] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner where EMail_primary = 'shamsuthakor@gmail.com' ) end
+24 Aug 2024 21:54:36,982 [11800] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory where EmpId='3268' and IsActive=1 ) Start
+24 Aug 2024 21:54:36,998 [11800] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory where EmpId='3268' and IsActive=1 ) End
+24 Aug 2024 21:54:36,999 [11800] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory where EmpId='3268' and Is_Cancelled=1 ) Start
+24 Aug 2024 21:54:37,039 [11800] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory where EmpId='3268' and Is_Cancelled=1 ) End
+24 Aug 2024 21:54:37,040 [11800] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 orderby ) Start
+24 Aug 2024 21:54:37,071 [11800] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 orderby ) end
+24 Aug 2024 21:54:37,072 [11800] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 and Is_Requested_Plan=1 orderby ) Start
+24 Aug 2024 21:54:37,076 [11800] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 and Is_Requested_Plan=1 orderby ) end
+24 Aug 2024 21:54:37,078 [11800] INFO  Log - IfExistsInTable(Select IsActive from AddEmployee where EmployeeID='3268' and IsActive='NO        ' and UserType='1' ) Start
+24 Aug 2024 21:54:37,085 [11800] INFO  Log - IfExistsInTable(Select IsActive, from AddEmployee where EmployeeID='3268' and IsActive='NO        ' and UserType='1' ) end
+24 Aug 2024 21:54:37,088 [11800] INFO  Log - GetAllDataFromTable(Select BusinessID from AssginBussiness where EmployeeID=3268 and BusinessID is not null and BusinessID<>'' orderby BusinessID) Start
+24 Aug 2024 21:54:37,093 [11800] INFO  Log - GetAllDataFromTable(Select BusinessID from AssginBussiness where EmployeeID=3268 and BusinessID is not null and BusinessID<>'' orderby BusinessID) end
+24 Aug 2024 21:54:37,096 [11800] INFO  Log - GetBussForSelectBUSS(3268) Start
+24 Aug 2024 21:54:37,641 [11800] INFO  Log - IfExistsInTable(Select * from MappingTable where userid=4246 and UserTypeId=2) Start
+24 Aug 2024 21:54:37,647 [11800] INFO  Log - IfExistsInTable(Select *, from MappingTable where userid=4246 and UserTypeId=2) end
+24 Aug 2024 21:54:37,648 [11800] INFO  Log - SP_UserType(2078, 2078) Start
+24 Aug 2024 21:54:37,678 [11800] INFO  Log - SP_UserType(2078, 2078) end
+24 Aug 2024 21:54:37,680 [11800] INFO  Log - SP_UserType(2078, 2078) Start
+24 Aug 2024 21:54:37,708 [11800] INFO  Log - SP_UserType(2078, 2078) end
+24 Aug 2024 21:54:37,710 [11800] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+24 Aug 2024 21:54:37,736 [11800] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+24 Aug 2024 21:54:37,737 [11800] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+24 Aug 2024 21:54:37,756 [11800] INFO  Log - GetMenuDataFromLoginTable(4246) end
+24 Aug 2024 21:54:37,757 [11800] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+24 Aug 2024 21:54:37,761 [11800] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+24 Aug 2024 21:54:37,762 [11800] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+24 Aug 2024 21:54:37,772 [11800] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+24 Aug 2024 21:54:37,773 [11800] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+24 Aug 2024 21:54:37,788 [11800] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+24 Aug 2024 21:54:37,789 [11800] INFO  Log - Fetching menu details - Started
+24 Aug 2024 21:54:37,793 [11800] INFO  Log - Fetching menu details - Finished
+24 Aug 2024 21:54:38,042 [2796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg where MotherOrgID = '4' orderby ) Start
+24 Aug 2024 21:54:38,061 [2796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg where MotherOrgID = '4' orderby ) end
+24 Aug 2024 21:54:38,062 [2796] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner where EMail_primary = 'shamsuthakor@gmail.com' ) Start
+24 Aug 2024 21:54:38,070 [2796] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner where EMail_primary = 'shamsuthakor@gmail.com' ) end
+24 Aug 2024 21:54:38,071 [2796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory where EmpId='3268' and IsActive=1 ) Start
+24 Aug 2024 21:54:38,106 [2796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory where EmpId='3268' and IsActive=1 ) End
+24 Aug 2024 21:54:38,107 [2796] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory where EmpId='3268' and Is_Cancelled=1 ) Start
+24 Aug 2024 21:54:38,135 [2796] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory where EmpId='3268' and Is_Cancelled=1 ) End
+24 Aug 2024 21:54:38,136 [2796] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 orderby ) Start
+24 Aug 2024 21:54:38,163 [2796] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 orderby ) end
+24 Aug 2024 21:54:38,164 [2796] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 and Is_Requested_Plan=1 orderby ) Start
+24 Aug 2024 21:54:38,200 [2796] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 and Is_Requested_Plan=1 orderby ) end
+24 Aug 2024 21:54:38,202 [2796] INFO  Log - IfExistsInTable(Select IsActive from AddEmployee where EmployeeID='3268' and IsActive='NO        ' and UserType='1' ) Start
+24 Aug 2024 21:54:38,233 [2796] INFO  Log - IfExistsInTable(Select IsActive, from AddEmployee where EmployeeID='3268' and IsActive='NO        ' and UserType='1' ) end
+24 Aug 2024 21:54:38,234 [2796] INFO  Log - GetAllDataFromTable(Select BusinessID from AssginBussiness where EmployeeID=3268 and BusinessID is not null and BusinessID<>'' orderby BusinessID) Start
+24 Aug 2024 21:54:38,262 [2796] INFO  Log - GetAllDataFromTable(Select BusinessID from AssginBussiness where EmployeeID=3268 and BusinessID is not null and BusinessID<>'' orderby BusinessID) end
+24 Aug 2024 21:54:38,263 [2796] INFO  Log - GetBussForSelectBUSS(3268) Start
+24 Aug 2024 21:54:38,299 [2796] INFO  Log - IfExistsInTable(Select * from MappingTable where userid=4246 and UserTypeId=2) Start
+24 Aug 2024 21:54:38,322 [2796] INFO  Log - IfExistsInTable(Select *, from MappingTable where userid=4246 and UserTypeId=2) end
+24 Aug 2024 21:54:38,323 [2796] INFO  Log - SP_UserType(2078, 2078) Start
+24 Aug 2024 21:54:38,342 [2796] INFO  Log - SP_UserType(2078, 2078) end
+24 Aug 2024 21:54:38,343 [2796] INFO  Log - SP_UserType(2078, 2078) Start
+24 Aug 2024 21:54:38,357 [2796] INFO  Log - SP_UserType(2078, 2078) end
+24 Aug 2024 21:54:38,358 [2796] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+24 Aug 2024 21:54:38,370 [2796] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+24 Aug 2024 21:54:38,370 [2796] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+24 Aug 2024 21:54:38,377 [2796] INFO  Log - GetMenuDataFromLoginTable(4246) end
+24 Aug 2024 21:54:38,378 [2796] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+24 Aug 2024 21:54:38,391 [2796] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+24 Aug 2024 21:54:38,392 [2796] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+24 Aug 2024 21:54:38,404 [2796] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+24 Aug 2024 21:54:38,406 [2796] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+24 Aug 2024 21:54:38,428 [2796] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+24 Aug 2024 21:54:38,431 [2796] INFO  Log - Fetching menu details - Started
+24 Aug 2024 21:54:38,439 [2796] INFO  Log - Fetching menu details - Finished
+24 Aug 2024 21:54:43,502 [8408] INFO  Log - Business_Owner_Pop_up_Employee_List(2078,3268) Start
+24 Aug 2024 21:54:43,831 [8408] INFO  Log - Business_Owner_Pop_up_Employee_List(2078,3268) end
+24 Aug 2024 21:54:47,181 [2796] INFO  Log - GetAllDataFromTable(Select *,convert(nvarchar(10),HireDate,120)HireDated from AddEmployee where EmployeeID=8481 orderby ) Start
+24 Aug 2024 21:54:47,203 [2796] INFO  Log - GetAllDataFromTable(Select *,convert(nvarchar(10),HireDate,120)HireDated from AddEmployee where EmployeeID=8481 orderby ) end
+24 Aug 2024 21:54:47,331 [2796] INFO  Log - GetAllDataFromTable(Select * from EmpAddress where EmpAddressId=45611 orderby ) Start
+24 Aug 2024 21:54:47,344 [2796] INFO  Log - GetAllDataFromTable(Select * from EmpAddress where EmpAddressId=45611 orderby ) end
+24 Aug 2024 21:54:47,345 [2796] INFO  Log - GetAllDataFromTable(Select * from RateDetails where RateId=21079 and EmployeeId=8481 orderby ) Start
+24 Aug 2024 21:54:47,356 [2796] INFO  Log - GetAllDataFromTable(Select * from RateDetails where RateId=21079 and EmployeeId=8481 orderby ) end
+24 Aug 2024 21:54:47,357 [2796] INFO  Log - GetAllDataFromTable(Select MainEmail from EmpAddress with (Nolock) where EmpAddressId in (select ADDRESSID from AddEmployee where EmployeeID = 8481) orderby ) Start
+24 Aug 2024 21:54:47,371 [2796] INFO  Log - GetAllDataFromTable(Select MainEmail from EmpAddress with (Nolock) where EmpAddressId in (select ADDRESSID from AddEmployee where EmployeeID = 8481) orderby ) end
+24 Aug 2024 21:54:47,378 [2796] INFO  Log - Sp_GetSubsBuss(testregularemppp@gmail.com, 3268) Start
+24 Aug 2024 21:54:47,418 [2796] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) Start
+24 Aug 2024 21:54:47,425 [2796] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) end
+24 Aug 2024 21:54:47,426 [2796] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8482' orderby ) Start
+24 Aug 2024 21:54:47,440 [2796] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8482' orderby ) end
+24 Aug 2024 21:54:47,441 [2796] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8483' orderby ) Start
+24 Aug 2024 21:54:47,450 [2796] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8483' orderby ) end
+24 Aug 2024 21:54:47,459 [2796] INFO  Log - Sp_GetSubsBussProject(testregularemppp@gmail.com, 3268) Start
+24 Aug 2024 21:54:47,492 [2796] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) Start
+24 Aug 2024 21:54:47,516 [2796] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) end
+24 Aug 2024 21:54:47,517 [2796] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) Start
+24 Aug 2024 21:54:47,526 [2796] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) end
+24 Aug 2024 21:54:47,536 [2796] INFO  Log - Sp_GetSubsBussRate(testregularemppp@gmail.com, 3268) Start
+24 Aug 2024 21:54:47,624 [2796] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '2078' and EmployeeID = '8481' orderby ) Start
+24 Aug 2024 21:54:47,635 [2796] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '2078' and EmployeeID = '8481' orderby ) end
+24 Aug 2024 21:54:47,636 [2796] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '2078' and USERID = '8405' orderby ) Start
+24 Aug 2024 21:54:47,647 [2796] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '2078' and USERID = '8405' orderby ) end
+24 Aug 2024 21:54:47,648 [2796] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) Start
+24 Aug 2024 21:54:47,661 [2796] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) end
+24 Aug 2024 21:54:47,663 [2796] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='21079' ) Start
+24 Aug 2024 21:54:47,671 [2796] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='21079' ) End
+24 Aug 2024 21:54:47,674 [2796] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '2078' and EmployeeID = '8481' orderby ) Start
+24 Aug 2024 21:54:47,685 [2796] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '2078' and EmployeeID = '8481' orderby ) end
+24 Aug 2024 21:54:47,686 [2796] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '2079' and USERID = '8405' orderby ) Start
+24 Aug 2024 21:54:47,708 [2796] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '2079' and USERID = '8405' orderby ) end
+24 Aug 2024 21:54:47,710 [2796] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8482' orderby ) Start
+24 Aug 2024 21:54:47,757 [2796] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8482' orderby ) end
+24 Aug 2024 21:54:47,758 [2796] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='21080' ) Start
+24 Aug 2024 21:54:47,767 [2796] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='21080' ) End
+24 Aug 2024 21:54:47,768 [2796] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '2078' and EmployeeID = '8481' orderby ) Start
+24 Aug 2024 21:54:47,783 [2796] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '2078' and EmployeeID = '8481' orderby ) end
+24 Aug 2024 21:54:47,783 [2796] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '2082' and USERID = '8405' orderby ) Start
+24 Aug 2024 21:54:47,791 [2796] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '2082' and USERID = '8405' orderby ) end
+24 Aug 2024 21:54:47,793 [2796] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8483' orderby ) Start
+24 Aug 2024 21:54:47,810 [2796] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8483' orderby ) end
+24 Aug 2024 21:54:47,811 [2796] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='5364' ) Start
+24 Aug 2024 21:54:47,822 [2796] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='5364' ) End
+24 Aug 2024 21:54:47,823 [2796] INFO  Log - GetAllDataFromTable(Select Profile_Image from UserAcc where email='testregularemppp@gmail.com' orderby ) Start
+24 Aug 2024 21:54:47,834 [2796] INFO  Log - GetAllDataFromTable(Select Profile_Image from UserAcc where email='testregularemppp@gmail.com' orderby ) end
+24 Aug 2024 21:54:49,684 [11800] INFO  Log - ExecuteQuery(select  mp_Stauts,Effective_Date, DateTime_Stamp from Emp_Active_Inactive_Status EmpId=3268 order by DateTime_Stamp DESC) Start
+24 Aug 2024 21:54:49,747 [11800] ERROR Log - ExecuteQuery(select  mp_Stauts,Effective_Date, DateTime_Stamp from Emp_Active_Inactive_Status EmpId=3268 order by DateTime_Stamp DESC) Incorrect syntax near '='.
+24 Aug 2024 21:55:40,656 [11800] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) Start
+24 Aug 2024 21:55:42,220 [11800] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) end
+24 Aug 2024 21:55:42,221 [11800] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+24 Aug 2024 21:55:44,169 [11800] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+24 Aug 2024 21:55:44,170 [11800] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+24 Aug 2024 21:55:44,604 [11800] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+24 Aug 2024 21:55:44,604 [11800] INFO  Log - GetNameFromId(UserType,1) Start
+24 Aug 2024 21:55:44,664 [11800] INFO  Log - GetNameFromId(UserType,1) end
+24 Aug 2024 21:55:44,714 [11800] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 3268 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) Start
+24 Aug 2024 21:55:44,874 [11800] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 3268 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) end
+24 Aug 2024 21:55:44,875 [11800] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (2078, 2079, 2082, 2095, 2096, 2097, 6126, 7125, 7126, 7127, 7128, 7129, 7130, 7131, 7132, 7134, 7135, 7136, 7137, 7143, 8161, 12224, 14229, 14230, 14232, 14234, 14235, 14236, 15235, 15236, 15237, 15238, 15239, 15240, 15241, 15243) orderby Yr desc) Start
+24 Aug 2024 21:55:45,043 [11800] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (2078, 2079, 2082, 2095, 2096, 2097, 6126, 7125, 7126, 7127, 7128, 7129, 7130, 7131, 7132, 7134, 7135, 7136, 7137, 7143, 8161, 12224, 14229, 14230, 14232, 14234, 14235, 14236, 15235, 15236, 15237, 15238, 15239, 15240, 15241, 15243) orderby Yr desc) end
+24 Aug 2024 21:55:45,043 [11800] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=3268) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) Start
+24 Aug 2024 21:55:45,081 [11800] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=3268) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) end
+24 Aug 2024 21:55:45,976 [11800] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+24 Aug 2024 21:55:46,981 [11800] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+24 Aug 2024 21:55:46,982 [11800] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+24 Aug 2024 21:55:47,012 [11800] INFO  Log - GetMenuDataFromLoginTable(4246) end
+24 Aug 2024 21:55:47,013 [11800] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+24 Aug 2024 21:55:47,258 [11800] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+24 Aug 2024 21:55:47,258 [11800] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+24 Aug 2024 21:55:47,281 [11800] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+24 Aug 2024 21:55:47,282 [11800] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+24 Aug 2024 21:55:47,306 [11800] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+24 Aug 2024 21:55:47,307 [11800] INFO  Log - Fetching menu details - Started
+24 Aug 2024 21:55:47,314 [11800] INFO  Log - Fetching menu details - Finished
+24 Aug 2024 21:55:58,567 [11800] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg where MotherOrgID = '4' orderby ) Start
+24 Aug 2024 21:55:58,571 [11800] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg where MotherOrgID = '4' orderby ) end
+24 Aug 2024 21:55:58,572 [11800] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner where EMail_primary = 'shamsuthakor@gmail.com' ) Start
+24 Aug 2024 21:55:58,577 [11800] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner where EMail_primary = 'shamsuthakor@gmail.com' ) end
+24 Aug 2024 21:55:58,578 [11800] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory where EmpId='3268' and IsActive=1 ) Start
+24 Aug 2024 21:55:58,581 [11800] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory where EmpId='3268' and IsActive=1 ) End
+24 Aug 2024 21:55:58,582 [11800] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory where EmpId='3268' and Is_Cancelled=1 ) Start
+24 Aug 2024 21:55:58,587 [11800] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory where EmpId='3268' and Is_Cancelled=1 ) End
+24 Aug 2024 21:55:58,588 [11800] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 orderby ) Start
+24 Aug 2024 21:55:58,593 [11800] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 orderby ) end
+24 Aug 2024 21:55:58,594 [11800] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 and Is_Requested_Plan=1 orderby ) Start
+24 Aug 2024 21:55:58,604 [11800] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 and Is_Requested_Plan=1 orderby ) end
+24 Aug 2024 21:55:58,605 [11800] INFO  Log - IfExistsInTable(Select IsActive from AddEmployee where EmployeeID='3268' and IsActive='NO        ' and UserType='1' ) Start
+24 Aug 2024 21:55:58,624 [11800] INFO  Log - IfExistsInTable(Select IsActive, from AddEmployee where EmployeeID='3268' and IsActive='NO        ' and UserType='1' ) end
+24 Aug 2024 21:55:58,627 [11800] INFO  Log - GetAllDataFromTable(Select BusinessID from AssginBussiness where EmployeeID=3268 and BusinessID is not null and BusinessID<>'' orderby BusinessID) Start
+24 Aug 2024 21:55:58,653 [11800] INFO  Log - GetAllDataFromTable(Select BusinessID from AssginBussiness where EmployeeID=3268 and BusinessID is not null and BusinessID<>'' orderby BusinessID) end
+24 Aug 2024 21:55:58,654 [11800] INFO  Log - GetBussForSelectBUSS(3268) Start
+24 Aug 2024 21:55:58,687 [11800] INFO  Log - IfExistsInTable(Select * from MappingTable where userid=4246 and UserTypeId=2) Start
+24 Aug 2024 21:55:58,690 [11800] INFO  Log - IfExistsInTable(Select *, from MappingTable where userid=4246 and UserTypeId=2) end
+24 Aug 2024 21:55:58,691 [11800] INFO  Log - SP_UserType(2078, 2078) Start
+24 Aug 2024 21:55:58,700 [11800] INFO  Log - SP_UserType(2078, 2078) end
+24 Aug 2024 21:55:58,702 [11800] INFO  Log - SP_UserType(2078, 2078) Start
+24 Aug 2024 21:55:58,707 [11800] INFO  Log - SP_UserType(2078, 2078) end
+24 Aug 2024 21:55:58,708 [11800] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+24 Aug 2024 21:55:58,712 [11800] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+24 Aug 2024 21:55:58,713 [11800] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+24 Aug 2024 21:55:58,718 [11800] INFO  Log - GetMenuDataFromLoginTable(4246) end
+24 Aug 2024 21:55:58,719 [11800] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+24 Aug 2024 21:55:58,725 [11800] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+24 Aug 2024 21:55:58,726 [11800] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+24 Aug 2024 21:55:58,736 [11800] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+24 Aug 2024 21:55:58,737 [11800] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+24 Aug 2024 21:55:58,756 [11800] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+24 Aug 2024 21:55:58,756 [11800] INFO  Log - Fetching menu details - Started
+24 Aug 2024 21:55:58,765 [11800] INFO  Log - Fetching menu details - Finished
+24 Aug 2024 21:55:58,860 [2796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg where MotherOrgID = '4' orderby ) Start
+24 Aug 2024 21:55:58,865 [2796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg where MotherOrgID = '4' orderby ) end
+24 Aug 2024 21:55:58,867 [2796] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner where EMail_primary = 'shamsuthakor@gmail.com' ) Start
+24 Aug 2024 21:55:58,872 [2796] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner where EMail_primary = 'shamsuthakor@gmail.com' ) end
+24 Aug 2024 21:55:58,873 [2796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory where EmpId='3268' and IsActive=1 ) Start
+24 Aug 2024 21:55:58,882 [2796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory where EmpId='3268' and IsActive=1 ) End
+24 Aug 2024 21:55:58,883 [2796] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory where EmpId='3268' and Is_Cancelled=1 ) Start
+24 Aug 2024 21:55:58,887 [2796] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory where EmpId='3268' and Is_Cancelled=1 ) End
+24 Aug 2024 21:55:58,887 [2796] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 orderby ) Start
+24 Aug 2024 21:55:58,892 [2796] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 orderby ) end
+24 Aug 2024 21:55:58,893 [2796] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 and Is_Requested_Plan=1 orderby ) Start
+24 Aug 2024 21:55:58,901 [2796] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 and Is_Requested_Plan=1 orderby ) end
+24 Aug 2024 21:55:58,902 [2796] INFO  Log - IfExistsInTable(Select IsActive from AddEmployee where EmployeeID='3268' and IsActive='NO        ' and UserType='1' ) Start
+24 Aug 2024 21:55:58,909 [2796] INFO  Log - IfExistsInTable(Select IsActive, from AddEmployee where EmployeeID='3268' and IsActive='NO        ' and UserType='1' ) end
+24 Aug 2024 21:55:58,910 [2796] INFO  Log - GetAllDataFromTable(Select BusinessID from AssginBussiness where EmployeeID=3268 and BusinessID is not null and BusinessID<>'' orderby BusinessID) Start
+24 Aug 2024 21:55:58,917 [2796] INFO  Log - GetAllDataFromTable(Select BusinessID from AssginBussiness where EmployeeID=3268 and BusinessID is not null and BusinessID<>'' orderby BusinessID) end
+24 Aug 2024 21:55:58,918 [2796] INFO  Log - GetBussForSelectBUSS(3268) Start
+24 Aug 2024 21:55:58,948 [2796] INFO  Log - IfExistsInTable(Select * from MappingTable where userid=4246 and UserTypeId=2) Start
+24 Aug 2024 21:55:58,952 [2796] INFO  Log - IfExistsInTable(Select *, from MappingTable where userid=4246 and UserTypeId=2) end
+24 Aug 2024 21:55:58,953 [2796] INFO  Log - SP_UserType(2078, 2078) Start
+24 Aug 2024 21:55:58,963 [2796] INFO  Log - SP_UserType(2078, 2078) end
+24 Aug 2024 21:55:58,964 [2796] INFO  Log - SP_UserType(2078, 2078) Start
+24 Aug 2024 21:55:58,968 [2796] INFO  Log - SP_UserType(2078, 2078) end
+24 Aug 2024 21:55:58,969 [2796] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+24 Aug 2024 21:55:58,974 [2796] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+24 Aug 2024 21:55:58,975 [2796] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+24 Aug 2024 21:55:58,983 [2796] INFO  Log - GetMenuDataFromLoginTable(4246) end
+24 Aug 2024 21:55:58,984 [2796] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+24 Aug 2024 21:55:58,988 [2796] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+24 Aug 2024 21:55:58,989 [2796] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+24 Aug 2024 21:55:58,996 [2796] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+24 Aug 2024 21:55:58,997 [2796] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+24 Aug 2024 21:55:59,021 [2796] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+24 Aug 2024 21:55:59,022 [2796] INFO  Log - Fetching menu details - Started
+24 Aug 2024 21:55:59,027 [2796] INFO  Log - Fetching menu details - Finished
+24 Aug 2024 21:56:04,319 [11800] INFO  Log - Business_Owner_Pop_up_Employee_List(2078,3268) Start
+24 Aug 2024 21:56:04,556 [11800] INFO  Log - Business_Owner_Pop_up_Employee_List(2078,3268) end
+24 Aug 2024 21:56:08,312 [11800] INFO  Log - GetAllDataFromTable(Select *,convert(nvarchar(10),HireDate,120)HireDated from AddEmployee where EmployeeID=8481 orderby ) Start
+24 Aug 2024 21:56:08,321 [11800] INFO  Log - GetAllDataFromTable(Select *,convert(nvarchar(10),HireDate,120)HireDated from AddEmployee where EmployeeID=8481 orderby ) end
+24 Aug 2024 21:56:08,430 [11800] INFO  Log - GetAllDataFromTable(Select * from EmpAddress where EmpAddressId=45611 orderby ) Start
+24 Aug 2024 21:56:08,437 [11800] INFO  Log - GetAllDataFromTable(Select * from EmpAddress where EmpAddressId=45611 orderby ) end
+24 Aug 2024 21:56:08,438 [11800] INFO  Log - GetAllDataFromTable(Select * from RateDetails where RateId=21079 and EmployeeId=8481 orderby ) Start
+24 Aug 2024 21:56:08,444 [11800] INFO  Log - GetAllDataFromTable(Select * from RateDetails where RateId=21079 and EmployeeId=8481 orderby ) end
+24 Aug 2024 21:56:08,445 [11800] INFO  Log - GetAllDataFromTable(Select MainEmail from EmpAddress with (Nolock) where EmpAddressId in (select ADDRESSID from AddEmployee where EmployeeID = 8481) orderby ) Start
+24 Aug 2024 21:56:08,457 [11800] INFO  Log - GetAllDataFromTable(Select MainEmail from EmpAddress with (Nolock) where EmpAddressId in (select ADDRESSID from AddEmployee where EmployeeID = 8481) orderby ) end
+24 Aug 2024 21:56:08,459 [11800] INFO  Log - Sp_GetSubsBuss(testregularemppp@gmail.com, 3268) Start
+24 Aug 2024 21:56:08,502 [11800] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) Start
+24 Aug 2024 21:56:08,515 [11800] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) end
+24 Aug 2024 21:56:08,516 [11800] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8482' orderby ) Start
+24 Aug 2024 21:56:08,528 [11800] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8482' orderby ) end
+24 Aug 2024 21:56:08,529 [11800] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8483' orderby ) Start
+24 Aug 2024 21:56:08,534 [11800] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8483' orderby ) end
+24 Aug 2024 21:56:08,536 [11800] INFO  Log - Sp_GetSubsBussProject(testregularemppp@gmail.com, 3268) Start
+24 Aug 2024 21:56:08,571 [11800] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) Start
+24 Aug 2024 21:56:08,578 [11800] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) end
+24 Aug 2024 21:56:08,579 [11800] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) Start
+24 Aug 2024 21:56:08,589 [11800] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) end
+24 Aug 2024 21:56:08,590 [11800] INFO  Log - Sp_GetSubsBussRate(testregularemppp@gmail.com, 3268) Start
+24 Aug 2024 21:56:08,648 [11800] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '2078' and EmployeeID = '8481' orderby ) Start
+24 Aug 2024 21:56:08,654 [11800] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '2078' and EmployeeID = '8481' orderby ) end
+24 Aug 2024 21:56:08,655 [11800] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '2078' and USERID = '8405' orderby ) Start
+24 Aug 2024 21:56:08,664 [11800] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '2078' and USERID = '8405' orderby ) end
+24 Aug 2024 21:56:08,664 [11800] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) Start
+24 Aug 2024 21:56:08,672 [11800] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) end
+24 Aug 2024 21:56:08,673 [11800] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='21079' ) Start
+24 Aug 2024 21:56:08,678 [11800] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='21079' ) End
+24 Aug 2024 21:56:08,680 [11800] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '2078' and EmployeeID = '8481' orderby ) Start
+24 Aug 2024 21:56:08,686 [11800] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '2078' and EmployeeID = '8481' orderby ) end
+24 Aug 2024 21:56:08,687 [11800] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '2079' and USERID = '8405' orderby ) Start
+24 Aug 2024 21:56:08,692 [11800] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '2079' and USERID = '8405' orderby ) end
+24 Aug 2024 21:56:08,692 [11800] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8482' orderby ) Start
+24 Aug 2024 21:56:08,699 [11800] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8482' orderby ) end
+24 Aug 2024 21:56:08,700 [11800] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='21080' ) Start
+24 Aug 2024 21:56:08,709 [11800] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='21080' ) End
+24 Aug 2024 21:56:08,710 [11800] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '2078' and EmployeeID = '8481' orderby ) Start
+24 Aug 2024 21:56:08,717 [11800] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '2078' and EmployeeID = '8481' orderby ) end
+24 Aug 2024 21:56:08,718 [11800] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '2082' and USERID = '8405' orderby ) Start
+24 Aug 2024 21:56:08,725 [11800] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '2082' and USERID = '8405' orderby ) end
+24 Aug 2024 21:56:08,728 [11800] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8483' orderby ) Start
+24 Aug 2024 21:56:08,761 [11800] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8483' orderby ) end
+24 Aug 2024 21:56:08,761 [11800] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='5364' ) Start
+24 Aug 2024 21:56:08,785 [11800] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='5364' ) End
+24 Aug 2024 21:56:08,786 [11800] INFO  Log - GetAllDataFromTable(Select Profile_Image from UserAcc where email='testregularemppp@gmail.com' orderby ) Start
+24 Aug 2024 21:56:08,808 [11800] INFO  Log - GetAllDataFromTable(Select Profile_Image from UserAcc where email='testregularemppp@gmail.com' orderby ) end
+24 Aug 2024 21:56:11,690 [11800] INFO  Log - ExecuteQuery(select  mp_Stauts,Effective_Date, DateTime_Stamp from Emp_Active_Inactive_Status where EmpId=3268 order by DateTime_Stamp DESC) Start
+24 Aug 2024 21:56:11,695 [11800] INFO  Log - ExecuteQuery(select  mp_Stauts,Effective_Date, DateTime_Stamp from Emp_Active_Inactive_Status where EmpId=3268 order by DateTime_Stamp DESC) End
+24 Aug 2024 21:57:36,648 [9732] INFO  Log - ExecuteQuery(select  mp_Stauts,Effective_Date, DateTime_Stamp from Emp_Active_Inactive_Status where EmpId=3268 order by DateTime_Stamp DESC) Start
+24 Aug 2024 21:57:36,667 [9732] INFO  Log - ExecuteQuery(select  mp_Stauts,Effective_Date, DateTime_Stamp from Emp_Active_Inactive_Status where EmpId=3268 order by DateTime_Stamp DESC) End
+24 Aug 2024 21:58:53,699 [10312] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) Start
+24 Aug 2024 21:58:54,018 [10312] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) end
+24 Aug 2024 21:58:54,019 [10312] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+24 Aug 2024 21:58:54,201 [10312] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+24 Aug 2024 21:58:54,201 [10312] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+24 Aug 2024 21:58:54,578 [10312] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+24 Aug 2024 21:58:54,585 [10312] INFO  Log - GetNameFromId(UserType,1) Start
+24 Aug 2024 21:58:55,444 [10312] INFO  Log - GetNameFromId(UserType,1) end
+24 Aug 2024 21:58:55,592 [10312] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 3268 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) Start
+24 Aug 2024 21:58:55,724 [10312] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 3268 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) end
+24 Aug 2024 21:58:55,725 [10312] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (2078, 2079, 2082, 2095, 2096, 2097, 6126, 7125, 7126, 7127, 7128, 7129, 7130, 7131, 7132, 7134, 7135, 7136, 7137, 7143, 8161, 12224, 14229, 14230, 14232, 14234, 14235, 14236, 15235, 15236, 15237, 15238, 15239, 15240, 15241, 15243) orderby Yr desc) Start
+24 Aug 2024 21:58:55,834 [10312] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (2078, 2079, 2082, 2095, 2096, 2097, 6126, 7125, 7126, 7127, 7128, 7129, 7130, 7131, 7132, 7134, 7135, 7136, 7137, 7143, 8161, 12224, 14229, 14230, 14232, 14234, 14235, 14236, 15235, 15236, 15237, 15238, 15239, 15240, 15241, 15243) orderby Yr desc) end
+24 Aug 2024 21:58:55,835 [10312] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=3268) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) Start
+24 Aug 2024 21:58:55,872 [10312] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=3268) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) end
+24 Aug 2024 21:58:58,384 [10312] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+24 Aug 2024 21:58:58,410 [10312] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+24 Aug 2024 21:58:58,411 [10312] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+24 Aug 2024 21:58:58,435 [10312] INFO  Log - GetMenuDataFromLoginTable(4246) end
+24 Aug 2024 21:58:58,436 [10312] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+24 Aug 2024 21:58:58,697 [10312] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+24 Aug 2024 21:58:58,698 [10312] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+24 Aug 2024 21:58:59,088 [10312] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+24 Aug 2024 21:58:59,089 [10312] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+24 Aug 2024 21:58:59,286 [10312] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+24 Aug 2024 21:58:59,287 [10312] INFO  Log - Fetching menu details - Started
+24 Aug 2024 21:58:59,421 [10312] INFO  Log - Fetching menu details - Finished
+24 Aug 2024 21:59:10,436 [10312] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg where MotherOrgID = '4' orderby ) Start
+24 Aug 2024 21:59:10,441 [10312] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg where MotherOrgID = '4' orderby ) end
+24 Aug 2024 21:59:10,442 [10312] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner where EMail_primary = 'shamsuthakor@gmail.com' ) Start
+24 Aug 2024 21:59:10,446 [10312] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner where EMail_primary = 'shamsuthakor@gmail.com' ) end
+24 Aug 2024 21:59:10,447 [10312] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory where EmpId='3268' and IsActive=1 ) Start
+24 Aug 2024 21:59:10,450 [10312] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory where EmpId='3268' and IsActive=1 ) End
+24 Aug 2024 21:59:10,450 [10312] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory where EmpId='3268' and Is_Cancelled=1 ) Start
+24 Aug 2024 21:59:10,453 [10312] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory where EmpId='3268' and Is_Cancelled=1 ) End
+24 Aug 2024 21:59:10,454 [10312] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 orderby ) Start
+24 Aug 2024 21:59:10,459 [10312] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 orderby ) end
+24 Aug 2024 21:59:10,460 [10312] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 and Is_Requested_Plan=1 orderby ) Start
+24 Aug 2024 21:59:10,465 [10312] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=3268 and Is_Requested_Plan=1 orderby ) end
+24 Aug 2024 21:59:10,466 [10312] INFO  Log - IfExistsInTable(Select IsActive from AddEmployee where EmployeeID='3268' and IsActive='NO        ' and UserType='1' ) Start
+24 Aug 2024 21:59:10,476 [10312] INFO  Log - IfExistsInTable(Select IsActive, from AddEmployee where EmployeeID='3268' and IsActive='NO        ' and UserType='1' ) end
+24 Aug 2024 21:59:10,480 [10312] INFO  Log - GetAllDataFromTable(Select BusinessID from AssginBussiness where EmployeeID=3268 and BusinessID is not null and BusinessID<>'' orderby BusinessID) Start
+24 Aug 2024 21:59:10,488 [10312] INFO  Log - GetAllDataFromTable(Select BusinessID from AssginBussiness where EmployeeID=3268 and BusinessID is not null and BusinessID<>'' orderby BusinessID) end
+24 Aug 2024 21:59:10,490 [10312] INFO  Log - GetBussForSelectBUSS(3268) Start
+24 Aug 2024 21:59:10,526 [10312] INFO  Log - IfExistsInTable(Select * from MappingTable where userid=4246 and UserTypeId=2) Start
+24 Aug 2024 21:59:10,533 [10312] INFO  Log - IfExistsInTable(Select *, from MappingTable where userid=4246 and UserTypeId=2) end
+24 Aug 2024 21:59:10,534 [10312] INFO  Log - SP_UserType(2078, 2078) Start
+24 Aug 2024 21:59:10,541 [10312] INFO  Log - SP_UserType(2078, 2078) end
+24 Aug 2024 21:59:10,545 [10312] INFO  Log - SP_UserType(2078, 2078) Start
+24 Aug 2024 21:59:10,550 [10312] INFO  Log - SP_UserType(2078, 2078) end
+24 Aug 2024 21:59:10,551 [10312] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+24 Aug 2024 21:59:10,601 [10312] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+24 Aug 2024 21:59:10,602 [10312] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+24 Aug 2024 21:59:10,615 [10312] INFO  Log - GetMenuDataFromLoginTable(4246) end
+24 Aug 2024 21:59:10,616 [10312] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+24 Aug 2024 21:59:10,629 [10312] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+24 Aug 2024 21:59:10,631 [10312] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+24 Aug 2024 21:59:10,641 [10312] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+24 Aug 2024 21:59:10,642 [10312] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+24 Aug 2024 21:59:10,660 [10312] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+24 Aug 2024 21:59:10,661 [10312] INFO  Log - Fetching menu details - Started
+24 Aug 2024 21:59:10,665 [10312] INFO  Log - Fetching menu details - Finished
+24 Aug 2024 21:59:16,323 [10056] INFO  Log - Business_Owner_Pop_up_Employee_List(2078,3268) Start
+24 Aug 2024 21:59:16,575 [10056] INFO  Log - Business_Owner_Pop_up_Employee_List(2078,3268) end
+24 Aug 2024 21:59:19,420 [8748] INFO  Log - GetAllDataFromTable(Select *,convert(nvarchar(10),HireDate,120)HireDated from AddEmployee where EmployeeID=8481 orderby ) Start
+24 Aug 2024 21:59:19,438 [8748] INFO  Log - GetAllDataFromTable(Select *,convert(nvarchar(10),HireDate,120)HireDated from AddEmployee where EmployeeID=8481 orderby ) end
+24 Aug 2024 21:59:19,527 [8748] INFO  Log - GetAllDataFromTable(Select * from EmpAddress where EmpAddressId=45611 orderby ) Start
+24 Aug 2024 21:59:19,538 [8748] INFO  Log - GetAllDataFromTable(Select * from EmpAddress where EmpAddressId=45611 orderby ) end
+24 Aug 2024 21:59:19,539 [8748] INFO  Log - GetAllDataFromTable(Select * from RateDetails where RateId=21079 and EmployeeId=8481 orderby ) Start
+24 Aug 2024 21:59:19,544 [8748] INFO  Log - GetAllDataFromTable(Select * from RateDetails where RateId=21079 and EmployeeId=8481 orderby ) end
+24 Aug 2024 21:59:19,545 [8748] INFO  Log - GetAllDataFromTable(Select MainEmail from EmpAddress with (Nolock) where EmpAddressId in (select ADDRESSID from AddEmployee where EmployeeID = 8481) orderby ) Start
+24 Aug 2024 21:59:19,561 [8748] INFO  Log - GetAllDataFromTable(Select MainEmail from EmpAddress with (Nolock) where EmpAddressId in (select ADDRESSID from AddEmployee where EmployeeID = 8481) orderby ) end
+24 Aug 2024 21:59:19,563 [8748] INFO  Log - Sp_GetSubsBuss(testregularemppp@gmail.com, 3268) Start
+24 Aug 2024 21:59:19,617 [8748] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) Start
+24 Aug 2024 21:59:19,623 [8748] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) end
+24 Aug 2024 21:59:19,625 [8748] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8482' orderby ) Start
+24 Aug 2024 21:59:19,633 [8748] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8482' orderby ) end
+24 Aug 2024 21:59:19,635 [8748] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8483' orderby ) Start
+24 Aug 2024 21:59:19,639 [8748] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8483' orderby ) end
+24 Aug 2024 21:59:19,639 [8748] INFO  Log - Sp_GetSubsBussProject(testregularemppp@gmail.com, 3268) Start
+24 Aug 2024 21:59:19,685 [8748] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) Start
+24 Aug 2024 21:59:19,690 [8748] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) end
+24 Aug 2024 21:59:19,692 [8748] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) Start
+24 Aug 2024 21:59:19,699 [8748] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) end
+24 Aug 2024 21:59:19,701 [8748] INFO  Log - Sp_GetSubsBussRate(testregularemppp@gmail.com, 3268) Start
+24 Aug 2024 21:59:19,747 [8748] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '2078' and EmployeeID = '8481' orderby ) Start
+24 Aug 2024 21:59:19,753 [8748] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '2078' and EmployeeID = '8481' orderby ) end
+24 Aug 2024 21:59:19,754 [8748] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '2078' and USERID = '8405' orderby ) Start
+24 Aug 2024 21:59:19,760 [8748] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '2078' and USERID = '8405' orderby ) end
+24 Aug 2024 21:59:19,761 [8748] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) Start
+24 Aug 2024 21:59:19,765 [8748] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8481' orderby ) end
+24 Aug 2024 21:59:19,769 [8748] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='21079' ) Start
+24 Aug 2024 21:59:19,772 [8748] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='21079' ) End
+24 Aug 2024 21:59:19,774 [8748] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '2078' and EmployeeID = '8481' orderby ) Start
+24 Aug 2024 21:59:19,779 [8748] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '2078' and EmployeeID = '8481' orderby ) end
+24 Aug 2024 21:59:19,780 [8748] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '2079' and USERID = '8405' orderby ) Start
+24 Aug 2024 21:59:19,790 [8748] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '2079' and USERID = '8405' orderby ) end
+24 Aug 2024 21:59:19,791 [8748] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8482' orderby ) Start
+24 Aug 2024 21:59:19,803 [8748] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8482' orderby ) end
+24 Aug 2024 21:59:19,803 [8748] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='21080' ) Start
+24 Aug 2024 21:59:19,807 [8748] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='21080' ) End
+24 Aug 2024 21:59:19,810 [8748] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '2078' and EmployeeID = '8481' orderby ) Start
+24 Aug 2024 21:59:19,814 [8748] INFO  Log - GetAllDataFromTable(Select USERID from MappingTable with (Nolock) where BusinessID = '2078' and EmployeeID = '8481' orderby ) end
+24 Aug 2024 21:59:19,816 [8748] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '2082' and USERID = '8405' orderby ) Start
+24 Aug 2024 21:59:19,855 [8748] INFO  Log - GetAllDataFromTable(Select EmployeeID from MappingTable with (Nolock) where BusinessID = '2082' and USERID = '8405' orderby ) end
+24 Aug 2024 21:59:19,855 [8748] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8483' orderby ) Start
+24 Aug 2024 21:59:19,865 [8748] INFO  Log - GetAllDataFromTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID = '8483' orderby ) end
+24 Aug 2024 21:59:19,866 [8748] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='5364' ) Start
+24 Aug 2024 21:59:19,871 [8748] INFO  Log - ExecuteQuery(select Is_Having_EndDate from RateDetails with (Nolock) where RateId='5364' ) End
+24 Aug 2024 21:59:19,873 [8748] INFO  Log - GetAllDataFromTable(Select Profile_Image from UserAcc where email='testregularemppp@gmail.com' orderby ) Start
+24 Aug 2024 21:59:19,880 [8748] INFO  Log - GetAllDataFromTable(Select Profile_Image from UserAcc where email='testregularemppp@gmail.com' orderby ) end
+24 Aug 2024 21:59:22,026 [8748] INFO  Log - ExecuteQuery(select  mp_Stauts,Effective_Date, DateTime_Stamp from Emp_Active_Inactive_Status where EmpId=3268 order by DateTime_Stamp DESC) Start
+24 Aug 2024 21:59:22,029 [8748] INFO  Log - ExecuteQuery(select  mp_Stauts,Effective_Date, DateTime_Stamp from Emp_Active_Inactive_Status where EmpId=3268 order by DateTime_Stamp DESC) End

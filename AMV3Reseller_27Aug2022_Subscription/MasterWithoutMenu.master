@@ -1,0 +1,71 @@
+﻿<%@ Master Language="C#" AutoEventWireup="true" CodeFile="MasterWithoutMenu.master.cs" Inherits="MasterWithoutMenu" runat="server" %>
+<!DOCTYPE html>
+
+<html>
+<head runat="server">
+    <title>AnyMinute | Record From Anywhere</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=9" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta content='width=device-width, initial-scale=1.0, shrink-to-fit=no' name='viewport' />
+    <meta http-equiv="Cache-Control" content="no-cache" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+
+    <link rel="icon" href="Assets/assets/img/logo.jpg" type="image/x-icon" />
+    <link href="css/header.css" rel="stylesheet" />
+    <link href="css/footer.css" rel="stylesheet" />
+    <link href="css/SiteStyle.css" rel="stylesheet" />
+    <link href="css/sidebar.css" rel="stylesheet" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    
+    <script src="https://use.fontawesome.com/4fed6e96ae.js"></script>
+    <!-- Fonts and icons -->
+    <script src="https://use.fontawesome.com/5b6dc8cc46.js"></script>
+    <asp:ContentPlaceHolder ID="head" runat="server">
+                       
+    </asp:ContentPlaceHolder>
+    
+</head>
+    <script type="text/javascript">  
+
+    window.onload = window.history.forward(0);
+
+    </script>
+<body style="background-color: whitesmoke;">
+
+    <form id="frmMaster" runat="server">
+        <asp:ScriptManager ID="ScriptManager1" runat="server"></asp:ScriptManager>
+
+
+        <div class="header" style="display:none;">
+            <nav class="navbar navbar-default navbar-fixed-top">
+                <div class="container-fluid">
+                    <div class="navbar-header">
+                        <div style="text-align:left; float:left;">
+                            <asp:Label ID="lblwelcome" runat="server" Font-Size="X-Large" Style="margin-top: 100px;"></asp:Label>
+                        </div>
+                    </div>                    
+                </div>
+            </nav>
+        </div>
+
+
+        <%--Child Page Content--%>
+        <div id="page-content-wrapper">
+            <!-- Keep all page content within the page-content inset div! -->
+            <div class="page-content inset">
+                <div class="row">
+                    <%--<br />--%>
+                    <asp:ContentPlaceHolder ID="ContentPlaceHolder1" runat="server">
+                    </asp:ContentPlaceHolder>
+                </div>
+            </div>
+        </div>
+
+    </form>   
+
+</body>
+</html>

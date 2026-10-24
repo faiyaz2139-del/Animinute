@@ -1,0 +1,475 @@
+15 Oct 2026 03:36:23,755 [11796] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) Start
+15 Oct 2026 03:36:24,341 [11796] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) end
+15 Oct 2026 03:36:24,349 [11796] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+15 Oct 2026 03:36:24,376 [11796] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+15 Oct 2026 03:36:24,377 [11796] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+15 Oct 2026 03:36:24,414 [11796] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+15 Oct 2026 03:36:24,415 [11796] INFO  Log - GetNameFromId(UserType,1) Start
+15 Oct 2026 03:36:24,423 [11796] INFO  Log - GetNameFromId(UserType,1) end
+15 Oct 2026 03:36:24,630 [11828] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 3268 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) Start
+15 Oct 2026 03:36:24,718 [11828] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 3268 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) end
+15 Oct 2026 03:36:24,824 [11828] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (2078, 2079, 2082, 2095, 2096, 2097, 6126, 7125, 7126, 7127, 7128, 7129, 7130, 7131, 7132, 7134, 7135, 7136, 7137, 7143, 8161, 12224, 14229, 14230, 14232, 14234, 14235, 14236, 15235, 15236, 15237, 15238, 15239, 15240, 15241, 15243, 15246, 15248, 15249) orderby Yr desc) Start
+15 Oct 2026 03:36:24,900 [11828] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (2078, 2079, 2082, 2095, 2096, 2097, 6126, 7125, 7126, 7127, 7128, 7129, 7130, 7131, 7132, 7134, 7135, 7136, 7137, 7143, 8161, 12224, 14229, 14230, 14232, 14234, 14235, 14236, 15235, 15236, 15237, 15238, 15239, 15240, 15241, 15243, 15246, 15248, 15249) orderby Yr desc) end
+15 Oct 2026 03:36:24,902 [11828] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=3268) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) Start
+15 Oct 2026 03:36:24,918 [11828] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=3268) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) end
+15 Oct 2026 03:36:26,014 [11828] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+15 Oct 2026 03:36:26,022 [11828] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+15 Oct 2026 03:36:26,023 [11828] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+15 Oct 2026 03:36:26,034 [11828] INFO  Log - GetMenuDataFromLoginTable(4246) end
+15 Oct 2026 03:36:26,050 [11828] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+15 Oct 2026 03:36:26,062 [11828] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+15 Oct 2026 03:36:26,063 [11828] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+15 Oct 2026 03:36:26,076 [11828] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+15 Oct 2026 03:36:26,079 [11828] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+15 Oct 2026 03:36:26,109 [11828] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+15 Oct 2026 03:36:26,111 [11828] INFO  Log - GetAllDataFromTable(Select UserType from UserType where User_TypeId=1 orderby ) Start
+15 Oct 2026 03:36:26,128 [11828] INFO  Log - GetAllDataFromTable(Select UserType from UserType where User_TypeId=1 orderby ) end
+15 Oct 2026 03:36:26,130 [11828] INFO  Log - GetAllDataFromTable(Select TOP 1 EmployeeID from AssginBussiness where EmployeeID=3268 and MotherOrgID=4 and UserTypeId=5 orderby ) Start
+15 Oct 2026 03:36:26,150 [11828] INFO  Log - GetAllDataFromTable(Select TOP 1 EmployeeID from AssginBussiness where EmployeeID=3268 and MotherOrgID=4 and UserTypeId=5 orderby ) end
+15 Oct 2026 03:36:26,152 [11828] INFO  Log - Fetching menu details - Started
+15 Oct 2026 03:36:26,176 [11828] INFO  Log - Fetching menu details - Finished
+15 Oct 2026 03:37:49,788 [11796] INFO  Log - GetLoginDetails(empqw@gmail.com,12345678,empqw@gmail.com) Start
+15 Oct 2026 03:37:49,807 [11796] INFO  Log - GetLoginDetails(empqw@gmail.com,12345678,empqw@gmail.com) end
+15 Oct 2026 03:38:03,809 [11796] INFO  Log - GetLoginDetails(empqw@gmail.com,12345678,empqw@gmail.com) Start
+15 Oct 2026 03:38:03,824 [11796] INFO  Log - GetLoginDetails(empqw@gmail.com,12345678,empqw@gmail.com) end
+15 Oct 2026 03:38:29,167 [11828] INFO  Log - GetLoginDetails(sheru3@gmail.com,12345678,sheru3@gmail.com) Start
+15 Oct 2026 03:38:29,176 [11828] INFO  Log - GetLoginDetails(sheru3@gmail.com,12345678,sheru3@gmail.com) end
+15 Oct 2026 03:38:29,177 [11828] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3312 orderby ) Start
+15 Oct 2026 03:38:29,183 [11828] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3312 orderby ) end
+15 Oct 2026 03:38:29,184 [11828] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3312 orderby ) Start
+15 Oct 2026 03:38:29,203 [11828] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3312 orderby ) end
+15 Oct 2026 03:38:29,204 [11828] INFO  Log - GetNameFromId(UserType,12) Start
+15 Oct 2026 03:38:29,216 [11828] INFO  Log - GetNameFromId(UserType,12) end
+15 Oct 2026 03:38:29,262 [12252] INFO  Log - FillDropDownList(Select assb.BusinessID, dbo.FN_DESC('AddBusiness',assb.BusinessID) from AssginBussiness assb join AddBusiness ab on ab.BusinessID=assb.BusinessID where EmployeeID in (select ad.EmployeeID from  AddEmployee ad join EmpAddress empAdd on ad.ADDRESSID=empAdd.EmpAddressId where empAdd.MainEmail='sheru3@gmail.com') and ab.Status<>2 orderby BusinessID) Start
+15 Oct 2026 03:38:29,308 [12252] INFO  Log - FillDropDownList(Select assb.BusinessID, dbo.FN_DESC('AddBusiness',assb.BusinessID) from AssginBussiness assb join AddBusiness ab on ab.BusinessID=assb.BusinessID where EmployeeID in (select ad.EmployeeID from  AddEmployee ad join EmpAddress empAdd on ad.ADDRESSID=empAdd.EmpAddressId where empAdd.MainEmail='sheru3@gmail.com') and ab.Status<>2 orderby BusinessID) end
+15 Oct 2026 03:38:29,309 [12252] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where  orderby Yr desc) Start
+15 Oct 2026 03:38:29,344 [12252] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where  orderby Yr desc) end
+15 Oct 2026 03:38:30,663 [12252] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID='2024' orderby ) Start
+15 Oct 2026 03:38:30,669 [12252] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID='2024' orderby ) end
+15 Oct 2026 03:38:30,670 [12252] INFO  Log - GetDomainNameForMenuFromLogin(4270) Start
+15 Oct 2026 03:38:30,677 [12252] INFO  Log - GetDomainNameForMenuFromLogin(4270) end
+15 Oct 2026 03:38:30,677 [12252] INFO  Log - GetMenuDataFromLoginTable(4270) Start
+15 Oct 2026 03:38:30,685 [12252] INFO  Log - GetMenuDataFromLoginTable(4270) end
+15 Oct 2026 03:38:30,686 [12252] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=2024 orderby ) Start
+15 Oct 2026 03:38:30,695 [12252] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=2024 orderby ) end
+15 Oct 2026 03:38:30,696 [12252] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4270' orderby ) Start
+15 Oct 2026 03:38:30,706 [12252] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4270' orderby ) end
+15 Oct 2026 03:38:30,707 [12252] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3312 orderby ) Start
+15 Oct 2026 03:38:30,751 [12252] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3312 orderby ) end
+15 Oct 2026 03:38:30,752 [12252] INFO  Log - GetAllDataFromTable(Select UserType from UserType where User_TypeId=12 orderby ) Start
+15 Oct 2026 03:38:30,758 [12252] INFO  Log - GetAllDataFromTable(Select UserType from UserType where User_TypeId=12 orderby ) end
+15 Oct 2026 03:38:30,759 [12252] INFO  Log - GetAllDataFromTable(Select TOP 1 EmployeeID from AssginBussiness where EmployeeID=3312 and MotherOrgID=2024 and UserTypeId=5 orderby ) Start
+15 Oct 2026 03:38:30,767 [12252] INFO  Log - GetAllDataFromTable(Select TOP 1 EmployeeID from AssginBussiness where EmployeeID=3312 and MotherOrgID=2024 and UserTypeId=5 orderby ) end
+15 Oct 2026 03:38:30,768 [12252] INFO  Log - Fetching menu details - Started
+15 Oct 2026 03:38:30,776 [12252] INFO  Log - Fetching menu details - Finished
+15 Oct 2026 03:38:37,663 [11796] INFO  Log - IfExistsInTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID='3312' and IsActive='NO        ' and UserType='1' ) Start
+15 Oct 2026 03:38:37,675 [11796] INFO  Log - IfExistsInTable(Select IsActive, from AddEmployee with (Nolock) where EmployeeID='3312' and IsActive='NO        ' and UserType='1' ) end
+15 Oct 2026 03:38:37,688 [11796] INFO  Log - GetAllDataFromTable(Select UserId,EmployeeId from UserAcc with (nolock) where Email='sheru3@gmail.com' orderby UserId) Start
+15 Oct 2026 03:38:37,699 [11796] INFO  Log - GetAllDataFromTable(Select UserId,EmployeeId from UserAcc with (nolock) where Email='sheru3@gmail.com' orderby UserId) end
+15 Oct 2026 03:38:37,699 [11796] INFO  Log - GetAllDataFromTable(Select * from MappingTable with (Nolock) where USERID in(4270) orderby BusinessID,UserTypeId) Start
+15 Oct 2026 03:38:37,707 [11796] INFO  Log - GetAllDataFromTable(Select * from MappingTable with (Nolock) where USERID in(4270) orderby BusinessID,UserTypeId) end
+15 Oct 2026 03:38:37,709 [11796] INFO  Log - FillGridView(Select ae.EmployeeID,assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID)BusinessName,(select PrimaryContactName from AddBusiness where BusinessID=Assb.BusinessID)MangerName,(select PrimaryContactNumber from AddBusiness where BusinessID=Assb.BusinessID)PrimaryContactNumber,(select OperatingName from AddBusiness where BusinessID=Assb.BusinessID)OperatingName, dbo.FN_DESC('AddEmployee',ae.EmployeeID)emp,AE.EMPLOYEETYPE from AddEmployee Ae with (nolock) join AssginBussiness Assb with (nolock) on ae.EmployeeID=Assb.EmployeeID join EmpAddress ea with (nolock) on ea.EmpAddressId=ae.ADDRESSID and ea.MainEmail<>'' where ae.EmployeeID in (3314,0)  and assb.UserTypeId=4 and ae.IsActive='YES'  AND assb.BusinessID  IN (SELECT  BusinessID from AddBusiness where AddBusiness.Status=1 )  orderby ae.EmployeeID) Start
+15 Oct 2026 03:38:37,882 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2094' and UserTypeId=1 orderby ) Start
+15 Oct 2026 03:38:37,894 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2094' and UserTypeId=1 orderby ) end
+15 Oct 2026 03:38:37,896 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) Start
+15 Oct 2026 03:38:37,904 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) end
+15 Oct 2026 03:38:37,904 [11796] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) Start
+15 Oct 2026 03:38:37,911 [11796] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) end
+15 Oct 2026 03:38:37,915 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='3267' ) Start
+15 Oct 2026 03:38:37,923 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='3267' ) End
+15 Oct 2026 03:38:37,924 [11796] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='3267' and Is_Cancelled=1 ) Start
+15 Oct 2026 03:38:37,939 [11796] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='3267' and Is_Cancelled=1 ) End
+15 Oct 2026 03:38:37,940 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2094' orderby UserTypeId) Start
+15 Oct 2026 03:38:37,978 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2094' orderby UserTypeId) end
+15 Oct 2026 03:38:37,978 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='3314' orderby ) Start
+15 Oct 2026 03:38:38,026 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='3314' orderby ) end
+15 Oct 2026 03:38:38,028 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2066' and UserTypeId=1 orderby ) Start
+15 Oct 2026 03:38:38,034 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2066' and UserTypeId=1 orderby ) end
+15 Oct 2026 03:38:38,038 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) Start
+15 Oct 2026 03:38:38,051 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) end
+15 Oct 2026 03:38:38,052 [11796] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) Start
+15 Oct 2026 03:38:38,057 [11796] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) end
+15 Oct 2026 03:38:38,058 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='3267' ) Start
+15 Oct 2026 03:38:38,062 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='3267' ) End
+15 Oct 2026 03:38:38,063 [11796] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='3267' and Is_Cancelled=1 ) Start
+15 Oct 2026 03:38:38,069 [11796] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='3267' and Is_Cancelled=1 ) End
+15 Oct 2026 03:38:38,070 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2066' orderby UserTypeId) Start
+15 Oct 2026 03:38:38,086 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2066' orderby UserTypeId) end
+15 Oct 2026 03:38:38,087 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='3314' orderby ) Start
+15 Oct 2026 03:38:38,093 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='3314' orderby ) end
+15 Oct 2026 03:38:38,094 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2068' and UserTypeId=1 orderby ) Start
+15 Oct 2026 03:38:38,104 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2068' and UserTypeId=1 orderby ) end
+15 Oct 2026 03:38:38,105 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) Start
+15 Oct 2026 03:38:38,116 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) end
+15 Oct 2026 03:38:38,117 [11796] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) Start
+15 Oct 2026 03:38:38,122 [11796] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) end
+15 Oct 2026 03:38:38,123 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='3267' ) Start
+15 Oct 2026 03:38:38,131 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='3267' ) End
+15 Oct 2026 03:38:38,131 [11796] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='3267' and Is_Cancelled=1 ) Start
+15 Oct 2026 03:38:38,146 [11796] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='3267' and Is_Cancelled=1 ) End
+15 Oct 2026 03:38:38,146 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2068' orderby UserTypeId) Start
+15 Oct 2026 03:38:38,154 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2068' orderby UserTypeId) end
+15 Oct 2026 03:38:38,155 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='3314' orderby ) Start
+15 Oct 2026 03:38:38,173 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='3314' orderby ) end
+15 Oct 2026 03:38:38,175 [11796] INFO  Log - FillGridView(Select ae.EmployeeID,assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID)BusinessName,(select PrimaryContactName from AddBusiness where BusinessID=Assb.BusinessID)MangerName,(select PrimaryContactNumber from AddBusiness where BusinessID=Assb.BusinessID)PrimaryContactNumber,(select OperatingName from AddBusiness where BusinessID=Assb.BusinessID)OperatingName, dbo.FN_DESC('AddEmployee',ae.EmployeeID)emp,AE.EMPLOYEETYPE from AddEmployee Ae with (nolock) join AssginBussiness Assb with (nolock) on ae.EmployeeID=Assb.EmployeeID join EmpAddress ea with (nolock) on ea.EmpAddressId=ae.ADDRESSID and ea.MainEmail<>'' where ae.EmployeeID in (3314,0)  and assb.UserTypeId=4 and ae.IsActive='YES'  AND assb.BusinessID  IN (SELECT  BusinessID from AddBusiness where AddBusiness.Status=1 )  orderby ae.EmployeeID) end
+15 Oct 2026 03:38:38,175 [11796] INFO  Log - FillGridView(Select ae.EmployeeID,assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID)BusinessName,(select PrimaryContactName from AddBusiness where BusinessID=Assb.BusinessID)MangerName,(select PrimaryContactNumber from AddBusiness where BusinessID=Assb.BusinessID)PrimaryContactNumber,(select OperatingName from AddBusiness where BusinessID=Assb.BusinessID)OperatingName, dbo.FN_DESC('AddEmployee',ae.EmployeeID)emp,AE.EMPLOYEETYPE from AddEmployee Ae with (nolock) join AssginBussiness Assb with (nolock) on ae.EmployeeID=Assb.EmployeeID join EmpAddress ea with (nolock) on ea.EmpAddressId=ae.ADDRESSID and ea.MainEmail<>'' where ae.EmployeeID in (3314,3314,0)  and assb.UserTypeId=4 and ae.IsActive='YES'  AND assb.BusinessID  IN (SELECT  BusinessID from AddBusiness where AddBusiness.Status=1 )  orderby ae.EmployeeID) Start
+15 Oct 2026 03:38:38,303 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2094' and UserTypeId=1 orderby ) Start
+15 Oct 2026 03:38:38,315 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2094' and UserTypeId=1 orderby ) end
+15 Oct 2026 03:38:38,316 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) Start
+15 Oct 2026 03:38:38,332 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) end
+15 Oct 2026 03:38:38,333 [11796] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) Start
+15 Oct 2026 03:38:38,343 [11796] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) end
+15 Oct 2026 03:38:38,344 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='3267' ) Start
+15 Oct 2026 03:38:38,351 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='3267' ) End
+15 Oct 2026 03:38:38,358 [11796] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='3267' and Is_Cancelled=1 ) Start
+15 Oct 2026 03:38:38,367 [11796] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='3267' and Is_Cancelled=1 ) End
+15 Oct 2026 03:38:38,368 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2094' orderby UserTypeId) Start
+15 Oct 2026 03:38:38,378 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2094' orderby UserTypeId) end
+15 Oct 2026 03:38:38,379 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='3314' orderby ) Start
+15 Oct 2026 03:38:38,398 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='3314' orderby ) end
+15 Oct 2026 03:38:38,399 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2066' and UserTypeId=1 orderby ) Start
+15 Oct 2026 03:38:38,431 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2066' and UserTypeId=1 orderby ) end
+15 Oct 2026 03:38:38,431 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) Start
+15 Oct 2026 03:38:38,467 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) end
+15 Oct 2026 03:38:38,468 [11796] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) Start
+15 Oct 2026 03:38:38,480 [11796] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) end
+15 Oct 2026 03:38:38,480 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='3267' ) Start
+15 Oct 2026 03:38:38,489 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='3267' ) End
+15 Oct 2026 03:38:38,490 [11796] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='3267' and Is_Cancelled=1 ) Start
+15 Oct 2026 03:38:38,502 [11796] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='3267' and Is_Cancelled=1 ) End
+15 Oct 2026 03:38:38,503 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2066' orderby UserTypeId) Start
+15 Oct 2026 03:38:38,516 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2066' orderby UserTypeId) end
+15 Oct 2026 03:38:38,517 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='3314' orderby ) Start
+15 Oct 2026 03:38:38,529 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='3314' orderby ) end
+15 Oct 2026 03:38:38,530 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2068' and UserTypeId=1 orderby ) Start
+15 Oct 2026 03:38:38,541 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2068' and UserTypeId=1 orderby ) end
+15 Oct 2026 03:38:38,542 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) Start
+15 Oct 2026 03:38:38,551 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) end
+15 Oct 2026 03:38:38,552 [11796] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) Start
+15 Oct 2026 03:38:38,563 [11796] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) end
+15 Oct 2026 03:38:38,564 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='3267' ) Start
+15 Oct 2026 03:38:38,579 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='3267' ) End
+15 Oct 2026 03:38:38,580 [11796] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='3267' and Is_Cancelled=1 ) Start
+15 Oct 2026 03:38:38,589 [11796] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='3267' and Is_Cancelled=1 ) End
+15 Oct 2026 03:38:38,589 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2068' orderby UserTypeId) Start
+15 Oct 2026 03:38:38,600 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2068' orderby UserTypeId) end
+15 Oct 2026 03:38:38,601 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='3314' orderby ) Start
+15 Oct 2026 03:38:38,615 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='3314' orderby ) end
+15 Oct 2026 03:38:38,615 [11796] INFO  Log - FillGridView(Select ae.EmployeeID,assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID)BusinessName,(select PrimaryContactName from AddBusiness where BusinessID=Assb.BusinessID)MangerName,(select PrimaryContactNumber from AddBusiness where BusinessID=Assb.BusinessID)PrimaryContactNumber,(select OperatingName from AddBusiness where BusinessID=Assb.BusinessID)OperatingName, dbo.FN_DESC('AddEmployee',ae.EmployeeID)emp,AE.EMPLOYEETYPE from AddEmployee Ae with (nolock) join AssginBussiness Assb with (nolock) on ae.EmployeeID=Assb.EmployeeID join EmpAddress ea with (nolock) on ea.EmpAddressId=ae.ADDRESSID and ea.MainEmail<>'' where ae.EmployeeID in (3314,3314,0)  and assb.UserTypeId=4 and ae.IsActive='YES'  AND assb.BusinessID  IN (SELECT  BusinessID from AddBusiness where AddBusiness.Status=1 )  orderby ae.EmployeeID) end
+15 Oct 2026 03:38:38,616 [11796] INFO  Log - FillGridView(Select ae.EmployeeID,assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID)BusinessName,(select PrimaryContactName from AddBusiness where BusinessID=Assb.BusinessID)MangerName,(select PrimaryContactNumber from AddBusiness where BusinessID=Assb.BusinessID)PrimaryContactNumber,(select OperatingName from AddBusiness where BusinessID=Assb.BusinessID)OperatingName, dbo.FN_DESC('AddEmployee',ae.EmployeeID)emp,AE.EMPLOYEETYPE from AddEmployee Ae with (Nolock) join AssginBussiness Assb with (Nolock) on ae.EmployeeID=Assb.EmployeeID join EmpAddress ea with (Nolock) on ea.EmpAddressId=ae.ADDRESSID and ea.MainEmail<>'' where ae.EmployeeID in (3312,3314,3314,0)  and assb.UserTypeId=12 and ae.IsActive='YES'  AND assb.BusinessID  IN (SELECT  BusinessID from AddBusiness where AddBusiness.Status=1 )  orderby ae.EmployeeID) Start
+15 Oct 2026 03:38:38,722 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2073' and UserTypeId=1 orderby ) Start
+15 Oct 2026 03:38:38,731 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2073' and UserTypeId=1 orderby ) end
+15 Oct 2026 03:38:38,731 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '2024' orderby ) Start
+15 Oct 2026 03:38:38,745 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '2024' orderby ) end
+15 Oct 2026 03:38:38,748 [11796] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner with (Nolock) where EMail_primary = 'independent_partner_pk_one@gmail.com' ) Start
+15 Oct 2026 03:38:38,757 [11796] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner with (Nolock) where EMail_primary = 'independent_partner_pk_one@gmail.com' ) end
+15 Oct 2026 03:38:38,758 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='2024' ) Start
+15 Oct 2026 03:38:38,771 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='2024' ) End
+15 Oct 2026 03:38:38,772 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2073' orderby UserTypeId) Start
+15 Oct 2026 03:38:38,782 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2073' orderby UserTypeId) end
+15 Oct 2026 03:38:38,783 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='3312' orderby ) Start
+15 Oct 2026 03:38:38,796 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='3312' orderby ) end
+15 Oct 2026 03:38:38,797 [11796] INFO  Log - FillGridView(Select ae.EmployeeID,assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID)BusinessName,(select PrimaryContactName from AddBusiness where BusinessID=Assb.BusinessID)MangerName,(select PrimaryContactNumber from AddBusiness where BusinessID=Assb.BusinessID)PrimaryContactNumber,(select OperatingName from AddBusiness where BusinessID=Assb.BusinessID)OperatingName, dbo.FN_DESC('AddEmployee',ae.EmployeeID)emp,AE.EMPLOYEETYPE from AddEmployee Ae with (Nolock) join AssginBussiness Assb with (Nolock) on ae.EmployeeID=Assb.EmployeeID join EmpAddress ea with (Nolock) on ea.EmpAddressId=ae.ADDRESSID and ea.MainEmail<>'' where ae.EmployeeID in (3312,3314,3314,0)  and assb.UserTypeId=12 and ae.IsActive='YES'  AND assb.BusinessID  IN (SELECT  BusinessID from AddBusiness where AddBusiness.Status=1 )  orderby ae.EmployeeID) end
+15 Oct 2026 03:38:38,797 [11796] INFO  Log - FillGridView(Select ae.EmployeeID,assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID)BusinessName,(select PrimaryContactName from AddBusiness where BusinessID=Assb.BusinessID)MangerName,(select PrimaryContactNumber from AddBusiness where BusinessID=Assb.BusinessID)PrimaryContactNumber,(select OperatingName from AddBusiness where BusinessID=Assb.BusinessID)OperatingName, dbo.FN_DESC('AddEmployee',ae.EmployeeID)emp,AE.EMPLOYEETYPE from AddEmployee Ae with (nolock) join AssginBussiness Assb with (nolock) on ae.EmployeeID=Assb.EmployeeID join EmpAddress ea with (nolock) on ea.EmpAddressId=ae.ADDRESSID and ea.MainEmail<>'' where ae.EmployeeID in (15957,3312,3314,3314,0)  and assb.UserTypeId=4 and ae.IsActive='YES'  AND assb.BusinessID  IN (SELECT  BusinessID from AddBusiness where AddBusiness.Status=1 )  orderby ae.EmployeeID) Start
+15 Oct 2026 03:38:38,895 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2094' and UserTypeId=1 orderby ) Start
+15 Oct 2026 03:38:38,902 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2094' and UserTypeId=1 orderby ) end
+15 Oct 2026 03:38:38,904 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) Start
+15 Oct 2026 03:38:38,912 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) end
+15 Oct 2026 03:38:38,913 [11796] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) Start
+15 Oct 2026 03:38:38,922 [11796] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) end
+15 Oct 2026 03:38:38,923 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='3267' ) Start
+15 Oct 2026 03:38:38,931 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='3267' ) End
+15 Oct 2026 03:38:38,932 [11796] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='3267' and Is_Cancelled=1 ) Start
+15 Oct 2026 03:38:38,940 [11796] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='3267' and Is_Cancelled=1 ) End
+15 Oct 2026 03:38:38,941 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2094' orderby UserTypeId) Start
+15 Oct 2026 03:38:38,961 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2094' orderby UserTypeId) end
+15 Oct 2026 03:38:38,962 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='3314' orderby ) Start
+15 Oct 2026 03:38:38,977 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='3314' orderby ) end
+15 Oct 2026 03:38:38,978 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2066' and UserTypeId=1 orderby ) Start
+15 Oct 2026 03:38:38,994 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2066' and UserTypeId=1 orderby ) end
+15 Oct 2026 03:38:38,995 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) Start
+15 Oct 2026 03:38:39,003 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) end
+15 Oct 2026 03:38:39,004 [11796] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) Start
+15 Oct 2026 03:38:39,015 [11796] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) end
+15 Oct 2026 03:38:39,015 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='3267' ) Start
+15 Oct 2026 03:38:39,024 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='3267' ) End
+15 Oct 2026 03:38:39,025 [11796] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='3267' and Is_Cancelled=1 ) Start
+15 Oct 2026 03:38:39,036 [11796] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='3267' and Is_Cancelled=1 ) End
+15 Oct 2026 03:38:39,037 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2066' orderby UserTypeId) Start
+15 Oct 2026 03:38:39,048 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2066' orderby UserTypeId) end
+15 Oct 2026 03:38:39,049 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='3314' orderby ) Start
+15 Oct 2026 03:38:39,076 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='3314' orderby ) end
+15 Oct 2026 03:38:39,077 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2068' and UserTypeId=1 orderby ) Start
+15 Oct 2026 03:38:39,125 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2068' and UserTypeId=1 orderby ) end
+15 Oct 2026 03:38:39,126 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) Start
+15 Oct 2026 03:38:39,161 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) end
+15 Oct 2026 03:38:39,162 [11796] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) Start
+15 Oct 2026 03:38:39,171 [11796] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) end
+15 Oct 2026 03:38:39,172 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='3267' ) Start
+15 Oct 2026 03:38:39,181 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='3267' ) End
+15 Oct 2026 03:38:39,181 [11796] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='3267' and Is_Cancelled=1 ) Start
+15 Oct 2026 03:38:39,199 [11796] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='3267' and Is_Cancelled=1 ) End
+15 Oct 2026 03:38:39,200 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2068' orderby UserTypeId) Start
+15 Oct 2026 03:38:39,210 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2068' orderby UserTypeId) end
+15 Oct 2026 03:38:39,212 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='3314' orderby ) Start
+15 Oct 2026 03:38:39,226 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='3314' orderby ) end
+15 Oct 2026 03:38:39,226 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2074' and UserTypeId=1 orderby ) Start
+15 Oct 2026 03:38:39,241 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2074' and UserTypeId=1 orderby ) end
+15 Oct 2026 03:38:39,241 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '2024' orderby ) Start
+15 Oct 2026 03:38:39,253 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '2024' orderby ) end
+15 Oct 2026 03:38:39,253 [11796] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner with (Nolock) where EMail_primary = 'independent_partner_pk_one@gmail.com' ) Start
+15 Oct 2026 03:38:39,269 [11796] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner with (Nolock) where EMail_primary = 'independent_partner_pk_one@gmail.com' ) end
+15 Oct 2026 03:38:39,270 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='2024' ) Start
+15 Oct 2026 03:38:39,319 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='2024' ) End
+15 Oct 2026 03:38:39,320 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2074' orderby UserTypeId) Start
+15 Oct 2026 03:38:39,335 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2074' orderby UserTypeId) end
+15 Oct 2026 03:38:39,335 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='15957' orderby ) Start
+15 Oct 2026 03:38:39,348 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='15957' orderby ) end
+15 Oct 2026 03:38:39,350 [11796] INFO  Log - FillGridView(Select ae.EmployeeID,assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID)BusinessName,(select PrimaryContactName from AddBusiness where BusinessID=Assb.BusinessID)MangerName,(select PrimaryContactNumber from AddBusiness where BusinessID=Assb.BusinessID)PrimaryContactNumber,(select OperatingName from AddBusiness where BusinessID=Assb.BusinessID)OperatingName, dbo.FN_DESC('AddEmployee',ae.EmployeeID)emp,AE.EMPLOYEETYPE from AddEmployee Ae with (nolock) join AssginBussiness Assb with (nolock) on ae.EmployeeID=Assb.EmployeeID join EmpAddress ea with (nolock) on ea.EmpAddressId=ae.ADDRESSID and ea.MainEmail<>'' where ae.EmployeeID in (15957,3312,3314,3314,0)  and assb.UserTypeId=4 and ae.IsActive='YES'  AND assb.BusinessID  IN (SELECT  BusinessID from AddBusiness where AddBusiness.Status=1 )  orderby ae.EmployeeID) end
+15 Oct 2026 03:38:39,351 [11796] INFO  Log - FillGridView(Select ae.EmployeeID,assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID)BusinessName,(select PrimaryContactName from AddBusiness where BusinessID=Assb.BusinessID)MangerName,(select PrimaryContactNumber from AddBusiness where BusinessID=Assb.BusinessID)PrimaryContactNumber,(select OperatingName from AddBusiness where BusinessID=Assb.BusinessID)OperatingName, dbo.FN_DESC('AddEmployee',ae.EmployeeID)emp,AE.EMPLOYEETYPE from AddEmployee Ae with (Nolock) join AssginBussiness Assb with (Nolock) on ae.EmployeeID=Assb.EmployeeID join EmpAddress ea with (Nolock) on ea.EmpAddressId=ae.ADDRESSID and ea.MainEmail<>'' where ae.EmployeeID in (3313,15957,3312,3314,3314,0)  and assb.UserTypeId=12 and ae.IsActive='YES'  AND assb.BusinessID  IN (SELECT  BusinessID from AddBusiness where AddBusiness.Status=1 )  orderby ae.EmployeeID) Start
+15 Oct 2026 03:38:39,448 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2073' and UserTypeId=1 orderby ) Start
+15 Oct 2026 03:38:39,463 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2073' and UserTypeId=1 orderby ) end
+15 Oct 2026 03:38:39,464 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '2024' orderby ) Start
+15 Oct 2026 03:38:39,475 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '2024' orderby ) end
+15 Oct 2026 03:38:39,475 [11796] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner with (Nolock) where EMail_primary = 'independent_partner_pk_one@gmail.com' ) Start
+15 Oct 2026 03:38:39,489 [11796] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner with (Nolock) where EMail_primary = 'independent_partner_pk_one@gmail.com' ) end
+15 Oct 2026 03:38:39,490 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='2024' ) Start
+15 Oct 2026 03:38:39,534 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='2024' ) End
+15 Oct 2026 03:38:39,535 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2073' orderby UserTypeId) Start
+15 Oct 2026 03:38:39,554 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2073' orderby UserTypeId) end
+15 Oct 2026 03:38:39,555 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='3312' orderby ) Start
+15 Oct 2026 03:38:39,567 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='3312' orderby ) end
+15 Oct 2026 03:38:39,568 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2075' and UserTypeId=1 orderby ) Start
+15 Oct 2026 03:38:39,580 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2075' and UserTypeId=1 orderby ) end
+15 Oct 2026 03:38:39,581 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '2024' orderby ) Start
+15 Oct 2026 03:38:39,589 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '2024' orderby ) end
+15 Oct 2026 03:38:39,590 [11796] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner with (Nolock) where EMail_primary = 'independent_partner_pk_one@gmail.com' ) Start
+15 Oct 2026 03:38:39,597 [11796] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner with (Nolock) where EMail_primary = 'independent_partner_pk_one@gmail.com' ) end
+15 Oct 2026 03:38:39,597 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='2024' ) Start
+15 Oct 2026 03:38:39,614 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='2024' ) End
+15 Oct 2026 03:38:39,615 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2075' orderby UserTypeId) Start
+15 Oct 2026 03:38:39,623 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2075' orderby UserTypeId) end
+15 Oct 2026 03:38:39,624 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='3313' orderby ) Start
+15 Oct 2026 03:38:39,638 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='3313' orderby ) end
+15 Oct 2026 03:38:39,638 [11796] INFO  Log - FillGridView(Select ae.EmployeeID,assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID)BusinessName,(select PrimaryContactName from AddBusiness where BusinessID=Assb.BusinessID)MangerName,(select PrimaryContactNumber from AddBusiness where BusinessID=Assb.BusinessID)PrimaryContactNumber,(select OperatingName from AddBusiness where BusinessID=Assb.BusinessID)OperatingName, dbo.FN_DESC('AddEmployee',ae.EmployeeID)emp,AE.EMPLOYEETYPE from AddEmployee Ae with (Nolock) join AssginBussiness Assb with (Nolock) on ae.EmployeeID=Assb.EmployeeID join EmpAddress ea with (Nolock) on ea.EmpAddressId=ae.ADDRESSID and ea.MainEmail<>'' where ae.EmployeeID in (3313,15957,3312,3314,3314,0)  and assb.UserTypeId=12 and ae.IsActive='YES'  AND assb.BusinessID  IN (SELECT  BusinessID from AddBusiness where AddBusiness.Status=1 )  orderby ae.EmployeeID) end
+15 Oct 2026 03:38:39,639 [11796] INFO  Log - FillGridView(Select ae.EmployeeID,assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID)BusinessName,(select PrimaryContactName from AddBusiness where BusinessID=Assb.BusinessID)MangerName,(select PrimaryContactNumber from AddBusiness where BusinessID=Assb.BusinessID)PrimaryContactNumber,(select OperatingName from AddBusiness where BusinessID=Assb.BusinessID)OperatingName, dbo.FN_DESC('AddEmployee',ae.EmployeeID)emp,AE.EMPLOYEETYPE from AddEmployee Ae with (nolock) join AssginBussiness Assb with (nolock) on ae.EmployeeID=Assb.EmployeeID join EmpAddress ea with (nolock) on ea.EmpAddressId=ae.ADDRESSID and ea.MainEmail<>'' where ae.EmployeeID in (15959,3313,15957,3312,3314,3314,0)  and assb.UserTypeId=4 and ae.IsActive='YES'  AND assb.BusinessID  IN (SELECT  BusinessID from AddBusiness where AddBusiness.Status=1 )  orderby ae.EmployeeID) Start
+15 Oct 2026 03:38:39,760 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2094' and UserTypeId=1 orderby ) Start
+15 Oct 2026 03:38:39,771 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2094' and UserTypeId=1 orderby ) end
+15 Oct 2026 03:38:39,772 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) Start
+15 Oct 2026 03:38:39,785 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) end
+15 Oct 2026 03:38:39,786 [11796] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) Start
+15 Oct 2026 03:38:39,822 [11796] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) end
+15 Oct 2026 03:38:39,822 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='3267' ) Start
+15 Oct 2026 03:38:39,834 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='3267' ) End
+15 Oct 2026 03:38:39,835 [11796] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='3267' and Is_Cancelled=1 ) Start
+15 Oct 2026 03:38:39,841 [11796] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='3267' and Is_Cancelled=1 ) End
+15 Oct 2026 03:38:39,842 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2094' orderby UserTypeId) Start
+15 Oct 2026 03:38:39,853 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2094' orderby UserTypeId) end
+15 Oct 2026 03:38:39,854 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='3314' orderby ) Start
+15 Oct 2026 03:38:39,869 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='3314' orderby ) end
+15 Oct 2026 03:38:39,870 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2066' and UserTypeId=1 orderby ) Start
+15 Oct 2026 03:38:39,883 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2066' and UserTypeId=1 orderby ) end
+15 Oct 2026 03:38:39,883 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) Start
+15 Oct 2026 03:38:39,897 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) end
+15 Oct 2026 03:38:39,898 [11796] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) Start
+15 Oct 2026 03:38:39,906 [11796] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) end
+15 Oct 2026 03:38:39,908 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='3267' ) Start
+15 Oct 2026 03:38:39,920 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='3267' ) End
+15 Oct 2026 03:38:39,921 [11796] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='3267' and Is_Cancelled=1 ) Start
+15 Oct 2026 03:38:39,927 [11796] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='3267' and Is_Cancelled=1 ) End
+15 Oct 2026 03:38:39,928 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2066' orderby UserTypeId) Start
+15 Oct 2026 03:38:39,953 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2066' orderby UserTypeId) end
+15 Oct 2026 03:38:39,954 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='3314' orderby ) Start
+15 Oct 2026 03:38:39,990 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='3314' orderby ) end
+15 Oct 2026 03:38:39,991 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2068' and UserTypeId=1 orderby ) Start
+15 Oct 2026 03:38:40,003 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2068' and UserTypeId=1 orderby ) end
+15 Oct 2026 03:38:40,004 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) Start
+15 Oct 2026 03:38:40,017 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) end
+15 Oct 2026 03:38:40,018 [11796] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) Start
+15 Oct 2026 03:38:40,027 [11796] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) end
+15 Oct 2026 03:38:40,028 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='3267' ) Start
+15 Oct 2026 03:38:40,038 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='3267' ) End
+15 Oct 2026 03:38:40,038 [11796] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='3267' and Is_Cancelled=1 ) Start
+15 Oct 2026 03:38:40,050 [11796] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='3267' and Is_Cancelled=1 ) End
+15 Oct 2026 03:38:40,050 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2068' orderby UserTypeId) Start
+15 Oct 2026 03:38:40,058 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2068' orderby UserTypeId) end
+15 Oct 2026 03:38:40,059 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='3314' orderby ) Start
+15 Oct 2026 03:38:40,076 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='3314' orderby ) end
+15 Oct 2026 03:38:40,077 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2074' and UserTypeId=1 orderby ) Start
+15 Oct 2026 03:38:40,086 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2074' and UserTypeId=1 orderby ) end
+15 Oct 2026 03:38:40,087 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '2024' orderby ) Start
+15 Oct 2026 03:38:40,099 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '2024' orderby ) end
+15 Oct 2026 03:38:40,105 [11796] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner with (Nolock) where EMail_primary = 'independent_partner_pk_one@gmail.com' ) Start
+15 Oct 2026 03:38:40,113 [11796] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner with (Nolock) where EMail_primary = 'independent_partner_pk_one@gmail.com' ) end
+15 Oct 2026 03:38:40,114 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='2024' ) Start
+15 Oct 2026 03:38:40,123 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='2024' ) End
+15 Oct 2026 03:38:40,123 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2074' orderby UserTypeId) Start
+15 Oct 2026 03:38:40,135 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2074' orderby UserTypeId) end
+15 Oct 2026 03:38:40,137 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='15957' orderby ) Start
+15 Oct 2026 03:38:40,183 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='15957' orderby ) end
+15 Oct 2026 03:38:40,184 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2079' and UserTypeId=1 orderby ) Start
+15 Oct 2026 03:38:40,219 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2079' and UserTypeId=1 orderby ) end
+15 Oct 2026 03:38:40,219 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) Start
+15 Oct 2026 03:38:40,247 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) end
+15 Oct 2026 03:38:40,248 [11796] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) Start
+15 Oct 2026 03:38:40,278 [11796] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) end
+15 Oct 2026 03:38:40,278 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='3268' ) Start
+15 Oct 2026 03:38:40,302 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='3268' ) End
+15 Oct 2026 03:38:40,302 [11796] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='3268' and Is_Cancelled=1 ) Start
+15 Oct 2026 03:38:40,326 [11796] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='3268' and Is_Cancelled=1 ) End
+15 Oct 2026 03:38:40,326 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2079' orderby UserTypeId) Start
+15 Oct 2026 03:38:40,356 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2079' orderby UserTypeId) end
+15 Oct 2026 03:38:40,356 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='15959' orderby ) Start
+15 Oct 2026 03:38:40,378 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='15959' orderby ) end
+15 Oct 2026 03:38:40,380 [11796] INFO  Log - FillGridView(Select ae.EmployeeID,assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID)BusinessName,(select PrimaryContactName from AddBusiness where BusinessID=Assb.BusinessID)MangerName,(select PrimaryContactNumber from AddBusiness where BusinessID=Assb.BusinessID)PrimaryContactNumber,(select OperatingName from AddBusiness where BusinessID=Assb.BusinessID)OperatingName, dbo.FN_DESC('AddEmployee',ae.EmployeeID)emp,AE.EMPLOYEETYPE from AddEmployee Ae with (nolock) join AssginBussiness Assb with (nolock) on ae.EmployeeID=Assb.EmployeeID join EmpAddress ea with (nolock) on ea.EmpAddressId=ae.ADDRESSID and ea.MainEmail<>'' where ae.EmployeeID in (15959,3313,15957,3312,3314,3314,0)  and assb.UserTypeId=4 and ae.IsActive='YES'  AND assb.BusinessID  IN (SELECT  BusinessID from AddBusiness where AddBusiness.Status=1 )  orderby ae.EmployeeID) end
+15 Oct 2026 03:38:40,381 [11796] INFO  Log - FillGridView(Select ae.EmployeeID,assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID)BusinessName,(select PrimaryContactName from AddBusiness where BusinessID=Assb.BusinessID)MangerName,(select PrimaryContactNumber from AddBusiness where BusinessID=Assb.BusinessID)PrimaryContactNumber,(select OperatingName from AddBusiness where BusinessID=Assb.BusinessID)OperatingName, dbo.FN_DESC('AddEmployee',ae.EmployeeID)emp,AE.EMPLOYEETYPE from AddEmployee Ae with (nolock) join AssginBussiness Assb with (nolock) on ae.EmployeeID=Assb.EmployeeID join EmpAddress ea with (nolock) on ea.EmpAddressId=ae.ADDRESSID and ea.MainEmail<>'' where ae.EmployeeID in (3314,15959,3313,15957,3312,3314,3314,0)  and assb.UserTypeId=4 and ae.IsActive='YES'  AND assb.BusinessID  IN (SELECT  BusinessID from AddBusiness where AddBusiness.Status=1 )  orderby ae.EmployeeID) Start
+15 Oct 2026 03:38:40,533 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2094' and UserTypeId=1 orderby ) Start
+15 Oct 2026 03:38:40,540 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2094' and UserTypeId=1 orderby ) end
+15 Oct 2026 03:38:40,540 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) Start
+15 Oct 2026 03:38:40,553 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) end
+15 Oct 2026 03:38:40,554 [11796] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) Start
+15 Oct 2026 03:38:40,567 [11796] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) end
+15 Oct 2026 03:38:40,568 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='3267' ) Start
+15 Oct 2026 03:38:40,575 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='3267' ) End
+15 Oct 2026 03:38:40,576 [11796] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='3267' and Is_Cancelled=1 ) Start
+15 Oct 2026 03:38:40,628 [11796] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='3267' and Is_Cancelled=1 ) End
+15 Oct 2026 03:38:40,629 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2094' orderby UserTypeId) Start
+15 Oct 2026 03:38:40,677 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2094' orderby UserTypeId) end
+15 Oct 2026 03:38:40,678 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='3314' orderby ) Start
+15 Oct 2026 03:38:40,721 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='3314' orderby ) end
+15 Oct 2026 03:38:40,723 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2066' and UserTypeId=1 orderby ) Start
+15 Oct 2026 03:38:40,732 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2066' and UserTypeId=1 orderby ) end
+15 Oct 2026 03:38:40,734 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) Start
+15 Oct 2026 03:38:40,748 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) end
+15 Oct 2026 03:38:40,748 [11796] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) Start
+15 Oct 2026 03:38:40,758 [11796] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) end
+15 Oct 2026 03:38:40,761 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='3267' ) Start
+15 Oct 2026 03:38:40,782 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='3267' ) End
+15 Oct 2026 03:38:40,783 [11796] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='3267' and Is_Cancelled=1 ) Start
+15 Oct 2026 03:38:40,791 [11796] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='3267' and Is_Cancelled=1 ) End
+15 Oct 2026 03:38:40,793 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2066' orderby UserTypeId) Start
+15 Oct 2026 03:38:40,822 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2066' orderby UserTypeId) end
+15 Oct 2026 03:38:40,823 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='3314' orderby ) Start
+15 Oct 2026 03:38:40,849 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='3314' orderby ) end
+15 Oct 2026 03:38:40,850 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2068' and UserTypeId=1 orderby ) Start
+15 Oct 2026 03:38:40,887 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2068' and UserTypeId=1 orderby ) end
+15 Oct 2026 03:38:40,888 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) Start
+15 Oct 2026 03:38:40,920 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) end
+15 Oct 2026 03:38:40,921 [11796] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) Start
+15 Oct 2026 03:38:40,933 [11796] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) end
+15 Oct 2026 03:38:40,934 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='3267' ) Start
+15 Oct 2026 03:38:40,944 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='3267' ) End
+15 Oct 2026 03:38:40,945 [11796] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='3267' and Is_Cancelled=1 ) Start
+15 Oct 2026 03:38:40,952 [11796] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='3267' and Is_Cancelled=1 ) End
+15 Oct 2026 03:38:40,953 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2068' orderby UserTypeId) Start
+15 Oct 2026 03:38:40,966 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2068' orderby UserTypeId) end
+15 Oct 2026 03:38:40,967 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='3314' orderby ) Start
+15 Oct 2026 03:38:40,982 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='3314' orderby ) end
+15 Oct 2026 03:38:40,983 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2074' and UserTypeId=1 orderby ) Start
+15 Oct 2026 03:38:40,997 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2074' and UserTypeId=1 orderby ) end
+15 Oct 2026 03:38:40,998 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '2024' orderby ) Start
+15 Oct 2026 03:38:41,005 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '2024' orderby ) end
+15 Oct 2026 03:38:41,006 [11796] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner with (Nolock) where EMail_primary = 'independent_partner_pk_one@gmail.com' ) Start
+15 Oct 2026 03:38:41,019 [11796] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner with (Nolock) where EMail_primary = 'independent_partner_pk_one@gmail.com' ) end
+15 Oct 2026 03:38:41,021 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='2024' ) Start
+15 Oct 2026 03:38:41,031 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='2024' ) End
+15 Oct 2026 03:38:41,031 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2074' orderby UserTypeId) Start
+15 Oct 2026 03:38:41,042 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2074' orderby UserTypeId) end
+15 Oct 2026 03:38:41,043 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='15957' orderby ) Start
+15 Oct 2026 03:38:41,061 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='15957' orderby ) end
+15 Oct 2026 03:38:41,062 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2079' and UserTypeId=1 orderby ) Start
+15 Oct 2026 03:38:41,071 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2079' and UserTypeId=1 orderby ) end
+15 Oct 2026 03:38:41,072 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) Start
+15 Oct 2026 03:38:41,092 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) end
+15 Oct 2026 03:38:41,093 [11796] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) Start
+15 Oct 2026 03:38:41,123 [11796] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) end
+15 Oct 2026 03:38:41,124 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='3268' ) Start
+15 Oct 2026 03:38:41,136 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='3268' ) End
+15 Oct 2026 03:38:41,137 [11796] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='3268' and Is_Cancelled=1 ) Start
+15 Oct 2026 03:38:41,154 [11796] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='3268' and Is_Cancelled=1 ) End
+15 Oct 2026 03:38:41,154 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2079' orderby UserTypeId) Start
+15 Oct 2026 03:38:41,166 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2079' orderby UserTypeId) end
+15 Oct 2026 03:38:41,167 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='15959' orderby ) Start
+15 Oct 2026 03:38:41,180 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='15959' orderby ) end
+15 Oct 2026 03:38:41,181 [11796] INFO  Log - FillGridView(Select ae.EmployeeID,assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID)BusinessName,(select PrimaryContactName from AddBusiness where BusinessID=Assb.BusinessID)MangerName,(select PrimaryContactNumber from AddBusiness where BusinessID=Assb.BusinessID)PrimaryContactNumber,(select OperatingName from AddBusiness where BusinessID=Assb.BusinessID)OperatingName, dbo.FN_DESC('AddEmployee',ae.EmployeeID)emp,AE.EMPLOYEETYPE from AddEmployee Ae with (nolock) join AssginBussiness Assb with (nolock) on ae.EmployeeID=Assb.EmployeeID join EmpAddress ea with (nolock) on ea.EmpAddressId=ae.ADDRESSID and ea.MainEmail<>'' where ae.EmployeeID in (3314,15959,3313,15957,3312,3314,3314,0)  and assb.UserTypeId=4 and ae.IsActive='YES'  AND assb.BusinessID  IN (SELECT  BusinessID from AddBusiness where AddBusiness.Status=1 )  orderby ae.EmployeeID) end
+15 Oct 2026 03:38:41,182 [11796] INFO  Log - FillGridView(Select ae.EmployeeID,assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID)BusinessName,(select PrimaryContactName from AddBusiness where BusinessID=Assb.BusinessID)MangerName,(select PrimaryContactNumber from AddBusiness where BusinessID=Assb.BusinessID)PrimaryContactNumber,(select OperatingName from AddBusiness where BusinessID=Assb.BusinessID)OperatingName, dbo.FN_DESC('AddEmployee',ae.EmployeeID)emp,AE.EMPLOYEETYPE from AddEmployee Ae with (nolock) join AssginBussiness Assb with (nolock) on ae.EmployeeID=Assb.EmployeeID join EmpAddress ea with (nolock) on ea.EmpAddressId=ae.ADDRESSID and ea.MainEmail<>'' where ae.EmployeeID in (15960,3314,15959,3313,15957,3312,3314,3314,0)  and assb.UserTypeId=4 and ae.IsActive='YES'  AND assb.BusinessID  IN (SELECT  BusinessID from AddBusiness where AddBusiness.Status=1 )  orderby ae.EmployeeID) Start
+15 Oct 2026 03:38:41,305 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2094' and UserTypeId=1 orderby ) Start
+15 Oct 2026 03:38:41,333 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2094' and UserTypeId=1 orderby ) end
+15 Oct 2026 03:38:41,334 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) Start
+15 Oct 2026 03:38:41,344 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) end
+15 Oct 2026 03:38:41,344 [11796] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) Start
+15 Oct 2026 03:38:41,356 [11796] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) end
+15 Oct 2026 03:38:41,357 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='3267' ) Start
+15 Oct 2026 03:38:41,368 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='3267' ) End
+15 Oct 2026 03:38:41,369 [11796] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='3267' and Is_Cancelled=1 ) Start
+15 Oct 2026 03:38:41,377 [11796] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='3267' and Is_Cancelled=1 ) End
+15 Oct 2026 03:38:41,378 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2094' orderby UserTypeId) Start
+15 Oct 2026 03:38:41,389 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2094' orderby UserTypeId) end
+15 Oct 2026 03:38:41,390 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='3314' orderby ) Start
+15 Oct 2026 03:38:41,401 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='3314' orderby ) end
+15 Oct 2026 03:38:41,402 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2066' and UserTypeId=1 orderby ) Start
+15 Oct 2026 03:38:41,416 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2066' and UserTypeId=1 orderby ) end
+15 Oct 2026 03:38:41,417 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) Start
+15 Oct 2026 03:38:41,429 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) end
+15 Oct 2026 03:38:41,429 [11796] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) Start
+15 Oct 2026 03:38:41,438 [11796] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) end
+15 Oct 2026 03:38:41,439 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='3267' ) Start
+15 Oct 2026 03:38:41,452 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='3267' ) End
+15 Oct 2026 03:38:41,453 [11796] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='3267' and Is_Cancelled=1 ) Start
+15 Oct 2026 03:38:41,461 [11796] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='3267' and Is_Cancelled=1 ) End
+15 Oct 2026 03:38:41,462 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2066' orderby UserTypeId) Start
+15 Oct 2026 03:38:41,478 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2066' orderby UserTypeId) end
+15 Oct 2026 03:38:41,479 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='3314' orderby ) Start
+15 Oct 2026 03:38:41,493 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='3314' orderby ) end
+15 Oct 2026 03:38:41,495 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2068' and UserTypeId=1 orderby ) Start
+15 Oct 2026 03:38:41,516 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2068' and UserTypeId=1 orderby ) end
+15 Oct 2026 03:38:41,517 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) Start
+15 Oct 2026 03:38:41,542 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) end
+15 Oct 2026 03:38:41,543 [11796] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) Start
+15 Oct 2026 03:38:41,553 [11796] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) end
+15 Oct 2026 03:38:41,554 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='3267' ) Start
+15 Oct 2026 03:38:41,577 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='3267' ) End
+15 Oct 2026 03:38:41,578 [11796] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='3267' and Is_Cancelled=1 ) Start
+15 Oct 2026 03:38:41,590 [11796] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='3267' and Is_Cancelled=1 ) End
+15 Oct 2026 03:38:41,590 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2068' orderby UserTypeId) Start
+15 Oct 2026 03:38:41,598 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2068' orderby UserTypeId) end
+15 Oct 2026 03:38:41,599 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='3314' orderby ) Start
+15 Oct 2026 03:38:41,616 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='3314' orderby ) end
+15 Oct 2026 03:38:41,617 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2074' and UserTypeId=1 orderby ) Start
+15 Oct 2026 03:38:41,632 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2074' and UserTypeId=1 orderby ) end
+15 Oct 2026 03:38:41,633 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '2024' orderby ) Start
+15 Oct 2026 03:38:41,642 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '2024' orderby ) end
+15 Oct 2026 03:38:41,643 [11796] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner with (Nolock) where EMail_primary = 'independent_partner_pk_one@gmail.com' ) Start
+15 Oct 2026 03:38:41,654 [11796] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner with (Nolock) where EMail_primary = 'independent_partner_pk_one@gmail.com' ) end
+15 Oct 2026 03:38:41,654 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='2024' ) Start
+15 Oct 2026 03:38:41,662 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='2024' ) End
+15 Oct 2026 03:38:41,663 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2074' orderby UserTypeId) Start
+15 Oct 2026 03:38:41,676 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2074' orderby UserTypeId) end
+15 Oct 2026 03:38:41,677 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='15957' orderby ) Start
+15 Oct 2026 03:38:41,687 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='15957' orderby ) end
+15 Oct 2026 03:38:41,688 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2079' and UserTypeId=1 orderby ) Start
+15 Oct 2026 03:38:41,701 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '2079' and UserTypeId=1 orderby ) end
+15 Oct 2026 03:38:41,702 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) Start
+15 Oct 2026 03:38:41,743 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) end
+15 Oct 2026 03:38:41,744 [11796] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) Start
+15 Oct 2026 03:38:41,752 [11796] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) end
+15 Oct 2026 03:38:41,753 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='3268' ) Start
+15 Oct 2026 03:38:41,783 [11796] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='3268' ) End
+15 Oct 2026 03:38:41,783 [11796] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='3268' and Is_Cancelled=1 ) Start
+15 Oct 2026 03:38:41,792 [11796] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='3268' and Is_Cancelled=1 ) End
+15 Oct 2026 03:38:41,793 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2079' orderby UserTypeId) Start
+15 Oct 2026 03:38:41,802 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '2079' orderby UserTypeId) end
+15 Oct 2026 03:38:41,803 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='15959' orderby ) Start
+15 Oct 2026 03:38:41,820 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='15959' orderby ) end
+15 Oct 2026 03:38:41,821 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '7154' and UserTypeId=1 orderby ) Start
+15 Oct 2026 03:38:41,836 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '7154' and UserTypeId=1 orderby ) end
+15 Oct 2026 03:38:41,837 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '6038' orderby ) Start
+15 Oct 2026 03:38:41,846 [11796] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '6038' orderby ) end
+15 Oct 2026 03:38:41,847 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '7154' orderby UserTypeId) Start
+15 Oct 2026 03:38:41,855 [11796] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '4270' and BusinessId = '7154' orderby UserTypeId) end
+15 Oct 2026 03:38:41,856 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='15960' orderby ) Start
+15 Oct 2026 03:38:41,871 [11796] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='15960' orderby ) end
+15 Oct 2026 03:38:41,872 [11796] INFO  Log - FillGridView(Select ae.EmployeeID,assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID)BusinessName,(select PrimaryContactName from AddBusiness where BusinessID=Assb.BusinessID)MangerName,(select PrimaryContactNumber from AddBusiness where BusinessID=Assb.BusinessID)PrimaryContactNumber,(select OperatingName from AddBusiness where BusinessID=Assb.BusinessID)OperatingName, dbo.FN_DESC('AddEmployee',ae.EmployeeID)emp,AE.EMPLOYEETYPE from AddEmployee Ae with (nolock) join AssginBussiness Assb with (nolock) on ae.EmployeeID=Assb.EmployeeID join EmpAddress ea with (nolock) on ea.EmpAddressId=ae.ADDRESSID and ea.MainEmail<>'' where ae.EmployeeID in (15960,3314,15959,3313,15957,3312,3314,3314,0)  and assb.UserTypeId=4 and ae.IsActive='YES'  AND assb.BusinessID  IN (SELECT  BusinessID from AddBusiness where AddBusiness.Status=1 )  orderby ae.EmployeeID) end
+15 Oct 2026 03:38:41,874 [11796] INFO  Log - GetAllDataFromTable(Select ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join EmpAddress ea with (Nolock) on ad.ADDRESSID=ea.EmpAddressId where ea.MainEmail='sheru3@gmail.com' and ad.UserType='5' and ad.EmployeeID='15958' orderby ) Start
+15 Oct 2026 03:38:41,904 [11796] INFO  Log - GetAllDataFromTable(Select ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join EmpAddress ea with (Nolock) on ad.ADDRESSID=ea.EmpAddressId where ea.MainEmail='sheru3@gmail.com' and ad.UserType='5' and ad.EmployeeID='15958' orderby ) end
+15 Oct 2026 03:38:41,906 [11796] INFO  Log - GetOwnerDetails(sheru3@gmail.com, 2024) Start

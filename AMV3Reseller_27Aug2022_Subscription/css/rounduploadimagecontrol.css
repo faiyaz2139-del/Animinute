@@ -1,0 +1,103 @@
+﻿/* Upload Area */
+.upload-area {
+    width: 180px;
+    height: 185px;
+    /* border-radius: 50px; */
+    background-color: white;
+    /* box-shadow: 0 10px 60px rgb(218 229 255); */
+    /*border: 2px solid rgb(171, 202, 255);*/
+    border-radius: 87px;
+    padding: 2rem 1.875rem 5rem 1.875rem;
+    margin: 0.625rem;
+    text-align: center;
+}
+
+.upload-area--open { /* Slid Down Animation */
+    animation: slidDown 500ms ease-in-out;
+}
+
+@keyframes slidDown {
+    from {
+        height: 190px;
+    }
+
+    to {
+        height: 200px
+    }
+}
+
+/* Drop Zoon */
+.upload-area__drop-zoon {
+    position: relative;
+    height: 130px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    /*border: 2px dashed rgb(171, 202, 255);*/
+    border-radius: 15px;
+    cursor: pointer;
+    transition: border-color 300ms ease-in-out;
+}
+
+.upload-area__drop-zoon:hover {
+    /*border-color: rgb(63, 134, 255);*/
+}
+
+.drop-zoon__icon {
+    display: flex;
+    font-size: 3.75rem;
+    color: rgb(63, 134, 255);
+    transition: opacity 300ms ease-in-out;
+}
+
+.drop-zoon:hover .drop-zoon__icon,
+.drop-zoon:hover .drop-zoon__paragraph {
+    /*opacity: 0.7;*/
+}
+
+.upload-area__paragraph {
+    font-size: 0.9375rem;
+    color: rgb(196, 195, 196);
+    margin-top: 0;
+}
+
+.drop-zoon__loading-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: none;
+    color: rgb(63, 134, 255);
+    z-index: 10;
+}
+
+.drop-zoon__preview-image {
+    margin: -2px;
+    position: absolute;
+    /* top: 0; */
+    left: -17px;
+    width: 131%;
+    height: 100%;
+    object-fit: fill;
+    padding: 0px;
+    border-radius: 89px;
+    /* display: none; */
+    z-index: 1000;
+    transition: opacity 300ms ease-in-out;
+    /*border: 2px solid grey;*/
+    border: 2px solid #607DF2;
+}
+
+.drop-zoon:hover .drop-zoon__preview-image {
+    /*opacity: 0.8;*/
+}
+
+.drop-zoon__file-input {
+    display: none !important;
+}
+
+/* (drop-zoon--over) Modifier Class */
+.drop-zoon--over {
+    border-color: rgb(63, 134, 255);
+}

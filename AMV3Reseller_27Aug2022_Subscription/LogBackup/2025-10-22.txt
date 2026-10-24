@@ -1,0 +1,306 @@
+22 Oct 2025 21:25:02,314 [13804] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) Start
+22 Oct 2025 21:25:02,577 [13804] INFO  Log - GetLoginDetails(independent_bo_pk_two@gmail.com,12345678,independent_bo_pk_two@gmail.com) end
+22 Oct 2025 21:25:02,578 [13804] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+22 Oct 2025 21:25:02,623 [13804] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+22 Oct 2025 21:25:02,623 [13804] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) Start
+22 Oct 2025 21:25:02,877 [13804] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=3268 orderby ) end
+22 Oct 2025 21:25:02,878 [13804] INFO  Log - GetNameFromId(UserType,1) Start
+22 Oct 2025 21:25:02,972 [13804] INFO  Log - GetNameFromId(UserType,1) end
+22 Oct 2025 21:25:04,916 [13804] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 3268 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) Start
+22 Oct 2025 21:25:05,245 [13804] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 3268 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) end
+22 Oct 2025 21:25:05,246 [13804] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (2078, 2079, 2082, 2095, 2096, 2097, 6126, 7125, 7126, 7127, 7128, 7129, 7130, 7131, 7132, 7134, 7135, 7136, 7137, 7143, 8161, 12224, 14229, 14230, 14232, 14234, 14235, 14236, 15235, 15236, 15237, 15238, 15239, 15240, 15241, 15243) orderby Yr desc) Start
+22 Oct 2025 21:25:05,408 [13804] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (2078, 2079, 2082, 2095, 2096, 2097, 6126, 7125, 7126, 7127, 7128, 7129, 7130, 7131, 7132, 7134, 7135, 7136, 7137, 7143, 8161, 12224, 14229, 14230, 14232, 14234, 14235, 14236, 15235, 15236, 15237, 15238, 15239, 15240, 15241, 15243) orderby Yr desc) end
+22 Oct 2025 21:25:05,409 [13804] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=3268) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) Start
+22 Oct 2025 21:25:05,552 [13804] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=3268) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) end
+22 Oct 2025 21:25:07,867 [13804] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+22 Oct 2025 21:25:07,965 [13804] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+22 Oct 2025 21:25:07,966 [13804] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+22 Oct 2025 21:25:08,017 [13804] INFO  Log - GetMenuDataFromLoginTable(4246) end
+22 Oct 2025 21:25:08,018 [13804] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+22 Oct 2025 21:25:08,164 [13804] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+22 Oct 2025 21:25:08,165 [13804] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+22 Oct 2025 21:25:08,218 [13804] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+22 Oct 2025 21:25:08,219 [13804] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+22 Oct 2025 21:25:08,280 [13804] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+22 Oct 2025 21:25:08,281 [13804] INFO  Log - Fetching menu details - Started
+22 Oct 2025 21:25:08,347 [13804] INFO  Log - Fetching menu details - Finished
+22 Oct 2025 21:25:42,262 [8184] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) Start
+22 Oct 2025 21:25:42,267 [8184] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) end
+22 Oct 2025 21:25:42,268 [8184] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) Start
+22 Oct 2025 21:25:42,291 [8184] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) end
+22 Oct 2025 21:25:42,292 [8184] INFO  Log - ExecuteQuery(select PlanName,StartDate,EndDate,No_Of_Users,Business from PlanHistory with (Nolock) where EmailId='independent_bo_pk_two@gmail.com' and IsActive=1 ) Start
+22 Oct 2025 21:25:42,327 [8184] INFO  Log - ExecuteQuery(select PlanName,StartDate,EndDate,No_Of_Users,Business from PlanHistory with (Nolock) where EmailId='independent_bo_pk_two@gmail.com' and IsActive=1 ) End
+22 Oct 2025 21:25:42,330 [8184] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+22 Oct 2025 21:25:42,337 [8184] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+22 Oct 2025 21:25:42,337 [8184] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+22 Oct 2025 21:25:42,350 [8184] INFO  Log - GetMenuDataFromLoginTable(4246) end
+22 Oct 2025 21:25:42,351 [8184] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+22 Oct 2025 21:25:42,360 [8184] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+22 Oct 2025 21:25:42,361 [8184] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+22 Oct 2025 21:25:42,374 [8184] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+22 Oct 2025 21:25:42,376 [8184] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+22 Oct 2025 21:25:42,397 [8184] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+22 Oct 2025 21:25:42,398 [8184] INFO  Log - Fetching menu details - Started
+22 Oct 2025 21:25:42,409 [8184] INFO  Log - Fetching menu details - Finished
+22 Oct 2025 21:25:57,405 [16224] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) Start
+22 Oct 2025 21:25:57,439 [16224] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) end
+22 Oct 2025 21:25:57,440 [16224] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) Start
+22 Oct 2025 21:25:57,465 [16224] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) end
+22 Oct 2025 21:25:57,466 [16224] INFO  Log - ExecuteQuery(select PlanName,StartDate,EndDate,No_Of_Users,Business from PlanHistory with (Nolock) where EmailId='independent_bo_pk_two@gmail.com' and IsActive=1 ) Start
+22 Oct 2025 21:25:57,472 [16224] INFO  Log - ExecuteQuery(select PlanName,StartDate,EndDate,No_Of_Users,Business from PlanHistory with (Nolock) where EmailId='independent_bo_pk_two@gmail.com' and IsActive=1 ) End
+22 Oct 2025 21:25:57,479 [16224] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+22 Oct 2025 21:25:57,488 [16224] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+22 Oct 2025 21:25:57,489 [16224] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+22 Oct 2025 21:25:57,497 [16224] INFO  Log - GetMenuDataFromLoginTable(4246) end
+22 Oct 2025 21:25:57,498 [16224] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+22 Oct 2025 21:25:57,514 [16224] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+22 Oct 2025 21:25:57,514 [16224] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+22 Oct 2025 21:25:57,524 [16224] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+22 Oct 2025 21:25:57,526 [16224] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+22 Oct 2025 21:25:57,549 [16224] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+22 Oct 2025 21:25:57,550 [16224] INFO  Log - Fetching menu details - Started
+22 Oct 2025 21:25:57,559 [16224] INFO  Log - Fetching menu details - Finished
+22 Oct 2025 21:26:12,762 [16224] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) Start
+22 Oct 2025 21:26:12,765 [16224] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) end
+22 Oct 2025 21:26:12,765 [16224] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) Start
+22 Oct 2025 21:26:12,772 [16224] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) end
+22 Oct 2025 21:26:12,773 [16224] INFO  Log - ExecuteQuery(select PlanName,StartDate,EndDate,No_Of_Users,Business from PlanHistory with (Nolock) where EmailId='independent_bo_pk_two@gmail.com' and IsActive=1 ) Start
+22 Oct 2025 21:26:12,780 [16224] INFO  Log - ExecuteQuery(select PlanName,StartDate,EndDate,No_Of_Users,Business from PlanHistory with (Nolock) where EmailId='independent_bo_pk_two@gmail.com' and IsActive=1 ) End
+22 Oct 2025 21:26:12,783 [16224] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+22 Oct 2025 21:26:12,793 [16224] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+22 Oct 2025 21:26:12,793 [16224] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+22 Oct 2025 21:26:12,818 [16224] INFO  Log - GetMenuDataFromLoginTable(4246) end
+22 Oct 2025 21:26:12,819 [16224] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+22 Oct 2025 21:26:12,877 [16224] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+22 Oct 2025 21:26:12,877 [16224] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+22 Oct 2025 21:26:12,913 [16224] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+22 Oct 2025 21:26:12,914 [16224] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+22 Oct 2025 21:26:12,952 [16224] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+22 Oct 2025 21:26:12,952 [16224] INFO  Log - Fetching menu details - Started
+22 Oct 2025 21:26:12,959 [16224] INFO  Log - Fetching menu details - Finished
+22 Oct 2025 21:28:14,246 [15408] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+22 Oct 2025 21:28:14,253 [15408] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+22 Oct 2025 21:28:14,254 [15408] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+22 Oct 2025 21:28:14,265 [15408] INFO  Log - GetMenuDataFromLoginTable(4246) end
+22 Oct 2025 21:28:14,266 [15408] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+22 Oct 2025 21:28:14,275 [15408] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+22 Oct 2025 21:28:14,276 [15408] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+22 Oct 2025 21:28:14,292 [15408] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+22 Oct 2025 21:28:14,294 [15408] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+22 Oct 2025 21:28:14,318 [15408] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+22 Oct 2025 21:28:14,319 [15408] INFO  Log - Fetching menu details - Started
+22 Oct 2025 21:28:14,325 [15408] INFO  Log - Fetching menu details - Finished
+22 Oct 2025 21:28:27,164 [13804] INFO  Log - GetAllDataFromTable(Select Email,ContactName from MotherOrg where MotherOrgID = '4' orderby ) Start
+22 Oct 2025 21:28:27,171 [13804] INFO  Log - GetAllDataFromTable(Select Email,ContactName from MotherOrg where MotherOrgID = '4' orderby ) end
+22 Oct 2025 21:28:27,171 [13804] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner where EMail_primary = 'shamsuthakor@gmail.com' ) Start
+22 Oct 2025 21:28:27,186 [13804] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner where EMail_primary = 'shamsuthakor@gmail.com' ) end
+22 Oct 2025 21:28:27,188 [13804] INFO  Log - ExecuteQuery(insert into PlanHistory(PlanId,PriceId,PlanName,StartDate,EndDate,AmountPaid,TransId,EmpId,EmailId,No_Of_Users,Business,Is_Requested_Plan)values('prod_enterprise','prod_enterprise_priceid','ENTERPRISE PLAN','2025-10-22 12:00:00 AM','2026-10-22 12:00:00 AM','0','ENTERPRISE','3268','independent_bo_pk_two@gmail.com','10','1','1')) Start
+22 Oct 2025 21:28:27,209 [13804] INFO  Log - ExecuteQuery(insert into PlanHistory(PlanId,PriceId,PlanName,StartDate,EndDate,AmountPaid,TransId,EmpId,EmailId,No_Of_Users,Business,Is_Requested_Plan)values('prod_enterprise','prod_enterprise_priceid','ENTERPRISE PLAN','2025-10-22 12:00:00 AM','2026-10-22 12:00:00 AM','0','ENTERPRISE','3268','independent_bo_pk_two@gmail.com','10','1','1')) End
+22 Oct 2025 21:28:27,210 [13804] INFO  Log - GetAllDataFromTable(Select FirstName+' '+MiddleName+' '+LastName as SubName,ADDRESSID from AddEmployee with (Nolock) where EmployeeID='3268'  orderby 1 desc) Start
+22 Oct 2025 21:28:27,230 [13804] INFO  Log - GetAllDataFromTable(Select FirstName+' '+MiddleName+' '+LastName as SubName,ADDRESSID from AddEmployee with (Nolock) where EmployeeID='3268'  orderby 1 desc) end
+22 Oct 2025 21:28:27,231 [13804] INFO  Log - GetAllDataFromTable(Select * from TemplateMaster where TempType=6 orderby ) Start
+22 Oct 2025 21:28:27,250 [13804] INFO  Log - GetAllDataFromTable(Select * from TemplateMaster where TempType=6 orderby ) end
+22 Oct 2025 21:28:27,310 [13804] INFO  Log - SendHtmlFormattedEmail(prashant@mfksoftware.com, New Enterprise Upgrade Plan Request<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head><title></title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet" />
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+    </head>
+
+<body>
+    <div class="row">
+        <div class="col-md-12">
+            <!--<img class="img" width="100%" src="http://etime.culturebooklet.com/assets/img/etimebanner.jpg" /><br /><br />-->
+        </div>
+    </div>
+    <div class="row">
+       
+            <div class="col-md-12">
+
+                <span style="font-family:Arial;font-size:10pt">
+                    Hello <b>Support Admin</b>,<br /><br />
+					<!--<p>One subscriber has registered on AnyMinute.net. Please approve the subscriber with the proper amount.</p>-->
+                    <!-- <br /> -->
+					
+                    A new subscriber has registered with AnyMinute for Enterprise Plan. Please review the details of new subscriber by logging with support admin email.
+					
+                    <br /><br />
+					The name of the subscriber is Independent PK BO Test New  Two and the email is independent_bo_pk_two@gmail.com.
+
+                    <br /><br />
+                    Thank You<br />
+                    AnyMinute's Support Team
+                </span>
+            </div>
+        </div>
+
+
+</body>
+</html>) Start
+22 Oct 2025 21:28:27,311 [13804] INFO  Log - GetAllDataFromTable(Select * from EmailSeting where  orderby ) Start
+22 Oct 2025 21:28:27,356 [13804] INFO  Log - GetAllDataFromTable(Select * from EmailSeting where  orderby ) end
+22 Oct 2025 21:28:30,809 [13804] INFO  Log - SendHtmlFormattedEmail(prashant@mfksoftware.com, New Enterprise Upgrade Plan Request<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head><title></title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet" />
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+    </head>
+
+<body>
+    <div class="row">
+        <div class="col-md-12">
+            <!--<img class="img" width="100%" src="http://etime.culturebooklet.com/assets/img/etimebanner.jpg" /><br /><br />-->
+        </div>
+    </div>
+    <div class="row">
+       
+            <div class="col-md-12">
+
+                <span style="font-family:Arial;font-size:10pt">
+                    Hello <b>Support Admin</b>,<br /><br />
+					<!--<p>One subscriber has registered on AnyMinute.net. Please approve the subscriber with the proper amount.</p>-->
+                    <!-- <br /> -->
+					
+                    A new subscriber has registered with AnyMinute for Enterprise Plan. Please review the details of new subscriber by logging with support admin email.
+					
+                    <br /><br />
+					The name of the subscriber is Independent PK BO Test New  Two and the email is independent_bo_pk_two@gmail.com.
+
+                    <br /><br />
+                    Thank You<br />
+                    AnyMinute's Support Team
+                </span>
+            </div>
+        </div>
+
+
+</body>
+</html>) END
+22 Oct 2025 21:28:33,056 [13804] INFO  Log - IfExistsInTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID='3268' and IsActive='NO        ' and UserType='1' ) Start
+22 Oct 2025 21:28:33,068 [13804] INFO  Log - IfExistsInTable(Select IsActive, from AddEmployee with (Nolock) where EmployeeID='3268' and IsActive='NO        ' and UserType='1' ) end
+22 Oct 2025 21:28:33,069 [13804] INFO  Log - GetAllDataFromTable(Select ad.EmployeeID,ua.UserId from AddEmployee ad with (nolock) join EmpAddress ea with (nolock) on ad.ADDRESSID=ea.EmpAddressId join UserAcc ua with (nolock) on ua.Email=ea.MainEmail where ua.Email='independent_bo_pk_two@gmail.com' orderby ) Start
+22 Oct 2025 21:28:33,083 [13804] INFO  Log - GetAllDataFromTable(Select ad.EmployeeID,ua.UserId from AddEmployee ad with (nolock) join EmpAddress ea with (nolock) on ad.ADDRESSID=ea.EmpAddressId join UserAcc ua with (nolock) on ua.Email=ea.MainEmail where ua.Email='independent_bo_pk_two@gmail.com' orderby ) end
+22 Oct 2025 21:28:33,084 [13804] INFO  Log - GetAllDataFromTable(Select * from MappingTable with (Nolock) where USERID in(4246) orderby BusinessID,UserTypeId) Start
+22 Oct 2025 21:28:33,102 [13804] INFO  Log - GetAllDataFromTable(Select * from MappingTable with (Nolock) where USERID in(4246) orderby BusinessID,UserTypeId) end
+22 Oct 2025 21:28:33,102 [13804] INFO  Log - GetBussList_BusinessOwnerForDashBord1(4,3268,1) Start
+22 Oct 2025 21:28:33,308 [13804] INFO  Log - GetBussList_BusinessOwnerForDashBord1(4,3268,1) end
+22 Oct 2025 21:28:33,309 [13804] INFO  Log - GetAllDataFromTable(Select * from AddEmployee with (nolock) where EmployeeID=3268 orderby ) Start
+22 Oct 2025 21:28:33,323 [13804] INFO  Log - GetAllDataFromTable(Select * from AddEmployee with (nolock) where EmployeeID=3268 orderby ) end
+22 Oct 2025 21:28:33,325 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=2078 and assb.UserTypeId not in (1) orderby ) Start
+22 Oct 2025 21:28:33,350 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=2078 and assb.UserTypeId not in (1) orderby ) end
+22 Oct 2025 21:28:33,351 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=2079 and assb.UserTypeId not in (1) orderby ) Start
+22 Oct 2025 21:28:33,416 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=2079 and assb.UserTypeId not in (1) orderby ) end
+22 Oct 2025 21:28:33,417 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=2082 and assb.UserTypeId not in (1) orderby ) Start
+22 Oct 2025 21:28:33,443 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=2082 and assb.UserTypeId not in (1) orderby ) end
+22 Oct 2025 21:28:33,447 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=2095 and assb.UserTypeId not in (1) orderby ) Start
+22 Oct 2025 21:28:33,473 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=2095 and assb.UserTypeId not in (1) orderby ) end
+22 Oct 2025 21:28:33,474 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=2096 and assb.UserTypeId not in (1) orderby ) Start
+22 Oct 2025 21:28:33,495 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=2096 and assb.UserTypeId not in (1) orderby ) end
+22 Oct 2025 21:28:33,496 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=2097 and assb.UserTypeId not in (1) orderby ) Start
+22 Oct 2025 21:28:33,520 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=2097 and assb.UserTypeId not in (1) orderby ) end
+22 Oct 2025 21:28:33,521 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=6126 and assb.UserTypeId not in (1) orderby ) Start
+22 Oct 2025 21:28:33,547 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=6126 and assb.UserTypeId not in (1) orderby ) end
+22 Oct 2025 21:28:33,548 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7125 and assb.UserTypeId not in (1) orderby ) Start
+22 Oct 2025 21:28:33,573 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7125 and assb.UserTypeId not in (1) orderby ) end
+22 Oct 2025 21:28:33,575 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7126 and assb.UserTypeId not in (1) orderby ) Start
+22 Oct 2025 21:28:33,617 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7126 and assb.UserTypeId not in (1) orderby ) end
+22 Oct 2025 21:28:33,618 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7127 and assb.UserTypeId not in (1) orderby ) Start
+22 Oct 2025 21:28:33,644 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7127 and assb.UserTypeId not in (1) orderby ) end
+22 Oct 2025 21:28:33,645 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7128 and assb.UserTypeId not in (1) orderby ) Start
+22 Oct 2025 21:28:33,681 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7128 and assb.UserTypeId not in (1) orderby ) end
+22 Oct 2025 21:28:33,681 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7129 and assb.UserTypeId not in (1) orderby ) Start
+22 Oct 2025 21:28:33,706 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7129 and assb.UserTypeId not in (1) orderby ) end
+22 Oct 2025 21:28:33,708 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7130 and assb.UserTypeId not in (1) orderby ) Start
+22 Oct 2025 21:28:33,731 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7130 and assb.UserTypeId not in (1) orderby ) end
+22 Oct 2025 21:28:33,732 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7131 and assb.UserTypeId not in (1) orderby ) Start
+22 Oct 2025 21:28:33,758 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7131 and assb.UserTypeId not in (1) orderby ) end
+22 Oct 2025 21:28:33,759 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7132 and assb.UserTypeId not in (1) orderby ) Start
+22 Oct 2025 21:28:33,785 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7132 and assb.UserTypeId not in (1) orderby ) end
+22 Oct 2025 21:28:33,786 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7134 and assb.UserTypeId not in (1) orderby ) Start
+22 Oct 2025 21:28:33,806 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7134 and assb.UserTypeId not in (1) orderby ) end
+22 Oct 2025 21:28:33,807 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7135 and assb.UserTypeId not in (1) orderby ) Start
+22 Oct 2025 21:28:33,838 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7135 and assb.UserTypeId not in (1) orderby ) end
+22 Oct 2025 21:28:33,839 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7136 and assb.UserTypeId not in (1) orderby ) Start
+22 Oct 2025 21:28:33,886 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7136 and assb.UserTypeId not in (1) orderby ) end
+22 Oct 2025 21:28:33,887 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7137 and assb.UserTypeId not in (1) orderby ) Start
+22 Oct 2025 21:28:33,909 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7137 and assb.UserTypeId not in (1) orderby ) end
+22 Oct 2025 21:28:33,910 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7143 and assb.UserTypeId not in (1) orderby ) Start
+22 Oct 2025 21:28:33,930 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=7143 and assb.UserTypeId not in (1) orderby ) end
+22 Oct 2025 21:28:33,931 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=8161 and assb.UserTypeId not in (1) orderby ) Start
+22 Oct 2025 21:28:33,954 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=8161 and assb.UserTypeId not in (1) orderby ) end
+22 Oct 2025 21:28:33,957 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=12224 and assb.UserTypeId not in (1) orderby ) Start
+22 Oct 2025 21:28:33,981 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=12224 and assb.UserTypeId not in (1) orderby ) end
+22 Oct 2025 21:28:33,982 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=14229 and assb.UserTypeId not in (1) orderby ) Start
+22 Oct 2025 21:28:34,008 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=14229 and assb.UserTypeId not in (1) orderby ) end
+22 Oct 2025 21:28:34,010 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=14230 and assb.UserTypeId not in (1) orderby ) Start
+22 Oct 2025 21:28:34,033 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=14230 and assb.UserTypeId not in (1) orderby ) end
+22 Oct 2025 21:28:34,035 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=14232 and assb.UserTypeId not in (1) orderby ) Start
+22 Oct 2025 21:28:34,084 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=14232 and assb.UserTypeId not in (1) orderby ) end
+22 Oct 2025 21:28:34,085 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=14234 and assb.UserTypeId not in (1) orderby ) Start
+22 Oct 2025 21:28:34,125 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=14234 and assb.UserTypeId not in (1) orderby ) end
+22 Oct 2025 21:28:34,126 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=14235 and assb.UserTypeId not in (1) orderby ) Start
+22 Oct 2025 21:28:34,150 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=14235 and assb.UserTypeId not in (1) orderby ) end
+22 Oct 2025 21:28:34,151 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=14236 and assb.UserTypeId not in (1) orderby ) Start
+22 Oct 2025 21:28:34,174 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=14236 and assb.UserTypeId not in (1) orderby ) end
+22 Oct 2025 21:28:34,175 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15235 and assb.UserTypeId not in (1) orderby ) Start
+22 Oct 2025 21:28:34,193 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15235 and assb.UserTypeId not in (1) orderby ) end
+22 Oct 2025 21:28:34,194 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15236 and assb.UserTypeId not in (1) orderby ) Start
+22 Oct 2025 21:28:34,213 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15236 and assb.UserTypeId not in (1) orderby ) end
+22 Oct 2025 21:28:34,215 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15237 and assb.UserTypeId not in (1) orderby ) Start
+22 Oct 2025 21:28:34,235 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15237 and assb.UserTypeId not in (1) orderby ) end
+22 Oct 2025 21:28:34,236 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15238 and assb.UserTypeId not in (1) orderby ) Start
+22 Oct 2025 21:28:34,257 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15238 and assb.UserTypeId not in (1) orderby ) end
+22 Oct 2025 21:28:34,258 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15239 and assb.UserTypeId not in (1) orderby ) Start
+22 Oct 2025 21:28:34,304 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15239 and assb.UserTypeId not in (1) orderby ) end
+22 Oct 2025 21:28:34,306 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15240 and assb.UserTypeId not in (1) orderby ) Start
+22 Oct 2025 21:28:34,330 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15240 and assb.UserTypeId not in (1) orderby ) end
+22 Oct 2025 21:28:34,331 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15241 and assb.UserTypeId not in (1) orderby ) Start
+22 Oct 2025 21:28:34,350 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15241 and assb.UserTypeId not in (1) orderby ) end
+22 Oct 2025 21:28:34,352 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15243 and assb.UserTypeId not in (1) orderby ) Start
+22 Oct 2025 21:28:34,370 [13804] INFO  Log - GetAllDataFromTable(Select distinct ad.EMPLOYEETYPE from AddEmployee ad with (Nolock) join AssginBussiness assb with (Nolock) on ad.EmployeeID=assb.EmployeeID where assb.BusinessID=15243 and assb.UserTypeId not in (1) orderby ) end
+22 Oct 2025 21:28:34,371 [13804] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) Start
+22 Oct 2025 21:28:34,381 [13804] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) end
+22 Oct 2025 21:28:34,382 [13804] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) Start
+22 Oct 2025 21:28:34,394 [13804] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor@gmail.com' ) end
+22 Oct 2025 21:28:34,395 [13804] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='3268' ) Start
+22 Oct 2025 21:28:34,425 [13804] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='3268' ) End
+22 Oct 2025 21:28:34,426 [13804] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='3268' and Is_Cancelled=1 ) Start
+22 Oct 2025 21:28:34,439 [13804] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='3268' and Is_Cancelled=1 ) End
+22 Oct 2025 21:28:34,440 [13804] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+22 Oct 2025 21:28:34,454 [13804] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+22 Oct 2025 21:28:34,455 [13804] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+22 Oct 2025 21:28:34,468 [13804] INFO  Log - GetMenuDataFromLoginTable(4246) end
+22 Oct 2025 21:28:34,469 [13804] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+22 Oct 2025 21:28:34,480 [13804] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+22 Oct 2025 21:28:34,481 [13804] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+22 Oct 2025 21:28:34,511 [13804] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+22 Oct 2025 21:28:34,512 [13804] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+22 Oct 2025 21:28:34,554 [13804] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+22 Oct 2025 21:28:34,555 [13804] INFO  Log - Fetching menu details - Started
+22 Oct 2025 21:28:34,566 [13804] INFO  Log - Fetching menu details - Finished
+22 Oct 2025 21:31:17,592 [13804] INFO  Log - IfExistsInTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID='3268' and IsActive='NO        ' and UserType='1' ) Start
+22 Oct 2025 21:31:17,600 [13804] INFO  Log - IfExistsInTable(Select IsActive, from AddEmployee with (Nolock) where EmployeeID='3268' and IsActive='NO        ' and UserType='1' ) end
+22 Oct 2025 21:31:17,603 [13804] INFO  Log - GetAllDataFromTable(Select * from AddBusiness with (Nolock) where BusinessID=2082 orderby ) Start
+22 Oct 2025 21:31:17,616 [13804] INFO  Log - GetAllDataFromTable(Select * from AddBusiness with (Nolock) where BusinessID=2082 orderby ) end
+22 Oct 2025 21:31:17,617 [13804] INFO  Log - GetAllDataFromTable(Select * from MotherOrg with (Nolock) where MotherOrgID=4 orderby ) Start
+22 Oct 2025 21:31:17,627 [13804] INFO  Log - GetAllDataFromTable(Select * from MotherOrg with (Nolock) where MotherOrgID=4 orderby ) end
+22 Oct 2025 21:31:17,628 [13804] INFO  Log - GetAllDataFromTable(Select * from AddBusiness with (Nolock) where BusinessID=2082 and APPROVED='A' orderby ) Start
+22 Oct 2025 21:31:17,641 [13804] INFO  Log - GetAllDataFromTable(Select * from AddBusiness with (Nolock) where BusinessID=2082 and APPROVED='A' orderby ) end
+22 Oct 2025 21:31:17,646 [13804] INFO  Log - GetAllDataFromTable(Select * from BusinessAddress with (Nolock) where BusinessAddressId=13333 orderby ) Start
+22 Oct 2025 21:31:17,680 [13804] INFO  Log - GetAllDataFromTable(Select * from BusinessAddress with (Nolock) where BusinessAddressId=13333 orderby ) end
+22 Oct 2025 21:31:17,682 [13804] INFO  Log - GetNameFromId(AddBusiness,2082) Start
+22 Oct 2025 21:31:17,708 [13804] INFO  Log - GetNameFromId(AddBusiness,2082) end
+22 Oct 2025 21:31:17,709 [13804] INFO  Log - GetDomainNameForMenuFromLogin(4246) Start
+22 Oct 2025 21:31:17,725 [13804] INFO  Log - GetDomainNameForMenuFromLogin(4246) end
+22 Oct 2025 21:31:17,726 [13804] INFO  Log - GetMenuDataFromLoginTable(4246) Start
+22 Oct 2025 21:31:17,747 [13804] INFO  Log - GetMenuDataFromLoginTable(4246) end
+22 Oct 2025 21:31:17,747 [13804] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+22 Oct 2025 21:31:17,767 [13804] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+22 Oct 2025 21:31:17,768 [13804] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) Start
+22 Oct 2025 21:31:17,780 [13804] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='4246' orderby ) end
+22 Oct 2025 21:31:17,781 [13804] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) Start
+22 Oct 2025 21:31:17,806 [13804] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=3268 orderby ) end
+22 Oct 2025 21:31:17,807 [13804] INFO  Log - Fetching menu details - Started
+22 Oct 2025 21:31:17,817 [13804] INFO  Log - Fetching menu details - Finished

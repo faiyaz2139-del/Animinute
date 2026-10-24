@@ -1,0 +1,405 @@
+17 Oct 2026 18:43:13,564 [16312] INFO  Log - GetLoginDetails(ava@gmail.com,12345678,ava@gmail.com) Start
+17 Oct 2026 18:43:14,338 [16312] INFO  Log - GetLoginDetails(ava@gmail.com,12345678,ava@gmail.com) end
+17 Oct 2026 18:43:14,348 [16312] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=1153 orderby ) Start
+17 Oct 2026 18:43:14,370 [16312] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=1153 orderby ) end
+17 Oct 2026 18:43:14,373 [16312] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=1153 orderby ) Start
+17 Oct 2026 18:43:14,388 [16312] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=1153 orderby ) end
+17 Oct 2026 18:43:14,390 [16312] INFO  Log - GetNameFromId(UserType,1) Start
+17 Oct 2026 18:43:14,401 [16312] INFO  Log - GetNameFromId(UserType,1) end
+17 Oct 2026 18:43:14,722 [16312] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 1153 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) Start
+17 Oct 2026 18:43:14,750 [16312] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 1153 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) end
+17 Oct 2026 18:43:14,903 [16312] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (26, 27, 28, 29, 30, 33, 34, 35, 36, 37, 38, 39, 40, 48) orderby Yr desc) Start
+17 Oct 2026 18:43:14,944 [16312] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (26, 27, 28, 29, 30, 33, 34, 35, 36, 37, 38, 39, 40, 48) orderby Yr desc) end
+17 Oct 2026 18:43:14,948 [16312] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=1153) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) Start
+17 Oct 2026 18:43:14,966 [16312] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=1153) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) end
+17 Oct 2026 18:43:15,694 [16312] INFO  Log - GetDomainNameForMenuFromLogin(1146) Start
+17 Oct 2026 18:43:15,710 [16312] INFO  Log - GetDomainNameForMenuFromLogin(1146) end
+17 Oct 2026 18:43:15,711 [16312] INFO  Log - GetMenuDataFromLoginTable(1146) Start
+17 Oct 2026 18:43:15,726 [16312] INFO  Log - GetMenuDataFromLoginTable(1146) end
+17 Oct 2026 18:43:15,744 [16312] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+17 Oct 2026 18:43:15,758 [16312] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+17 Oct 2026 18:43:15,759 [16312] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='1146' orderby ) Start
+17 Oct 2026 18:43:15,778 [16312] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='1146' orderby ) end
+17 Oct 2026 18:43:15,782 [16312] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=1153 orderby ) Start
+17 Oct 2026 18:43:15,798 [16312] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=1153 orderby ) end
+17 Oct 2026 18:43:15,800 [16312] INFO  Log - GetAllDataFromTable(Select UserType from UserType where User_TypeId=1 orderby ) Start
+17 Oct 2026 18:43:15,813 [16312] INFO  Log - GetAllDataFromTable(Select UserType from UserType where User_TypeId=1 orderby ) end
+17 Oct 2026 18:43:15,814 [16312] INFO  Log - GetAllDataFromTable(Select TOP 1 EmployeeID from AssginBussiness where EmployeeID=1153 and MotherOrgID=4 and UserTypeId=5 orderby ) Start
+17 Oct 2026 18:43:15,826 [16312] INFO  Log - GetAllDataFromTable(Select TOP 1 EmployeeID from AssginBussiness where EmployeeID=1153 and MotherOrgID=4 and UserTypeId=5 orderby ) end
+17 Oct 2026 18:43:15,828 [16312] INFO  Log - Fetching menu details - Started
+17 Oct 2026 18:43:15,851 [16312] INFO  Log - Fetching menu details - Finished
+17 Oct 2026 18:43:34,763 [16840] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) Start
+17 Oct 2026 18:43:34,767 [16840] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) end
+17 Oct 2026 18:43:34,769 [16840] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor_defaultaccountant@gmail.com' ) Start
+17 Oct 2026 18:43:34,774 [16840] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor_defaultaccountant@gmail.com' ) end
+17 Oct 2026 18:43:34,776 [16840] INFO  Log - ExecuteQuery(select Business from PlanHistory with (Nolock) where EmpId='1153'and IsActive=1 ) Start
+17 Oct 2026 18:43:34,779 [16840] INFO  Log - ExecuteQuery(select Business from PlanHistory with (Nolock) where EmpId='1153'and IsActive=1 ) End
+17 Oct 2026 18:43:34,779 [16840] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='1153' and Is_Cancelled=1 ) Start
+17 Oct 2026 18:43:34,785 [16840] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='1153' and Is_Cancelled=1 ) End
+17 Oct 2026 18:43:34,786 [16840] INFO  Log - GetAllDataFromTable(Select * from PlanHistory with (Nolock) where EmpId=1153 orderby ) Start
+17 Oct 2026 18:43:34,790 [16840] INFO  Log - GetAllDataFromTable(Select * from PlanHistory with (Nolock) where EmpId=1153 orderby ) end
+17 Oct 2026 18:43:34,791 [16840] INFO  Log - GetAllDataFromTable(Select EmpId from PlanHistory with (Nolock) where EmpId=1153 and Is_Requested_Plan=1 orderby ) Start
+17 Oct 2026 18:43:34,795 [16840] INFO  Log - GetAllDataFromTable(Select EmpId from PlanHistory with (Nolock) where EmpId=1153 and Is_Requested_Plan=1 orderby ) end
+17 Oct 2026 18:43:34,795 [16840] INFO  Log - ExecuteQuery(select  Business from PlanHistory  with (Nolock) GROUP BY EmpId,id,Business having EmpId='1153' and Id=(select max(id) from PlanHistory where EmpId='1153' and IsActive=1)) Start
+17 Oct 2026 18:43:34,798 [16840] INFO  Log - ExecuteQuery(select  Business from PlanHistory  with (Nolock) GROUP BY EmpId,id,Business having EmpId='1153' and Id=(select max(id) from PlanHistory where EmpId='1153' and IsActive=1)) End
+17 Oct 2026 18:43:34,802 [16840] INFO  Log - GetBussList_BusinessOwnerForDashBord1(4,1153,1) Start
+17 Oct 2026 18:43:34,814 [16840] INFO  Log - GetBussList_BusinessOwnerForDashBord1(4,1153,1) end
+17 Oct 2026 18:43:34,814 [16840] INFO  Log - IfExistsInTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID='1153' and IsActive='NO        ' and UserType='1' ) Start
+17 Oct 2026 18:43:34,819 [16840] INFO  Log - IfExistsInTable(Select IsActive, from AddEmployee with (Nolock) where EmployeeID='1153' and IsActive='NO        ' and UserType='1' ) end
+17 Oct 2026 18:43:34,820 [16840] INFO  Log - GetDomainNameForMenuFromLogin(1146) Start
+17 Oct 2026 18:43:34,823 [16840] INFO  Log - GetDomainNameForMenuFromLogin(1146) end
+17 Oct 2026 18:43:34,823 [16840] INFO  Log - GetMenuDataFromLoginTable(1146) Start
+17 Oct 2026 18:43:34,827 [16840] INFO  Log - GetMenuDataFromLoginTable(1146) end
+17 Oct 2026 18:43:34,827 [16840] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+17 Oct 2026 18:43:34,833 [16840] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+17 Oct 2026 18:43:34,833 [16840] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='1146' orderby ) Start
+17 Oct 2026 18:43:34,842 [16840] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='1146' orderby ) end
+17 Oct 2026 18:43:34,843 [16840] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=1153 orderby ) Start
+17 Oct 2026 18:43:34,850 [16840] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=1153 orderby ) end
+17 Oct 2026 18:43:34,851 [16840] INFO  Log - GetAllDataFromTable(Select UserType from UserType where User_TypeId=1 orderby ) Start
+17 Oct 2026 18:43:34,855 [16840] INFO  Log - GetAllDataFromTable(Select UserType from UserType where User_TypeId=1 orderby ) end
+17 Oct 2026 18:43:34,856 [16840] INFO  Log - GetAllDataFromTable(Select TOP 1 EmployeeID from AssginBussiness where EmployeeID=1153 and MotherOrgID=4 and UserTypeId=5 orderby ) Start
+17 Oct 2026 18:43:34,860 [16840] INFO  Log - GetAllDataFromTable(Select TOP 1 EmployeeID from AssginBussiness where EmployeeID=1153 and MotherOrgID=4 and UserTypeId=5 orderby ) end
+17 Oct 2026 18:43:34,861 [16840] INFO  Log - Fetching menu details - Started
+17 Oct 2026 18:43:34,864 [16840] INFO  Log - Fetching menu details - Finished
+17 Oct 2026 18:43:52,340 [16840] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg where MotherOrgID = '4' orderby ) Start
+17 Oct 2026 18:43:52,345 [16840] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg where MotherOrgID = '4' orderby ) end
+17 Oct 2026 18:43:52,346 [16840] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner where EMail_primary = 'shamsuthakor_defaultaccountant@gmail.com' ) Start
+17 Oct 2026 18:43:52,349 [16840] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner where EMail_primary = 'shamsuthakor_defaultaccountant@gmail.com' ) end
+17 Oct 2026 18:43:52,350 [16840] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory where EmpId='1153' and IsActive=1 ) Start
+17 Oct 2026 18:43:52,352 [16840] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory where EmpId='1153' and IsActive=1 ) End
+17 Oct 2026 18:43:52,353 [16840] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory where EmpId='1153' and Is_Cancelled=1 ) Start
+17 Oct 2026 18:43:52,355 [16840] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory where EmpId='1153' and Is_Cancelled=1 ) End
+17 Oct 2026 18:43:52,355 [16840] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=1153 orderby ) Start
+17 Oct 2026 18:43:52,368 [16840] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=1153 orderby ) end
+17 Oct 2026 18:43:52,369 [16840] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=1153 and Is_Requested_Plan=1 orderby ) Start
+17 Oct 2026 18:43:52,380 [16840] INFO  Log - GetAllDataFromTable(Select * from PlanHistory where EmpId=1153 and Is_Requested_Plan=1 orderby ) end
+17 Oct 2026 18:43:52,380 [16840] INFO  Log - ExecuteQuery(select  No_Of_Users from PlanHistory GROUP BY EmpId,id,No_Of_Users having EmpId='1153' and Id=(select max(id) from PlanHistory where EmpId='1153' and IsActive=1)) Start
+17 Oct 2026 18:43:52,390 [16840] INFO  Log - ExecuteQuery(select  No_Of_Users from PlanHistory GROUP BY EmpId,id,No_Of_Users having EmpId='1153' and Id=(select max(id) from PlanHistory where EmpId='1153' and IsActive=1)) End
+17 Oct 2026 18:43:52,391 [16840] INFO  Log - ExecuteQuery(Select DISTINCT AB.BusinessID, (SELECT COUNT(AssginBussinessId) FROM AssginBussiness WHERE BusinessID=AB.BusinessID AND UserTypeId not in (1) AND EmployeeID in (select EmployeeID from AddEmployee where IsActive='YES') ) AS CNT from AddBusiness AB join AssginBussiness ASB ON AB.BusinessID=ASB.BusinessID LEFT JOIN AssgineManager ASSM ON AB.BusinessID=ASSM.BusinessID WHERE ASB.UserTypeId=1 AND ASB.EmployeeID = '1153' ) Start
+17 Oct 2026 18:43:52,407 [16840] INFO  Log - ExecuteQuery(Select DISTINCT AB.BusinessID, (SELECT COUNT(AssginBussinessId) FROM AssginBussiness WHERE BusinessID=AB.BusinessID AND UserTypeId not in (1) AND EmployeeID in (select EmployeeID from AddEmployee where IsActive='YES') ) AS CNT from AddBusiness AB join AssginBussiness ASB ON AB.BusinessID=ASB.BusinessID LEFT JOIN AssgineManager ASSM ON AB.BusinessID=ASSM.BusinessID WHERE ASB.UserTypeId=1 AND ASB.EmployeeID = '1153' ) End
+17 Oct 2026 18:43:52,408 [16840] INFO  Log - IfExistsInTable(Select IsActive from AddEmployee where EmployeeID='1153' and IsActive='NO        ' and UserType='1' ) Start
+17 Oct 2026 18:43:52,419 [16840] INFO  Log - IfExistsInTable(Select IsActive, from AddEmployee where EmployeeID='1153' and IsActive='NO        ' and UserType='1' ) end
+17 Oct 2026 18:43:52,461 [16840] INFO  Log - GetAllDataFromTable(Select BusinessID from AssginBussiness where EmployeeID=1153 and BusinessID is not null and BusinessID<>'' orderby ) Start
+17 Oct 2026 18:43:52,474 [16840] INFO  Log - GetAllDataFromTable(Select BusinessID from AssginBussiness where EmployeeID=1153 and BusinessID is not null and BusinessID<>'' orderby ) end
+17 Oct 2026 18:43:52,476 [16840] INFO  Log - GetBussForSelectBUSS(1153) Start
+17 Oct 2026 18:43:52,509 [16840] INFO  Log - IfExistsInTable(Select * from MappingTable where userid=1146 and UserTypeId=2) Start
+17 Oct 2026 18:43:52,519 [16840] INFO  Log - IfExistsInTable(Select *, from MappingTable where userid=1146 and UserTypeId=2) end
+17 Oct 2026 18:43:52,521 [16840] INFO  Log - SP_UserType(26, 26) Start
+17 Oct 2026 18:43:52,532 [16840] INFO  Log - SP_UserType(26, 26) end
+17 Oct 2026 18:43:52,535 [16840] INFO  Log - SP_UserType(26, 26) Start
+17 Oct 2026 18:43:52,547 [16840] INFO  Log - SP_UserType(26, 26) end
+17 Oct 2026 18:43:52,548 [16840] INFO  Log - GetDomainNameForMenuFromLogin(1146) Start
+17 Oct 2026 18:43:52,566 [16840] INFO  Log - GetDomainNameForMenuFromLogin(1146) end
+17 Oct 2026 18:43:52,567 [16840] INFO  Log - GetMenuDataFromLoginTable(1146) Start
+17 Oct 2026 18:43:52,577 [16840] INFO  Log - GetMenuDataFromLoginTable(1146) end
+17 Oct 2026 18:43:52,578 [16840] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+17 Oct 2026 18:43:52,589 [16840] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+17 Oct 2026 18:43:52,590 [16840] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='1146' orderby ) Start
+17 Oct 2026 18:43:52,604 [16840] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='1146' orderby ) end
+17 Oct 2026 18:43:52,605 [16840] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=1153 orderby ) Start
+17 Oct 2026 18:43:52,627 [16840] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=1153 orderby ) end
+17 Oct 2026 18:43:52,628 [16840] INFO  Log - GetAllDataFromTable(Select UserType from UserType where User_TypeId=1 orderby ) Start
+17 Oct 2026 18:43:52,641 [16840] INFO  Log - GetAllDataFromTable(Select UserType from UserType where User_TypeId=1 orderby ) end
+17 Oct 2026 18:43:52,642 [16840] INFO  Log - GetAllDataFromTable(Select TOP 1 EmployeeID from AssginBussiness where EmployeeID=1153 and MotherOrgID=4 and UserTypeId=5 orderby ) Start
+17 Oct 2026 18:43:52,660 [16840] INFO  Log - GetAllDataFromTable(Select TOP 1 EmployeeID from AssginBussiness where EmployeeID=1153 and MotherOrgID=4 and UserTypeId=5 orderby ) end
+17 Oct 2026 18:43:52,661 [16840] INFO  Log - Fetching menu details - Started
+17 Oct 2026 18:43:52,685 [16840] INFO  Log - Fetching menu details - Finished
+17 Oct 2026 18:44:25,856 [16312] INFO  Log - IfExistsInTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID='1153' and IsActive='NO        ' and UserType='1' ) Start
+17 Oct 2026 18:44:25,860 [16312] INFO  Log - IfExistsInTable(Select IsActive, from AddEmployee with (Nolock) where EmployeeID='1153' and IsActive='NO        ' and UserType='1' ) end
+17 Oct 2026 18:44:25,861 [16312] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) Start
+17 Oct 2026 18:44:25,872 [16312] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) end
+17 Oct 2026 18:44:25,873 [16312] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner where EMail_primary = 'shamsuthakor_defaultaccountant@gmail.com' ) Start
+17 Oct 2026 18:44:25,887 [16312] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner where EMail_primary = 'shamsuthakor_defaultaccountant@gmail.com' ) end
+17 Oct 2026 18:44:25,888 [16312] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='1153' and IsActive=1 ) Start
+17 Oct 2026 18:44:25,911 [16312] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='1153' and IsActive=1 ) End
+17 Oct 2026 18:44:25,912 [16312] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='1153' and Is_Cancelled=1 ) Start
+17 Oct 2026 18:44:25,928 [16312] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='1153' and Is_Cancelled=1 ) End
+17 Oct 2026 18:44:25,928 [16312] INFO  Log - GetAllDataFromTable(Select EmpId from PlanHistory with (Nolock) where EmpId=1153 orderby ) Start
+17 Oct 2026 18:44:25,944 [16312] INFO  Log - GetAllDataFromTable(Select EmpId from PlanHistory with (Nolock) where EmpId=1153 orderby ) end
+17 Oct 2026 18:44:25,945 [16312] INFO  Log - GetAllDataFromTable(Select EmpId from PlanHistory with (Nolock) where EmpId=1153 and Is_Requested_Plan=1 orderby ) Start
+17 Oct 2026 18:44:25,958 [16312] INFO  Log - GetAllDataFromTable(Select EmpId from PlanHistory with (Nolock) where EmpId=1153 and Is_Requested_Plan=1 orderby ) end
+17 Oct 2026 18:44:25,964 [16312] INFO  Log - FillGridView(Select ab.BusinessID, (ab.CompanyName)BusinessName from AssginBussiness assb with (Nolock) join AddBusiness ab with (Nolock) on assb.BusinessID = ab.BusinessID where EmployeeID=1153 and ab.Status=1 orderby ab.BusinessID) Start
+17 Oct 2026 18:44:25,998 [16312] INFO  Log - FillGridView(Select ab.BusinessID, (ab.CompanyName)BusinessName from AssginBussiness assb with (Nolock) join AddBusiness ab with (Nolock) on assb.BusinessID = ab.BusinessID where EmployeeID=1153 and ab.Status=1 orderby ab.BusinessID) end
+17 Oct 2026 18:44:25,999 [16312] INFO  Log - GetAllDataFromTable(Select ab.BusinessID,(ab.CompanyName)BusinessName from AssginBussiness assb with (Nolock) join AddBusiness ab with (Nolock) on assb.BusinessID = ab.BusinessID where EmployeeID=1153 and ab.Status=1 orderby ab.BusinessID) Start
+17 Oct 2026 18:44:26,016 [16312] INFO  Log - GetAllDataFromTable(Select ab.BusinessID,(ab.CompanyName)BusinessName from AssginBussiness assb with (Nolock) join AddBusiness ab with (Nolock) on assb.BusinessID = ab.BusinessID where EmployeeID=1153 and ab.Status=1 orderby ab.BusinessID) end
+17 Oct 2026 18:44:26,017 [16312] INFO  Log - GetDomainNameForMenuFromLogin(1146) Start
+17 Oct 2026 18:44:26,027 [16312] INFO  Log - GetDomainNameForMenuFromLogin(1146) end
+17 Oct 2026 18:44:26,028 [16312] INFO  Log - GetMenuDataFromLoginTable(1146) Start
+17 Oct 2026 18:44:26,040 [16312] INFO  Log - GetMenuDataFromLoginTable(1146) end
+17 Oct 2026 18:44:26,041 [16312] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+17 Oct 2026 18:44:26,052 [16312] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+17 Oct 2026 18:44:26,053 [16312] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='1146' orderby ) Start
+17 Oct 2026 18:44:26,067 [16312] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='1146' orderby ) end
+17 Oct 2026 18:44:26,068 [16312] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=1153 orderby ) Start
+17 Oct 2026 18:44:26,105 [16312] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=1153 orderby ) end
+17 Oct 2026 18:44:26,107 [16312] INFO  Log - GetAllDataFromTable(Select UserType from UserType where User_TypeId=1 orderby ) Start
+17 Oct 2026 18:44:26,119 [16312] INFO  Log - GetAllDataFromTable(Select UserType from UserType where User_TypeId=1 orderby ) end
+17 Oct 2026 18:44:26,120 [16312] INFO  Log - GetAllDataFromTable(Select TOP 1 EmployeeID from AssginBussiness where EmployeeID=1153 and MotherOrgID=4 and UserTypeId=5 orderby ) Start
+17 Oct 2026 18:44:26,132 [16312] INFO  Log - GetAllDataFromTable(Select TOP 1 EmployeeID from AssginBussiness where EmployeeID=1153 and MotherOrgID=4 and UserTypeId=5 orderby ) end
+17 Oct 2026 18:44:26,133 [16312] INFO  Log - Fetching menu details - Started
+17 Oct 2026 18:44:26,143 [16312] INFO  Log - Fetching menu details - Finished
+17 Oct 2026 18:44:31,311 [16840] INFO  Log - FillDropDownList(Select ab.BusinessID, dbo.FN_DESC('AddBusiness',ab.BusinessID)CompanyName from AddBusiness ab join AssginBussiness assb on assb.BusinessID=ab.BusinessID where  assb.EmployeeID=1153 and UserTypeId=1 and Status=1 orderby ab.BusinessID) Start
+17 Oct 2026 18:44:31,327 [16840] INFO  Log - FillDropDownList(Select ab.BusinessID, dbo.FN_DESC('AddBusiness',ab.BusinessID)CompanyName from AddBusiness ab join AssginBussiness assb on assb.BusinessID=ab.BusinessID where  assb.EmployeeID=1153 and UserTypeId=1 and Status=1 orderby ab.BusinessID) end
+17 Oct 2026 18:44:31,328 [16840] INFO  Log - GetDomainNameForMenuFromLogin(1146) Start
+17 Oct 2026 18:44:31,339 [16840] INFO  Log - GetDomainNameForMenuFromLogin(1146) end
+17 Oct 2026 18:44:31,340 [16840] INFO  Log - GetMenuDataFromLoginTable(1146) Start
+17 Oct 2026 18:44:31,351 [16840] INFO  Log - GetMenuDataFromLoginTable(1146) end
+17 Oct 2026 18:44:31,352 [16840] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+17 Oct 2026 18:44:31,365 [16840] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+17 Oct 2026 18:44:31,366 [16840] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='1146' orderby ) Start
+17 Oct 2026 18:44:31,380 [16840] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='1146' orderby ) end
+17 Oct 2026 18:44:31,381 [16840] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=1153 orderby ) Start
+17 Oct 2026 18:44:31,396 [16840] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=1153 orderby ) end
+17 Oct 2026 18:44:31,397 [16840] INFO  Log - GetAllDataFromTable(Select UserType from UserType where User_TypeId=1 orderby ) Start
+17 Oct 2026 18:44:31,408 [16840] INFO  Log - GetAllDataFromTable(Select UserType from UserType where User_TypeId=1 orderby ) end
+17 Oct 2026 18:44:31,408 [16840] INFO  Log - GetAllDataFromTable(Select TOP 1 EmployeeID from AssginBussiness where EmployeeID=1153 and MotherOrgID=4 and UserTypeId=5 orderby ) Start
+17 Oct 2026 18:44:31,422 [16840] INFO  Log - GetAllDataFromTable(Select TOP 1 EmployeeID from AssginBussiness where EmployeeID=1153 and MotherOrgID=4 and UserTypeId=5 orderby ) end
+17 Oct 2026 18:44:31,423 [16840] INFO  Log - Fetching menu details - Started
+17 Oct 2026 18:44:31,448 [16840] INFO  Log - Fetching menu details - Finished
+17 Oct 2026 18:44:34,711 [16840] INFO  Log - FillDropDownList(Select ab.BusinessID, dbo.FN_DESC('AddBusiness',ab.BusinessID)CompanyName from AddBusiness ab join AssginBussiness assb on assb.BusinessID=ab.BusinessID where  assb.EmployeeID=1153 and UserTypeId=1 and Status=1 orderby ab.BusinessID) Start
+17 Oct 2026 18:44:34,725 [16840] INFO  Log - FillDropDownList(Select ab.BusinessID, dbo.FN_DESC('AddBusiness',ab.BusinessID)CompanyName from AddBusiness ab join AssginBussiness assb on assb.BusinessID=ab.BusinessID where  assb.EmployeeID=1153 and UserTypeId=1 and Status=1 orderby ab.BusinessID) end
+17 Oct 2026 18:44:34,726 [16840] INFO  Log - GetDomainNameForMenuFromLogin(1146) Start
+17 Oct 2026 18:44:34,730 [16840] INFO  Log - GetDomainNameForMenuFromLogin(1146) end
+17 Oct 2026 18:44:34,733 [16840] INFO  Log - GetMenuDataFromLoginTable(1146) Start
+17 Oct 2026 18:44:34,736 [16840] INFO  Log - GetMenuDataFromLoginTable(1146) end
+17 Oct 2026 18:44:34,736 [16840] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+17 Oct 2026 18:44:34,739 [16840] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+17 Oct 2026 18:44:34,740 [16840] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='1146' orderby ) Start
+17 Oct 2026 18:44:34,744 [16840] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='1146' orderby ) end
+17 Oct 2026 18:44:34,744 [16840] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=1153 orderby ) Start
+17 Oct 2026 18:44:34,753 [16840] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=1153 orderby ) end
+17 Oct 2026 18:44:34,754 [16840] INFO  Log - GetAllDataFromTable(Select UserType from UserType where User_TypeId=1 orderby ) Start
+17 Oct 2026 18:44:34,758 [16840] INFO  Log - GetAllDataFromTable(Select UserType from UserType where User_TypeId=1 orderby ) end
+17 Oct 2026 18:44:34,758 [16840] INFO  Log - GetAllDataFromTable(Select TOP 1 EmployeeID from AssginBussiness where EmployeeID=1153 and MotherOrgID=4 and UserTypeId=5 orderby ) Start
+17 Oct 2026 18:44:34,763 [16840] INFO  Log - GetAllDataFromTable(Select TOP 1 EmployeeID from AssginBussiness where EmployeeID=1153 and MotherOrgID=4 and UserTypeId=5 orderby ) end
+17 Oct 2026 18:44:34,763 [16840] INFO  Log - Fetching menu details - Started
+17 Oct 2026 18:44:34,766 [16840] INFO  Log - Fetching menu details - Finished
+17 Oct 2026 18:44:56,481 [17208] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 1153 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) Start
+17 Oct 2026 18:44:56,503 [17208] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 1153 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) end
+17 Oct 2026 18:44:56,505 [17208] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (26, 27, 28, 29, 30, 33, 34, 35, 36, 37, 38, 39, 40, 48) orderby Yr desc) Start
+17 Oct 2026 18:44:56,547 [17208] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (26, 27, 28, 29, 30, 33, 34, 35, 36, 37, 38, 39, 40, 48) orderby Yr desc) end
+17 Oct 2026 18:44:56,548 [17208] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=1153) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) Start
+17 Oct 2026 18:44:56,556 [17208] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=1153) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) end
+17 Oct 2026 18:44:57,208 [17208] INFO  Log - GetDomainNameForMenuFromLogin(1146) Start
+17 Oct 2026 18:44:57,212 [17208] INFO  Log - GetDomainNameForMenuFromLogin(1146) end
+17 Oct 2026 18:44:57,213 [17208] INFO  Log - GetMenuDataFromLoginTable(1146) Start
+17 Oct 2026 18:44:57,216 [17208] INFO  Log - GetMenuDataFromLoginTable(1146) end
+17 Oct 2026 18:44:57,217 [17208] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+17 Oct 2026 18:44:57,221 [17208] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+17 Oct 2026 18:44:57,221 [17208] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='1146' orderby ) Start
+17 Oct 2026 18:44:57,225 [17208] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='1146' orderby ) end
+17 Oct 2026 18:44:57,226 [17208] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=1153 orderby ) Start
+17 Oct 2026 18:44:57,234 [17208] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=1153 orderby ) end
+17 Oct 2026 18:44:57,235 [17208] INFO  Log - GetAllDataFromTable(Select UserType from UserType where User_TypeId=1 orderby ) Start
+17 Oct 2026 18:44:57,238 [17208] INFO  Log - GetAllDataFromTable(Select UserType from UserType where User_TypeId=1 orderby ) end
+17 Oct 2026 18:44:57,239 [17208] INFO  Log - GetAllDataFromTable(Select TOP 1 EmployeeID from AssginBussiness where EmployeeID=1153 and MotherOrgID=4 and UserTypeId=5 orderby ) Start
+17 Oct 2026 18:44:57,244 [17208] INFO  Log - GetAllDataFromTable(Select TOP 1 EmployeeID from AssginBussiness where EmployeeID=1153 and MotherOrgID=4 and UserTypeId=5 orderby ) end
+17 Oct 2026 18:44:57,244 [17208] INFO  Log - Fetching menu details - Started
+17 Oct 2026 18:44:57,247 [17208] INFO  Log - Fetching menu details - Finished
+17 Oct 2026 18:45:00,772 [17208] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) Start
+17 Oct 2026 18:45:00,778 [17208] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) end
+17 Oct 2026 18:45:00,778 [17208] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor_defaultaccountant@gmail.com' ) Start
+17 Oct 2026 18:45:00,786 [17208] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor_defaultaccountant@gmail.com' ) end
+17 Oct 2026 18:45:00,787 [17208] INFO  Log - ExecuteQuery(select Business from PlanHistory with (Nolock) where EmpId='1153'and IsActive=1 ) Start
+17 Oct 2026 18:45:00,790 [17208] INFO  Log - ExecuteQuery(select Business from PlanHistory with (Nolock) where EmpId='1153'and IsActive=1 ) End
+17 Oct 2026 18:45:00,790 [17208] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='1153' and Is_Cancelled=1 ) Start
+17 Oct 2026 18:45:00,791 [17208] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='1153' and Is_Cancelled=1 ) End
+17 Oct 2026 18:45:00,791 [17208] INFO  Log - GetAllDataFromTable(Select * from PlanHistory with (Nolock) where EmpId=1153 orderby ) Start
+17 Oct 2026 18:45:00,804 [17208] INFO  Log - GetAllDataFromTable(Select * from PlanHistory with (Nolock) where EmpId=1153 orderby ) end
+17 Oct 2026 18:45:00,804 [17208] INFO  Log - GetAllDataFromTable(Select EmpId from PlanHistory with (Nolock) where EmpId=1153 and Is_Requested_Plan=1 orderby ) Start
+17 Oct 2026 18:45:00,808 [17208] INFO  Log - GetAllDataFromTable(Select EmpId from PlanHistory with (Nolock) where EmpId=1153 and Is_Requested_Plan=1 orderby ) end
+17 Oct 2026 18:45:00,809 [17208] INFO  Log - ExecuteQuery(select  Business from PlanHistory  with (Nolock) GROUP BY EmpId,id,Business having EmpId='1153' and Id=(select max(id) from PlanHistory where EmpId='1153' and IsActive=1)) Start
+17 Oct 2026 18:45:00,817 [17208] INFO  Log - ExecuteQuery(select  Business from PlanHistory  with (Nolock) GROUP BY EmpId,id,Business having EmpId='1153' and Id=(select max(id) from PlanHistory where EmpId='1153' and IsActive=1)) End
+17 Oct 2026 18:45:00,818 [17208] INFO  Log - GetBussList_BusinessOwnerForDashBord1(4,1153,1) Start
+17 Oct 2026 18:45:00,823 [17208] INFO  Log - GetBussList_BusinessOwnerForDashBord1(4,1153,1) end
+17 Oct 2026 18:45:00,823 [17208] INFO  Log - IfExistsInTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID='1153' and IsActive='NO        ' and UserType='1' ) Start
+17 Oct 2026 18:45:00,831 [17208] INFO  Log - IfExistsInTable(Select IsActive, from AddEmployee with (Nolock) where EmployeeID='1153' and IsActive='NO        ' and UserType='1' ) end
+17 Oct 2026 18:45:00,831 [17208] INFO  Log - GetDomainNameForMenuFromLogin(1146) Start
+17 Oct 2026 18:45:00,835 [17208] INFO  Log - GetDomainNameForMenuFromLogin(1146) end
+17 Oct 2026 18:45:00,836 [17208] INFO  Log - GetMenuDataFromLoginTable(1146) Start
+17 Oct 2026 18:45:00,840 [17208] INFO  Log - GetMenuDataFromLoginTable(1146) end
+17 Oct 2026 18:45:00,841 [17208] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+17 Oct 2026 18:45:00,845 [17208] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+17 Oct 2026 18:45:00,846 [17208] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='1146' orderby ) Start
+17 Oct 2026 18:45:00,851 [17208] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='1146' orderby ) end
+17 Oct 2026 18:45:00,851 [17208] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=1153 orderby ) Start
+17 Oct 2026 18:45:00,858 [17208] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=1153 orderby ) end
+17 Oct 2026 18:45:00,861 [17208] INFO  Log - GetAllDataFromTable(Select UserType from UserType where User_TypeId=1 orderby ) Start
+17 Oct 2026 18:45:00,864 [17208] INFO  Log - GetAllDataFromTable(Select UserType from UserType where User_TypeId=1 orderby ) end
+17 Oct 2026 18:45:00,865 [17208] INFO  Log - GetAllDataFromTable(Select TOP 1 EmployeeID from AssginBussiness where EmployeeID=1153 and MotherOrgID=4 and UserTypeId=5 orderby ) Start
+17 Oct 2026 18:45:00,871 [17208] INFO  Log - GetAllDataFromTable(Select TOP 1 EmployeeID from AssginBussiness where EmployeeID=1153 and MotherOrgID=4 and UserTypeId=5 orderby ) end
+17 Oct 2026 18:45:00,872 [17208] INFO  Log - Fetching menu details - Started
+17 Oct 2026 18:45:00,875 [17208] INFO  Log - Fetching menu details - Finished
+17 Oct 2026 18:45:07,934 [17208] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 1153 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) Start
+17 Oct 2026 18:45:07,954 [17208] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 1153 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) end
+17 Oct 2026 18:45:07,955 [17208] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (26, 27, 28, 29, 30, 33, 34, 35, 36, 37, 38, 39, 40, 48) orderby Yr desc) Start
+17 Oct 2026 18:45:07,975 [17208] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (26, 27, 28, 29, 30, 33, 34, 35, 36, 37, 38, 39, 40, 48) orderby Yr desc) end
+17 Oct 2026 18:45:07,976 [17208] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=1153) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) Start
+17 Oct 2026 18:45:07,985 [17208] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=1153) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) end
+17 Oct 2026 18:45:08,596 [17208] INFO  Log - GetDomainNameForMenuFromLogin(1146) Start
+17 Oct 2026 18:45:08,599 [17208] INFO  Log - GetDomainNameForMenuFromLogin(1146) end
+17 Oct 2026 18:45:08,600 [17208] INFO  Log - GetMenuDataFromLoginTable(1146) Start
+17 Oct 2026 18:45:08,602 [17208] INFO  Log - GetMenuDataFromLoginTable(1146) end
+17 Oct 2026 18:45:08,603 [17208] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+17 Oct 2026 18:45:08,610 [17208] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+17 Oct 2026 18:45:08,610 [17208] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='1146' orderby ) Start
+17 Oct 2026 18:45:08,622 [17208] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='1146' orderby ) end
+17 Oct 2026 18:45:08,623 [17208] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=1153 orderby ) Start
+17 Oct 2026 18:45:08,632 [17208] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=1153 orderby ) end
+17 Oct 2026 18:45:08,633 [17208] INFO  Log - GetAllDataFromTable(Select UserType from UserType where User_TypeId=1 orderby ) Start
+17 Oct 2026 18:45:08,639 [17208] INFO  Log - GetAllDataFromTable(Select UserType from UserType where User_TypeId=1 orderby ) end
+17 Oct 2026 18:45:08,640 [17208] INFO  Log - GetAllDataFromTable(Select TOP 1 EmployeeID from AssginBussiness where EmployeeID=1153 and MotherOrgID=4 and UserTypeId=5 orderby ) Start
+17 Oct 2026 18:45:08,644 [17208] INFO  Log - GetAllDataFromTable(Select TOP 1 EmployeeID from AssginBussiness where EmployeeID=1153 and MotherOrgID=4 and UserTypeId=5 orderby ) end
+17 Oct 2026 18:45:08,645 [17208] INFO  Log - Fetching menu details - Started
+17 Oct 2026 18:45:08,648 [17208] INFO  Log - Fetching menu details - Finished
+17 Oct 2026 18:45:11,192 [17208] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 1153 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) Start
+17 Oct 2026 18:45:11,208 [17208] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 1153 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) end
+17 Oct 2026 18:45:11,209 [17208] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (26, 27, 28, 29, 30, 33, 34, 35, 36, 37, 38, 39, 40, 48) orderby Yr desc) Start
+17 Oct 2026 18:45:11,219 [17208] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (26, 27, 28, 29, 30, 33, 34, 35, 36, 37, 38, 39, 40, 48) orderby Yr desc) end
+17 Oct 2026 18:45:11,220 [17208] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=1153) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) Start
+17 Oct 2026 18:45:11,228 [17208] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=1153) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) end
+17 Oct 2026 18:45:11,739 [17208] INFO  Log - GetDomainNameForMenuFromLogin(1146) Start
+17 Oct 2026 18:45:11,751 [17208] INFO  Log - GetDomainNameForMenuFromLogin(1146) end
+17 Oct 2026 18:45:11,753 [17208] INFO  Log - GetMenuDataFromLoginTable(1146) Start
+17 Oct 2026 18:45:11,767 [17208] INFO  Log - GetMenuDataFromLoginTable(1146) end
+17 Oct 2026 18:45:11,768 [17208] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+17 Oct 2026 18:45:11,788 [17208] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+17 Oct 2026 18:45:11,789 [17208] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='1146' orderby ) Start
+17 Oct 2026 18:45:11,810 [17208] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='1146' orderby ) end
+17 Oct 2026 18:45:11,811 [17208] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=1153 orderby ) Start
+17 Oct 2026 18:45:11,835 [17208] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=1153 orderby ) end
+17 Oct 2026 18:45:11,836 [17208] INFO  Log - GetAllDataFromTable(Select UserType from UserType where User_TypeId=1 orderby ) Start
+17 Oct 2026 18:45:11,849 [17208] INFO  Log - GetAllDataFromTable(Select UserType from UserType where User_TypeId=1 orderby ) end
+17 Oct 2026 18:45:11,850 [17208] INFO  Log - GetAllDataFromTable(Select TOP 1 EmployeeID from AssginBussiness where EmployeeID=1153 and MotherOrgID=4 and UserTypeId=5 orderby ) Start
+17 Oct 2026 18:45:11,866 [17208] INFO  Log - GetAllDataFromTable(Select TOP 1 EmployeeID from AssginBussiness where EmployeeID=1153 and MotherOrgID=4 and UserTypeId=5 orderby ) end
+17 Oct 2026 18:45:11,868 [17208] INFO  Log - Fetching menu details - Started
+17 Oct 2026 18:45:11,884 [17208] INFO  Log - Fetching menu details - Finished
+17 Oct 2026 18:51:23,555 [17208] INFO  Log - GetLoginDetails(ava@gmail.com,12345678,ava@gmail.com) Start
+17 Oct 2026 18:51:23,558 [17208] INFO  Log - GetLoginDetails(ava@gmail.com,12345678,ava@gmail.com) end
+17 Oct 2026 18:51:23,559 [17208] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=1153 orderby ) Start
+17 Oct 2026 18:51:23,576 [17208] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=1153 orderby ) end
+17 Oct 2026 18:51:23,577 [17208] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=1153 orderby ) Start
+17 Oct 2026 18:51:23,590 [17208] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=1153 orderby ) end
+17 Oct 2026 18:51:23,591 [17208] INFO  Log - GetNameFromId(UserType,1) Start
+17 Oct 2026 18:51:23,611 [17208] INFO  Log - GetNameFromId(UserType,1) end
+17 Oct 2026 18:51:23,627 [12984] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 1153 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) Start
+17 Oct 2026 18:51:23,663 [12984] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 1153 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) end
+17 Oct 2026 18:51:23,664 [12984] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (26, 27, 28, 29, 30, 33, 34, 35, 36, 37, 38, 39, 40, 48) orderby Yr desc) Start
+17 Oct 2026 18:51:23,685 [12984] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (26, 27, 28, 29, 30, 33, 34, 35, 36, 37, 38, 39, 40, 48) orderby Yr desc) end
+17 Oct 2026 18:51:23,686 [12984] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=1153) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) Start
+17 Oct 2026 18:51:23,702 [12984] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=1153) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) end
+17 Oct 2026 18:51:24,248 [12984] INFO  Log - GetDomainNameForMenuFromLogin(1146) Start
+17 Oct 2026 18:51:24,259 [12984] INFO  Log - GetDomainNameForMenuFromLogin(1146) end
+17 Oct 2026 18:51:24,260 [12984] INFO  Log - GetMenuDataFromLoginTable(1146) Start
+17 Oct 2026 18:51:24,274 [12984] INFO  Log - GetMenuDataFromLoginTable(1146) end
+17 Oct 2026 18:51:24,275 [12984] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+17 Oct 2026 18:51:24,288 [12984] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+17 Oct 2026 18:51:24,289 [12984] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='1146' orderby ) Start
+17 Oct 2026 18:51:24,301 [12984] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='1146' orderby ) end
+17 Oct 2026 18:51:24,302 [12984] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=1153 orderby ) Start
+17 Oct 2026 18:51:24,317 [12984] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=1153 orderby ) end
+17 Oct 2026 18:51:24,317 [12984] INFO  Log - GetAllDataFromTable(Select UserType from UserType where User_TypeId=1 orderby ) Start
+17 Oct 2026 18:51:24,330 [12984] INFO  Log - GetAllDataFromTable(Select UserType from UserType where User_TypeId=1 orderby ) end
+17 Oct 2026 18:51:24,331 [12984] INFO  Log - GetAllDataFromTable(Select TOP 1 EmployeeID from AssginBussiness where EmployeeID=1153 and MotherOrgID=4 and UserTypeId=5 orderby ) Start
+17 Oct 2026 18:51:24,353 [12984] INFO  Log - GetAllDataFromTable(Select TOP 1 EmployeeID from AssginBussiness where EmployeeID=1153 and MotherOrgID=4 and UserTypeId=5 orderby ) end
+17 Oct 2026 18:51:24,354 [12984] INFO  Log - Fetching menu details - Started
+17 Oct 2026 18:51:24,369 [12984] INFO  Log - Fetching menu details - Finished
+17 Oct 2026 19:22:19,807 [7492] INFO  Log - GetLoginDetails(ava@gmail.com,12345678,ava@gmail.com) Start
+17 Oct 2026 19:22:20,670 [7492] INFO  Log - GetLoginDetails(ava@gmail.com,12345678,ava@gmail.com) end
+17 Oct 2026 19:22:20,677 [7492] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=1153 orderby ) Start
+17 Oct 2026 19:22:20,699 [7492] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=1153 orderby ) end
+17 Oct 2026 19:22:20,701 [7492] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=1153 orderby ) Start
+17 Oct 2026 19:22:20,716 [7492] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=1153 orderby ) end
+17 Oct 2026 19:22:20,719 [7492] INFO  Log - GetNameFromId(UserType,1) Start
+17 Oct 2026 19:22:20,737 [7492] INFO  Log - GetNameFromId(UserType,1) end
+17 Oct 2026 19:22:23,324 [10344] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 1153 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) Start
+17 Oct 2026 19:22:23,369 [10344] INFO  Log - GetAllDataFromTable(Select assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID) as BussName from AssginBussiness assb join AddEmployee ad on ad.EmployeeID=assb.EmployeeID join EmpAddress ea on ea.EmpAddressId=ad.ADDRESSID join UserAcc ua on ua.Email=ea.MainEmail join  AddBusiness ab on ab.BusinessID=assb.BusinessID where ua.EmployeeID= 1153 and assb.BusinessID is not null and ab.Status<>2 orderby assb.BusinessID) end
+17 Oct 2026 19:22:23,508 [10344] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (26, 27, 28, 29, 30, 33, 34, 35, 36, 37, 38, 39, 40, 48) orderby Yr desc) Start
+17 Oct 2026 19:22:23,557 [10344] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where BussID in (26, 27, 28, 29, 30, 33, 34, 35, 36, 37, 38, 39, 40, 48) orderby Yr desc) end
+17 Oct 2026 19:22:23,560 [10344] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=1153) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) Start
+17 Oct 2026 19:22:23,580 [10344] INFO  Log - GetAllDataFromTable(Select count(EmployeeID) empcount,BusinessName,BusinessID from AssginBussiness where  UserTypeId not in(1) and BusinessID in (select BusinessID from AssginBussiness where UserTypeId=1 and EmployeeID=1153) and (BusinessID=0 or 0=0) group by BusinessName,BusinessID orderby BusinessID) end
+17 Oct 2026 19:22:24,443 [10344] INFO  Log - GetDomainNameForMenuFromLogin(1146) Start
+17 Oct 2026 19:22:24,456 [10344] INFO  Log - GetDomainNameForMenuFromLogin(1146) end
+17 Oct 2026 19:22:24,457 [10344] INFO  Log - GetMenuDataFromLoginTable(1146) Start
+17 Oct 2026 19:22:24,474 [10344] INFO  Log - GetMenuDataFromLoginTable(1146) end
+17 Oct 2026 19:22:24,505 [10344] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+17 Oct 2026 19:22:24,520 [10344] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+17 Oct 2026 19:22:24,520 [10344] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='1146' orderby ) Start
+17 Oct 2026 19:22:24,535 [10344] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='1146' orderby ) end
+17 Oct 2026 19:22:24,538 [10344] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=1153 orderby ) Start
+17 Oct 2026 19:22:24,556 [10344] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=1153 orderby ) end
+17 Oct 2026 19:22:24,558 [10344] INFO  Log - GetAllDataFromTable(Select UserType from UserType where User_TypeId=1 orderby ) Start
+17 Oct 2026 19:22:24,569 [10344] INFO  Log - GetAllDataFromTable(Select UserType from UserType where User_TypeId=1 orderby ) end
+17 Oct 2026 19:22:24,570 [10344] INFO  Log - GetAllDataFromTable(Select TOP 1 EmployeeID from AssginBussiness where EmployeeID=1153 and MotherOrgID=4 and UserTypeId=5 orderby ) Start
+17 Oct 2026 19:22:24,583 [10344] INFO  Log - GetAllDataFromTable(Select TOP 1 EmployeeID from AssginBussiness where EmployeeID=1153 and MotherOrgID=4 and UserTypeId=5 orderby ) end
+17 Oct 2026 19:22:24,586 [10344] INFO  Log - Fetching menu details - Started
+17 Oct 2026 19:22:24,612 [10344] INFO  Log - Fetching menu details - Finished
+17 Oct 2026 19:22:38,080 [7492] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) Start
+17 Oct 2026 19:22:38,085 [7492] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) end
+17 Oct 2026 19:22:38,087 [7492] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor_defaultaccountant@gmail.com' ) Start
+17 Oct 2026 19:22:38,104 [7492] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor_defaultaccountant@gmail.com' ) end
+17 Oct 2026 19:22:38,105 [7492] INFO  Log - ExecuteQuery(select Business from PlanHistory with (Nolock) where EmpId='1153'and IsActive=1 ) Start
+17 Oct 2026 19:22:38,121 [7492] INFO  Log - ExecuteQuery(select Business from PlanHistory with (Nolock) where EmpId='1153'and IsActive=1 ) End
+17 Oct 2026 19:22:38,122 [7492] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='1153' and Is_Cancelled=1 ) Start
+17 Oct 2026 19:22:38,133 [7492] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='1153' and Is_Cancelled=1 ) End
+17 Oct 2026 19:22:38,134 [7492] INFO  Log - GetAllDataFromTable(Select * from PlanHistory with (Nolock) where EmpId=1153 orderby ) Start
+17 Oct 2026 19:22:38,150 [7492] INFO  Log - GetAllDataFromTable(Select * from PlanHistory with (Nolock) where EmpId=1153 orderby ) end
+17 Oct 2026 19:22:38,151 [7492] INFO  Log - GetAllDataFromTable(Select EmpId from PlanHistory with (Nolock) where EmpId=1153 and Is_Requested_Plan=1 orderby ) Start
+17 Oct 2026 19:22:38,174 [7492] INFO  Log - GetAllDataFromTable(Select EmpId from PlanHistory with (Nolock) where EmpId=1153 and Is_Requested_Plan=1 orderby ) end
+17 Oct 2026 19:22:38,175 [7492] INFO  Log - ExecuteQuery(select  Business from PlanHistory  with (Nolock) GROUP BY EmpId,id,Business having EmpId='1153' and Id=(select max(id) from PlanHistory where EmpId='1153' and IsActive=1)) Start
+17 Oct 2026 19:22:38,186 [7492] INFO  Log - ExecuteQuery(select  Business from PlanHistory  with (Nolock) GROUP BY EmpId,id,Business having EmpId='1153' and Id=(select max(id) from PlanHistory where EmpId='1153' and IsActive=1)) End
+17 Oct 2026 19:22:38,188 [7492] INFO  Log - GetBussList_BusinessOwnerForDashBord1(4,1153,1) Start
+17 Oct 2026 19:22:38,217 [7492] INFO  Log - GetBussList_BusinessOwnerForDashBord1(4,1153,1) end
+17 Oct 2026 19:22:38,217 [7492] INFO  Log - IfExistsInTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID='1153' and IsActive='NO        ' and UserType='1' ) Start
+17 Oct 2026 19:22:38,232 [7492] INFO  Log - IfExistsInTable(Select IsActive, from AddEmployee with (Nolock) where EmployeeID='1153' and IsActive='NO        ' and UserType='1' ) end
+17 Oct 2026 19:22:38,233 [7492] INFO  Log - GetDomainNameForMenuFromLogin(1146) Start
+17 Oct 2026 19:22:38,255 [7492] INFO  Log - GetDomainNameForMenuFromLogin(1146) end
+17 Oct 2026 19:22:38,256 [7492] INFO  Log - GetMenuDataFromLoginTable(1146) Start
+17 Oct 2026 19:22:38,269 [7492] INFO  Log - GetMenuDataFromLoginTable(1146) end
+17 Oct 2026 19:22:38,270 [7492] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+17 Oct 2026 19:22:38,285 [7492] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+17 Oct 2026 19:22:38,286 [7492] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='1146' orderby ) Start
+17 Oct 2026 19:22:38,298 [7492] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='1146' orderby ) end
+17 Oct 2026 19:22:38,302 [7492] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=1153 orderby ) Start
+17 Oct 2026 19:22:38,350 [7492] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=1153 orderby ) end
+17 Oct 2026 19:22:38,351 [7492] INFO  Log - GetAllDataFromTable(Select UserType from UserType where User_TypeId=1 orderby ) Start
+17 Oct 2026 19:22:38,370 [7492] INFO  Log - GetAllDataFromTable(Select UserType from UserType where User_TypeId=1 orderby ) end
+17 Oct 2026 19:22:38,370 [7492] INFO  Log - GetAllDataFromTable(Select TOP 1 EmployeeID from AssginBussiness where EmployeeID=1153 and MotherOrgID=4 and UserTypeId=5 orderby ) Start
+17 Oct 2026 19:22:38,384 [7492] INFO  Log - GetAllDataFromTable(Select TOP 1 EmployeeID from AssginBussiness where EmployeeID=1153 and MotherOrgID=4 and UserTypeId=5 orderby ) end
+17 Oct 2026 19:22:38,385 [7492] INFO  Log - Fetching menu details - Started
+17 Oct 2026 19:22:38,397 [7492] INFO  Log - Fetching menu details - Finished
+17 Oct 2026 19:22:39,555 [4260] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) Start
+17 Oct 2026 19:22:39,561 [4260] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '4' orderby ) end
+17 Oct 2026 19:22:39,561 [4260] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor_defaultaccountant@gmail.com' ) Start
+17 Oct 2026 19:22:39,610 [4260] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner with (Nolock) where EMail_primary = 'shamsuthakor_defaultaccountant@gmail.com' ) end
+17 Oct 2026 19:22:39,611 [4260] INFO  Log - ExecuteQuery(select Business from PlanHistory with (Nolock) where EmpId='1153'and IsActive=1 ) Start
+17 Oct 2026 19:22:39,613 [4260] INFO  Log - ExecuteQuery(select Business from PlanHistory with (Nolock) where EmpId='1153'and IsActive=1 ) End
+17 Oct 2026 19:22:39,614 [4260] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='1153' and Is_Cancelled=1 ) Start
+17 Oct 2026 19:22:39,617 [4260] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='1153' and Is_Cancelled=1 ) End
+17 Oct 2026 19:22:39,618 [4260] INFO  Log - GetAllDataFromTable(Select * from PlanHistory with (Nolock) where EmpId=1153 orderby ) Start
+17 Oct 2026 19:22:39,623 [4260] INFO  Log - GetAllDataFromTable(Select * from PlanHistory with (Nolock) where EmpId=1153 orderby ) end
+17 Oct 2026 19:22:39,624 [4260] INFO  Log - GetAllDataFromTable(Select EmpId from PlanHistory with (Nolock) where EmpId=1153 and Is_Requested_Plan=1 orderby ) Start
+17 Oct 2026 19:22:39,629 [4260] INFO  Log - GetAllDataFromTable(Select EmpId from PlanHistory with (Nolock) where EmpId=1153 and Is_Requested_Plan=1 orderby ) end
+17 Oct 2026 19:22:39,630 [4260] INFO  Log - ExecuteQuery(select  Business from PlanHistory  with (Nolock) GROUP BY EmpId,id,Business having EmpId='1153' and Id=(select max(id) from PlanHistory where EmpId='1153' and IsActive=1)) Start
+17 Oct 2026 19:22:39,633 [4260] INFO  Log - ExecuteQuery(select  Business from PlanHistory  with (Nolock) GROUP BY EmpId,id,Business having EmpId='1153' and Id=(select max(id) from PlanHistory where EmpId='1153' and IsActive=1)) End
+17 Oct 2026 19:22:39,634 [4260] INFO  Log - GetBussList_BusinessOwnerForDashBord1(4,1153,1) Start
+17 Oct 2026 19:22:39,643 [4260] INFO  Log - GetBussList_BusinessOwnerForDashBord1(4,1153,1) end
+17 Oct 2026 19:22:39,643 [4260] INFO  Log - IfExistsInTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID='1153' and IsActive='NO        ' and UserType='1' ) Start
+17 Oct 2026 19:22:39,647 [4260] INFO  Log - IfExistsInTable(Select IsActive, from AddEmployee with (Nolock) where EmployeeID='1153' and IsActive='NO        ' and UserType='1' ) end
+17 Oct 2026 19:22:39,648 [4260] INFO  Log - GetDomainNameForMenuFromLogin(1146) Start
+17 Oct 2026 19:22:39,651 [4260] INFO  Log - GetDomainNameForMenuFromLogin(1146) end
+17 Oct 2026 19:22:39,652 [4260] INFO  Log - GetMenuDataFromLoginTable(1146) Start
+17 Oct 2026 19:22:39,655 [4260] INFO  Log - GetMenuDataFromLoginTable(1146) end
+17 Oct 2026 19:22:39,656 [4260] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) Start
+17 Oct 2026 19:22:39,660 [4260] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=4 orderby ) end
+17 Oct 2026 19:22:39,660 [4260] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='1146' orderby ) Start
+17 Oct 2026 19:22:39,664 [4260] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='1146' orderby ) end
+17 Oct 2026 19:22:39,667 [4260] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=1153 orderby ) Start
+17 Oct 2026 19:22:39,673 [4260] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=1153 orderby ) end
+17 Oct 2026 19:22:39,675 [4260] INFO  Log - GetAllDataFromTable(Select UserType from UserType where User_TypeId=1 orderby ) Start
+17 Oct 2026 19:22:39,677 [4260] INFO  Log - GetAllDataFromTable(Select UserType from UserType where User_TypeId=1 orderby ) end
+17 Oct 2026 19:22:39,678 [4260] INFO  Log - GetAllDataFromTable(Select TOP 1 EmployeeID from AssginBussiness where EmployeeID=1153 and MotherOrgID=4 and UserTypeId=5 orderby ) Start
+17 Oct 2026 19:22:39,683 [4260] INFO  Log - GetAllDataFromTable(Select TOP 1 EmployeeID from AssginBussiness where EmployeeID=1153 and MotherOrgID=4 and UserTypeId=5 orderby ) end
+17 Oct 2026 19:22:39,683 [4260] INFO  Log - Fetching menu details - Started
+17 Oct 2026 19:22:39,686 [4260] INFO  Log - Fetching menu details - Finished

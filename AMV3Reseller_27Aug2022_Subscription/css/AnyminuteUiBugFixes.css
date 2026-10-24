@@ -1,0 +1,181 @@
+/* October 21 corrections. Controls, handlers and server visibility remain authoritative. */
+body.am-ui [id$="lblwelcome"],body.am-ui .am-welcome{margin:0!important;position:static!important;line-height:1.4!important;align-self:center;min-width:0}
+body.am-ui .navbar-header{align-items:center!important}
+body.am-ui .navbar-header>div{margin:0!important;float:none!important}
+body.am-ui .am-topbar>span{align-self:center;margin:0;line-height:1.4}
+body.am-ui .am-sign-out{margin-left:auto;white-space:nowrap;align-self:center;padding:8px 12px;border:1px solid #cdddeb;border-radius:7px}
+body.am-ui .am-account-menu{margin-left:auto;position:relative}
+body.am-ui .am-account-menu summary{list-style:none;cursor:pointer;border:1px solid #cdddeb;border-radius:7px;padding:8px 12px;white-space:nowrap}
+body.am-ui .am-account-menu[open]{background:white;border:1px solid #cdddeb;border-radius:7px;padding:6px}
+body.am-ui .am-account-menu>a{display:block;padding:8px 12px;white-space:nowrap}
+body.am-ui .am-sidebar .sidebar-nav{padding:0;list-style:none;width:100%}
+body.am-ui .am-sidebar li{list-style:none;position:relative;margin:0 0 4px}
+body.am-ui .am-sidebar .am-nav-children{display:none;padding:4px 0 4px 16px}
+body.am-ui .am-sidebar .am-expanded>.am-nav-children{display:block}
+body.am-ui .am-sidebar li>a{display:flex;gap:10px;align-items:center;padding:10px 12px;color:#52677e;border-radius:8px;text-decoration:none}
+body.am-ui .am-sidebar .am-nav-expand{position:absolute;right:4px;top:6px;background:white;border:0;border-radius:5px;width:26px;height:26px;color:#32658c}
+body.am-ui .am-sidebar .am-nav-parent>a{padding-right:34px}
+body.am-ui .am-directory .filters{display:grid!important;grid-template-columns:minmax(210px,2fr) repeat(3,minmax(110px,1fr)) auto auto;align-items:end!important;gap:12px}
+body.am-ui .am-directory .filters label{margin:0;min-width:0;display:flex;flex-direction:column;gap:6px}
+body.am-ui .am-directory .filters input,body.am-ui .am-directory .filters select{width:100%;height:40px;box-sizing:border-box}
+body.am-ui .am-directory .filters input[type=submit]{width:auto;min-width:64px;margin:0;align-self:end}
+body.am-ui .am-week-selection{display:grid!important;grid-template-columns:minmax(170px,1fr) minmax(200px,1fr) auto;align-items:end!important;gap:14px}
+body.am-ui .am-week-selection>label{display:flex;flex-direction:column;gap:6px;margin:0;min-width:0}
+body.am-ui .am-week-selection>label>span{display:block;line-height:20px;margin:0}
+body.am-ui .am-week-selection input,body.am-ui .am-week-selection select{height:42px!important;box-sizing:border-box;width:100%}
+body.am-ui .am-week-selection>.am-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0}
+body.am-ui .am-week-selection>.am-actions input{width:auto;white-space:nowrap}
+body.am-ui .am-open-card{display:inline-flex!important;align-items:center;justify-content:center;min-width:130px!important;min-height:38px!important;height:auto!important;box-sizing:border-box;padding:8px 12px!important;line-height:20px!important;border-radius:7px!important;white-space:nowrap!important;margin:0!important}
+/* Ajax popup targets are necessary DOM anchors, not visible user actions. */
+body.am-ui a[id$="lnkDummy"],body.am-ui a[id$="lnkDummy1"],body.am-ui a[id$="lnkDummy2"]{display:none!important}
+body.am-ui .am-screen-user #uploadArea,body.am-ui.am-screen-user #uploadArea{width:100%!important;max-width:210px!important;height:auto!important;padding:0!important;margin:0 auto!important;animation:none!important}
+body.am-ui.am-screen-user #dropZoon{box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;height:auto!important;min-height:220px;padding:16px 12px!important;overflow:hidden}
+body.am-ui.am-screen-user #previewImage{position:static!important;inset:auto!important;transform:none!important;margin:0 auto!important;width:150px!important;height:150px!important;max-width:100%!important;object-fit:contain!important;order:0;float:none!important;border:0!important;border-radius:8px!important;z-index:auto!important}
+body.am-ui.am-screen-user #previewImage:not([src]),body.am-ui.am-screen-user #previewImage[src=""]{display:none!important}
+body.am-ui.am-screen-user .drop-zoon__paragraph{position:static!important;order:1;margin:0!important;text-align:center}
+body.am-ui [id$="txtSearchPostalCode"]{width:220px!important;max-width:100%!important;min-width:160px;height:40px!important}
+body.am-ui .am-postal-search{display:inline-flex;align-items:center;gap:8px;max-width:100%}
+body.am-ui .am-assignment-selectors{display:flex!important;flex-wrap:wrap;align-items:end;gap:16px;margin:0!important}
+body.am-ui .am-assignment-selectors>.form-group{flex:1 1 210px;max-width:420px;margin:0}
+body.am-ui .am-assignment-selectors select{width:100%!important}
+body.am-ui .am-accountant-form{display:grid;grid-template-columns:minmax(220px,420px) auto;gap:8px 12px;align-items:end;margin:16px 0;max-width:650px}
+body.am-ui .am-accountant-form label{grid-column:1/-1;margin:0}
+body.am-ui .am-accountant-form select,body.am-ui .am-accountant-form input[type=submit]{height:40px;width:100%!important}
+body.am-ui .am-assignment-board{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(130px,auto) minmax(0,1fr);gap:16px;align-items:start;margin:0!important}
+body.am-ui .am-assignment-board>div{float:none!important;width:auto!important;min-width:0;padding:0!important}
+body.am-ui .am-assignment-board:before,body.am-ui .am-assignment-board:after{display:none!important}
+body.am-ui .am-assignment-board [id$="table_button"]{width:100%;border:0;margin-top:46px}
+body.am-ui .am-assignment-board [id$="table_button"] td{padding:5px 0!important;border:0!important}
+body.am-ui .am-assignment-board [id$="table_button"] input{display:block;width:100%;white-space:normal;min-height:38px;box-sizing:border-box}
+body.am-ui .am-assignment-board .am-filter{display:flex;flex-wrap:wrap}
+@media(max-width:1050px){body.am-ui .am-directory .filters{grid-template-columns:repeat(2,minmax(0,1fr))}body.am-ui .am-week-selection{grid-template-columns:repeat(2,minmax(0,1fr))}body.am-ui .am-week-selection>.am-actions{grid-column:1/-1}body.am-ui .am-assignment-board{grid-template-columns:1fr}body.am-ui .am-assignment-board [id$="table_button"]{margin-top:0}}
+@media(max-width:600px){body.am-ui .am-directory .filters,body.am-ui .am-week-selection,body.am-ui .am-accountant-form{grid-template-columns:minmax(0,1fr)}body.am-ui .am-directory .filters label{width:auto}body.am-ui .am-week-selection>.am-actions{grid-column:auto}body.am-ui .am-week-selection>.am-actions input{max-width:100%;white-space:normal}body.am-ui [id$="txtSearchPostalCode"]{width:190px!important}body.am-ui .am-welcome{max-width:36vw}body.am-ui .am-sign-out{padding:6px; font-size:12px}}
+body.am-ui .am-user-photo-box{margin:0!important}
+body.am-ui .am-photo-column{align-self:start}
+body.am-ui [id$="lnkDummy"]:empty,body.am-ui [id$="lnkDummy1"]:empty,body.am-ui [id$="lnkDummy2"]:empty{display:none!important}
+
+/* Round 2: keep controls in their server-rendered containers. */
+body.am-ui .navbar-header{order:0}
+body.am-ui #nav-toggle{order:2;margin-left:auto!important}
+body.am-ui .am-sign-out{order:3;margin-left:12px!important;flex-shrink:0}
+body.am-ui .am-topbar{overflow:visible;position:fixed;top:0;left:0;right:0;z-index:1040}
+body.am-ui .am-account-menu{flex-shrink:0}
+body.am-ui .am-account-menu[open]{padding:0;border:0;background:transparent}
+body.am-ui .am-account-popover{position:absolute;right:0;top:calc(100% + 8px);min-width:160px;max-width:calc(100vw - 24px);padding:6px;background:white;border:1px solid #cdddeb;border-radius:8px;box-shadow:0 8px 24px #17355222;z-index:110}
+body.am-ui .am-account-popover>a{display:block!important;padding:10px 12px;white-space:nowrap}
+body.am-ui .am-clock-out-group{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+body.am-ui .am-clock-out-group>input{flex:0 0 122px;width:122px!important;margin:0!important}
+body.am-ui .am-clock-out-group>.am-next-day-gap{display:inline-flex!important;align-items:center;gap:4px;white-space:nowrap;margin:0!important}
+body.am-ui .am-clock-out-cell{min-width:220px}
+body.am-ui .am-assignment-board [id*="table_button"]{width:100%;border:0;margin-top:12px}
+body.am-ui .am-assignment-board [id*="table_button"] td{padding:5px 0!important;border:0!important}
+body.am-ui .am-assignment-board [id*="table_button"] input{display:block;width:100%;min-height:38px;white-space:normal;box-sizing:border-box}
+body.am-ui.am-screen-user .am-confirm-email-row{display:block!important;width:100%;margin:0!important}
+body.am-ui.am-screen-user [id$="divconfirm"]{float:none!important;width:100%!important;padding:0!important}
+body.am-ui.am-screen-user #txtConLoginEmail{width:100%!important;min-width:0;box-sizing:border-box}
+body.am-ui.am-screen-project .select2-container{width:100%!important;max-width:100%}
+body.am-ui.am-screen-project .select2-selection--multiple{min-height:42px;height:auto!important;white-space:normal}
+body.am-ui.am-screen-project .select2-selection__rendered{white-space:normal!important;display:flex!important;flex-wrap:wrap;gap:4px;padding:4px!important}
+@media(max-width:600px){body.am-ui .am-topbar>span{max-width:38vw;overflow-wrap:anywhere}body.am-ui #nav-toggle{margin-left:0!important}body.am-ui .am-sign-out{margin-left:6px!important}}
+/* PowerPoint 20261021A: shared shell and native dashboard. */
+body.am-ui .am-header-help{position:relative;flex-shrink:0;margin-left:auto;order:1}
+body.am-ui .am-header-help>summary{display:flex;align-items:center;justify-content:center;list-style:none;cursor:pointer;width:40px;height:40px;border:1px solid #dce7f0;border-radius:8px;color:#315d83;background:#f6fbff}
+body.am-ui .am-header-help>summary::-webkit-details-marker,body.am-ui .am-account-menu>summary::-webkit-details-marker{display:none}
+body.am-ui .am-header-help svg,body.am-ui .am-account-popover svg{width:20px;height:20px;flex-shrink:0}
+body.am-ui .am-header-help .am-account-popover{min-width:250px;padding:10px;max-width:calc(100vw - 24px)}
+body.am-ui .am-account-popover>strong{display:block;padding:8px 10px;font-size:13px}
+body.am-ui .am-account-popover>a{display:flex!important;align-items:center;gap:10px;min-height:40px;border-radius:6px}
+body.am-ui .am-account-popover>a:hover{background:#edf5ff}
+body.am-ui .am-account-menu{margin-left:0!important}
+body.am-ui .am-account-menu>summary{display:flex;align-items:center;gap:8px;border:0;padding:0;background:transparent}
+body.am-ui .am-account-avatar{width:40px;height:40px;border-radius:50%;object-fit:cover}
+body.am-ui .am-account-chevron,body.am-ui .am-nav-chevron{display:block;width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg)}
+body.am-ui .am-nav-expand{display:flex;align-items:center;justify-content:center}
+body.am-ui .am-expanded>.am-nav-expand .am-nav-chevron{transform:rotate(225deg)}
+body.am-ui #nav-toggle{margin-left:0!important}
+body.am-ui.am-modern .am-sidebar{transition:transform .2s ease}
+body.am-ui.am-modern.am-nav-collapsed .am-sidebar{transform:translateX(-100%)}
+body.am-ui.am-modern.am-nav-collapsed .am-main{margin-left:0}
+body.am-ui .am-dashboard-overview{display:grid;grid-template-columns:minmax(0,3fr) minmax(260px,1fr);gap:16px;margin-bottom:22px}
+body.am-ui .am-dashboard-overview .am-stats{margin-bottom:0;gap:12px}
+body.am-ui .am-dashboard-overview .am-stat{padding:16px 12px;gap:10px}
+body.am-ui .am-dashboard-overview .am-stat-icon{width:44px;height:48px;flex-basis:44px}
+body.am-ui .am-quick-actions{padding:16px!important;margin:0}
+body.am-ui .am-quick-actions h2{font-size:16px;margin:0 0 12px;letter-spacing:normal}
+body.am-ui .am-quick-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+body.am-ui .am-quick-grid>a{display:flex;align-items:center;justify-content:flex-start;gap:10px;white-space:normal;min-height:44px;padding:10px!important;font-size:12px!important}
+body.am-ui .am-quick-grid svg{width:22px;height:22px;flex-shrink:0}
+body.am-ui .am-business-status-menu>div{min-width:160px}
+body.am-ui .am-business-status-menu>div>a{display:block!important;padding:10px 12px!important;width:100%;margin:0!important}
+body.am-ui .am-business-status-menu>div>a[disabled],body.am-ui .am-business-status-menu>div>span{display:block;padding:10px 12px;opacity:.5}
+body.am-ui .am-help-center{max-width:960px}
+body.am-ui .am-help-center h2{font-size:20px;margin-top:24px}
+@media(max-width:1200px){body.am-ui .am-dashboard-overview{grid-template-columns:1fr}body.am-ui .am-dashboard-overview .am-stats{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:720px){body.am-ui.am-modern .am-sidebar{transform:translateX(-100%)}body.am-ui.am-modern.am-nav-open .am-sidebar{transform:translateX(0)}body.am-ui .am-dashboard-overview .am-stats{grid-template-columns:repeat(2,minmax(0,1fr))}body.am-ui .am-header-help>summary{width:34px;height:34px}body.am-ui .am-account-avatar{width:34px;height:34px}body.am-ui .am-topbar{gap:9px}body.am-ui .am-topbar>span{max-width:32vw}body.am-ui .am-header-help .am-account-popover{position:fixed;top:64px;right:12px}}
+
+/* Report 2 item 10: legacy Add Project uses Bootstrap multiselect as well as Select2. */
+body.am-ui .am-project-business-selector{min-width:0}
+body.am-ui .am-project-business-selector .btn-group{width:100%;max-width:100%}
+body.am-ui .am-project-business-selector button.multiselect{width:100%;min-height:42px;text-align:left;white-space:normal;overflow-wrap:anywhere;box-sizing:border-box;padding:10px 32px 10px 12px;border:1px solid #d6e1ec;border-radius:7px;background:#fff;color:#172b42;position:relative}
+body.am-ui .am-project-business-selector .multiselect-selected-text{white-space:normal;overflow-wrap:anywhere}
+body.am-ui .am-project-business-selector .multiselect .caret{position:absolute;right:12px;top:50%}
+body.am-ui .am-project-business-selector .multiselect-container{width:100%;min-width:0;max-height:280px;overflow:auto}
+body.am-ui .am-project-business-selector .multiselect-container>li>a>label{display:flex;align-items:flex-start;gap:8px;white-space:normal;padding:8px 12px;overflow-wrap:anywhere}
+body.am-ui .am-project-business-selector .multiselect-container input[type=checkbox]{position:static;margin:3px 0 0;flex-shrink:0}
+body.am-ui .am-project-business-selector select[multiple]:not([style*="display: none"]):not(.select2-hidden-accessible){width:100%!important;min-height:112px}
+
+/* Report 3: header ordering, native fixed position, modal sizing and nested-widget resets. */
+body.am-ui.am-modern .am-topbar>[data-toggle-sidebar]{order:0;flex-shrink:0}
+body.am-ui.am-modern .am-topbar>a{order:1;flex-shrink:0}
+body.am-ui.am-modern .am-topbar>span{order:2}
+body.am-ui.am-modern .am-topbar>.am-header-help{order:3;margin-left:auto}
+body.am-ui.am-modern .am-topbar>.am-account-menu{order:4;margin-left:0!important}
+body.am-ui .am-account-popover{z-index:1060}
+body.am-ui #nav-toggle.am-legacy-account{display:block!important;float:none!important;overflow:visible}
+body.am-ui #nav-toggle.am-legacy-account .am-account-menu{margin:0}
+body.am-ui .navbar .am-sign-out{display:none!important}
+body.am-ui .am-settings-check{display:flex;align-items:center;gap:9px;grid-column:1/-1}
+body.am-ui .am-settings-check>span{display:flex;align-items:center;gap:9px}
+body.am-ui .am-settings-check input[type=checkbox]{width:16px!important;height:16px!important;min-height:0!important;flex-shrink:0;margin:0!important}
+body.am-ui .am-settings-check label{display:inline!important;margin:0!important;line-height:1.5}
+body.am-ui .am-history-backdrop{background:#17314e!important;opacity:.45!important}
+body.am-ui [id$="pnlEmployeeHistory"].am-history-dialog{width:92vw!important;max-width:1200px!important;height:auto!important;max-height:88vh!important;padding:0!important;overflow:hidden!important}
+body.am-ui .am-history-dialog>.header{display:flex;align-items:center;justify-content:space-between;gap:15px;position:static!important}
+body.am-ui .am-history-content{margin:0!important;max-height:calc(88vh - 70px);overflow:auto;padding:18px}
+body.am-ui .am-history-content>.col-md-12{width:100%;padding:0!important}
+body.am-ui .am-history-content table{width:100%!important;min-width:750px;height:auto!important;table-layout:auto}
+body.am-ui .am-history-content td{white-space:normal!important;min-width:100px}
+body.am-ui .am-history-dialog [id$="btnHide11"]{flex-shrink:0;min-width:36px;min-height:36px}
+body.am-ui.am-screen-project .select2-search--inline{flex:1 1 80px;min-width:80px}
+body.am-ui.am-screen-project .select2-search--inline .select2-search__field{border:0!important;box-shadow:none!important;background:transparent!important;border-radius:0!important;padding:0!important;margin:0!important;min-height:26px!important;height:26px!important;min-width:3em;max-width:100%;line-height:26px}
+body.am-ui.am-screen-project .select2-selection__choice{max-width:100%;white-space:normal!important;overflow-wrap:anywhere}
+body.am-ui .dataTables_paginate li:empty{display:none!important}
+body.am-ui a[id$="lnkDummy"],body.am-ui a[id$="lnkDummy1"]{position:absolute!important;width:0!important;height:0!important;padding:0!important;border:0!important;overflow:hidden!important;display:none!important}
+@media(max-width:720px){body.am-ui .am-topbar{height:72px}body.am-ui .am-history-dialog .am-history-content{padding:10px}body.am-ui .am-history-dialog{max-height:85vh!important}}
+
+body.am-ui .am-account-avatar{border:3px solid #f0f4f8}
+@media(max-width:720px){body.am-ui .am-header-help .am-account-popover{top:72px}}
+
+@media(max-width:720px){body.am-ui .navbar-fixed-top{height:72px!important;min-height:72px!important}body.am-ui #wrapper,body.am-ui #wrapper.active{margin-top:72px!important}body.am-ui #sidebar-wrapper,body.am-ui #wrapper.active #sidebar-wrapper{top:72px!important}body.am-ui .am-sidebar-shade{top:72px}}
+
+/* Business address lookup stays inside its original UpdatePanel. */
+body.am-ui .am-address-heading{margin:20px 0 8px;font-size:18px;color:#123c64;}
+body.am-ui .am-address-results{display:flex;flex-wrap:wrap;align-items:end;gap:12px;margin:12px 0;}
+body.am-ui .am-address-results>label{flex-basis:100%;}
+body.am-ui .am-address-results select{flex:1 1 320px;width:auto;min-width:0;}
+body.am-ui .am-country-field{max-width:420px;margin:16px 0;}
+body.am-ui .am-notice{display:block;white-space:normal;margin:12px 0;}
+@media(max-width:600px){body.am-ui .am-address-results select{flex-basis:100%;}body.am-ui .am-address-results .am-action{width:100%;}}
+
+/* Requested navigation layout: metrics first, actions beside the Businesses title. */
+body.am-ui .am-dashboard-overview{display:block;}
+body.am-ui .am-businesses-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:18px;}
+body.am-ui .am-businesses-header>.am-quick-actions{padding:0!important;border:0;box-shadow:none;background:transparent;}
+body.am-ui .am-businesses-header .am-quick-grid{grid-template-columns:repeat(4,minmax(100px,1fr));}
+body.am-ui .am-help-chat{max-width:900px;margin:auto;}
+body.am-ui .am-chat-topics,body.am-ui .am-chat-actions{display:flex;gap:10px;flex-wrap:wrap;margin:15px 0;}
+body.am-ui .am-chat-topics button{padding:10px 14px;border:1px solid #c3d2df;border-radius:6px;background:#f4f8fc;color:#17476b;cursor:pointer;min-height:44px;}
+body.am-ui .am-chat-messages{height:340px;overflow:auto;border:1px solid #dce5ed;border-radius:8px;padding:16px;margin:16px 0;background:#f7fafc;white-space:pre-wrap;overflow-wrap:anywhere;}
+body.am-ui .am-help-chat textarea{display:block;width:100%;max-width:100%;padding:12px;border:1px solid #bbcddd;border-radius:6px;resize:vertical;}
+@media(max-width:1000px){body.am-ui .am-businesses-header .am-quick-grid{grid-template-columns:repeat(2,minmax(110px,1fr));}}
+@media(max-width:600px){body.am-ui .am-businesses-header{align-items:stretch;flex-direction:column;}body.am-ui .am-businesses-header>.am-quick-actions{width:100%;}body.am-ui .am-chat-messages{height:280px;}}

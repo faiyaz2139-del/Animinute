@@ -1,0 +1,46 @@
+/* Scoped business form. No changes to timecards, reports or the shared sidebar. */
+body.am-ui .am-business-editor{max-width:1600px;margin:0 auto;color:#17324d;}
+body.am-ui .am-business-editor *,body.am-ui .am-business-editor *::before,body.am-ui .am-business-editor *::after{box-sizing:border-box;}
+body.am-ui .am-business-editor .am-business-breadcrumb{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 16px;font-size:13px;}
+body.am-ui .am-business-editor .am-business-header{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:22px;}
+body.am-ui .am-business-editor h1{font-size:27px;line-height:1.2;margin:0 0 7px;}
+body.am-ui .am-business-editor p{font-size:14px;line-height:1.55;margin:0 0 16px;}
+body.am-ui .am-business-editor .am-business-card{padding:22px;background:#fff;border:1px solid #dce6ee;border-radius:10px;margin-bottom:18px;min-width:0;}
+body.am-ui .am-business-editor h2{font-size:18px;line-height:1.3;margin:0 0 18px;padding-bottom:12px;border-bottom:1px solid #e7eef4;color:#0b3e71;}
+body.am-ui .am-business-editor .am-business-details-layout{display:grid;grid-template-columns:250px minmax(0,1fr);gap:18px;align-items:start;}
+body.am-ui .am-business-editor .am-business-grid{display:grid;gap:18px 22px;}
+body.am-ui .am-business-editor .am-business-grid-two{grid-template-columns:repeat(2,minmax(0,1fr));}
+body.am-ui .am-business-editor .am-business-grid-three{grid-template-columns:repeat(3,minmax(0,1fr));}
+body.am-ui .am-business-editor .am-business-field{min-width:0;}
+body.am-ui .am-business-editor label{display:inline;font-size:13px;font-weight:600;line-height:1.5;margin:0;}
+body.am-ui .am-business-editor .am-required{font-size:12px;color:#a22121;}
+body.am-ui .am-business-editor .am-business-input{display:block;width:100%;max-width:100%;min-width:0;min-height:44px;height:auto;margin:7px 0 0;padding:10px 12px;border:1px solid #bdccda;border-radius:6px;background:#fff;color:#17324d;font:inherit;}
+body.am-ui .am-business-editor .am-business-input:focus,body.am-ui .am-business-editor .am-business-file:focus-visible{outline:3px solid #a8d1ff;outline-offset:2px;border-color:#1768d6;}
+body.am-ui .am-business-editor .am-business-input[disabled],body.am-ui .am-business-editor .am-business-input[readonly]{background:#f2f5f8;}
+body.am-ui .am-business-editor .am-business-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;width:auto;max-width:100%;margin:0;padding:10px 18px;border:1px solid #1768d6;border-radius:6px;background:#1768d6;color:#fff;font-family:inherit;font-weight:600;font-size:14px;line-height:1.3;text-decoration:none;cursor:pointer;white-space:normal;text-align:center;}
+body.am-ui .am-business-editor .am-business-secondary{background:#fff;color:#1458a0;border-color:#b6c9dc;}
+body.am-ui .am-business-editor .am-business-danger{color:#a22121;background:#fff;border-color:#e2b7b7;}
+body.am-ui .am-business-editor .am-business-button:focus-visible{outline:3px solid #a8d1ff;outline-offset:2px;}
+body.am-ui .am-business-editor .am-business-button[disabled],body.am-ui .am-business-editor .am-business-button.aspNetDisabled{opacity:.5;cursor:default;}
+body.am-ui .am-business-editor .am-business-actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px;}
+body.am-ui .am-business-editor .am-business-footer{justify-content:center;margin:22px 0;}
+body.am-ui .am-business-editor .am-business-upload{display:flex;flex-direction:column;align-items:center;gap:14px;min-height:220px;padding:18px;border:1px dashed #9dbad8;border-radius:50%;background:#f7fbff;overflow:hidden;}
+body.am-ui .am-business-editor #previewImage{position:static!important;width:130px!important;height:130px!important;max-width:100%!important;margin:0!important;object-fit:contain!important;transform:none!important;border-radius:10px;}
+body.am-ui .am-business-editor #previewImage:not([src]),body.am-ui .am-business-editor #previewImage[src=""]{display:none!important;}
+body.am-ui .am-business-editor .am-business-upload-label{font-size:14px;text-align:center;cursor:pointer;}
+body.am-ui .am-business-editor .am-business-file{display:block;width:100%;min-width:0;font-size:12px;}
+body.am-ui .am-business-editor .am-business-help{font-size:12px;text-align:center;margin:14px 0;color:#52677b;}
+body.am-ui .am-business-editor .am-business-extra{margin-top:22px;border-top:1px solid #e7eef4;padding-top:15px;}
+body.am-ui .am-business-editor .am-business-extra summary{font-size:14px;font-weight:600;cursor:pointer;margin-bottom:16px;}
+body.am-ui .am-business-editor .am-business-lookup{display:grid;grid-template-columns:minmax(220px,1fr) minmax(0,2fr);gap:22px;margin-bottom:18px;}
+body.am-ui .am-business-editor .am-business-search-group{display:flex;align-items:stretch;gap:10px;margin-top:7px;}
+body.am-ui .am-business-editor .am-business-search-group input{margin:0;flex:1;}
+body.am-ui .am-business-editor .am-business-results{min-width:0;display:flex;flex-wrap:wrap;gap:10px;align-items:end;}
+body.am-ui .am-business-editor .am-business-results>label{width:100%;}
+body.am-ui .am-business-editor .am-business-results select{flex:1 1 280px;width:auto;margin:0;}
+body.am-ui .am-business-editor .am-business-hint{padding:12px;background:#fff9e8;border:1px solid #eddfb6;border-radius:5px;}
+body.am-ui .am-business-editor .am-business-error{display:block;color:#a22121;margin:12px 0;white-space:normal;}
+body.am-ui .am-business-editor .am-business-error:empty,body.am-ui .am-business-editor [hidden],body.am-ui .am-business-editor .am-business-compat{display:none!important;}
+body.am-ui .am-business-editor .am-business-upload[data-dragover]{border-color:#1768d6;background:#e8f3ff;}
+@media(max-width:1000px){body.am-ui .am-business-editor .am-business-details-layout{grid-template-columns:210px minmax(0,1fr);}body.am-ui .am-business-editor .am-business-grid-three{grid-template-columns:repeat(2,minmax(0,1fr));}body.am-ui .am-business-editor .am-business-lookup{grid-template-columns:1fr;}}
+@media(max-width:640px){body.am-ui .am-business-editor .am-business-header{align-items:stretch;flex-direction:column;}body.am-ui .am-business-editor .am-business-details-layout,body.am-ui .am-business-editor .am-business-grid-two,body.am-ui .am-business-editor .am-business-grid-three{grid-template-columns:1fr;}body.am-ui .am-business-editor .am-business-card{padding:16px;}body.am-ui .am-business-editor .am-business-upload{width:210px;max-width:100%;margin:auto;}body.am-ui .am-business-editor .am-business-actions>*{flex:1 1 140px;}body.am-ui .am-business-editor .am-business-results select{flex-basis:100%;}body.am-ui .am-business-editor .am-business-results .am-business-button{width:100%;}}

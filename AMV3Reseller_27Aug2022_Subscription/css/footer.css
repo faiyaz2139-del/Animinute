@@ -1,0 +1,10 @@
+﻿/*footer style*/
+.footer {
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    position: fixed;
+    background-color:white;
+    color: gray;
+    text-align: center;
+}

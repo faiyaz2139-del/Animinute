@@ -1,0 +1,220 @@
+09 Jan 2024 18:40:33,157 [10172] INFO  Log - GetLoginDetails(ewerw@esrdf.com,12345678,ewerw@esrdf.com) Start
+09 Jan 2024 18:40:33,883 [10172] INFO  Log - GetLoginDetails(ewerw@esrdf.com,12345678,ewerw@esrdf.com) end
+09 Jan 2024 18:40:33,889 [10172] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=25135 orderby ) Start
+09 Jan 2024 18:40:33,945 [10172] INFO  Log - GetAllDataFromTable(Select MotherOrgid from AddEmployee with (Nolock) where EmployeeID=25135 orderby ) end
+09 Jan 2024 18:40:33,946 [10172] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=25135 orderby ) Start
+09 Jan 2024 18:40:33,968 [10172] INFO  Log - GetAllDataFromTable(Select UserType from AddEmployee with (Nolock) where EmployeeID=25135 orderby ) end
+09 Jan 2024 18:40:33,971 [10172] INFO  Log - GetNameFromId(UserType,4) Start
+09 Jan 2024 18:40:34,073 [10172] INFO  Log - GetNameFromId(UserType,4) end
+09 Jan 2024 18:40:37,354 [3720] INFO  Log - FillDropDownList(Select assb.BusinessID, dbo.FN_DESC('AddBusiness',assb.BusinessID) from AssginBussiness assb join AddBusiness ab on ab.BusinessID=assb.BusinessID where  EmployeeID in (select ad.EmployeeID from  AddEmployee ad join EmpAddress empAdd on ad.ADDRESSID=empAdd.EmpAddressId where empAdd.MainEmail='ewerw@esrdf.com') and ab.Status<>2 orderby BusinessID) Start
+09 Jan 2024 18:40:37,538 [3720] INFO  Log - FillDropDownList(Select assb.BusinessID, dbo.FN_DESC('AddBusiness',assb.BusinessID) from AssginBussiness assb join AddBusiness ab on ab.BusinessID=assb.BusinessID where  EmployeeID in (select ad.EmployeeID from  AddEmployee ad join EmpAddress empAdd on ad.ADDRESSID=empAdd.EmpAddressId where empAdd.MainEmail='ewerw@esrdf.com') and ab.Status<>2 orderby BusinessID) end
+09 Jan 2024 18:40:37,539 [3720] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where  orderby Yr desc) Start
+09 Jan 2024 18:40:37,590 [3720] INFO  Log - FillDropDownList(Select DISTINCT Year,  Year, Year as Yr from TimeSheetEntry where  orderby Yr desc) end
+09 Jan 2024 18:40:38,998 [3720] INFO  Log - GetAllDataFromTable(Select * from MappingTable where USERID = '23746' and UserTypeId = '4'  orderby UserTypeId) Start
+09 Jan 2024 18:40:39,015 [3720] INFO  Log - GetAllDataFromTable(Select * from MappingTable where USERID = '23746' and UserTypeId = '4'  orderby UserTypeId) end
+09 Jan 2024 18:40:39,018 [3720] INFO  Log - GetAllDataFromTable(Select Status from TimeSheetEntry where [EmpId]='25135' and [BussID]='9178' and [Year]='2024' and [WeekNo]='2' and Status='2' orderby ) Start
+09 Jan 2024 18:40:39,034 [3720] INFO  Log - GetAllDataFromTable(Select Status from TimeSheetEntry where [EmpId]='25135' and [BussID]='9178' and [Year]='2024' and [WeekNo]='2' and Status='2' orderby ) end
+09 Jan 2024 18:40:39,035 [3720] INFO  Log - GetAllDataFromTable(Select Status from TimeSheetEntry where [EmpId]='25135' and [BussID]='9178' and [Year]='2024' and [WeekNo]='2' and Status='3' orderby ) Start
+09 Jan 2024 18:40:39,045 [3720] INFO  Log - GetAllDataFromTable(Select Status from TimeSheetEntry where [EmpId]='25135' and [BussID]='9178' and [Year]='2024' and [WeekNo]='2' and Status='3' orderby ) end
+09 Jan 2024 18:40:39,046 [3720] INFO  Log - GetAllDataFromTable(Select Status from TimeSheetEntry where [EmpId]='25135' and [BussID]='9178' and [Year]='2024' and [WeekNo]='2' and Status='1' orderby ) Start
+09 Jan 2024 18:40:39,060 [3720] INFO  Log - GetAllDataFromTable(Select Status from TimeSheetEntry where [EmpId]='25135' and [BussID]='9178' and [Year]='2024' and [WeekNo]='2' and Status='1' orderby ) end
+09 Jan 2024 18:40:39,060 [3720] INFO  Log - GetAllDataFromTable(Select Status from TimeSheetEntry where [EmpId]='25135' and [BussID]='9178' and [Year]='2024' and [WeekNo]='2' and Status='4' orderby ) Start
+09 Jan 2024 18:40:39,074 [3720] INFO  Log - GetAllDataFromTable(Select Status from TimeSheetEntry where [EmpId]='25135' and [BussID]='9178' and [Year]='2024' and [WeekNo]='2' and Status='4' orderby ) end
+09 Jan 2024 18:40:39,082 [3720] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID='7060' orderby ) Start
+09 Jan 2024 18:40:39,106 [3720] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID='7060' orderby ) end
+09 Jan 2024 18:40:39,108 [3720] INFO  Log - GetDomainNameForMenuFromLogin(23746) Start
+09 Jan 2024 18:40:39,172 [3720] INFO  Log - GetDomainNameForMenuFromLogin(23746) end
+09 Jan 2024 18:40:39,173 [3720] INFO  Log - GetMenuDataFromLoginTable(23746) Start
+09 Jan 2024 18:40:39,200 [3720] INFO  Log - GetMenuDataFromLoginTable(23746) end
+09 Jan 2024 18:40:39,213 [3720] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=7060 orderby ) Start
+09 Jan 2024 18:40:39,221 [3720] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=7060 orderby ) end
+09 Jan 2024 18:40:39,222 [3720] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='23746' orderby ) Start
+09 Jan 2024 18:40:39,237 [3720] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='23746' orderby ) end
+09 Jan 2024 18:40:39,241 [3720] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=25135 orderby ) Start
+09 Jan 2024 18:40:39,264 [3720] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=25135 orderby ) end
+09 Jan 2024 18:40:39,267 [3720] INFO  Log - Fetching menu details - Started
+09 Jan 2024 18:40:39,316 [3720] INFO  Log - Fetching menu details - Finished
+09 Jan 2024 18:41:07,398 [3720] INFO  Log - IfExistsInTable(Select IsActive from AddEmployee with (Nolock) where EmployeeID='25135' and IsActive='NO        ' and UserType='1' ) Start
+09 Jan 2024 18:41:07,428 [3720] INFO  Log - IfExistsInTable(Select IsActive, from AddEmployee with (Nolock) where EmployeeID='25135' and IsActive='NO        ' and UserType='1' ) end
+09 Jan 2024 18:41:07,438 [3720] INFO  Log - GetAllDataFromTable(Select ad.EmployeeID,ua.UserId from AddEmployee ad with (nolock) join EmpAddress ea with (nolock) on ad.ADDRESSID=ea.EmpAddressId join UserAcc ua with (nolock) on ua.Email=ea.MainEmail where ua.Email='ewerw@esrdf.com' orderby ) Start
+09 Jan 2024 18:41:07,471 [3720] INFO  Log - GetAllDataFromTable(Select ad.EmployeeID,ua.UserId from AddEmployee ad with (nolock) join EmpAddress ea with (nolock) on ad.ADDRESSID=ea.EmpAddressId join UserAcc ua with (nolock) on ua.Email=ea.MainEmail where ua.Email='ewerw@esrdf.com' orderby ) end
+09 Jan 2024 18:41:07,472 [3720] INFO  Log - GetAllDataFromTable(Select * from MappingTable with (Nolock) where USERID in(23746) orderby BusinessID,UserTypeId) Start
+09 Jan 2024 18:41:07,487 [3720] INFO  Log - GetAllDataFromTable(Select * from MappingTable with (Nolock) where USERID in(23746) orderby BusinessID,UserTypeId) end
+09 Jan 2024 18:41:07,489 [3720] INFO  Log - FillGridView(Select ae.EmployeeID,assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID)BusinessName,(select PrimaryContactName from AddBusiness where BusinessID=Assb.BusinessID)MangerName,(select PrimaryContactNumber from AddBusiness where BusinessID=Assb.BusinessID)PrimaryContactNumber,(select OperatingName from AddBusiness where BusinessID=Assb.BusinessID)OperatingName, dbo.FN_DESC('AddEmployee',ae.EmployeeID)emp,AE.EMPLOYEETYPE from AddEmployee Ae with (nolock) join AssginBussiness Assb with (nolock) on ae.EmployeeID=Assb.EmployeeID join EmpAddress ea with (nolock) on ea.EmpAddressId=ae.ADDRESSID and ea.MainEmail<>'' where ae.EmployeeID in (25135,0)  and assb.UserTypeId=4 and ae.IsActive='YES'  AND assb.BusinessID  IN (SELECT  BusinessID from AddBusiness where AddBusiness.Status=1 )  orderby ae.EmployeeID) Start
+09 Jan 2024 18:41:07,642 [3720] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '9178' and UserTypeId=1 orderby ) Start
+09 Jan 2024 18:41:07,665 [3720] INFO  Log - GetAllDataFromTable(Select EmployeeID,MotherOrgID from AssginBussiness with (Nolock) where BusinessID = '9178' and UserTypeId=1 orderby ) end
+09 Jan 2024 18:41:07,667 [3720] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '7060' orderby ) Start
+09 Jan 2024 18:41:07,680 [3720] INFO  Log - GetAllDataFromTable(Select Email from MotherOrg with (Nolock) where MotherOrgID = '7060' orderby ) end
+09 Jan 2024 18:41:07,681 [3720] INFO  Log - IfExistsInTable(Select EMail_primary from Register_Partner with (Nolock) where EMail_primary = 'standardresellerreseller@gmail.com' ) Start
+09 Jan 2024 18:41:07,723 [3720] INFO  Log - IfExistsInTable(Select EMail_primary, from Register_Partner with (Nolock) where EMail_primary = 'standardresellerreseller@gmail.com' ) end
+09 Jan 2024 18:41:07,724 [3720] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='7060' ) Start
+09 Jan 2024 18:41:07,747 [3720] INFO  Log - ExecuteQuery(select No_Of_Users from PlanHistory with (Nolock) where EmpId='7060' ) End
+09 Jan 2024 18:41:07,747 [3720] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='7060' and Is_Cancelled=1 ) Start
+09 Jan 2024 18:41:07,754 [3720] INFO  Log - ExecuteQuery(select Is_Cancelled from PlanHistory with (Nolock) where EmpId='7060' and Is_Cancelled=1 ) End
+09 Jan 2024 18:41:07,755 [3720] INFO  Log - GetAllDataFromTable(Select EmpId from PlanHistory with (Nolock) where EmpId=7060 orderby ) Start
+09 Jan 2024 18:41:07,769 [3720] INFO  Log - GetAllDataFromTable(Select EmpId from PlanHistory with (Nolock) where EmpId=7060 orderby ) end
+09 Jan 2024 18:41:07,770 [3720] INFO  Log - GetAllDataFromTable(Select EmpId from PlanHistory with (Nolock) where EmpId=7060 and Is_Requested_Plan=1 orderby ) Start
+09 Jan 2024 18:41:07,783 [3720] INFO  Log - GetAllDataFromTable(Select EmpId from PlanHistory with (Nolock) where EmpId=7060 and Is_Requested_Plan=1 orderby ) end
+09 Jan 2024 18:41:07,784 [3720] INFO  Log - ExecuteQuery(select IsActive from PlanHistory with (Nolock) where IsActive=0 and EmpId='7060' and MotherOrgID=25121 ) Start
+09 Jan 2024 18:41:07,796 [3720] INFO  Log - ExecuteQuery(select IsActive from PlanHistory with (Nolock) where IsActive=0 and EmpId='7060' and MotherOrgID=25121 ) End
+09 Jan 2024 18:41:07,797 [3720] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '23746' and BusinessId = '9178' orderby UserTypeId) Start
+09 Jan 2024 18:41:07,814 [3720] INFO  Log - GetAllDataFromTable(Select EmployeeId from MappingTable where USERID = '23746' and BusinessId = '9178' orderby UserTypeId) end
+09 Jan 2024 18:41:07,815 [3720] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='25135' orderby ) Start
+09 Jan 2024 18:41:07,835 [3720] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id from User_Role_Permission where Employee_Id='25135' orderby ) end
+09 Jan 2024 18:41:07,838 [3720] INFO  Log - FillGridView(Select ae.EmployeeID,assb.BusinessID,dbo.FN_DESC('AddBusiness',assb.BusinessID)BusinessName,(select PrimaryContactName from AddBusiness where BusinessID=Assb.BusinessID)MangerName,(select PrimaryContactNumber from AddBusiness where BusinessID=Assb.BusinessID)PrimaryContactNumber,(select OperatingName from AddBusiness where BusinessID=Assb.BusinessID)OperatingName, dbo.FN_DESC('AddEmployee',ae.EmployeeID)emp,AE.EMPLOYEETYPE from AddEmployee Ae with (nolock) join AssginBussiness Assb with (nolock) on ae.EmployeeID=Assb.EmployeeID join EmpAddress ea with (nolock) on ea.EmpAddressId=ae.ADDRESSID and ea.MainEmail<>'' where ae.EmployeeID in (25135,0)  and assb.UserTypeId=4 and ae.IsActive='YES'  AND assb.BusinessID  IN (SELECT  BusinessID from AddBusiness where AddBusiness.Status=1 )  orderby ae.EmployeeID) end
+09 Jan 2024 18:41:07,840 [3720] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID='7060' orderby ) Start
+09 Jan 2024 18:41:07,866 [3720] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID='7060' orderby ) end
+09 Jan 2024 18:41:07,868 [3720] INFO  Log - GetDomainNameForMenuFromLogin(23746) Start
+09 Jan 2024 18:41:07,905 [3720] INFO  Log - GetDomainNameForMenuFromLogin(23746) end
+09 Jan 2024 18:41:07,906 [3720] INFO  Log - GetMenuDataFromLoginTable(23746) Start
+09 Jan 2024 18:41:07,920 [3720] INFO  Log - GetMenuDataFromLoginTable(23746) end
+09 Jan 2024 18:41:07,921 [3720] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=7060 orderby ) Start
+09 Jan 2024 18:41:07,931 [3720] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=7060 orderby ) end
+09 Jan 2024 18:41:07,932 [3720] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='23746' orderby ) Start
+09 Jan 2024 18:41:07,957 [3720] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='23746' orderby ) end
+09 Jan 2024 18:41:07,958 [3720] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=25135 orderby ) Start
+09 Jan 2024 18:41:07,988 [3720] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=25135 orderby ) end
+09 Jan 2024 18:41:07,989 [3720] INFO  Log - Fetching menu details - Started
+09 Jan 2024 18:41:07,997 [3720] INFO  Log - Fetching menu details - Finished
+09 Jan 2024 18:41:11,080 [10172] INFO  Log - FillDropDownList_NoPleaseSelect(Select EmployeeID, dbo.FN_DESC('AddEmployee',25135)as Name from AddEmployee where EmployeeID=25135 orderby ) Start
+09 Jan 2024 18:41:11,091 [10172] INFO  Log - FillDropDownList_NoPleaseSelect(Select EmployeeID, dbo.FN_DESC('AddEmployee',25135)as Name from AddEmployee where EmployeeID=25135 orderby ) end
+09 Jan 2024 18:41:11,093 [10172] INFO  Log - GetAllDataFromTable(Select cast((convert(decimal(18, 2), Rate)) as varchar(20)) as Rate,RateType from RateDetails where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135 and effectivedate <= GETDATE()) orderby ) Start
+09 Jan 2024 18:41:11,156 [10172] INFO  Log - GetAllDataFromTable(Select cast((convert(decimal(18, 2), Rate)) as varchar(20)) as Rate,RateType from RateDetails where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135 and effectivedate <= GETDATE()) orderby ) end
+09 Jan 2024 18:41:11,157 [10172] INFO  Log - GetNameFromId(AddBusiness,9178) Start
+09 Jan 2024 18:41:11,163 [10172] INFO  Log - GetNameFromId(AddBusiness,9178) end
+09 Jan 2024 18:41:11,173 [10172] INFO  Log - GetTimeSheetEntryChildGv(2024,1, 2, 9178, 25135) Start
+09 Jan 2024 18:41:11,244 [10172] INFO  Log - GetTimeSheetEntryChildGv(2024,1, 2, 9178, 25135) end
+09 Jan 2024 18:41:11,286 [10172] INFO  Log - GetAllDataFromTable(Select Rate,RateType from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135 and effectivedate <= '2024-01-07 12:00:00 AM') orderby ) Start
+09 Jan 2024 18:41:11,321 [10172] INFO  Log - GetAllDataFromTable(Select Rate,RateType from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135 and effectivedate <= '2024-01-07 12:00:00 AM') orderby ) end
+09 Jan 2024 18:41:11,323 [10172] INFO  Log - GetAllDataFromTable(Select EndDate,Is_Having_EndDate from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135) orderby ) Start
+09 Jan 2024 18:41:11,348 [10172] INFO  Log - GetAllDataFromTable(Select EndDate,Is_Having_EndDate from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135) orderby ) end
+09 Jan 2024 18:41:11,350 [10172] INFO  Log - GetAllDataFromTable(Select Rate,RateType from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135 and effectivedate <= '2024-01-08 12:00:00 AM') orderby ) Start
+09 Jan 2024 18:41:11,374 [10172] INFO  Log - GetAllDataFromTable(Select Rate,RateType from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135 and effectivedate <= '2024-01-08 12:00:00 AM') orderby ) end
+09 Jan 2024 18:41:11,375 [10172] INFO  Log - GetAllDataFromTable(Select EndDate,Is_Having_EndDate from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135) orderby ) Start
+09 Jan 2024 18:41:11,388 [10172] INFO  Log - GetAllDataFromTable(Select EndDate,Is_Having_EndDate from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135) orderby ) end
+09 Jan 2024 18:41:11,390 [10172] INFO  Log - GetAllDataFromTable(Select Rate,RateType from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135 and effectivedate <= '2024-01-09 12:00:00 AM') orderby ) Start
+09 Jan 2024 18:41:11,409 [10172] INFO  Log - GetAllDataFromTable(Select Rate,RateType from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135 and effectivedate <= '2024-01-09 12:00:00 AM') orderby ) end
+09 Jan 2024 18:41:11,410 [10172] INFO  Log - GetAllDataFromTable(Select EndDate,Is_Having_EndDate from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135) orderby ) Start
+09 Jan 2024 18:41:11,426 [10172] INFO  Log - GetAllDataFromTable(Select EndDate,Is_Having_EndDate from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135) orderby ) end
+09 Jan 2024 18:41:11,427 [10172] INFO  Log - GetAllDataFromTable(Select Rate,RateType from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135 and effectivedate <= '2024-01-10 12:00:00 AM') orderby ) Start
+09 Jan 2024 18:41:11,445 [10172] INFO  Log - GetAllDataFromTable(Select Rate,RateType from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135 and effectivedate <= '2024-01-10 12:00:00 AM') orderby ) end
+09 Jan 2024 18:41:11,446 [10172] INFO  Log - GetAllDataFromTable(Select EndDate,Is_Having_EndDate from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135) orderby ) Start
+09 Jan 2024 18:41:11,461 [10172] INFO  Log - GetAllDataFromTable(Select EndDate,Is_Having_EndDate from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135) orderby ) end
+09 Jan 2024 18:41:11,463 [10172] INFO  Log - GetAllDataFromTable(Select Rate,RateType from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135 and effectivedate <= '2024-01-11 12:00:00 AM') orderby ) Start
+09 Jan 2024 18:41:11,486 [10172] INFO  Log - GetAllDataFromTable(Select Rate,RateType from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135 and effectivedate <= '2024-01-11 12:00:00 AM') orderby ) end
+09 Jan 2024 18:41:11,487 [10172] INFO  Log - GetAllDataFromTable(Select EndDate,Is_Having_EndDate from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135) orderby ) Start
+09 Jan 2024 18:41:11,500 [10172] INFO  Log - GetAllDataFromTable(Select EndDate,Is_Having_EndDate from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135) orderby ) end
+09 Jan 2024 18:41:11,502 [10172] INFO  Log - GetAllDataFromTable(Select Rate,RateType from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135 and effectivedate <= '2024-01-12 12:00:00 AM') orderby ) Start
+09 Jan 2024 18:41:11,529 [10172] INFO  Log - GetAllDataFromTable(Select Rate,RateType from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135 and effectivedate <= '2024-01-12 12:00:00 AM') orderby ) end
+09 Jan 2024 18:41:11,530 [10172] INFO  Log - GetAllDataFromTable(Select EndDate,Is_Having_EndDate from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135) orderby ) Start
+09 Jan 2024 18:41:11,570 [10172] INFO  Log - GetAllDataFromTable(Select EndDate,Is_Having_EndDate from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135) orderby ) end
+09 Jan 2024 18:41:11,571 [10172] INFO  Log - GetAllDataFromTable(Select Rate,RateType from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135 and effectivedate <= '2024-01-13 12:00:00 AM') orderby ) Start
+09 Jan 2024 18:41:11,602 [10172] INFO  Log - GetAllDataFromTable(Select Rate,RateType from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135 and effectivedate <= '2024-01-13 12:00:00 AM') orderby ) end
+09 Jan 2024 18:41:11,607 [10172] INFO  Log - GetAllDataFromTable(Select EndDate,Is_Having_EndDate from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135) orderby ) Start
+09 Jan 2024 18:41:11,623 [10172] INFO  Log - GetAllDataFromTable(Select EndDate,Is_Having_EndDate from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135) orderby ) end
+09 Jan 2024 18:41:11,673 [10172] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID='7060' orderby ) Start
+09 Jan 2024 18:41:11,682 [10172] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID='7060' orderby ) end
+09 Jan 2024 18:41:11,683 [10172] INFO  Log - GetDomainNameForMenuFromLogin(23746) Start
+09 Jan 2024 18:41:11,692 [10172] INFO  Log - GetDomainNameForMenuFromLogin(23746) end
+09 Jan 2024 18:41:11,693 [10172] INFO  Log - GetMenuDataFromLoginTable(23746) Start
+09 Jan 2024 18:41:11,703 [10172] INFO  Log - GetMenuDataFromLoginTable(23746) end
+09 Jan 2024 18:41:11,705 [10172] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=7060 orderby ) Start
+09 Jan 2024 18:41:11,721 [10172] INFO  Log - GetAllDataFromTable(Select * from MotherOrg where MotherOrgID=7060 orderby ) end
+09 Jan 2024 18:41:11,722 [10172] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='23746' orderby ) Start
+09 Jan 2024 18:41:11,733 [10172] INFO  Log - GetAllDataFromTable(Select * from UserAcc where UserId='23746' orderby ) end
+09 Jan 2024 18:41:11,734 [10172] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=25135 orderby ) Start
+09 Jan 2024 18:41:11,779 [10172] INFO  Log - GetAllDataFromTable(Select * from AddEmployee Emp left join EmpAddress EmpAdd on emp.ADDRESSID=EmpAdd.EmpAddressId join UserType ua on ua.User_TypeId = Emp.UserType where Emp.EmployeeID=25135 orderby ) end
+09 Jan 2024 18:41:11,780 [10172] INFO  Log - Fetching menu details - Started
+09 Jan 2024 18:41:11,793 [10172] INFO  Log - Fetching menu details - Finished
+09 Jan 2024 18:41:19,330 [10172] INFO  Log - GetAllDataFromTable(Select * from MappingTable where USERID = '23746' and BusinessId = '9178'  orderby UserTypeId) Start
+09 Jan 2024 18:41:19,342 [10172] INFO  Log - GetAllDataFromTable(Select * from MappingTable where USERID = '23746' and BusinessId = '9178'  orderby UserTypeId) end
+09 Jan 2024 18:41:19,343 [10172] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id,Employee_Id,UserTypeId,Status from User_Role_Permission where Employee_Id='25135'  orderby ) Start
+09 Jan 2024 18:41:19,355 [10172] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id,Employee_Id,UserTypeId,Status from User_Role_Permission where Employee_Id='25135'  orderby ) end
+09 Jan 2024 18:41:19,356 [10172] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id,Employee_Id,UserTypeId,Status from User_Role_Permission where Employee_Id='25135' and BusinessId = '9178' and UserTypeId='2' orderby ) Start
+09 Jan 2024 18:41:19,381 [10172] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id,Employee_Id,UserTypeId,Status from User_Role_Permission where Employee_Id='25135' and BusinessId = '9178' and UserTypeId='2' orderby ) end
+09 Jan 2024 18:41:19,382 [10172] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id,Employee_Id,UserTypeId,Status from User_Role_Permission where Employee_Id='25135' and BusinessId = '9178' and UserTypeId='5' orderby ) Start
+09 Jan 2024 18:41:19,394 [10172] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id,Employee_Id,UserTypeId,Status from User_Role_Permission where Employee_Id='25135' and BusinessId = '9178' and UserTypeId='5' orderby ) end
+09 Jan 2024 18:41:19,395 [10172] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id,Employee_Id,UserTypeId,Status from User_Role_Permission where Employee_Id='25135' and BusinessId = '9178' and UserTypeId='12' orderby ) Start
+09 Jan 2024 18:41:19,406 [10172] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id,Employee_Id,UserTypeId,Status from User_Role_Permission where Employee_Id='25135' and BusinessId = '9178' and UserTypeId='12' orderby ) end
+09 Jan 2024 18:41:19,408 [10172] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id,Employee_Id,UserTypeId,Status from User_Role_Permission where Employee_Id='25135' and BusinessId = '9178' and UserTypeId='4' orderby ) Start
+09 Jan 2024 18:41:19,422 [10172] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id,Employee_Id,UserTypeId,Status from User_Role_Permission where Employee_Id='25135' and BusinessId = '9178' and UserTypeId='4' orderby ) end
+09 Jan 2024 18:41:36,140 [10172] INFO  Log - GetAllDataFromTable(Select * from TimeSheetEntry where EmpId=25135 and BussID=9178 and Month=1 and Year=2024 and WeekNo=2 and TimeSheetDate='2024-01-07' and Status=4 orderby ) Start
+09 Jan 2024 18:41:36,176 [10172] INFO  Log - GetAllDataFromTable(Select * from TimeSheetEntry where EmpId=25135 and BussID=9178 and Month=1 and Year=2024 and WeekNo=2 and TimeSheetDate='2024-01-07' and Status=4 orderby ) end
+09 Jan 2024 18:41:36,178 [10172] INFO  Log - Sp_InsertTimeSheetEntry(TimeSheetEntryEntity) Start
+09 Jan 2024 18:41:36,239 [10172] INFO  Log - Sp_InsertTimeSheetEntry(TimeSheetEntryEntity) end
+09 Jan 2024 18:41:36,241 [10172] INFO  Log - GetTimeSheetEntryChildGv(2024,1, 2, 9178, 25135) Start
+09 Jan 2024 18:41:36,264 [10172] INFO  Log - GetTimeSheetEntryChildGv(2024,1, 2, 9178, 25135) end
+09 Jan 2024 18:41:36,265 [10172] INFO  Log - GetAllDataFromTable(Select Rate,RateType from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135 and effectivedate <= '2024-01-07 12:00:00 AM') orderby ) Start
+09 Jan 2024 18:41:36,275 [10172] INFO  Log - GetAllDataFromTable(Select Rate,RateType from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135 and effectivedate <= '2024-01-07 12:00:00 AM') orderby ) end
+09 Jan 2024 18:41:36,276 [10172] INFO  Log - GetAllDataFromTable(Select EndDate,Is_Having_EndDate from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135) orderby ) Start
+09 Jan 2024 18:41:36,290 [10172] INFO  Log - GetAllDataFromTable(Select EndDate,Is_Having_EndDate from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135) orderby ) end
+09 Jan 2024 18:41:36,291 [10172] INFO  Log - GetAllDataFromTable(Select Rate,RateType from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135 and effectivedate <= '2024-01-08 12:00:00 AM') orderby ) Start
+09 Jan 2024 18:41:36,303 [10172] INFO  Log - GetAllDataFromTable(Select Rate,RateType from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135 and effectivedate <= '2024-01-08 12:00:00 AM') orderby ) end
+09 Jan 2024 18:41:36,303 [10172] INFO  Log - GetAllDataFromTable(Select EndDate,Is_Having_EndDate from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135) orderby ) Start
+09 Jan 2024 18:41:36,314 [10172] INFO  Log - GetAllDataFromTable(Select EndDate,Is_Having_EndDate from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135) orderby ) end
+09 Jan 2024 18:41:36,315 [10172] INFO  Log - GetAllDataFromTable(Select Rate,RateType from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135 and effectivedate <= '2024-01-09 12:00:00 AM') orderby ) Start
+09 Jan 2024 18:41:36,328 [10172] INFO  Log - GetAllDataFromTable(Select Rate,RateType from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135 and effectivedate <= '2024-01-09 12:00:00 AM') orderby ) end
+09 Jan 2024 18:41:36,328 [10172] INFO  Log - GetAllDataFromTable(Select EndDate,Is_Having_EndDate from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135) orderby ) Start
+09 Jan 2024 18:41:36,341 [10172] INFO  Log - GetAllDataFromTable(Select EndDate,Is_Having_EndDate from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135) orderby ) end
+09 Jan 2024 18:41:36,343 [10172] INFO  Log - GetAllDataFromTable(Select Rate,RateType from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135 and effectivedate <= '2024-01-10 12:00:00 AM') orderby ) Start
+09 Jan 2024 18:41:36,354 [10172] INFO  Log - GetAllDataFromTable(Select Rate,RateType from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135 and effectivedate <= '2024-01-10 12:00:00 AM') orderby ) end
+09 Jan 2024 18:41:36,354 [10172] INFO  Log - GetAllDataFromTable(Select EndDate,Is_Having_EndDate from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135) orderby ) Start
+09 Jan 2024 18:41:36,367 [10172] INFO  Log - GetAllDataFromTable(Select EndDate,Is_Having_EndDate from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135) orderby ) end
+09 Jan 2024 18:41:36,369 [10172] INFO  Log - GetAllDataFromTable(Select Rate,RateType from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135 and effectivedate <= '2024-01-11 12:00:00 AM') orderby ) Start
+09 Jan 2024 18:41:36,381 [10172] INFO  Log - GetAllDataFromTable(Select Rate,RateType from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135 and effectivedate <= '2024-01-11 12:00:00 AM') orderby ) end
+09 Jan 2024 18:41:36,381 [10172] INFO  Log - GetAllDataFromTable(Select EndDate,Is_Having_EndDate from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135) orderby ) Start
+09 Jan 2024 18:41:36,393 [10172] INFO  Log - GetAllDataFromTable(Select EndDate,Is_Having_EndDate from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135) orderby ) end
+09 Jan 2024 18:41:36,394 [10172] INFO  Log - GetAllDataFromTable(Select Rate,RateType from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135 and effectivedate <= '2024-01-12 12:00:00 AM') orderby ) Start
+09 Jan 2024 18:41:36,407 [10172] INFO  Log - GetAllDataFromTable(Select Rate,RateType from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135 and effectivedate <= '2024-01-12 12:00:00 AM') orderby ) end
+09 Jan 2024 18:41:36,408 [10172] INFO  Log - GetAllDataFromTable(Select EndDate,Is_Having_EndDate from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135) orderby ) Start
+09 Jan 2024 18:41:36,422 [10172] INFO  Log - GetAllDataFromTable(Select EndDate,Is_Having_EndDate from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135) orderby ) end
+09 Jan 2024 18:41:36,425 [10172] INFO  Log - GetAllDataFromTable(Select Rate,RateType from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135 and effectivedate <= '2024-01-13 12:00:00 AM') orderby ) Start
+09 Jan 2024 18:41:36,435 [10172] INFO  Log - GetAllDataFromTable(Select Rate,RateType from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135 and effectivedate <= '2024-01-13 12:00:00 AM') orderby ) end
+09 Jan 2024 18:41:36,436 [10172] INFO  Log - GetAllDataFromTable(Select EndDate,Is_Having_EndDate from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135) orderby ) Start
+09 Jan 2024 18:41:36,451 [10172] INFO  Log - GetAllDataFromTable(Select EndDate,Is_Having_EndDate from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135) orderby ) end
+09 Jan 2024 18:49:56,088 [2164] INFO  Log - GetAllDataFromTable(Select * from MappingTable where USERID = '23746' and BusinessId = '9178'  orderby UserTypeId) Start
+09 Jan 2024 18:49:56,107 [2164] INFO  Log - GetAllDataFromTable(Select * from MappingTable where USERID = '23746' and BusinessId = '9178'  orderby UserTypeId) end
+09 Jan 2024 18:49:56,110 [2164] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id,Employee_Id,UserTypeId,Status from User_Role_Permission where Employee_Id='25135'  orderby ) Start
+09 Jan 2024 18:49:56,139 [2164] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id,Employee_Id,UserTypeId,Status from User_Role_Permission where Employee_Id='25135'  orderby ) end
+09 Jan 2024 18:49:56,140 [2164] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id,Employee_Id,UserTypeId,Status from User_Role_Permission where Employee_Id='25135' and BusinessId = '9178' and UserTypeId='2' orderby ) Start
+09 Jan 2024 18:49:56,156 [2164] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id,Employee_Id,UserTypeId,Status from User_Role_Permission where Employee_Id='25135' and BusinessId = '9178' and UserTypeId='2' orderby ) end
+09 Jan 2024 18:49:56,157 [2164] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id,Employee_Id,UserTypeId,Status from User_Role_Permission where Employee_Id='25135' and BusinessId = '9178' and UserTypeId='5' orderby ) Start
+09 Jan 2024 18:49:56,171 [2164] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id,Employee_Id,UserTypeId,Status from User_Role_Permission where Employee_Id='25135' and BusinessId = '9178' and UserTypeId='5' orderby ) end
+09 Jan 2024 18:49:56,172 [2164] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id,Employee_Id,UserTypeId,Status from User_Role_Permission where Employee_Id='25135' and BusinessId = '9178' and UserTypeId='12' orderby ) Start
+09 Jan 2024 18:49:56,190 [2164] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id,Employee_Id,UserTypeId,Status from User_Role_Permission where Employee_Id='25135' and BusinessId = '9178' and UserTypeId='12' orderby ) end
+09 Jan 2024 18:49:56,191 [2164] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id,Employee_Id,UserTypeId,Status from User_Role_Permission where Employee_Id='25135' and BusinessId = '9178' and UserTypeId='4' orderby ) Start
+09 Jan 2024 18:49:56,210 [2164] INFO  Log - GetAllDataFromTable(Select Role_Permission_Id,Employee_Id,UserTypeId,Status from User_Role_Permission where Employee_Id='25135' and BusinessId = '9178' and UserTypeId='4' orderby ) end
+09 Jan 2024 18:50:08,346 [2164] INFO  Log - GetAllDataFromTable(Select * from TimeSheetEntry where EmpId=25135 and BussID=9178 and Month=1 and Year=2024 and WeekNo=2 and TimeSheetDate='2024-01-08' and Status=4 orderby ) Start
+09 Jan 2024 18:50:08,360 [2164] INFO  Log - GetAllDataFromTable(Select * from TimeSheetEntry where EmpId=25135 and BussID=9178 and Month=1 and Year=2024 and WeekNo=2 and TimeSheetDate='2024-01-08' and Status=4 orderby ) end
+09 Jan 2024 18:50:08,361 [2164] INFO  Log - Sp_InsertTimeSheetEntry(TimeSheetEntryEntity) Start
+09 Jan 2024 18:50:08,384 [2164] INFO  Log - Sp_InsertTimeSheetEntry(TimeSheetEntryEntity) end
+09 Jan 2024 18:50:08,385 [2164] INFO  Log - GetTimeSheetEntryChildGv(2024,1, 2, 9178, 25135) Start
+09 Jan 2024 18:50:08,406 [2164] INFO  Log - GetTimeSheetEntryChildGv(2024,1, 2, 9178, 25135) end
+09 Jan 2024 18:50:08,407 [2164] INFO  Log - GetAllDataFromTable(Select Rate,RateType from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135 and effectivedate <= '2024-01-07 12:00:00 AM') orderby ) Start
+09 Jan 2024 18:50:08,427 [2164] INFO  Log - GetAllDataFromTable(Select Rate,RateType from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135 and effectivedate <= '2024-01-07 12:00:00 AM') orderby ) end
+09 Jan 2024 18:50:08,430 [2164] INFO  Log - GetAllDataFromTable(Select EndDate,Is_Having_EndDate from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135) orderby ) Start
+09 Jan 2024 18:50:08,441 [2164] INFO  Log - GetAllDataFromTable(Select EndDate,Is_Having_EndDate from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135) orderby ) end
+09 Jan 2024 18:50:08,442 [2164] INFO  Log - GetAllDataFromTable(Select Rate,RateType from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135 and effectivedate <= '2024-01-08 12:00:00 AM') orderby ) Start
+09 Jan 2024 18:50:08,459 [2164] INFO  Log - GetAllDataFromTable(Select Rate,RateType from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135 and effectivedate <= '2024-01-08 12:00:00 AM') orderby ) end
+09 Jan 2024 18:50:08,460 [2164] INFO  Log - GetAllDataFromTable(Select EndDate,Is_Having_EndDate from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135) orderby ) Start
+09 Jan 2024 18:50:08,474 [2164] INFO  Log - GetAllDataFromTable(Select EndDate,Is_Having_EndDate from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135) orderby ) end
+09 Jan 2024 18:50:08,475 [2164] INFO  Log - GetAllDataFromTable(Select Rate,RateType from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135 and effectivedate <= '2024-01-09 12:00:00 AM') orderby ) Start
+09 Jan 2024 18:50:08,493 [2164] INFO  Log - GetAllDataFromTable(Select Rate,RateType from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135 and effectivedate <= '2024-01-09 12:00:00 AM') orderby ) end
+09 Jan 2024 18:50:08,494 [2164] INFO  Log - GetAllDataFromTable(Select EndDate,Is_Having_EndDate from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135) orderby ) Start
+09 Jan 2024 18:50:08,505 [2164] INFO  Log - GetAllDataFromTable(Select EndDate,Is_Having_EndDate from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135) orderby ) end
+09 Jan 2024 18:50:08,508 [2164] INFO  Log - GetAllDataFromTable(Select Rate,RateType from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135 and effectivedate <= '2024-01-10 12:00:00 AM') orderby ) Start
+09 Jan 2024 18:50:08,522 [2164] INFO  Log - GetAllDataFromTable(Select Rate,RateType from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135 and effectivedate <= '2024-01-10 12:00:00 AM') orderby ) end
+09 Jan 2024 18:50:08,523 [2164] INFO  Log - GetAllDataFromTable(Select EndDate,Is_Having_EndDate from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135) orderby ) Start
+09 Jan 2024 18:50:08,535 [2164] INFO  Log - GetAllDataFromTable(Select EndDate,Is_Having_EndDate from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135) orderby ) end
+09 Jan 2024 18:50:08,536 [2164] INFO  Log - GetAllDataFromTable(Select Rate,RateType from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135 and effectivedate <= '2024-01-11 12:00:00 AM') orderby ) Start
+09 Jan 2024 18:50:08,558 [2164] INFO  Log - GetAllDataFromTable(Select Rate,RateType from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135 and effectivedate <= '2024-01-11 12:00:00 AM') orderby ) end
+09 Jan 2024 18:50:08,559 [2164] INFO  Log - GetAllDataFromTable(Select EndDate,Is_Having_EndDate from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135) orderby ) Start
+09 Jan 2024 18:50:08,570 [2164] INFO  Log - GetAllDataFromTable(Select EndDate,Is_Having_EndDate from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135) orderby ) end
+09 Jan 2024 18:50:08,571 [2164] INFO  Log - GetAllDataFromTable(Select Rate,RateType from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135 and effectivedate <= '2024-01-12 12:00:00 AM') orderby ) Start
+09 Jan 2024 18:50:08,585 [2164] INFO  Log - GetAllDataFromTable(Select Rate,RateType from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135 and effectivedate <= '2024-01-12 12:00:00 AM') orderby ) end
+09 Jan 2024 18:50:08,586 [2164] INFO  Log - GetAllDataFromTable(Select EndDate,Is_Having_EndDate from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135) orderby ) Start
+09 Jan 2024 18:50:08,600 [2164] INFO  Log - GetAllDataFromTable(Select EndDate,Is_Having_EndDate from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135) orderby ) end
+09 Jan 2024 18:50:08,602 [2164] INFO  Log - GetAllDataFromTable(Select Rate,RateType from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135 and effectivedate <= '2024-01-13 12:00:00 AM') orderby ) Start
+09 Jan 2024 18:50:08,628 [2164] INFO  Log - GetAllDataFromTable(Select Rate,RateType from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135 and effectivedate <= '2024-01-13 12:00:00 AM') orderby ) end
+09 Jan 2024 18:50:08,628 [2164] INFO  Log - GetAllDataFromTable(Select EndDate,Is_Having_EndDate from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135) orderby ) Start
+09 Jan 2024 18:50:08,643 [2164] INFO  Log - GetAllDataFromTable(Select EndDate,Is_Having_EndDate from RateDetails with (Nolock) where RateId=(select MAX(RateId)from RateDetails where EmployeeId=25135) orderby ) end
