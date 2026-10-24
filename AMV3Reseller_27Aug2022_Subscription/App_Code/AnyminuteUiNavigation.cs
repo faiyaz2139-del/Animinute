@@ -41,8 +41,8 @@ public static class AnyminuteUiNavigation
                 Add(items,"Payroll ready","PayrollReady.aspx",-206);Add(items,"Settings","BusinessSettings.aspx",-207);
                 Add(items,"Edit Business","BusinessActions.aspx?action=edit",-210);
                 Add(items,"Assign Accountant","BusinessActions.aspx?action=accountant",-211);
-                Add(items,"Add Employee","Add_EmployeeV2.aspx",-212);
-                Add(items,"Edit Employee","Users.aspx?action=edit",-213);
+                Add(items,"Add User","EmployeeEditor.aspx",-212);
+                Add(items,"Edit User","Users.aspx?action=edit",-213);
                 Add(items,"Add Project","Add_Project.aspx?mode=add#add_project",-214);
                 Add(items,"Edit Project","Add_Project.aspx?mode=edit#view_business_wise_project",-215);
             }
@@ -63,6 +63,7 @@ public static class AnyminuteUiNavigation
         for (int i = 0; i < names.Length; i++)
             groups.Add(new MenuViewModel { Id = -500-i, Seq = i, Name = names[i], Href = "#", Icon = "", SubMenu = new List<MenuViewModel>() });
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        MenuViewModel employeesFallback = null;
         foreach (var item in leaves)
         {
             string href = UiMenuHref(item), key = CanonicalRoute(href);
@@ -86,11 +87,21 @@ public static class AnyminuteUiNavigation
             else if (route.Contains("business") || route.Contains("bussiness")) group=1;
             // Canonical dashboard aliases all resolve to the same top-level item.
             if (group==0 && groups[group].SubMenu.Count>0) continue;
-            if (group==2 && route.Split('?')[0].EndsWith("add_employeev2.aspx")) item.Name="Add Employee";
+            // Employees submenu matches the design: exactly "Add User" and "Edit User".
+            // Legacy employee pages stay reachable from the Employees list, they are just not repeated here.
+            if (group==2)
+            {
+                string page = route.Split('?')[0];
+                if (page.EndsWith("employeeeditor.aspx")) item.Name="Add User";
+                else if (route.Contains("users.aspx?action=edit")) item.Name="Edit User";
+                else { if (employeesFallback == null) employeesFallback = item; continue; }
+            }
             if (group==3 && route.Contains("add_project.aspx?mode=add")) item.Name="Add Project";
             if (group==3 && route.Contains("add_project.aspx?mode=edit")) item.Name="Edit Project";
             groups[group].SubMenu.Add(item);
         }
+        if (groups[2].SubMenu.Count == 0 && employeesFallback != null) { employeesFallback.Name = "Edit User"; groups[2].SubMenu.Add(employeesFallback); }
+        groups[2].SubMenu = groups[2].SubMenu.OrderBy(m => m.Name == "Add User" ? 0 : 1).ToList();
         foreach (var group in groups.Where(g => g.SubMenu.Count > 0))
         {
             group.Href = group.SubMenu[0].Href;
