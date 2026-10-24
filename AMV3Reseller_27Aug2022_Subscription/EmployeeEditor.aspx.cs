@@ -30,6 +30,7 @@ public partial class AnyminuteEmployeeEditorPage : System.Web.UI.Page
     protected void Page_Load(object sender, EventArgs e)
     {
         string flash = AnyminuteFlash.Take("editor"); if (flash != null) ShowFlash(flash);
+        Root.Attributes["class"] = "am-dialog-page am-employees-v2 am-editor-v3 " + (Editing ? "am-mode-edit" : "am-mode-add");
         if (!Editing) SetupAdd(); else SetupEdit();
     }
 
@@ -97,11 +98,11 @@ public partial class AnyminuteEmployeeEditorPage : System.Web.UI.Page
         var matches = ViewState["EmpMatches"] as DataTable; int i;
         if (matches == null || !Int32.TryParse(LookupChoices.SelectedValue, out i) || i < 0 || i >= matches.Rows.Count) return;
         var a = AnyminuteBusinessAddressInput.FromRow(matches.Rows[i], Convert.ToString(ViewState["EmpPostal"]));
-        StreetNo.Text = a.Number; Line1.Text = a.Street; Line2.Text = a.Line2; City.Text = a.City; Province.Text = a.Province; PostalCode.Text = a.PostalCode; Select(Country, a.Country);
+        StreetNo.Text = a.Number; Line1.Text = a.Street; Line2.Text = a.Line2; City.Text = a.City; Select(Province, (a.Province ?? "").Trim().ToUpperInvariant()); PostalCode.Text = a.PostalCode; Select(Country, a.Country);
     }
     protected void AddNewAddress_Click(object sender, EventArgs e)
     {
-        StreetNo.Text = Line1.Text = Line2.Text = SuiteNumber.Text = City.Text = Province.Text = ""; SuiteType.SelectedIndex = 0;
+        StreetNo.Text = Line1.Text = Line2.Text = SuiteNumber.Text = City.Text = ""; Province.SelectedIndex = 0; SuiteType.SelectedIndex = 0;
         PostalCode.Text = AnyminuteBusinessAddressInput.Postal(LookupPostal.Text); Select(Country, "Canada"); StreetNo.Focus();
     }
     protected void Pending_ItemCommand(object source, RepeaterCommandEventArgs e)
@@ -147,7 +148,7 @@ public partial class AnyminuteEmployeeEditorPage : System.Web.UI.Page
         Select(Gender, p.Gender); Sin.Text = p.Sin; Select(Status, p.Status);
         HireDate.Text = p.HireDate.HasValue ? p.HireDate.Value.ToString("yyyy-MM-dd", Inv) : ""; HireDate.Enabled = false; HireDate.ToolTip = "Hire date is kept from the original record.";
         StreetNo.Text = p.StreetNo; Line1.Text = p.Line1; Line2.Text = p.Line2; Select(SuiteType, p.SuiteType); SuiteNumber.Text = p.SuiteNumber;
-        City.Text = p.City; Province.Text = p.Province; PostalCode.Text = p.PostalCode; Select(Country, String.IsNullOrWhiteSpace(p.Country) ? "Canada" : p.Country);
+        City.Text = p.City; Select(Province, p.Province); PostalCode.Text = p.PostalCode; Select(Country, String.IsNullOrWhiteSpace(p.Country) ? "Canada" : p.Country);
     }
     private static string IsoDate(string value) { DateTime d; return !String.IsNullOrWhiteSpace(value) && DateTime.TryParse(value, out d) ? d.ToString("yyyy-MM-dd", Inv) : ""; }
     private static void Select(DropDownList list, string value) { if (value != null && list.Items.FindByValue(value) == null && value.Trim().Length > 0) list.Items.Add(value); if (value != null && list.Items.FindByValue(value) != null) list.SelectedValue = value; }
@@ -161,7 +162,7 @@ public partial class AnyminuteEmployeeEditorPage : System.Web.UI.Page
         p.Gender = Gender.SelectedValue; p.Sin = Sin.Text.Trim(); p.Status = Status.SelectedValue;
         DateTime hire; if (DateTime.TryParse(HireDate.Text, Inv, DateTimeStyles.None, out hire)) p.HireDate = hire;
         p.StreetNo = StreetNo.Text.Trim(); p.Line1 = Line1.Text.Trim(); p.Line2 = Line2.Text.Trim(); p.SuiteType = SuiteType.SelectedValue; p.SuiteNumber = SuiteNumber.Text.Trim();
-        p.City = City.Text.Trim(); p.Province = Province.Text.Trim(); p.PostalCode = PostalCode.Text.Trim(); p.Country = Country.SelectedValue;
+        p.City = City.Text.Trim(); p.Province = Province.SelectedValue.Trim(); p.PostalCode = PostalCode.Text.Trim(); p.Country = Country.SelectedValue;
         return p;
     }
     protected void Save_Click(object sender, EventArgs e)

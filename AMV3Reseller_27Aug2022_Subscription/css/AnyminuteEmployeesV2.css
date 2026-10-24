@@ -131,3 +131,36 @@ body.am-ui .am-visually-hidden{position:absolute!important;width:1px!important;h
 .am-editor-v3 .am-invite-link{width:100%;margin-bottom:14px}
 @media (max-width:1000px){.am-editor-v3 .am-grid.am-cols-4{grid-template-columns:repeat(2,minmax(0,1fr))}.am-editor-v3 .am-cards-3,.am-editor-v3 .am-lookup-v3,.am-editor-v3 .am-login-v3{grid-template-columns:1fr}}
 @media (max-width:640px){.am-editor-v3 .am-grid.am-cols-4{grid-template-columns:1fr}}
+
+/* ---- v4: Deck B slide 8 (Add Employee) and slide 9 (Edit Employee - Employee Information) ---- */
+.am-editor-v3 .am-banded{padding:0 0 16px;overflow:hidden}
+.am-editor-v3 .am-band{background:#eaf3fc;border-bottom:1px solid #dbe7f3;padding:10px 18px;margin:0 0 14px}
+.am-editor-v3 .am-band h2{margin:0;font-size:16px;color:#123a63;display:flex;align-items:center;gap:8px}
+.am-editor-v3 .am-band .am-hint{margin:2px 0 0;font-size:12.5px}
+.am-editor-v3 .am-banded>:not(.am-band){margin-left:18px;margin-right:18px}
+.am-editor-v3 .am-sec-icon{width:20px;height:20px;fill:#1d5fd6;flex:none}
+.am-mode-add .am-section>h2.am-band-title{margin:-16px -18px 14px;padding:10px 18px;background:#eaf3fc;border-bottom:1px solid #dbe7f3;border-radius:10px 10px 0 0}
+/* Employee Information field order: slide 8 (add) and slide 9 (edit) */
+.am-mode-add .am-info-v4 .am-o-fn{order:1}.am-mode-add .am-info-v4 .am-o-ln{order:2}.am-mode-add .am-info-v4 .am-o-em{order:3}.am-mode-add .am-info-v4 .am-o-ph{order:4}
+.am-mode-add .am-info-v4 .am-o-mo{order:5}.am-mode-add .am-info-v4 .am-o-dob{order:6}.am-mode-add .am-info-v4 .am-o-gen{order:7}.am-mode-add .am-info-v4 .am-o-sin{order:8}
+.am-mode-add .am-info-v4 .am-o-hire{order:9}.am-mode-add .am-info-v4 .am-o-sinx{order:10}.am-mode-add .am-info-v4 .am-o-st{order:11}
+.am-mode-add .am-info-v4 .am-o-mn{display:none}
+.am-mode-edit .am-info-v4 .am-o-fn{order:1}.am-mode-edit .am-info-v4 .am-o-mn{order:2}.am-mode-edit .am-info-v4 .am-o-ln{order:3}.am-mode-edit .am-info-v4 .am-o-em{order:4}
+.am-mode-edit .am-info-v4 .am-o-ph{order:5}.am-mode-edit .am-info-v4 .am-o-mo{order:6}.am-mode-edit .am-info-v4 .am-o-dob{order:7}.am-mode-edit .am-info-v4 .am-o-gen{order:8}
+.am-mode-edit .am-info-v4 .am-o-hire{order:9}.am-mode-edit .am-info-v4 .am-o-sinx{order:10}.am-mode-edit .am-info-v4 .am-o-st{order:11}.am-mode-edit .am-info-v4 .am-o-sin{order:12}
+.am-mode-edit .am-add-only{display:none!important}
+.am-editor-v3 .am-o-hire input[disabled]{background:#fff;color:#101828;opacity:1}
+/* +1 country prefix as a separate select-look box, as drawn */
+.am-editor-v3 .am-phone{gap:6px}
+.am-editor-v3 .am-phone-cc{display:inline-flex;align-items:center;gap:6px;border:1px solid #d0d5dd!important;border-radius:8px!important;background:#fff;padding:0 10px}
+.am-editor-v3 .am-phone-cc b{font-weight:500;font-size:13px}.am-editor-v3 .am-flag{width:20px;height:12px;box-shadow:0 0 0 1px #e4e7ec}
+.am-editor-v3 .am-chev{width:6px;height:6px;border-right:1.6px solid #475467;border-bottom:1.6px solid #475467;transform:rotate(45deg);margin:-3px 0 0 4px}
+.am-editor-v3 .am-phone input{border-radius:8px!important}
+/* lookup buttons */
+body .am-editor-v3 .am-search-btn{background:#1d5fd6!important;border-color:#1d5fd6!important;color:#fff!important;display:inline-flex;align-items:center;justify-content:center;min-width:44px;padding:0 12px}
+body .am-editor-v3 .am-outline-blue,body .am-mode-add .am-dialog-foot .am-cancel{background:#fff!important;border:1px solid #1d5fd6!important;color:#1d5fd6!important}
+.am-editor-v3 .am-plus{font-size:18px;line-height:1;margin-right:6px}
+/* login & access row */
+.am-editor-v3 .am-login-radios{flex-direction:row!important;gap:28px;align-items:flex-start}
+.am-editor-v3 .am-radio-col{display:flex;flex-direction:column;gap:8px}
+.am-editor-v3 .am-login-pill{display:inline-flex;align-items:center;gap:10px;border-radius:6px;padding:14px 24px}
