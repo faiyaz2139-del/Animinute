@@ -36,6 +36,13 @@ public partial class Login : System.Web.UI.Page
                 }
 
 
+                // 2026-10-24 v2: an owner can switch off login access from Edit Employee > Login & Access.
+                if (AnyminuteEmployeeEditor.LoginDisabled(dt.Rows[0]["UserId"].ToString()))
+                {
+                    this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('warning!', 'Your login access is disabled. Please contact your administrator.', 'warning');", true);
+                    return;
+                }
+
                 string strEmployeeID = dt.Rows[0]["EmployeeId"].ToString();
                 DataTable dtdetails = new DataTable();
                 Session["password"] = dt.Rows[0]["Password"].ToString();
