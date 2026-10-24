@@ -115,7 +115,7 @@ public partial class AnyminuteEmployeeEditorPage : System.Web.UI.Page
     private void SetupEdit()
     {
         PageTitle.Text = "Edit Employee"; PageSubtitle.Text = "Update employee details, manage business assignments, pay rate history, and control login access.";
-        NewAssignments.Visible = NewAccess.Visible = LookupSection.Visible = false; HeaderCard.Visible = Tabs.Visible = true; Deactivate.Visible = card.Status != "Terminated";
+        NewAssignments.Visible = NewAccess.Visible = false; HeaderCard.Visible = Tabs.Visible = true; Deactivate.Visible = card.Status != "Terminated";
         CloseLink.NavigateUrl = CancelLink.NavigateUrl = "~/Users.aspx"; SaveEmployee.Text = "Save Employee";
         HeadInitials.Text = HttpUtility.HtmlEncode(card.Initials); HeadName.Text = HttpUtility.HtmlEncode(card.Name); HeadEmail.Text = HttpUtility.HtmlEncode(card.Email);
         HeadPhone.Text = HttpUtility.HtmlEncode(card.Phone);
@@ -129,13 +129,15 @@ public partial class AnyminuteEmployeeEditorPage : System.Web.UI.Page
         foreach (var t in tabs) sb.Append("<a role=\"tab\" href=\"").Append(HttpUtility.HtmlAttributeEncode(ResolveUrl(Url(t[0])))).Append("\"").Append(t[0] == tab ? " class=\"is-active\" aria-selected=\"true\"" : "").Append(">").Append(t[1]).Append("</a>");
         TabLinks.Text = sb.ToString();
         bool form = tab == "profile" || tab == "address";
-        InfoSection.Visible = AddressSection.Visible = form; SaveEmployee.Visible = form; SaveAccess.Visible = tab == "access";
-        if (form) { (tab == "profile" ? AddressSection : InfoSection).Style["display"] = "none"; if (!IsPostBack) LoadProfile(); }
-        AssignmentsTab.Visible = tab == "assignments"; RateTab.Visible = tab == "rate"; AccessTab.Visible = tab == "access";
-        if (tab == "assignments") { AddAssignmentLink.NavigateUrl = "~/EmployeeAssignment.aspx?EmployeeId=" + employee + "&mode=add"; Assignments.DataSource = AnyminuteEmployeeEditor.Assignments(card); Assignments.DataBind(); }
+        InfoSection.Visible = LookupSection.Visible = AddressSection.Visible = form; SaveEmployee.Visible = form; SaveAccess.Visible = tab == "access";
+        // Deck B slide 9: the Employee Information tab shows Employee Information, Address, Employee Address and Business Assignments together.
+        if (form) { if (tab == "address") InfoSection.Style["display"] = "none"; if (!IsPostBack) LoadProfile(); }
+        AssignmentsTab.Visible = tab == "assignments" || tab == "profile"; RateTab.Visible = tab == "rate"; AccessTab.Visible = tab == "access";
+        if (AssignmentsTab.Visible) { AddAssignmentLink.NavigateUrl = "~/EmployeeAssignment.aspx?EmployeeId=" + employee + "&mode=add"; var rows = AnyminuteEmployeeEditor.Assignments(card); AssignCount.Text = rows.Count.ToString(Inv); Assignments.DataSource = rows; Assignments.DataBind(); }
         // Slide 11 header shows date of birth; slide 10 header shows the role and a Business selector instead of the access box.
         HeadDobWrap.Visible = false;
-        if (tab == "access") { string dob = IsoDate(AnyminuteEmployeeEditor.LoadProfile(employee).DateOfBirth); HeadDob.Text = dob; HeadDobWrap.Visible = dob.Length > 0; }
+        if (tab == "access" || form) { string dob = IsoDate(AnyminuteEmployeeEditor.LoadProfile(employee).DateOfBirth); HeadDob.Text = dob; HeadDobWrap.Visible = dob.Length > 0; }
+        if (form) { HeadAccessBox.CssClass += " am-access-s9"; HeadAccessLink.Text = "Go to Login &amp; Access &rarr;"; }
         if (tab == "rate") { HeadAccessBox.Visible = false; HeadBusinessBox.Visible = true; HeadRole.Visible = true; HeadBusinessWrap.Visible = false; Footer.Visible = false; SetupRate(); }
         if (tab == "access") BindAccess(access, !IsPostBack);
     }
@@ -146,7 +148,7 @@ public partial class AnyminuteEmployeeEditorPage : System.Web.UI.Page
         FirstName.Text = p.FirstName; MiddleName.Text = p.MiddleName; LastName.Text = p.LastName; Email.Text = p.Email; Phone.Text = p.Phone; Mobile.Text = p.Mobile;
         OriginalDob = p.DateOfBirth; DateOfBirth.Text = IsoDate(p.DateOfBirth); OriginalSinExpiry = p.SinExpiry; SinExpiry.Text = IsoDate(p.SinExpiry);
         Select(Gender, p.Gender); Sin.Text = p.Sin; Select(Status, p.Status);
-        HireDate.Text = p.HireDate.HasValue ? p.HireDate.Value.ToString("yyyy-MM-dd", Inv) : ""; HireDate.Enabled = false; HireDate.ToolTip = "Hire date is kept from the original record.";
+        HireDate.Text = p.HireDate.HasValue ? p.HireDate.Value.ToString("yyyy-MM-dd", Inv) : ""; HireDate.ReadOnly = true; HireDate.ToolTip = "Hire date is kept from the original record.";
         StreetNo.Text = p.StreetNo; Line1.Text = p.Line1; Line2.Text = p.Line2; Select(SuiteType, p.SuiteType); SuiteNumber.Text = p.SuiteNumber;
         City.Text = p.City; Select(Province, p.Province); PostalCode.Text = p.PostalCode; Select(Country, String.IsNullOrWhiteSpace(p.Country) ? "Canada" : p.Country);
     }

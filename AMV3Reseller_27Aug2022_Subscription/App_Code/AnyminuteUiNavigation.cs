@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Text;
@@ -101,7 +101,7 @@ public static class AnyminuteUiNavigation
             if (group==GEmployees)
             {
                 string page = route.Split('?')[0];
-                if (page.EndsWith("employeeeditor.aspx") || page.EndsWith("add_employeev2.aspx")) item.Name="Add Employee";
+                if (page.EndsWith("employeeeditor.aspx") || page.EndsWith("add_employeev2.aspx")) { item.Name="Add Employee"; item.Href="EmployeeEditor.aspx"; }
                 else if (route.Contains("users.aspx?action=edit") || page.EndsWith("addeditrole_add_employee.aspx")) item.Name="Edit Employee";
                 else if (label != "assign user") { if (employeesFallback == null) employeesFallback = item; continue; }
             }

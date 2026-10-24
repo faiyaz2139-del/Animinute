@@ -31,6 +31,8 @@ public sealed class AnyminuteAssignmentRow
     public string Status { get; set; } public int ProjectId { get; set; } public string Notes { get; set; } public int[] RoleIds { get; set; }
     public string PayRateText { get { return PayRate.HasValue ? "$" + PayRate.Value.ToString("N2", CultureInfo.InvariantCulture) : "\u2014"; } }
     public string EffectiveText { get { return EffectiveDate.HasValue ? EffectiveDate.Value.ToString("MMM d, yyyy", CultureInfo.InvariantCulture) : "\u2014"; } }
+    public string EffectiveIso { get { return EffectiveDate.HasValue ? EffectiveDate.Value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) : "\u2014"; } }
+    public string EndIso { get { return EndDate.HasValue ? EndDate.Value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) : "\u2014"; } }
     public string EndText { get { return EndDate.HasValue ? EndDate.Value.ToString("MMM d, yyyy", CultureInfo.InvariantCulture) : "\u2014"; } }
 }
 public static class AnyminuteEmployeeEditor

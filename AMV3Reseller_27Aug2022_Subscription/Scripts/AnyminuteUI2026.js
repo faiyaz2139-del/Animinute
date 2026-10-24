@@ -46,7 +46,7 @@
         var text=element('div');text.appendChild(element('h1','',title));text.appendChild(element('p','',info[1]));row.appendChild(text);
         var actions=element('div','am-heading-actions');row.appendChild(actions);
         if(page==='home_page.aspx') {
-            [['add_business.aspx','Add Business'],['add_employeev2.aspx','Add User']].forEach(function(item){var link=Array.prototype.find.call(document.querySelectorAll('#sidebar-wrapper a'),function(a){return (a.getAttribute('href')||'').split('?')[0].split('/').pop().toLowerCase()===item[0];});if(link){var quick=element('a','am-action',item[1]);quick.href=link.href;actions.appendChild(quick);}});
+            [[['add_business.aspx'],'Add Business',''],[['employeeeditor.aspx','add_employeev2.aspx'],'Add Employee','EmployeeEditor.aspx']].forEach(function(item){var link=Array.prototype.find.call(document.querySelectorAll('#sidebar-wrapper a, .sidebar-nav a'),function(a){return item[0].indexOf((a.getAttribute('href')||'').split('#')[0].split('?')[0].split('/').pop().toLowerCase())>=0;});if(link){var quick=element('a','am-action',item[1]);quick.href=item[2]||link.href;actions.appendChild(quick);}});
         }
         if(page!=='home_page.aspx') { var back=element('a','am-action am-secondary','Back to List');back.href='Home_Page.aspx';actions.appendChild(back); }
         var saveIds={ 'add_business.aspx':['btnUpdateBusinessDetails','btnSaveBusinessDetails'], 'add_project.aspx':['Button_Update_Project','btnSaveProjectDetails'], 'gridviewnewdesign.aspx':['btnSave'], 'gridviewassignaccountant.aspx':['btnSave'] };

@@ -8,7 +8,7 @@
     <Columns>
       <asp:BoundField DataField="empname" HeaderText="User" HtmlEncode="true" />
       <asp:BoundField DataField="EmployeeID" HeaderText="Employee ID" />
-      <asp:HyperLinkField Text="Edit User" DataNavigateUrlFields="EmployeeID,BusinessID" DataNavigateUrlFormatString="AddEditRole_Add_Employee.aspx?EmployeeIDEdit={0}&amp;BussEditId={1}&amp;BusinessScoped=1" />
+      <asp:HyperLinkField Text="Edit User" DataNavigateUrlFields="EmployeeID,BusinessID" DataNavigateUrlFormatString="EmployeeEditor.aspx?EmployeeId={0}&amp;BusinessId={1}" />
     </Columns>
   </asp:GridView>
 </asp:Content>
