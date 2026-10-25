@@ -67,3 +67,54 @@ html body .am-ws-actions{display:flex;gap:12px;flex-wrap:wrap}
  html body .am-ws-repeat-row{grid-template-columns:1fr;margin-left:0}
  html body .am-ws-days{margin-left:0}
 }
+/* ===== 2026-10-25 v13 (tester doc item 4): strict match to the design image.
+   - AnyminuteDateText.js wraps each date in a yyyy-mm-dd text box + the native input + a calendar button; the Projects CSS that
+     collapses those into ONE field is not loaded on this page, so the live page showed two date boxes and a stray button.
+   - selects use one custom chevron on every OS (Windows' wide native arrow cut "Working" to "Worki");
+   - Repeat Until / Apply To stay visible and fully styled when Repeat is unchecked (no faint disabled look). ===== */
+html body .am-ws .am-datefmt .am-date-text{position:relative!important;display:block!important;width:100%}
+html body .am-ws .am-datefmt .am-date-text .am-date-shown{width:100%!important;padding-right:38px!important}
+html body .am-ws .am-datefmt .am-date-text input.am-date-native{position:absolute!important;right:0!important;bottom:0!important;width:36px!important;min-width:0!important;height:100%!important;opacity:0!important;pointer-events:none!important;padding:0!important;border:0!important}
+html body .am-ws .am-datefmt .am-date-btn{position:absolute;right:5px;top:50%;transform:translateY(-50%);width:28px;height:28px;border:0;background:none;padding:4px;margin:0;cursor:pointer;border-radius:6px;display:flex;align-items:center;justify-content:center}
+html body .am-ws .am-datefmt .am-date-btn:hover{background:#eef4fd}
+html body .am-ws .am-datefmt .am-date-btn svg{width:18px;height:18px;fill:none;stroke:#1e293b;stroke-width:1.9}
+html body .am-ws .am-datefmt .am-date-btn[disabled]{opacity:.5}
+/* single-chevron selects */
+html body .am-ws select{-webkit-appearance:none!important;-moz-appearance:none!important;appearance:none!important;padding-right:30px!important;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5l3.5 3.5 3.5-3.5' fill='none' stroke='%231e293b' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")!important;background-repeat:no-repeat!important;background-position:right 10px center!important;background-size:12px 12px!important;text-overflow:ellipsis}
+html body .am-ws select::-ms-expand{display:none}
+html body .am-ws select:disabled{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5l3.5 3.5 3.5-3.5' fill='none' stroke='%23a0aec0' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")!important}
+/* filters row: Business | Employee | Week Starting | < > Today, all on the input baseline */
+html body .am-ws-filters{grid-template-columns:minmax(180px,1.1fr) minmax(180px,1.15fr) minmax(170px,.95fr) auto!important;gap:18px!important;align-items:end!important;padding:2px 0 14px;border-bottom:0}
+html body .am-ws-f>label,html body .am-ws-applylbl{text-transform:none!important;letter-spacing:normal!important;color:#0f2a5c!important;font-size:13px!important;font-weight:700!important;margin:0!important}
+html body .am-ws-nav{align-self:end;height:38px}
+html body .am-ws-nav .am-ws-sq{width:34px!important;height:34px!important;margin-top:2px;border-radius:7px!important}
+html body .am-ws-nav .am-ws-btn:not(.am-ws-sq){height:38px;min-width:64px;margin-left:6px}
+/* repeat card */
+html body .am-ws-repeat legend{text-transform:none!important;font-size:14.5px!important}
+html body .am-ws-check,html body .am-ws-check span{text-transform:none!important;letter-spacing:normal!important;font-size:13px!important;color:#1e293b!important;font-weight:500!important}
+html body .am-ws .am-ws-check input{border:1.5px solid #64748b!important;opacity:1!important}
+html body .am-ws .am-ws-check input:disabled{opacity:1!important}
+html body .am-ws-repeat-row{grid-template-columns:minmax(180px,205px) 1fr!important;gap:26px!important;margin:10px 0 0 18px!important}
+html body .am-ws-applyopts{gap:12px 34px!important;min-height:38px}
+html body .am-ws-days{flex:0 0 190px!important}
+/* table: fixed column widths so nothing truncates on narrow screens */
+html body .am-ws-table{table-layout:fixed;min-width:900px!important}
+html body .am-ws-table thead th:nth-child(1){width:11%}
+html body .am-ws-table thead th:nth-child(2){width:13.5%}
+html body .am-ws-table thead th:nth-child(3),html body .am-ws-table thead th:nth-child(4){width:13%}
+html body .am-ws-table thead th:nth-child(5){width:11%}
+html body .am-ws-table thead th:nth-child(6){width:9.5%}
+html body .am-ws-table td:nth-child(n),html body .am-ws-table tbody th{width:auto!important}
+html body .am-ws-table thead th{white-space:nowrap;text-transform:none!important;padding:11px 10px!important}
+html body .am-ws-table td,html body .am-ws-table tbody th{padding:5px 10px!important}
+html body .am-ws select.am-ws-type{min-width:0;font-weight:500!important}
+html body .am-ws input[type=time]{padding:0 8px!important;font-variant-numeric:tabular-nums}
+html body .am-ws-table td.am-ws-hours{font-size:13.5px}
+html body .am-ws .am-ws-check input[type=checkbox],html body .am-ws .am-ws-check input[type=radio]{width:18px!important;height:18px!important;min-width:18px!important;border-radius:3px!important;padding:0!important;margin:0!important;box-shadow:none!important;flex:0 0 18px!important;vertical-align:middle}
+html body .am-ws-table{min-width:930px!important}
+html body .am-ws-table thead th:nth-child(1){width:108px}
+html body .am-ws-table thead th:nth-child(2){width:132px}
+html body .am-ws-table thead th:nth-child(3),html body .am-ws-table thead th:nth-child(4){width:132px}
+html body .am-ws-table thead th:nth-child(5){width:118px}
+html body .am-ws-table thead th:nth-child(6){width:98px}
+html body .am-ws-repeat-row{align-items:start!important}

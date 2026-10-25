@@ -1,4 +1,4 @@
-// 2026-10-25 v11 Deck I: Weekly Employee Schedule - live Total Hours, Day Off rows, Repeat Weekly options.
+// 2026-10-25 v11/v13 Deck I: Weekly Employee Schedule - live Total Hours, Day Off rows, Repeat Weekly options.
 (function(root){
  'use strict';
  function minutes(v){var m=/^(\d{1,2}):(\d{2})/.exec(v||'');return m?(+m[1])*60+(+m[2]):null;}
@@ -22,8 +22,9 @@
  function repeat(){
   var on=document.getElementById('RepeatOn');if(!on)return;
   var box=document.getElementById('amWsRepeat');box.classList.toggle('am-ws-repeat-on',on.checked);
-  ['RepeatUntil','ApplyAll','ApplyWeekdays','ApplySelected'].forEach(function(id){var f=document.getElementById(id);if(f)f.disabled=!on.checked;});
-  var sel=document.getElementById('ApplySelected'),days=document.getElementById('amWsDays'),enabled=on.checked&&sel&&sel.checked;
+  // v13: Repeat Until / Apply To stay enabled (design shows them fully styled); the server only applies them when Repeat is ticked.
+  ['RepeatUntil','ApplyAll','ApplyWeekdays','ApplySelected'].forEach(function(id){var f=document.getElementById(id);if(f)f.disabled=false;});
+  var sel=document.getElementById('ApplySelected'),days=document.getElementById('amWsDays'),enabled=!!(sel&&sel.checked);
   if(days){days.classList.toggle('am-ws-disabled',!enabled);if(!enabled)days.open=false;
    Array.prototype.forEach.call(days.querySelectorAll('input'),function(i){i.disabled=!enabled;});
    var picked=Array.prototype.filter.call(days.querySelectorAll('input:checked'),function(){return true;}).map(function(i){var l=days.querySelector('label[for="'+i.id+'"]');return l?l.textContent:'';});
@@ -40,6 +41,8 @@
     var tr=t.closest('tr'),s=tr.querySelector('.am-ws-start'),x=tr.querySelector('.am-ws-end'),b=tr.querySelector('.am-ws-break');
     if(!s.value)s.value='09:00';if(!x.value)x.value='17:00';if(!b.value){b.value='30';}
    }
+   // v13: choosing a Repeat Until date or an Apply To option turns Repeat on.
+   if(t.closest('#amWsRepeat')&&t.id!=='RepeatOn'&&(t.id==='RepeatUntil'||t.name&&/ApplyTo$/.test(t.name)||t.closest('#amWsDays'))){var on=document.getElementById('RepeatOn');if(on&&!on.checked&&(t.id!=='RepeatUntil'||t.value))on.checked=true;}
    if(t.closest('.am-ws-row'))total();else repeat();
   });
   document.addEventListener('input',function(e){if(e.target.closest&&e.target.closest('#amWeeklySchedule .am-ws-row'))total();});

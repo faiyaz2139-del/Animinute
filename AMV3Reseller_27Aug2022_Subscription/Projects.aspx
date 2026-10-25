@@ -1,5 +1,5 @@
 ﻿<%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="Projects.aspx.cs" Inherits="AnyminuteProjects" %>
-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteFlash.css?v=20261024v2" rel="stylesheet" /><link href="css/AnyminuteProjects.css?v=20261024v8" rel="stylesheet" /><script src="Scripts/AnyminuteDateText.js?v=20261024v8" defer></script><script src="Scripts/AnyminuteProjects.js?v=20261024v8" defer></script></asp:Content>
+<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteFlash.css?v=20261024v2" rel="stylesheet" /><link href="css/AnyminuteProjects.css?v=20261025v13" rel="stylesheet" /><script src="Scripts/AnyminuteDateText.js?v=20261024v8" defer></script><script src="Scripts/AnyminuteProjects.js?v=20261024v8" defer></script></asp:Content>
 <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
 <section class="am-projects" id="Root" runat="server">
 <div class="am-pj-main">

@@ -46,3 +46,7 @@ body.am-ui .am-employee-menu a.am-danger-link{color:#c23d3d;}
 body.am-ui .am-employee-info{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:14px 16px;border:1px solid #dce6f0;border-radius:8px;background:#f8fbfe;margin:12px 0 18px;}
 body.am-ui .am-employee-info span{color:#41566d;}
 body.am-ui .am-employee-help{border:1px solid #f0d58a;background:#fffaea;border-radius:8px;padding:12px 16px;margin-top:14px;color:#5d4a10;}
+/* 2026-10-25 v13 (tester doc item 1): initials sit in the exact centre of the avatar circle. ".am-employee-identity span{display:block}" (meant for the
+   name/email/phone lines) also hit the initials span, so flex centring was lost and "AR"/"AY" drew top-left, spilling out of the circle. */
+html body .am-employee-identity>.am-employee-initials,html body span.am-employee-initials,html body .am-info-card .am-avatar{display:inline-flex!important;align-items:center!important;justify-content:center!important;text-align:center!important;line-height:1!important;padding:0!important;margin:0!important;text-indent:0!important;letter-spacing:.02em!important;white-space:nowrap!important;overflow:hidden;box-sizing:border-box!important;border-radius:50%!important;vertical-align:middle}
+html body .am-employee-identity>.am-employee-initials{flex:0 0 44px!important;width:44px!important;min-width:44px!important;height:44px!important;font-size:16px!important;font-weight:700!important}

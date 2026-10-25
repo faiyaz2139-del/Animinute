@@ -244,3 +244,36 @@ html body .am-business-editor .am-addr-dialog [aria-invalid=true]{border-color:#
 html body .am-business-editor .am-al-search{grid-template-columns:minmax(175px,1fr) minmax(160px,1.1fr) auto auto}
 /* v11 Deck H: the address card's Cancel / Save Changes (and the header Save) replace the old bottom bar; its buttons stay in the DOM for the server save. */
 html body .am-business-editor .am-business-footer{display:none!important}
+/* ===== 2026-10-25 v13 (tester doc item 3): Address Details card + Enter Address Manually modal match the design image.
+   Main.master's SiteStyle.css uppercases every <label> (label{text-transform:uppercase;color:gray}); the design uses normal case.
+   Card grid now mirrors the modal: Street Number 1/3 + Address Line 1 2/3; Line 2 / Suite Type / Suite Number; section bar;
+   City / Province / Postal on one even row; Country 2/3. ===== */
+html body .am-business-editor .am-al-layout label,html body .am-business-editor .am-addr-dialog label,
+html body .am-business-editor .am-al-f>label,html body .am-business-editor .am-md-grid>label,html body .am-business-editor .am-md-grid>label>span{text-transform:none!important;letter-spacing:normal!important;color:#0f2a5c!important;font-size:13.5px!important;font-weight:700!important;line-height:1.3!important;margin:0!important}
+html body .am-business-editor .am-al-opt{font-style:normal!important;font-weight:500!important;color:#0f2a5c}
+html body .am-business-editor .am-al-req{color:#dc2626!important;margin-left:2px}
+html body .am-business-editor .am-al-grid{grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:14px 20px!important;align-items:end}
+html body .am-business-editor .am-al-grid>.am-al-f,html body .am-business-editor .am-al-grid>.am-al-f:nth-child(n){grid-column:span 2!important}
+html body .am-business-editor .am-al-grid>.am-al-f.am-al-span2:nth-child(n){grid-column:span 4!important}
+html body .am-business-editor .am-al-grid>.am-al-f.am-al-countryf:nth-child(n){grid-column:1 / span 4!important}
+html body .am-business-editor .am-al-subhead{grid-column:1 / -1;margin:6px -14px 0;padding:10px 14px;background:#f1f6fd;border-top:1px solid #e3e8f0;border-bottom:1px solid #e3e8f0;font-size:15px;font-weight:700;color:#0f2a5c}
+html body .am-business-editor .am-al-details-head{background:#f1f6fd!important}
+html body .am-business-editor .am-al-details-head h3{font-size:16.5px!important}
+html body .am-business-editor .am-al-main select,html body .am-business-editor .am-addr-dialog select{font-weight:400!important}
+html body .am-business-editor .am-al-main input[type=text],html body .am-business-editor .am-al-main select,html body .am-business-editor .am-addr-dialog input[type=text],html body .am-business-editor .am-addr-dialog select{margin:0!important;box-shadow:none}
+/* modal per image: wide dialog, large navy title, light-blue section bars, no stray rule under the title */
+html body .am-business-editor .am-addr-dialog{max-width:1000px!important}
+html body .am-business-editor .am-md-head{border-bottom:1px solid #e3e8f0!important;padding:18px 26px 12px!important}
+html body .am-business-editor .am-md-head h2{font-size:26px!important;font-weight:800!important;color:#0f2a5c!important;border:0!important;padding:0!important;margin:0!important;font-family:inherit!important;line-height:1.2!important}
+html body .am-business-editor .am-md-head p{font-size:14px!important;color:#1e3a8a!important;margin:6px 0 0!important}
+html body .am-business-editor .am-addr-x{font-size:30px!important;color:#0f2a5c!important;line-height:1!important}
+html body .am-business-editor .am-md-body{padding:10px 26px 6px!important}
+html body .am-business-editor .am-md-body .am-al-info{font-size:13.5px}
+html body .am-business-editor .am-md-sec{border-color:#e3e8f0!important;padding:0 16px 16px!important}
+html body .am-business-editor .am-md-sec legend{width:calc(100% + 32px)!important;margin:0 -16px 14px!important;padding:11px 16px!important;background:#f1f6fd!important;font-size:17px!important;font-weight:700!important;color:#0f2a5c!important;border-bottom:0!important;text-transform:none!important}
+html body .am-business-editor .am-md-grid{gap:16px 24px!important}
+html body .am-business-editor .am-md-grid>label{gap:8px!important}
+html body .am-business-editor .am-md-foot{padding:16px 26px!important}
+@media (max-width:760px){html body .am-business-editor .am-al-grid>.am-al-f:nth-child(n),html body .am-business-editor .am-al-grid>.am-al-f.am-al-span2:nth-child(n),html body .am-business-editor .am-al-grid>.am-al-f.am-al-countryf:nth-child(n){grid-column:1 / -1!important}}
+html body .am-business-editor .am-md-grid>label input,html body .am-business-editor .am-md-grid>label select,html body .am-business-editor .am-al-f input,html body .am-business-editor .am-al-f select{font-weight:400!important;text-transform:none!important}
+html body .am-business-editor .am-md-body .am-al-i{flex:0 0 30px;height:30px;font-size:17px;line-height:30px}

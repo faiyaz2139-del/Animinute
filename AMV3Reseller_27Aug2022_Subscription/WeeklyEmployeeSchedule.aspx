@@ -1,6 +1,6 @@
 <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="WeeklyEmployeeSchedule.aspx.cs" Inherits="AnyminuteWeeklySchedulePage" Title="Weekly Employee Schedule" %>
 <%-- 2026-10-25 v11 Deck I: Weekly Employee Schedule (planned hours; needs DB_REQUIRED/REQUIRED_05_WeeklySchedule.sql). --%>
-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteFlash.css?v=20261024v2" rel="stylesheet" /><link href="css/AnyminuteWeeklySchedule.css?v=20261024v11" rel="stylesheet" /><script src="Scripts/AnyminuteDateText.js?v=20261024v8" defer="defer"></script><script src="Scripts/AnyminuteWeeklySchedule.js?v=20261024v11" defer="defer"></script></asp:Content>
+<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteFlash.css?v=20261024v2" rel="stylesheet" /><link href="css/AnyminuteWeeklySchedule.css?v=20261025v13" rel="stylesheet" /><script src="Scripts/AnyminuteDateText.js?v=20261024v8" defer="defer"></script><script src="Scripts/AnyminuteWeeklySchedule.js?v=20261025v13" defer="defer"></script></asp:Content>
 <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
 <section class="am-ws" id="amWeeklySchedule" aria-labelledby="am-ws-title">
  <nav class="am-ws-crumb" aria-label="Breadcrumb"><a href="Dashboard.aspx">Home</a><span aria-hidden="true">&gt;</span><a href="Schedular.aspx">Schedule</a><span aria-hidden="true">&gt;</span><span aria-current="page">Weekly Employee Schedule</span></nav>

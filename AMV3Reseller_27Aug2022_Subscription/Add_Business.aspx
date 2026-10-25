@@ -1,7 +1,7 @@
 <%@ Page Title="Business" Language="C#" MasterPageFile="~/Main.master" AutoEventWireup="true" CodeFile="Add_Business.aspx.cs" Inherits="Add_Business" %>
 <%@ Register Assembly="AjaxControlToolkit" Namespace="AjaxControlToolkit" TagPrefix="cc1" %>
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
- <link rel="stylesheet" href="css/AnyminuteBusinessEditor.css?v=20261024v11" />
+ <link rel="stylesheet" href="css/AnyminuteBusinessEditor.css?v=20261025v13" />
  <script src="Scripts/AnyminuteBusinessEditor.js?v=20261024v11" defer="defer"></script>
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
@@ -98,15 +98,16 @@
    <div id="divAdd" runat="server" class="am-al-details" aria-labelledby="business-address-heading">
     <div class="am-al-details-head"><h3 id="business-address-heading">Address Details</h3><span class="am-al-pill">Manual Entry</span></div>
     <div class="am-al-grid">
-     <div class="am-al-f"><label for="txtStreetNo">Street Number <b class="am-al-req">*</b></label><asp:TextBox ID="txtStreetNo" runat="server" ClientIDMode="Static" aria-required="true" /></div>
-     <div class="am-al-f am-al-span2"><label for="txtStreetName">Address Line 1 <b class="am-al-req">*</b></label><asp:TextBox ID="txtStreetName" runat="server" ClientIDMode="Static" autocomplete="address-line1" aria-required="true" /></div>
-     <div class="am-al-f"><label for="txtStreetType">Address Line 2 (Optional)</label><asp:TextBox ID="txtStreetType" runat="server" ClientIDMode="Static" autocomplete="address-line2" placeholder="e.g. Unit, Floor, Building, etc." /></div>
-     <div class="am-al-f"><label for="ddlSuitType">Suite Type (Optional)</label><asp:DropDownList ID="ddlSuitType" runat="server" ClientIDMode="Static"><asp:ListItem Value="" Text="Please Select" /><asp:ListItem Value="Apartment" Text="Apartment" /><asp:ListItem Value="Suite" Text="Suite" /><asp:ListItem Value="Unit" Text="Unit" /></asp:DropDownList></div>
-     <div class="am-al-f"><label for="txtSuiteNumber">Suite Number (Optional)</label><asp:TextBox ID="txtSuiteNumber" runat="server" ClientIDMode="Static" placeholder="e.g. 200" /></div>
-     <div class="am-al-f"><label for="txtCity">City <b class="am-al-req">*</b></label><asp:TextBox ID="txtCity" runat="server" ClientIDMode="Static" autocomplete="address-level2" aria-required="true" /></div>
+     <div class="am-al-f"><label for="txtStreetNo">Street Number <b class="am-al-req">*</b></label><asp:TextBox ID="txtStreetNo" runat="server" ClientIDMode="Static" aria-required="true" placeholder="e.g. 3112" /></div>
+     <div class="am-al-f am-al-span2"><label for="txtStreetName">Address Line 1 <b class="am-al-req">*</b></label><asp:TextBox ID="txtStreetName" runat="server" ClientIDMode="Static" autocomplete="address-line1" aria-required="true" placeholder="e.g. Krome Ave" /></div>
+     <div class="am-al-f"><label for="txtStreetType">Address Line 2 <span class="am-al-opt">(Optional)</span></label><asp:TextBox ID="txtStreetType" runat="server" ClientIDMode="Static" autocomplete="address-line2" placeholder="e.g. Unit, Floor, Building, etc." /></div>
+     <div class="am-al-f"><label for="ddlSuitType">Suite Type <span class="am-al-opt">(Optional)</span></label><asp:DropDownList ID="ddlSuitType" runat="server" ClientIDMode="Static"><asp:ListItem Value="" Text="Please Select" /><asp:ListItem Value="Apartment" Text="Apartment" /><asp:ListItem Value="Suite" Text="Suite" /><asp:ListItem Value="Unit" Text="Unit" /></asp:DropDownList></div>
+     <div class="am-al-f"><label for="txtSuiteNumber">Suite Number <span class="am-al-opt">(Optional)</span></label><asp:TextBox ID="txtSuiteNumber" runat="server" ClientIDMode="Static" placeholder="e.g. 200" /></div>
+     <div class="am-al-subhead" role="heading" aria-level="4">City, State/Province and Country</div>
+     <div class="am-al-f"><label for="txtCity">City <b class="am-al-req">*</b></label><asp:TextBox ID="txtCity" runat="server" ClientIDMode="Static" autocomplete="address-level2" aria-required="true" placeholder="e.g. Miami" /></div>
      <div class="am-al-f"><label for="amProvinceSel">Province / State <b class="am-al-req">*</b></label><select id="amProvinceSel" class="am-al-proxy" data-proxy-for="txtProvince" aria-required="true"></select><asp:TextBox ID="txtProvince" runat="server" ClientIDMode="Static" CssClass="am-al-proxied" autocomplete="address-level1" aria-hidden="true" tabindex="-1" /></div>
-     <div class="am-al-f"><label for="txtPostalCode">Postal / ZIP Code <b class="am-al-req">*</b></label><asp:TextBox ID="txtPostalCode" runat="server" ClientIDMode="Static" MaxLength="10" autocomplete="postal-code" aria-required="true" /></div>
-     <div id="CountryField" runat="server" class="am-al-f am-al-span2"><label for="amCountrySel">Country <b class="am-al-req">*</b></label><select id="amCountrySel" class="am-al-proxy" data-proxy-for="Country" aria-required="true"><option value="Canada">Canada</option><option value="United States">United States</option></select><asp:TextBox ID="Country" runat="server" ClientIDMode="Static" CssClass="am-al-proxied" Text="Canada" MaxLength="100" aria-hidden="true" tabindex="-1" /></div>
+     <div class="am-al-f"><label for="txtPostalCode">Postal / ZIP Code <b class="am-al-req">*</b></label><asp:TextBox ID="txtPostalCode" runat="server" ClientIDMode="Static" MaxLength="10" autocomplete="postal-code" aria-required="true" placeholder="e.g. 33185" /></div>
+     <div id="CountryField" runat="server" class="am-al-f am-al-span2 am-al-countryf"><label for="amCountrySel">Country <b class="am-al-req">*</b></label><select id="amCountrySel" class="am-al-proxy" data-proxy-for="Country" aria-required="true"><option value="Canada">Canada</option><option value="United States">United States</option></select><asp:TextBox ID="Country" runat="server" ClientIDMode="Static" CssClass="am-al-proxied" Text="Canada" MaxLength="100" aria-hidden="true" tabindex="-1" /></div>
     </div>
     <div class="am-al-actions"><button type="button" class="am-al-btn am-al-outline am-al-wide" data-al-cancel="1">Cancel</button><button type="button" class="am-al-btn am-al-primary am-al-wide" data-al-save="1">Save Changes</button></div>
    </div>
@@ -179,9 +180,9 @@
     <fieldset class="am-md-sec"><legend>Address Details</legend><div class="am-md-grid">
      <label><span>Street Number <b class="am-al-req">*</b></span><input type="text" data-addr="txtStreetNo" data-req="1" maxlength="50" placeholder="e.g. 3112" /></label>
      <label class="am-al-span2"><span>Address Line 1 <b class="am-al-req">*</b></span><input type="text" data-addr="txtStreetName" data-req="1" maxlength="50" placeholder="e.g. Krome Ave" /></label>
-     <label><span>Address Line 2 (Optional)</span><input type="text" data-addr="txtStreetType" maxlength="50" placeholder="e.g. Unit, Floor, Building, etc." /></label>
-     <label><span>Suite Type (Optional)</span><select data-addr="ddlSuitType"><option value="">Please Select</option><option>Apartment</option><option>Suite</option><option>Unit</option></select></label>
-     <label><span>Suite Number (Optional)</span><input type="text" data-addr="txtSuiteNumber" maxlength="50" placeholder="e.g. 200" /></label>
+     <label><span>Address Line 2 <i class="am-al-opt">(Optional)</i></span><input type="text" data-addr="txtStreetType" maxlength="50" placeholder="e.g. Unit, Floor, Building, etc." /></label>
+     <label><span>Suite Type <i class="am-al-opt">(Optional)</i></span><select data-addr="ddlSuitType"><option value="">Please Select</option><option>Apartment</option><option>Suite</option><option>Unit</option></select></label>
+     <label><span>Suite Number <i class="am-al-opt">(Optional)</i></span><input type="text" data-addr="txtSuiteNumber" maxlength="50" placeholder="e.g. 200" /></label>
     </div></fieldset>
     <fieldset class="am-md-sec"><legend>City, State/Province and Country</legend><div class="am-md-grid">
      <label><span>City <b class="am-al-req">*</b></span><input type="text" data-addr="txtCity" data-req="1" maxlength="50" placeholder="e.g. Miami" /></label>
