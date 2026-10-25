@@ -122,7 +122,7 @@ public static class AnyminuteUiNavigation
         groups[GProjects].SubMenu = groups[GProjects].SubMenu.OrderBy(m => rank(m.Name, new[] { "Add Project", "Edit Project" })).ToList();
         // Account: Change Password, then Plan Upgrade directly below it (only where the role already has an upgrade page).
         var account = new List<MenuViewModel> { Link(-601, "Change Password", VirtualPathUtility.ToAbsolute("~/Change%20Password.aspx")) };
-        string upgrade = PermittedHref(all, "Enterprise_Plan_Upgrade.aspx", "Enterprise_Plan.aspx", "Enterprise_Plan_Reseller.aspx");
+        string upgrade = UpgradeHref(all);
         if (upgrade != null) account.Add(Link(-602, "Plan Upgrade", upgrade));
         account.AddRange(groups[GAccount].SubMenu); groups[GAccount].SubMenu = account;
         // Need Help: Help Center, the role's ticket pages, then Chat (the existing HelpChat.aspx page).
@@ -149,7 +149,9 @@ public static class AnyminuteUiNavigation
             if (group.Name == "Projects" && HasAccount()) group.Href = VirtualPathUtility.ToAbsolute("~/Projects.aspx");
             if (group.Name == "Employees" && HasAccount() && AnyminuteDirectoryScope.CanReadDirectory()) group.Href = VirtualPathUtility.ToAbsolute("~/Users.aspx");
         }
-        return groups.Where(g => g.SubMenu.Count > 0);
+        // 2026-10-24 v10: Quick Actions, Settings, Payroll and Need Help are no longer sidebar groups
+        // (help, tickets and chat stay in the header Help menu; quick actions are on the Dashboard).
+        return groups.Where(g => g.SubMenu.Count > 0 && g.Seq != GQuick && g.Seq != GSettings && g.Seq != GPayroll && g.Seq != GHelp);
     }
     static MenuViewModel Link(int id, string name, string href) { return new MenuViewModel { Id = id, Seq = 0, Name = name, Href = href, Icon = "", SubMenu = new List<MenuViewModel>() }; }
 
@@ -253,9 +255,21 @@ public static class AnyminuteUiNavigation
         if(suggestion!=null)HeaderLink(html,suggestion,"Share suggestion","message");
         html.Append("</div></details>");return html.ToString();
     }
-    public static string AccountUpgrade(IEnumerable<MenuViewModel> permitted)
+    // 2026-10-24 v10: one Plan Upgrade link for the sidebar Account group and the header profile menu.
+    // Uses the role's permitted upgrade page; subscribers/owners whose menu lacks it get Enterprise_Plan_Upgrade.aspx.
+    public static string UpgradeHref(IEnumerable<MenuViewModel> permitted)
     {
         string href=PermittedHref(permitted,"Enterprise_Plan_Upgrade.aspx","Enterprise_Plan.aspx","Enterprise_Plan_Reseller.aspx");
+        if(href!=null)return href;
+        var session=HttpContext.Current==null?null:HttpContext.Current.Session;
+        if(session==null||session["EmployeeId"]==null)return null;
+        string typeId=Convert.ToString(session["UserTypeid"]).Trim(),type=Convert.ToString(session["UserType"]);
+        bool owner=typeId=="1"||type.IndexOf("Owner",StringComparison.OrdinalIgnoreCase)>=0||type.IndexOf("Subscriber",StringComparison.OrdinalIgnoreCase)>=0;
+        return owner?VirtualPathUtility.ToAbsolute("~/Enterprise_Plan_Upgrade.aspx"):null;
+    }
+    public static string AccountUpgrade(IEnumerable<MenuViewModel> permitted)
+    {
+        string href=UpgradeHref(permitted);
         if(href==null)return "";
         var html=new StringBuilder();HeaderLink(html,href,"Plan Upgrade","upgrade");return html.ToString();
     }

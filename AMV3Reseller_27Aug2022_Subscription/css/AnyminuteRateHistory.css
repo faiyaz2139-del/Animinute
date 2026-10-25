@@ -1,0 +1,57 @@
+/* 2026-10-24 v10: Rate History Module (deck H). Prefixed with body.am-ui because the master CSS loads after page CSS. */
+body.am-ui .am-rate-module{max-width:1280px;margin:0 auto;color:#1c2b3d;font-size:14px}
+body.am-ui .am-rate-module svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
+body.am-ui .am-rm-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:14px}
+body.am-ui .am-rm-head h1{font-size:26px;margin:0 0 4px;font-weight:700}
+body.am-ui .am-rm-head p,body.am-ui .am-rm-muted{color:#647488;margin:0}
+body.am-ui .am-rm-card{background:#fff;border:1px solid #e1e8f0;border-radius:12px;padding:18px 20px;margin-bottom:16px;box-shadow:0 2px 10px rgba(25,53,80,.04)}
+body.am-ui .am-rm-card h2{font-size:19px;margin:0 0 4px;font-weight:700}
+body.am-ui .am-rm-person{display:grid;grid-template-columns:auto minmax(160px,1.2fr) auto auto minmax(220px,1fr);align-items:center;gap:22px}
+body.am-ui .am-rm-avatar{width:52px;height:52px;border-radius:50%;background:#e6eef8;color:#2f5d8f;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:17px}
+body.am-ui .am-rm-who strong{font-size:18px}
+body.am-ui .am-rm-badge{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:600;margin-left:6px;vertical-align:middle}
+body.am-ui .am-rm-on{background:#e3f6ea;color:#1b7a43}body.am-ui .am-rm-off{background:#eef1f5;color:#5d6b7c}
+body.am-ui .am-rm-meta{display:inline-flex;align-items:center;gap:8px;color:#33475c;word-break:break-word}
+body.am-ui .am-rm-meta svg{color:#56708c}
+body.am-ui .am-rm-business{display:flex;align-items:center;gap:10px;border-left:1px solid #e1e8f0;padding-left:20px;margin:0;font-weight:400}
+body.am-ui .am-rm-business>svg{width:24px;height:24px;color:#56708c}
+body.am-ui .am-rm-business>span{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+body.am-ui .am-rm-business .am-rm-muted{font-size:12px}
+body.am-ui .am-rm-business select{border:0!important;padding:0 18px 0 0!important;height:auto!important;background-color:transparent!important;font-weight:600;color:#1c2b3d;box-shadow:none!important;width:100%}
+body.am-ui .am-rm-form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) minmax(0,1.4fr);gap:16px;margin-top:14px;align-items:start}
+body.am-ui .am-rm-field{display:flex;flex-direction:column;gap:6px;margin:0;font-weight:600;font-size:13px}
+body.am-ui .am-rm-field em{font-style:normal;color:#c62828;font-weight:500}
+body.am-ui .am-rm-field select,body.am-ui .am-rm-field input,body.am-ui .am-rm-field textarea{height:40px;border:1px solid #cfd9e5;border-radius:8px;padding:0 10px;font-weight:400;font-size:14px;width:100%;background:#fff;margin:0}
+body.am-ui .am-rm-field textarea{height:auto;min-height:64px;padding:8px 10px;resize:vertical}
+body.am-ui .am-rm-money{display:flex;align-items:stretch;border:1px solid #cfd9e5;border-radius:8px;overflow:hidden;background:#fff}
+body.am-ui .am-rm-money>span{display:flex;align-items:center;padding:0 12px;background:#f3f6fa;border-right:1px solid #cfd9e5;color:#4d6176;font-weight:500}
+body.am-ui .am-rm-money input{border:0!important;border-radius:0!important}
+body.am-ui .am-rm-reason{position:relative}
+body.am-ui .am-rm-counter{align-self:flex-end;font-size:12px;color:#7a8898;font-weight:400}
+body.am-ui .am-rm-actions{display:flex;gap:12px;margin-top:12px}
+body.am-ui .am-rm-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:40px;padding:0 20px;border-radius:8px;background:#1f5fd1;border:1px solid #1f5fd1;color:#fff!important;font-weight:600;text-decoration:none!important;white-space:nowrap;cursor:pointer}
+body.am-ui .am-rm-btn:hover{background:#174fb3}
+body.am-ui .am-rm-ghost{background:#fff;color:#1f5fd1!important;border-color:#1f5fd1}
+body.am-ui .am-rm-ghost:hover{background:#eef4fd}
+body.am-ui .am-rm-filter{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin:12px 0}
+body.am-ui .am-rm-inline{flex-direction:row;align-items:center;gap:12px}
+body.am-ui .am-rm-inline select{width:280px;max-width:60vw}
+body.am-ui .am-rm-table{overflow-x:auto}
+body.am-ui .am-rm-table table{width:100%;border-collapse:collapse;min-width:720px}
+body.am-ui .am-rm-table th{background:#f3f6fa;text-align:left;font-size:13px;color:#33475c;padding:10px 12px;font-weight:600}
+body.am-ui .am-rm-table td{padding:9px 12px;border-top:1px solid #edf1f6;vertical-align:middle}
+body.am-ui .am-rm-pill{display:inline-block;min-width:84px;text-align:center;padding:3px 10px;border-radius:6px;font-size:12px;font-weight:600}
+body.am-ui .am-rm-current{background:#e3f6ea;color:#1b7a43}
+body.am-ui .am-rm-hist{background:#eef1f5;color:#5d6b7c}
+body.am-ui .am-rm-edit{display:inline-flex;align-items:center;gap:6px;color:#1f5fd1;font-weight:600;text-decoration:none}
+body.am-ui .am-rm-locked{display:inline-flex;align-items:center;gap:6px;color:#6b7a8b}
+body.am-ui .am-rm-empty{text-align:center;color:#647488;padding:18px}
+body.am-ui .am-rm-info{display:flex;gap:14px;background:#fffbea;border:1px solid #f3dc8a;border-radius:12px;padding:16px 18px;margin-bottom:20px}
+body.am-ui .am-rm-info-icon{width:40px;height:40px;border-radius:50%;background:#f8e7a6;color:#8a6500;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto}
+body.am-ui .am-rm-info strong{font-size:15px}
+body.am-ui .am-rm-info p{margin:4px 0 10px;color:#4a5566}
+body.am-ui .am-rm-info ul{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0;padding:0;list-style:none}
+body.am-ui .am-rm-info li{position:relative;padding-left:28px;color:#33475c}
+body.am-ui .am-rm-info li:before{content:"\2713";position:absolute;left:0;top:0;width:20px;height:20px;border-radius:50%;background:#16a34a;color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+@media(max-width:1100px){body.am-ui .am-rm-person{grid-template-columns:auto 1fr;}body.am-ui .am-rm-business{border-left:0;padding-left:0;grid-column:1/-1}body.am-ui .am-rm-form{grid-template-columns:repeat(2,minmax(0,1fr))}body.am-ui .am-rm-info ul{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){body.am-ui .am-rm-form,body.am-ui .am-rm-info ul{grid-template-columns:1fr}body.am-ui .am-rm-filter,body.am-ui .am-rm-head{flex-direction:column;align-items:stretch}body.am-ui .am-rm-inline{flex-direction:column;align-items:stretch}body.am-ui .am-rm-inline select{width:100%;max-width:none}}

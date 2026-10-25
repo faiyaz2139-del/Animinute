@@ -102,3 +102,46 @@ body.am-ui .am-business-editor .am-mode-edit input.am-business-input:not([type=h
 body.am-ui .am-business-editor .am-search-icon{display:inline-flex;align-items:center;justify-content:center;min-width:48px}
 @media(max-width:1000px){body.am-ui .am-business-editor .am-grid-12>.am-business-field,body.am-ui .am-business-editor .am-mode-edit .am-grid-12>.am-business-field{grid-column:span 6!important}}
 @media(max-width:640px){body.am-ui .am-business-editor .am-grid-12>.am-business-field,body.am-ui .am-business-editor .am-mode-edit .am-grid-12>.am-business-field{grid-column:span 12!important}}
+/* 2026-10-24 v10 address spec: lookup row (postal | select + Use This Address | Add New / Clear), heading icon, pencil-locked fields, Add New Address popup */
+body.am-ui .am-business-editor .am-business-lookup{grid-template-columns:minmax(200px,1fr) minmax(0,2fr) auto;gap:16px;align-items:end}
+body.am-ui .am-business-editor .am-business-results{flex-wrap:nowrap;align-items:end;column-gap:10px;row-gap:7px;flex-wrap:wrap}
+body.am-ui .am-business-editor .am-business-results>label,body.am-ui .am-business-editor .am-business-results>.am-required{width:auto}
+body.am-ui .am-business-editor .am-business-results>.am-required{flex:1 1 auto}
+body.am-ui .am-business-editor .am-business-results select{flex:1 1 220px;min-width:0}
+body.am-ui .am-business-editor .am-business-results select.am-list-open{position:relative;z-index:5;height:auto!important;box-shadow:0 8px 22px rgba(20,40,70,.18)}
+body.am-ui .am-business-editor .am-use-address{white-space:nowrap;background:#1f6fd1;color:#fff;border-color:#1f6fd1}
+body.am-ui .am-business-editor .am-use-address[disabled],body.am-ui .am-business-editor a.am-use-address.aspNetDisabled{background:#e9eef4!important;color:#8a97a6!important;border-color:#d6dee8!important;cursor:not-allowed}
+body.am-ui .am-business-editor .am-lookup-actions{display:flex;gap:10px;align-items:end;flex-wrap:wrap}
+body.am-ui .am-business-editor .am-lookup-actions .am-business-button{white-space:nowrap}
+body.am-ui .am-business-editor .am-heading-icon{display:flex;align-items:center;gap:8px}
+body.am-ui .am-business-editor .am-heading-icon svg{color:#1f6fd1;flex:0 0 auto}
+body.am-ui .am-business-editor .am-lock-wrap{position:relative;display:block}
+body.am-ui .am-business-editor .am-lock-wrap .am-business-input{padding-right:40px!important;width:100%}
+body.am-ui .am-business-editor .am-locked .am-business-input{background:#f5f8fb!important;color:#2d3d50}
+body.am-ui .am-business-editor .am-locked select.am-business-input{pointer-events:none}
+body.am-ui .am-business-editor .am-lock-pencil{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:6px;background:transparent;color:#1f6fd1;cursor:pointer;padding:0}
+body.am-ui .am-business-editor .am-lock-pencil:hover,body.am-ui .am-business-editor .am-lock-pencil:focus-visible{background:#e8f1fc;outline:2px solid #1f6fd1;outline-offset:0}
+body.am-ui .am-addr-modal{position:fixed;inset:0;z-index:2000;background:rgba(15,30,50,.45);display:flex;align-items:center;justify-content:center;padding:16px}
+body.am-ui .am-addr-modal[hidden]{display:none}
+body.am-addr-open{overflow:hidden}
+body.am-ui .am-addr-dialog{background:#fff;border-radius:12px;max-width:760px;width:100%;max-height:92vh;overflow:auto;padding:20px 22px;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+body.am-ui .am-addr-dialog header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+body.am-ui .am-addr-dialog h2{margin:0;font-size:20px}
+body.am-ui .am-addr-x{border:0;background:transparent;font-size:26px;line-height:1;cursor:pointer;color:#4a5a6c}
+body.am-ui .am-addr-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 14px;margin:12px 0 16px}
+body.am-ui .am-addr-grid label{display:flex;flex-direction:column;gap:6px;font-weight:600;font-size:14px}
+body.am-ui .am-addr-grid label .am-required{font-weight:400}
+body.am-ui .am-addr-grid input,body.am-ui .am-addr-grid select{height:40px;border:1px solid #cfd9e5;border-radius:8px;padding:0 10px;font-weight:400;width:100%}
+body.am-ui .am-addr-grid [aria-invalid=true]{border-color:#c62828;box-shadow:0 0 0 2px rgba(198,40,40,.15)}
+body.am-ui .am-addr-dialog footer{display:flex;justify-content:flex-end;gap:10px}
+@media(max-width:1000px){body.am-ui .am-business-editor .am-business-lookup{grid-template-columns:1fr}body.am-ui .am-addr-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){body.am-ui .am-addr-grid{grid-template-columns:1fr}}
+/* v10: Country now shows in Add too, so City / Province / Postal / Country share one row (3 columns each);
+   the row-start rule keeps its span (grid-column-start alone collapsed City to one column). */
+body.am-ui .am-business-editor .am-address-v3>.am-a4{grid-column:span 3}
+body.am-ui .am-business-editor .am-address-v3>.am-row-start{grid-column:1 / span 3}
+body.am-ui .am-business-editor .am-results-row{display:flex;gap:10px;width:100%;align-items:stretch}
+body.am-ui .am-business-editor .am-results-row select{flex:1 1 auto;min-width:0}
+@media(max-width:1000px){body.am-ui .am-business-editor .am-address-v3>.am-row-start{grid-column:1 / span 6!important}}
+@media(max-width:640px){body.am-ui .am-business-editor .am-address-v3>.am-row-start{grid-column:1 / span 12!important}body.am-ui .am-business-editor .am-results-row{flex-wrap:wrap}}
+body.am-ui .am-business-editor .am-lock-wrap select+.am-lock-pencil{right:30px}

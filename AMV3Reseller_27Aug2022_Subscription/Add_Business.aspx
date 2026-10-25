@@ -1,8 +1,8 @@
 <%@ Page Title="Business" Language="C#" MasterPageFile="~/Main.master" AutoEventWireup="true" CodeFile="Add_Business.aspx.cs" Inherits="Add_Business" %>
 <%@ Register Assembly="AjaxControlToolkit" Namespace="AjaxControlToolkit" TagPrefix="cc1" %>
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
- <link rel="stylesheet" href="css/AnyminuteBusinessEditor.css?v=20261024v3" />
- <script src="Scripts/AnyminuteBusinessEditor.js?v=20261024v2" defer="defer"></script>
+ <link rel="stylesheet" href="css/AnyminuteBusinessEditor.css?v=20261024v10" />
+ <script src="Scripts/AnyminuteBusinessEditor.js?v=20261024v10" defer="defer"></script>
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
 <div class="am-business-editor" id="amBusinessEditor">
@@ -78,7 +78,7 @@
  </div>
  <asp:UpdatePanel ID="UpdatePanel1" runat="server" UpdateMode="Conditional"><ContentTemplate>
   <section class="am-business-card" aria-labelledby="address-lookup-heading">
-   <h2 id="address-lookup-heading">Address Lookup</h2>
+   <h2 id="address-lookup-heading" class="am-heading-icon"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>Address Lookup</h2>
    <p>Enter a postal code to search for an address, then select one from the list below or add a new address.</p>
    <div class="am-business-lookup">
     <div class="am-business-field"><asp:Label runat="server" AssociatedControlID="txtSearchPostalCode" Text="Enter Postal Code" /> <span class="am-required">(Required)</span><asp:Panel ID="AddressSearchPanel" runat="server" DefaultButton="lnkSearch" CssClass="am-business-search-group">
@@ -87,25 +87,27 @@
     </asp:Panel></div>
     <div id="resultdiv" runat="server" class="am-business-results">
      <asp:Label runat="server" AssociatedControlID="AddressChoices" Text="Select Address from List or Add New" /> <span class="am-required">(Required)</span>
-     <asp:DropDownList ID="AddressChoices" runat="server" AutoPostBack="true" OnSelectedIndexChanged="AddressChoices_SelectedIndexChanged" CssClass="am-business-input" />
-     <asp:LinkButton ID="UseThisAddress" runat="server" Enabled="false" Text="Use This Address" CausesValidation="false" OnClick="UseThisAddress_Click" CssClass="am-business-button am-business-secondary" style="display:none" />
+     <div class="am-results-row">
+      <asp:DropDownList ID="AddressChoices" runat="server" AutoPostBack="true" OnSelectedIndexChanged="AddressChoices_SelectedIndexChanged" CssClass="am-business-input" />
+      <asp:LinkButton ID="UseThisAddress" runat="server" Enabled="false" Text="Use This Address" CausesValidation="false" OnClick="UseThisAddress_Click" CssClass="am-business-button am-use-address" />
+     </div>
     </div>
-   </div>
-   <div class="am-business-actions">
-    <asp:LinkButton ID="AddNewAddress" runat="server" Text="+&nbsp; Add New Address" OnClick="AddNewAddress_Click" CausesValidation="false" CssClass="am-business-button am-business-secondary" />
-    <asp:LinkButton ID="ClearBusinessAddress" runat="server" Text="Clear Address" OnClick="ClearBusinessAddress_Click" CausesValidation="false" CssClass="am-business-button am-business-secondary" />
+    <div class="am-lookup-actions">
+     <asp:LinkButton ID="AddNewAddress" runat="server" Text="+&nbsp; Add New Address" OnClick="AddNewAddress_Click" OnClientClick="if(window.AnyminuteBusinessAddress){AnyminuteBusinessAddress.openNew();return false;}" CausesValidation="false" CssClass="am-business-button am-business-secondary" />
+     <asp:LinkButton ID="ClearBusinessAddress" runat="server" Text="Clear Address" OnClick="ClearBusinessAddress_Click" CausesValidation="false" CssClass="am-business-button am-business-secondary" OnClientClick="return confirm('Clear the business address fields? Business details are kept.');" />
+    </div>
    </div>
   </section>
   <asp:Label ID="AddressMessage" ClientIDMode="Static" runat="server" Visible="false" CssClass="am-business-error" role="alert" tabindex="-1" />
   <div id="divAdd" runat="server" class="am-business-card" style="display:block;" aria-labelledby="business-address-heading">
    <h2 id="business-address-heading">Business Address</h2>
-   <p class="am-business-hint">When an address is selected from the list, the fields below will be automatically filled. You can also enter or edit the address manually.</p>
+   <p class="am-business-hint">When an address is selected from the list and you click Use This Address, the fields below are filled automatically. Fields are locked: click the pencil in a field to edit it.</p>
    <div class="am-business-grid am-grid-12 am-address-v3">
 <div class="am-business-field am-a3"><asp:Label runat="server" AssociatedControlID="txtStreetNo" Text="Street Number" /> <span class="am-required">(Required)</span><asp:TextBox ID="txtStreetNo" runat="server" CssClass="am-business-input" ClientIDMode="Static" aria-required="true" /></div>
 <div class="am-business-field am-a3"><asp:Label runat="server" AssociatedControlID="txtStreetName" Text="Address Line 1" /> <span class="am-required">(Required)</span><asp:TextBox ID="txtStreetName" runat="server" CssClass="am-business-input" ClientIDMode="Static" autocomplete="address-line1" aria-required="true" /></div>
-<div class="am-business-field am-a3"><asp:Label runat="server" AssociatedControlID="txtStreetType" Text="Address Line 2" /><asp:TextBox ID="txtStreetType" runat="server" CssClass="am-business-input" autocomplete="address-line2" placeholder="Enter address line 2 (e.g. Unit, Floor, etc.)" /></div>
-<div class="am-business-field am-a3"><asp:Label runat="server" AssociatedControlID="txtSuiteNumber" Text="Suite Number" /><asp:TextBox ID="txtSuiteNumber" runat="server" CssClass="am-business-input"  /></div>
-<div class="am-business-field am-a3"><asp:Label runat="server" AssociatedControlID="ddlSuitType" Text="Suite Type" /><asp:DropDownList ID="ddlSuitType" runat="server" CssClass="am-business-input">
+<div class="am-business-field am-a3"><asp:Label runat="server" AssociatedControlID="txtStreetType" Text="Address Line 2" /><asp:TextBox ID="txtStreetType" runat="server" ClientIDMode="Static" CssClass="am-business-input" autocomplete="address-line2" placeholder="Enter address line 2 (e.g. Unit, Floor, etc.)" /></div>
+<div class="am-business-field am-a3"><asp:Label runat="server" AssociatedControlID="txtSuiteNumber" Text="Suite Number" /><asp:TextBox ID="txtSuiteNumber" runat="server" ClientIDMode="Static" CssClass="am-business-input"  /></div>
+<div class="am-business-field am-a3"><asp:Label runat="server" AssociatedControlID="ddlSuitType" Text="Suite Type" /><asp:DropDownList ID="ddlSuitType" runat="server" ClientIDMode="Static" CssClass="am-business-input">
                                                         <asp:ListItem Value="" Text="Please Select"></asp:ListItem>
                                                         <asp:ListItem Value="Apartment" Text="Apartment"></asp:ListItem>
                                                         <asp:ListItem Value="Suite" Text="Suite"></asp:ListItem>
@@ -114,7 +116,7 @@
 <div class="am-business-field am-a4 am-row-start"><asp:Label runat="server" AssociatedControlID="txtCity" Text="City" /> <span class="am-required">(Required)</span><asp:TextBox ID="txtCity" runat="server" CssClass="am-business-input" ClientIDMode="Static" autocomplete="address-level2" aria-required="true" /></div>
 <div class="am-business-field am-a4"><asp:Label runat="server" AssociatedControlID="txtProvince" Text="Province/State" /> <span class="am-required">(Required)</span><asp:TextBox ID="txtProvince" runat="server" CssClass="am-business-input am-select-look" list="am-provinces" ClientIDMode="Static" autocomplete="address-level1" aria-required="true" /></div>
 <div class="am-business-field am-a4"><asp:Label runat="server" AssociatedControlID="txtPostalCode" Text="Postal Code" /> <span class="am-required">(Required)</span><asp:TextBox ID="txtPostalCode" runat="server" CssClass="am-business-input" ClientIDMode="Static" MaxLength="10" autocomplete="postal-code" aria-required="true" /></div>
-<div id="CountryField" runat="server" class="am-business-field am-a4"><asp:Label runat="server" AssociatedControlID="Country" Text="Country" /> <span class="am-required">(Required)</span><asp:TextBox ID="Country" runat="server" CssClass="am-business-input am-select-look" list="am-countries" Text="Canada" MaxLength="100" autocomplete="country-name" aria-required="true" /></div>
+<div id="CountryField" runat="server" class="am-business-field am-a4"><asp:Label runat="server" AssociatedControlID="Country" Text="Country" /> <span class="am-required">(Required)</span><asp:TextBox ID="Country" runat="server" ClientIDMode="Static" CssClass="am-business-input am-select-look" list="am-countries" Text="Canada" MaxLength="100" autocomplete="country-name" aria-required="true" /></div>
    </div>
   </div>
   <datalist id="am-provinces"><option value="ALBERTA"></option><option value="BRITISH COLUMBIA"></option><option value="MANITOBA"></option><option value="NEW BRUNSWICK"></option><option value="NEWFOUNDLAND AND LABRADOR"></option><option value="NORTHWEST TERRITORIES"></option><option value="NOVA SCOTIA"></option><option value="NUNAVUT"></option><option value="ONTARIO"></option><option value="PRINCE EDWARD ISLAND"></option><option value="QUEBEC"></option><option value="SASKATCHEWAN"></option><option value="YUKON"></option></datalist><datalist id="am-countries"><option value="Canada"></option><option value="United States"></option></datalist>
@@ -154,11 +156,30 @@
   <asp:PostBackTrigger ControlID="btnSaveAddres" />
   <asp:PostBackTrigger ControlID="btnUpdateAddress" />
  </Triggers></asp:UpdatePanel>
+ <div class="am-addr-modal" id="amNewAddress" role="dialog" aria-modal="true" aria-labelledby="amNewAddressTitle" hidden="hidden">
+  <div class="am-addr-dialog">
+   <header><h2 id="amNewAddressTitle">Add New Address</h2><button type="button" class="am-addr-x" data-addr-close="1" aria-label="Close">&times;</button></header>
+   <p class="am-business-hint">Enter the address. It is copied into Business Address; nothing is saved until you click Save at the bottom of the page.</p>
+   <p class="am-business-error" id="amNewAddressError" role="alert" hidden="hidden"></p>
+   <div class="am-addr-grid">
+    <label><span>Street Number <span class="am-required">(Required)</span></span><input type="text" data-addr="txtStreetNo" data-req="1" maxlength="50" /></label>
+    <label><span>Address Line 1 <span class="am-required">(Required)</span></span><input type="text" data-addr="txtStreetName" data-req="1" maxlength="50" /></label>
+    <label><span>Address Line 2</span><input type="text" data-addr="txtStreetType" maxlength="50" placeholder="Unit, Floor, etc." /></label>
+    <label><span>Suite Number</span><input type="text" data-addr="txtSuiteNumber" maxlength="50" /></label>
+    <label><span>Suite Type</span><select data-addr="ddlSuitType"><option value="">Please Select</option><option>Apartment</option><option>Suite</option><option>Unit</option></select></label>
+    <label><span>City <span class="am-required">(Required)</span></span><input type="text" data-addr="txtCity" data-req="1" maxlength="50" /></label>
+    <label><span>Province/State <span class="am-required">(Required)</span></span><input type="text" data-addr="txtProvince" data-req="1" list="am-provinces" maxlength="50" /></label>
+    <label><span>Postal Code <span class="am-required">(Required)</span></span><input type="text" data-addr="txtPostalCode" data-req="1" maxlength="10" /></label>
+    <label><span>Country <span class="am-required">(Required)</span></span><input type="text" data-addr="Country" data-req="1" list="am-countries" maxlength="100" value="Canada" /></label>
+   </div>
+   <footer><button type="button" class="am-business-button am-business-secondary" data-addr-close="1">Cancel</button><button type="button" class="am-business-button" data-addr-apply="1">Use This Address</button></footer>
+  </div>
+ </div>
  <footer class="am-business-actions am-business-footer">
   <asp:LinkButton ID="CancelBusiness" runat="server" Text="Cancel" OnClick="CancelBusiness_Click" CausesValidation="false" CssClass="am-business-button am-business-secondary" />
   <asp:LinkButton ID="btnSaveBusinessDetails" runat="server" Text="Save" OnClick="btnSaveBusinessDetails_Click" CausesValidation="false" CssClass="am-business-button" />
   <asp:LinkButton ID="btnUpdateBusinessDetails" runat="server" Text="Save Changes" OnClick="btnUpdateBusinessDetails_Click" Visible="false" CausesValidation="false" CssClass="am-business-button" />
-  <asp:Button ID="DeactivateBusiness" runat="server" Text="Deactivate Business" CssClass="am-business-button am-business-danger" CausesValidation="false" />
+  <asp:Button ID="DeactivateBusiness" runat="server" Visible="false" Text="Deactivate Business" CssClass="am-business-button am-business-danger" CausesValidation="false" />
  </footer>
  <div class="am-business-compat" hidden="hidden" aria-hidden="true">
   <div ID="divAdmin" runat="server"><asp:TextBox ID="txtaccountantmail" runat="server" Visible="false" Placeholder="Enter business owner email ID" /></div>

@@ -39,6 +39,8 @@
         return Array.prototype.filter.call(table.rows,function(row){return row.querySelector('td') && !row.querySelector('td[colspan]') && !row.classList.contains('GridPager');});
     }
     function heading(main) {
+        // 2026-10-24 v10: Add / Update Business has its own page header and footer Save; no injected heading or Save.
+        if (page === 'add_business.aspx') return;
         if(!pages[page] || document.getElementById('am-heading'))return;
         var info=pages[page],title=info[0];
         if(page==='add_business.aspx' && new URLSearchParams(location.search).has('BusinessIDEdit'))title='Update Profile';

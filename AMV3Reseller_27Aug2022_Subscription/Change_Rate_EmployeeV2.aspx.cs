@@ -34,6 +34,8 @@ public partial class Change_Rate_EmployeeV2 : System.Web.UI.Page
     public static string name { get; set; }
     protected void Page_Load(object sender, EventArgs e)
     {
+        // 2026-10-24 v10: the Rate History Module (RateHistory.aspx) replaces this legacy screen; ?legacy=1 keeps it reachable.
+        if (Request.QueryString["legacy"] != "1") { Response.Redirect("RateHistory.aspx" + Request.Url.Query, true); return; }
         if (!IsPostBack)
         {
             divsearch.Attributes.Add("style", "display:None;");

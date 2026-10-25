@@ -8,3 +8,8 @@ html body.am-drawer-nav [data-toggle-sidebar],html body.am-drawer-nav #menu-togg
 html body.am-drawer-nav [data-toggle-sidebar]:hover,html body.am-drawer-nav #menu-toggle:hover{background:#eef4fb!important}
 html body.am-drawer-nav.am-drawer-open [data-toggle-sidebar],html body.am-drawer-nav.am-drawer-open #menu-toggle{color:#1768d6!important;border-color:#1768d6!important;background:#e8f1ff!important}
 html body.am-drawer-nav [data-toggle-sidebar]:focus-visible,html body.am-drawer-nav #menu-toggle:focus-visible{outline:3px solid #a8d1ff;outline-offset:2px}
+/* 2026-10-24 v10: plain blue three-bar hamburger beside the logo / Welcome text (no bordered box) */
+html body.am-drawer-nav [data-toggle-sidebar],html body.am-drawer-nav #menu-toggle,html body.am-ui #menu-toggle,html body.am-ui [data-toggle-sidebar]{border:0!important;background:transparent!important;box-shadow:none!important;color:#1768d6!important;width:34px;height:42px;padding:0!important;margin:0 6px 0 0!important;display:inline-flex!important;align-items:center;justify-content:center;vertical-align:middle;align-self:center;font-size:24px;line-height:1}
+html body.am-drawer-nav [data-toggle-sidebar]:hover,html body.am-drawer-nav #menu-toggle:hover,html body.am-drawer-nav.am-drawer-open [data-toggle-sidebar],html body.am-drawer-nav.am-drawer-open #menu-toggle{background:transparent!important;border:0!important;color:#0f55b8!important}
+html body.am-ui #menu-toggle svg,html body.am-ui [data-toggle-sidebar] svg{width:26px;height:26px}
+html body.am-ui #menu-toggle .fa{color:#1768d6!important;font-size:24px}

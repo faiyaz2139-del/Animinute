@@ -35,7 +35,8 @@ public partial class Add_Business : System.Web.UI.Page
     {
         EnsureBusinessActionButton("RemoveBusinessLogo", "Remove Logo", editing,
             new EventHandler(RemoveLogo_Click), null);
-        EnsureBusinessActionButton("DeactivateBusiness", "Deactivate Business", editing,
+        // v10: Deactivate Business is no longer offered on this page (handler kept for compatibility).
+        EnsureBusinessActionButton("DeactivateBusiness", "Deactivate Business", false,
             new EventHandler(DeactivateBusiness_Click),
             "return confirm('Deactivate this business while retaining its records?');");
     }
@@ -355,7 +356,7 @@ public partial class Add_Business : System.Web.UI.Page
                 return;
             }
             BsnsRegDate.Attributes.Add("max", System.DateTime.Now.Date.ToString("yyyy-MM-dd"));
-            ResetAddressChoices("Search a postal code first");
+            ResetAddressChoices("");
             try
             {
                 if (Session["Redirect"] != null)
@@ -643,7 +644,7 @@ public partial class Add_Business : System.Web.UI.Page
     public void ClearAddressContactDetails()
     {
         txtSearchPostalCode.Text = "";
-        ResetAddressChoices("Search a postal code first");
+        ResetAddressChoices("");
         txtStreetNo.Text = "";
         txtStreetName.Text = "";
         txtStreetType.Text = "";
@@ -691,17 +692,17 @@ public partial class Add_Business : System.Web.UI.Page
     protected void lnkSearch_Click(object sender, EventArgs e)
     {
         AddressMessage.Visible = false;
-        ResetAddressChoices("Search a postal code first");
+        ResetAddressChoices("");
         gvAddressList.DataSource = null; gvAddressList.DataBind();
         string postal = AnyminuteBusinessAddressInput.Postal(txtSearchPostalCode.Text);
         if (!Regex.IsMatch(postal, @"^[A-Z0-9-]{5,10}$"))
         { AddressFeedback("Enter a postal code of 5 to 10 letters or digits."); return; }
-        DataTable matches = comm.GetSearchAddress(postal);
+        DataTable matches = AnyminuteAddressLookup.Search(postal);
         ViewState["BusinessAddressMatches"] = matches;
         ViewState["BusinessAddressLookupPostal"] = postal;
         resultdiv.Visible = true;
         AddressChoices.Items.Clear();
-        AddressChoices.Items.Add(new ListItem("Select an address", ""));
+        AddressChoices.Items.Add(new ListItem("", ""));
         for (int i = 0; i < matches.Rows.Count; i++)
         {
             string label = Convert.ToString(matches.Rows[i]["SEARCHADDRESS"]).Trim();
@@ -711,8 +712,12 @@ public partial class Add_Business : System.Web.UI.Page
         AddressChoices.Enabled = AddressChoices.Items.Count > 1;
         if (AddressChoices.Items.Count == 1)
         {
-            AddressChoices.Items[0].Text = "No matching addresses found";
-            AddressFeedback("No matching addresses found. Please check the postal code or enter the address manually using Add New Address.");
+            AddressFeedback("No matching addresses found. Please check the postal code or enter the address manually.");
+        }
+        else
+        {
+            AddressFeedback((AddressChoices.Items.Count - 1) + " matching address" + (AddressChoices.Items.Count == 2 ? "" : "es") + " found. Select one, then click Use This Address.", false);
+            ScriptManager.RegisterStartupScript(UpdatePanel1, typeof(Add_Business), "amOpenAddressList", "if(window.AnyminuteBusinessAddress)AnyminuteBusinessAddress.openList();", true);
         }
         // Searching is read-only. Never select or save the first result automatically.
     }
@@ -726,8 +731,9 @@ public partial class Add_Business : System.Web.UI.Page
 
     protected void AddressChoices_SelectedIndexChanged(object sender, EventArgs e)
     {
+        // v10: selecting only enables Use This Address; the fields are filled when it is clicked.
         UseThisAddress.Enabled = AddressChoices.SelectedValue != "";
-        if (UseThisAddress.Enabled) ApplySelectedAddress();
+        AddressMessage.Visible = false;
     }
 
     protected void UseThisAddress_Click(object sender, EventArgs e)
@@ -835,8 +841,10 @@ public partial class Add_Business : System.Web.UI.Page
         // v3 field layout per deck: Add = 2 columns, no Status/Country/Clear Address; Update = 2/3/4 columns with Status and Country.
         BusinessDetailsCard.Attributes["class"] = "am-business-card am-fields-v3 " + (editing ? "am-mode-edit" : "am-mode-add");
         divAdd.Attributes["class"] = "am-business-card " + (editing ? "am-mode-edit" : "am-mode-add");
-        StatusField.Visible = editing; CountryField.Style["display"] = editing ? "" : "none";
-        ClearBusinessAddress.Visible = editing;
+        // v10 address spec: Country (default Canada) and Clear Address in both Add and Update.
+        StatusField.Visible = editing; CountryField.Style["display"] = "";
+        ClearBusinessAddress.Visible = true;
+        if (Country.Text.Trim().Length == 0) Country.Text = "Canada";
         // Logo: picture when one exists, otherwise initials (edit) or the upload prompt (add).
         bool hasLogo = !String.IsNullOrEmpty(previewImage.ImageUrl);
         string initials = BusinessInitials(txtCompanyName.Text);
@@ -873,7 +881,7 @@ public partial class Add_Business : System.Web.UI.Page
     protected void ClearBusinessAddress_Click(object sender, EventArgs e)
     {
         ResetAddressFields(); txtSearchPostalCode.Text = "";
-        ResetAddressChoices("Search a postal code first");
+        ResetAddressChoices("");
         ViewState.Remove("BusinessAddressMatches"); ViewState.Remove("BusinessAddressLookupPostal");
         ViewState["ManualBusinessAddress"] = true;
         EnableAddressFields(); AddressMessage.Visible = false;
