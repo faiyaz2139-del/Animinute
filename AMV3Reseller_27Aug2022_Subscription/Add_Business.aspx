@@ -1,8 +1,8 @@
 <%@ Page Title="Business" Language="C#" MasterPageFile="~/Main.master" AutoEventWireup="true" CodeFile="Add_Business.aspx.cs" Inherits="Add_Business" %>
 <%@ Register Assembly="AjaxControlToolkit" Namespace="AjaxControlToolkit" TagPrefix="cc1" %>
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
- <link rel="stylesheet" href="css/AnyminuteBusinessEditor.css?v=20261024v10" />
- <script src="Scripts/AnyminuteBusinessEditor.js?v=20261024v10" defer="defer"></script>
+ <link rel="stylesheet" href="css/AnyminuteBusinessEditor.css?v=20261024v11" />
+ <script src="Scripts/AnyminuteBusinessEditor.js?v=20261024v11" defer="defer"></script>
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
 <div class="am-business-editor" id="amBusinessEditor">
@@ -77,47 +77,61 @@
   </section>
  </div>
  <asp:UpdatePanel ID="UpdatePanel1" runat="server" UpdateMode="Conditional"><ContentTemplate>
-  <section class="am-business-card" aria-labelledby="address-lookup-heading">
-   <h2 id="address-lookup-heading" class="am-heading-icon"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>Address Lookup</h2>
-   <p>Enter a postal code to search for an address, then select one from the list below or add a new address.</p>
-   <div class="am-business-lookup">
-    <div class="am-business-field"><asp:Label runat="server" AssociatedControlID="txtSearchPostalCode" Text="Enter Postal Code" /> <span class="am-required">(Required)</span><asp:Panel ID="AddressSearchPanel" runat="server" DefaultButton="lnkSearch" CssClass="am-business-search-group">
-     <asp:TextBox ID="txtSearchPostalCode" ClientIDMode="Static" runat="server" MaxLength="10" CssClass="am-business-input" autocomplete="postal-code" placeholder="Enter postal code" />
-     <asp:LinkButton ID="lnkSearch" runat="server" OnClick="lnkSearch_Click" CausesValidation="false" CssClass="am-business-button am-search-icon" ToolTip="Search postal code"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg><span class="am-visually-hidden">Search</span></asp:LinkButton>
-    </asp:Panel></div>
-    <div id="resultdiv" runat="server" class="am-business-results">
-     <asp:Label runat="server" AssociatedControlID="AddressChoices" Text="Select Address from List or Add New" /> <span class="am-required">(Required)</span>
-     <div class="am-results-row">
-      <asp:DropDownList ID="AddressChoices" runat="server" AutoPostBack="true" OnSelectedIndexChanged="AddressChoices_SelectedIndexChanged" CssClass="am-business-input" />
-      <asp:LinkButton ID="UseThisAddress" runat="server" Enabled="false" Text="Use This Address" CausesValidation="false" OnClick="UseThisAddress_Click" CssClass="am-business-button am-use-address" />
-     </div>
+  <div class="am-al-layout">
+  <section class="am-al-main" aria-labelledby="address-lookup-heading">
+   <h2 id="address-lookup-heading">Address Lookup</h2>
+   <p class="am-al-sub">Search for an address using a postal or ZIP code, select a result, or enter the address manually.</p>
+   <asp:Panel ID="AddressSearchPanel" runat="server" DefaultButton="lnkSearch" CssClass="am-al-search">
+    <div class="am-al-f am-al-country"><label for="LookupCountry">Country <b class="am-al-req">*</b></label><span class="am-al-flagsel"><span class="am-al-flag" id="amLookupFlag"><svg class="am-flag-ca" viewBox="0 0 24 16" width="24" height="16" aria-hidden="true" focusable="false"><rect width="24" height="16" fill="#fff"/><rect width="6" height="16" fill="#d52b1e"/><rect x="18" width="6" height="16" fill="#d52b1e"/><path fill="#d52b1e" d="M12 3.2l.9 1.8 1-.4-.3 2.4 1.5-1.2.4.9 1.3-.3-.5 1.6.6.3L14.6 10l.3.9-2.6-.3.1 2.2h-.8l.1-2.2-2.6.3.3-.9L7.1 8.3l.6-.3-.5-1.6 1.3.3.4-.9 1.5 1.2-.3-2.4 1 .4z"/></svg><svg class="am-flag-us" viewBox="0 0 24 16" width="24" height="16" aria-hidden="true" focusable="false"><rect width="24" height="16" fill="#fff"/><path fill="#b22234" d="M0 0h24v1.23H0zm0 2.46h24v1.23H0zm0 2.46h24v1.23H0zm0 2.46h24v1.23H0zm0 2.46h24v1.23H0zm0 2.46h24v1.23H0zm0 2.46h24V16H0z"/><rect width="10" height="8.6" fill="#3c3b6e"/></svg></span><asp:DropDownList ID="LookupCountry" runat="server" ClientIDMode="Static"><asp:ListItem Value="Canada" Text="Canada" /><asp:ListItem Value="United States" Text="United States" /></asp:DropDownList></span></div>
+    <div class="am-al-f am-al-postal"><label for="txtSearchPostalCode">Postal / ZIP Code <b class="am-al-req">*</b></label><span class="am-al-clearwrap"><asp:TextBox ID="txtSearchPostalCode" ClientIDMode="Static" runat="server" MaxLength="10" autocomplete="postal-code" placeholder="e.g. M1B 2W1" /><button type="button" class="am-al-clear" data-al-clear="1" aria-label="Clear postal code">&times;</button></span></div>
+    <asp:LinkButton ID="lnkSearch" runat="server" OnClick="lnkSearch_Click" CausesValidation="false" CssClass="am-al-btn am-al-primary"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg><span>Search Address</span></asp:LinkButton>
+    <asp:LinkButton ID="AddNewAddress" runat="server" OnClick="AddNewAddress_Click" OnClientClick="if(window.AnyminuteBusinessAddress){AnyminuteBusinessAddress.openNew();return false;}" CausesValidation="false" CssClass="am-al-btn am-al-outline"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path fill="currentColor" d="M3 17.25V21h3.75L17.8 9.94l-3.75-3.75L3 17.25zM20.7 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg><span>Enter Address Manually</span></asp:LinkButton>
+   </asp:Panel>
+   <div class="am-al-info"><span class="am-al-i" aria-hidden="true">i</span><span id="amLookupHint">Enter a valid Canadian postal code (e.g. M1B 2W1) or US ZIP code (e.g. 33185).</span></div>
+   <asp:Label ID="AddressMessage" ClientIDMode="Static" runat="server" Visible="false" CssClass="am-business-error" role="alert" tabindex="-1" />
+   <div id="resultdiv" runat="server" class="am-al-results">
+    <label for="AddressChoices">Select Address from Search Results</label>
+    <asp:DropDownList ID="AddressChoices" runat="server" ClientIDMode="Static" AutoPostBack="true" OnSelectedIndexChanged="AddressChoices_SelectedIndexChanged" />
+    <asp:LinkButton ID="UseThisAddress" runat="server" Visible="false" Enabled="false" Text="Use This Address" CausesValidation="false" OnClick="UseThisAddress_Click" />
+    <asp:LinkButton ID="ClearBusinessAddress" runat="server" Visible="false" Text="Clear Address" OnClick="ClearBusinessAddress_Click" CausesValidation="false" />
+   </div>
+   <div id="divAdd" runat="server" class="am-al-details" aria-labelledby="business-address-heading">
+    <div class="am-al-details-head"><h3 id="business-address-heading">Address Details</h3><span class="am-al-pill">Manual Entry</span></div>
+    <div class="am-al-grid">
+     <div class="am-al-f"><label for="txtStreetNo">Street Number <b class="am-al-req">*</b></label><asp:TextBox ID="txtStreetNo" runat="server" ClientIDMode="Static" aria-required="true" /></div>
+     <div class="am-al-f am-al-span2"><label for="txtStreetName">Address Line 1 <b class="am-al-req">*</b></label><asp:TextBox ID="txtStreetName" runat="server" ClientIDMode="Static" autocomplete="address-line1" aria-required="true" /></div>
+     <div class="am-al-f"><label for="txtStreetType">Address Line 2 (Optional)</label><asp:TextBox ID="txtStreetType" runat="server" ClientIDMode="Static" autocomplete="address-line2" placeholder="e.g. Unit, Floor, Building, etc." /></div>
+     <div class="am-al-f"><label for="ddlSuitType">Suite Type (Optional)</label><asp:DropDownList ID="ddlSuitType" runat="server" ClientIDMode="Static"><asp:ListItem Value="" Text="Please Select" /><asp:ListItem Value="Apartment" Text="Apartment" /><asp:ListItem Value="Suite" Text="Suite" /><asp:ListItem Value="Unit" Text="Unit" /></asp:DropDownList></div>
+     <div class="am-al-f"><label for="txtSuiteNumber">Suite Number (Optional)</label><asp:TextBox ID="txtSuiteNumber" runat="server" ClientIDMode="Static" placeholder="e.g. 200" /></div>
+     <div class="am-al-f"><label for="txtCity">City <b class="am-al-req">*</b></label><asp:TextBox ID="txtCity" runat="server" ClientIDMode="Static" autocomplete="address-level2" aria-required="true" /></div>
+     <div class="am-al-f"><label for="amProvinceSel">Province / State <b class="am-al-req">*</b></label><select id="amProvinceSel" class="am-al-proxy" data-proxy-for="txtProvince" aria-required="true"></select><asp:TextBox ID="txtProvince" runat="server" ClientIDMode="Static" CssClass="am-al-proxied" autocomplete="address-level1" aria-hidden="true" tabindex="-1" /></div>
+     <div class="am-al-f"><label for="txtPostalCode">Postal / ZIP Code <b class="am-al-req">*</b></label><asp:TextBox ID="txtPostalCode" runat="server" ClientIDMode="Static" MaxLength="10" autocomplete="postal-code" aria-required="true" /></div>
+     <div id="CountryField" runat="server" class="am-al-f am-al-span2"><label for="amCountrySel">Country <b class="am-al-req">*</b></label><select id="amCountrySel" class="am-al-proxy" data-proxy-for="Country" aria-required="true"><option value="Canada">Canada</option><option value="United States">United States</option></select><asp:TextBox ID="Country" runat="server" ClientIDMode="Static" CssClass="am-al-proxied" Text="Canada" MaxLength="100" aria-hidden="true" tabindex="-1" /></div>
     </div>
-    <div class="am-lookup-actions">
-     <asp:LinkButton ID="AddNewAddress" runat="server" Text="+&nbsp; Add New Address" OnClick="AddNewAddress_Click" OnClientClick="if(window.AnyminuteBusinessAddress){AnyminuteBusinessAddress.openNew();return false;}" CausesValidation="false" CssClass="am-business-button am-business-secondary" />
-     <asp:LinkButton ID="ClearBusinessAddress" runat="server" Text="Clear Address" OnClick="ClearBusinessAddress_Click" CausesValidation="false" CssClass="am-business-button am-business-secondary" OnClientClick="return confirm('Clear the business address fields? Business details are kept.');" />
-    </div>
+    <div class="am-al-actions"><button type="button" class="am-al-btn am-al-outline am-al-wide" data-al-cancel="1">Cancel</button><button type="button" class="am-al-btn am-al-primary am-al-wide" data-al-save="1">Save Changes</button></div>
    </div>
   </section>
-  <asp:Label ID="AddressMessage" ClientIDMode="Static" runat="server" Visible="false" CssClass="am-business-error" role="alert" tabindex="-1" />
-  <div id="divAdd" runat="server" class="am-business-card" style="display:block;" aria-labelledby="business-address-heading">
-   <h2 id="business-address-heading">Business Address</h2>
-   <p class="am-business-hint">When an address is selected from the list and you click Use This Address, the fields below are filled automatically. Fields are locked: click the pencil in a field to edit it.</p>
-   <div class="am-business-grid am-grid-12 am-address-v3">
-<div class="am-business-field am-a3"><asp:Label runat="server" AssociatedControlID="txtStreetNo" Text="Street Number" /> <span class="am-required">(Required)</span><asp:TextBox ID="txtStreetNo" runat="server" CssClass="am-business-input" ClientIDMode="Static" aria-required="true" /></div>
-<div class="am-business-field am-a3"><asp:Label runat="server" AssociatedControlID="txtStreetName" Text="Address Line 1" /> <span class="am-required">(Required)</span><asp:TextBox ID="txtStreetName" runat="server" CssClass="am-business-input" ClientIDMode="Static" autocomplete="address-line1" aria-required="true" /></div>
-<div class="am-business-field am-a3"><asp:Label runat="server" AssociatedControlID="txtStreetType" Text="Address Line 2" /><asp:TextBox ID="txtStreetType" runat="server" ClientIDMode="Static" CssClass="am-business-input" autocomplete="address-line2" placeholder="Enter address line 2 (e.g. Unit, Floor, etc.)" /></div>
-<div class="am-business-field am-a3"><asp:Label runat="server" AssociatedControlID="txtSuiteNumber" Text="Suite Number" /><asp:TextBox ID="txtSuiteNumber" runat="server" ClientIDMode="Static" CssClass="am-business-input"  /></div>
-<div class="am-business-field am-a3"><asp:Label runat="server" AssociatedControlID="ddlSuitType" Text="Suite Type" /><asp:DropDownList ID="ddlSuitType" runat="server" ClientIDMode="Static" CssClass="am-business-input">
-                                                        <asp:ListItem Value="" Text="Please Select"></asp:ListItem>
-                                                        <asp:ListItem Value="Apartment" Text="Apartment"></asp:ListItem>
-                                                        <asp:ListItem Value="Suite" Text="Suite"></asp:ListItem>
-                                                        <asp:ListItem Value="Unit" Text="Unit"></asp:ListItem>
-                                                    </asp:DropDownList></div>
-<div class="am-business-field am-a4 am-row-start"><asp:Label runat="server" AssociatedControlID="txtCity" Text="City" /> <span class="am-required">(Required)</span><asp:TextBox ID="txtCity" runat="server" CssClass="am-business-input" ClientIDMode="Static" autocomplete="address-level2" aria-required="true" /></div>
-<div class="am-business-field am-a4"><asp:Label runat="server" AssociatedControlID="txtProvince" Text="Province/State" /> <span class="am-required">(Required)</span><asp:TextBox ID="txtProvince" runat="server" CssClass="am-business-input am-select-look" list="am-provinces" ClientIDMode="Static" autocomplete="address-level1" aria-required="true" /></div>
-<div class="am-business-field am-a4"><asp:Label runat="server" AssociatedControlID="txtPostalCode" Text="Postal Code" /> <span class="am-required">(Required)</span><asp:TextBox ID="txtPostalCode" runat="server" CssClass="am-business-input" ClientIDMode="Static" MaxLength="10" autocomplete="postal-code" aria-required="true" /></div>
-<div id="CountryField" runat="server" class="am-business-field am-a4"><asp:Label runat="server" AssociatedControlID="Country" Text="Country" /> <span class="am-required">(Required)</span><asp:TextBox ID="Country" runat="server" ClientIDMode="Static" CssClass="am-business-input am-select-look" list="am-countries" Text="Canada" MaxLength="100" autocomplete="country-name" aria-required="true" /></div>
-   </div>
+  <aside class="am-al-help" aria-labelledby="am-al-help-title">
+   <div class="am-al-help-head"><h2 id="am-al-help-title">How Postal Code Search Works</h2><p>The postal/ZIP code search helps you find and fill the address automatically.</p></div>
+   <ol class="am-al-steps">
+    <li><span class="am-al-num">1</span><span class="am-al-sico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h1M10 10h1M14 10h1M18 10h0M7 14h10"/></svg></span><div><strong>Enter Postal / ZIP Code</strong><p>Select the country (Canada or United States), enter the postal or ZIP code, and click Search Address.</p></div></li>
+    <li><span class="am-al-num">2</span><span class="am-al-sico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg></span><div><strong>View Search Results</strong><p>Matching addresses will appear in the dropdown list. A postal code may return multiple addresses or only street-level information.</p></div></li>
+    <li><span class="am-al-num">3</span><span class="am-al-sico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" class="am-al-fill"/><path d="M8 12.5l2.7 2.7L16.5 9" class="am-al-white"/></svg></span><div><strong>Select an Address</strong><p>Choose the correct address from the list. The address fields will be filled automatically.</p></div></li>
+    <li><span class="am-al-num">4</span><span class="am-al-sico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z" class="am-al-fill"/></svg></span><div><strong>Review and Edit</strong><p>You can edit any field or add unit/suite details if needed.</p></div></li>
+    <li><span class="am-al-num">5</span><span class="am-al-sico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h11l3 3v15H5z" class="am-al-fill"/><rect x="8" y="4" width="7" height="5" class="am-al-white-f"/><rect x="8" y="13" width="8" height="6" class="am-al-white-f"/></svg></span><div><strong>Save Changes</strong><p>Click Save Changes to store the address in the database.</p></div></li>
+   </ol>
+   <div class="am-al-tip am-al-green"><span class="am-al-tipico" aria-hidden="true">&#10003;</span><div><strong>You Can Also Enter the Address Manually</strong><p>If the address is not found in the search results, click <b>Enter Address Manually</b> and complete the address fields.</p></div></div>
+   <div class="am-al-tip am-al-orange"><span class="am-al-tipico" aria-hidden="true">!</span><div><strong>If No Address is Found</strong><p>A message will be displayed: <b>"No matching address found. Please verify the postal/ZIP code or select Enter Address Manually."</b> You can still enter the address manually and save it.</p></div></div>
+   <div class="am-al-notes"><span class="am-al-noteico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 2h8l5 5v15H6z" class="am-al-fill"/><path d="M9 12h7M9 15h7M9 18h5" class="am-al-white"/></svg></span><div><strong>Important Notes</strong><ul>
+    <li>Postal code search is not mandatory.</li>
+    <li>Both lookup and manual entry will save the same address fields.</li>
+    <li>Country and Province/State are dependent (e.g. Florida = United States).</li>
+    <li>Validate postal/ZIP code based on the selected country.</li>
+    <li>All required fields (marked with *) must be completed.</li>
+    <li>The address is saved to the database only when you click Save Changes.</li>
+    <li>Click Cancel to discard changes and keep the existing saved address.</li>
+   </ul></div></div>
+  </aside>
   </div>
   <datalist id="am-provinces"><option value="ALBERTA"></option><option value="BRITISH COLUMBIA"></option><option value="MANITOBA"></option><option value="NEW BRUNSWICK"></option><option value="NEWFOUNDLAND AND LABRADOR"></option><option value="NORTHWEST TERRITORIES"></option><option value="NOVA SCOTIA"></option><option value="NUNAVUT"></option><option value="ONTARIO"></option><option value="PRINCE EDWARD ISLAND"></option><option value="QUEBEC"></option><option value="SASKATCHEWAN"></option><option value="YUKON"></option></datalist><datalist id="am-countries"><option value="Canada"></option><option value="United States"></option></datalist>
   <div class="am-business-compat" hidden="hidden" aria-hidden="true">
@@ -158,21 +172,25 @@
  </Triggers></asp:UpdatePanel>
  <div class="am-addr-modal" id="amNewAddress" role="dialog" aria-modal="true" aria-labelledby="amNewAddressTitle" hidden="hidden">
   <div class="am-addr-dialog">
-   <header><h2 id="amNewAddressTitle">Add New Address</h2><button type="button" class="am-addr-x" data-addr-close="1" aria-label="Close">&times;</button></header>
-   <p class="am-business-hint">Enter the address. It is copied into Business Address; nothing is saved until you click Save at the bottom of the page.</p>
-   <p class="am-business-error" id="amNewAddressError" role="alert" hidden="hidden"></p>
-   <div class="am-addr-grid">
-    <label><span>Street Number <span class="am-required">(Required)</span></span><input type="text" data-addr="txtStreetNo" data-req="1" maxlength="50" /></label>
-    <label><span>Address Line 1 <span class="am-required">(Required)</span></span><input type="text" data-addr="txtStreetName" data-req="1" maxlength="50" /></label>
-    <label><span>Address Line 2</span><input type="text" data-addr="txtStreetType" maxlength="50" placeholder="Unit, Floor, etc." /></label>
-    <label><span>Suite Number</span><input type="text" data-addr="txtSuiteNumber" maxlength="50" /></label>
-    <label><span>Suite Type</span><select data-addr="ddlSuitType"><option value="">Please Select</option><option>Apartment</option><option>Suite</option><option>Unit</option></select></label>
-    <label><span>City <span class="am-required">(Required)</span></span><input type="text" data-addr="txtCity" data-req="1" maxlength="50" /></label>
-    <label><span>Province/State <span class="am-required">(Required)</span></span><input type="text" data-addr="txtProvince" data-req="1" list="am-provinces" maxlength="50" /></label>
-    <label><span>Postal Code <span class="am-required">(Required)</span></span><input type="text" data-addr="txtPostalCode" data-req="1" maxlength="10" /></label>
-    <label><span>Country <span class="am-required">(Required)</span></span><input type="text" data-addr="Country" data-req="1" list="am-countries" maxlength="100" value="Canada" /></label>
+   <header class="am-md-head"><div><h2 id="amNewAddressTitle">Enter Address Manually</h2><p>Enter the business address details below. All required fields must be completed.</p></div><button type="button" class="am-addr-x" data-addr-close="1" aria-label="Close">&times;</button></header>
+   <div class="am-md-body">
+    <div class="am-al-info"><span class="am-al-i" aria-hidden="true">i</span><span>If you cannot find the address using the postal code search, you can enter the address manually.<br />All fields marked with * are required.</span></div>
+    <p class="am-business-error" id="amNewAddressError" role="alert" hidden="hidden"></p>
+    <fieldset class="am-md-sec"><legend>Address Details</legend><div class="am-md-grid">
+     <label><span>Street Number <b class="am-al-req">*</b></span><input type="text" data-addr="txtStreetNo" data-req="1" maxlength="50" placeholder="e.g. 3112" /></label>
+     <label class="am-al-span2"><span>Address Line 1 <b class="am-al-req">*</b></span><input type="text" data-addr="txtStreetName" data-req="1" maxlength="50" placeholder="e.g. Krome Ave" /></label>
+     <label><span>Address Line 2 (Optional)</span><input type="text" data-addr="txtStreetType" maxlength="50" placeholder="e.g. Unit, Floor, Building, etc." /></label>
+     <label><span>Suite Type (Optional)</span><select data-addr="ddlSuitType"><option value="">Please Select</option><option>Apartment</option><option>Suite</option><option>Unit</option></select></label>
+     <label><span>Suite Number (Optional)</span><input type="text" data-addr="txtSuiteNumber" maxlength="50" placeholder="e.g. 200" /></label>
+    </div></fieldset>
+    <fieldset class="am-md-sec"><legend>City, State/Province and Country</legend><div class="am-md-grid">
+     <label><span>City <b class="am-al-req">*</b></span><input type="text" data-addr="txtCity" data-req="1" maxlength="50" placeholder="e.g. Miami" /></label>
+     <label><span>Province / State <b class="am-al-req">*</b></span><select data-addr="txtProvince" data-req="1" data-province-for="amMdCountry"></select></label>
+     <label><span>Postal / ZIP Code <b class="am-al-req">*</b></span><input type="text" data-addr="txtPostalCode" data-req="1" maxlength="10" placeholder="e.g. 33185" /></label>
+     <label class="am-al-span2"><span>Country <b class="am-al-req">*</b></span><select id="amMdCountry" data-addr="Country" data-req="1"><option value="Canada">Canada</option><option value="United States">United States</option></select></label>
+    </div></fieldset>
    </div>
-   <footer><button type="button" class="am-business-button am-business-secondary" data-addr-close="1">Cancel</button><button type="button" class="am-business-button" data-addr-apply="1">Use This Address</button></footer>
+   <footer class="am-md-foot"><button type="button" class="am-al-btn am-al-outline am-al-wide" data-addr-close="1">Cancel</button><button type="button" class="am-al-btn am-al-primary am-al-wide" data-addr-apply="1">Save Address</button></footer>
   </div>
  </div>
  <footer class="am-business-actions am-business-footer">

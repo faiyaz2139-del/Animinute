@@ -45,6 +45,7 @@ public static class AnyminuteUiNavigation
                 Add(items,"Edit User","Users.aspx?action=edit",-213);
                 Add(items,"Add Project","ProjectEditor.aspx",-214); // v8 Deck F: new Add Project page
                 Add(items,"Edit Project","Projects.aspx",-215); // v8 Deck F: edit from the Projects list
+                Add(items,"Weekly Schedule","WeeklyEmployeeSchedule.aspx",-216); // v11 Deck I
             }
         }
         return items.OrderBy(item=>item.Seq);
@@ -87,7 +88,7 @@ public static class AnyminuteUiNavigation
             else if (label.Contains("setting")) group=GSettings;
             else if (route.Contains("notification")) group=GNotifications;
             else if (route.Contains("payroll")) group=GPayroll;
-            else if (route.Contains("schedular") || route.Contains("scheduler")) group=GCalendar;
+            else if (route.Contains("schedular") || route.Contains("scheduler") || route.Contains("weeklyemployeeschedule")) group=GCalendar;
             else if (route.Contains("view=businesses")) group=GBusinesses;
             else if (route.Contains("dashboard") || label == "home" || label == "dashboard" || route.EndsWith("home_page.aspx")) group=GDashboard;
             else if (route.Contains("report") || label.Contains("report")) group=GReports;

@@ -39,62 +39,113 @@
   if(flash&&!flash.dataset.amShown){flash.dataset.amShown='true';flash.setAttribute('tabindex','-1');try{flash.focus({preventScroll:false});}catch(x){flash.focus();}}
   var notice=document.getElementById('AddressMessage');
   if(notice&&notice.textContent&&notice.dataset.amNotice!==notice.textContent){notice.dataset.amNotice=notice.textContent;notice.focus();}
-  lockFields();
+  addressInit();
  }
 
- // 2026-10-24 v10 address spec: open the result list after a search, Add New Address popup, pencil-locked Business Address fields.
- var PENCIL='<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" focusable="false"><path fill="currentColor" d="M3 17.25V21h3.75L17.8 9.94l-3.75-3.75L3 17.25zM20.7 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>';
- function lockFields(){
-  var grid=document.querySelector('#amBusinessEditor .am-address-v3');if(!grid)return;
-  Array.prototype.forEach.call(grid.querySelectorAll('.am-business-field'),function(field){
-   var input=field.querySelector('input.am-business-input,select.am-business-input');if(!input||input.dataset.amLock)return;
-   input.dataset.amLock='1';
-   var wrap=document.createElement('span');wrap.className='am-lock-wrap';input.parentNode.insertBefore(wrap,input);wrap.appendChild(input);
-   var b=document.createElement('button');b.type='button';b.className='am-lock-pencil';b.innerHTML=PENCIL;
-   var label=field.querySelector('label');b.setAttribute('aria-label','Edit '+(label?label.textContent.trim():'field'));b.title='Edit';wrap.appendChild(b);
-   function lock(){field.classList.add('am-locked');if(input.tagName==='SELECT')input.setAttribute('aria-readonly','true');else input.readOnly=true;}
-   lock();
-   input.addEventListener('keydown',function(e){if(field.classList.contains('am-locked')&&input.tagName==='SELECT'&&e.key!=='Tab')e.preventDefault();});
-   b.addEventListener('click',function(){field.classList.remove('am-locked');input.readOnly=false;input.removeAttribute('aria-readonly');b.hidden=true;input.focus();});
-  });
+ // 2026-10-25 v11 Deck H (Address Lookup + Enter Address Manually), following the slides.
+ var REGIONS={
+  'Canada':[['AB','Alberta'],['BC','British Columbia'],['MB','Manitoba'],['NB','New Brunswick'],['NL','Newfoundland and Labrador'],['NT','Northwest Territories'],['NS','Nova Scotia'],['NU','Nunavut'],['ON','Ontario'],['PE','Prince Edward Island'],['QC','Quebec'],['SK','Saskatchewan'],['YT','Yukon']],
+  'United States':[['AL','Alabama'],['AK','Alaska'],['AZ','Arizona'],['AR','Arkansas'],['CA','California'],['CO','Colorado'],['CT','Connecticut'],['DE','Delaware'],['DC','District of Columbia'],['FL','Florida'],['GA','Georgia'],['HI','Hawaii'],['ID','Idaho'],['IL','Illinois'],['IN','Indiana'],['IA','Iowa'],['KS','Kansas'],['KY','Kentucky'],['LA','Louisiana'],['ME','Maine'],['MD','Maryland'],['MA','Massachusetts'],['MI','Michigan'],['MN','Minnesota'],['MS','Mississippi'],['MO','Missouri'],['MT','Montana'],['NE','Nebraska'],['NV','Nevada'],['NH','New Hampshire'],['NJ','New Jersey'],['NM','New Mexico'],['NY','New York'],['NC','North Carolina'],['ND','North Dakota'],['OH','Ohio'],['OK','Oklahoma'],['OR','Oregon'],['PA','Pennsylvania'],['RI','Rhode Island'],['SC','South Carolina'],['SD','South Dakota'],['TN','Tennessee'],['TX','Texas'],['UT','Utah'],['VT','Vermont'],['VA','Virginia'],['WA','Washington'],['WV','West Virginia'],['WI','Wisconsin'],['WY','Wyoming']]
+ };
+ var POSTAL={'Canada':/^[A-Z]\d[A-Z]\d[A-Z]\d$/,'United States':/^\d{5}(\d{4})?$/};
+ function byId(id){return document.getElementById(id);}
+ function norm(v){return String(v||'').replace(/\s+/g,' ').trim().toUpperCase();}
+ function countryOf(v){v=norm(v);if(v==='UNITED STATES'||v==='USA'||v==='US'||v==='UNITED STATES OF AMERICA')return 'United States';if(v===''||v==='CANADA'||v==='CA')return 'Canada';return '';}
+ // Province/State options depend on the country (deck note: Florida = United States). Values are stored upper-case like lookup results.
+ function fillRegions(sel,country,current){
+  var list=REGIONS[country]||[],cur=norm(current),hit='';
+  sel.innerHTML='';var o=document.createElement('option');o.value='';o.textContent='Please Select';sel.appendChild(o);
+  list.forEach(function(r){var opt=document.createElement('option');opt.value=r[1].toUpperCase();opt.textContent=r[1];sel.appendChild(opt);if(cur&&(cur===r[0]||cur===r[1].toUpperCase()))hit=opt.value;});
+  if(cur&&!hit){var keep=document.createElement('option');keep.value=cur;keep.textContent=current;sel.appendChild(keep);hit=cur;}
+  sel.value=hit;
+ }
+ function syncFromServer(){
+  var cSel=byId('amCountrySel'),cBox=byId('Country'),pSel=byId('amProvinceSel'),pBox=byId('txtProvince');if(!cSel||!cBox||!pSel||!pBox)return;
+  var c=countryOf(cBox.value);
+  if(!c){c=cBox.value.trim();if(!Array.prototype.some.call(cSel.options,function(x){return x.value===c;})){var o=document.createElement('option');o.value=o.textContent=c;cSel.appendChild(o);}}
+  cSel.value=c;cBox.value=c;
+  fillRegions(pSel,c,pBox.value);pBox.value=pSel.value;
+ }
+ function snapshot(){
+  var ids=['txtStreetNo','txtStreetName','txtStreetType','ddlSuitType','txtSuiteNumber','txtCity','txtProvince','txtPostalCode','Country'],v={};
+  ids.forEach(function(id){var f=byId(id);if(f)v[id]=f.value;});return v;
+ }
+ function setFlag(){
+  var c=byId('LookupCountry'),f=byId('amLookupFlag'),q=byId('txtSearchPostalCode');if(!c||!f)return;
+  var us=c.value==='United States';f.className='am-al-flag '+(us?'is-us':'is-ca');
+  if(q)q.setAttribute('placeholder',us?'e.g. 33185':'e.g. M1B 2W1');
+ }
+ function addressInit(){
+  if(!byId('amCountrySel'))return;
+  syncFromServer();setFlag();
+  if(!Address.saved)Address.saved=snapshot();
+  var md=byId('amMdCountry'),mp=document.querySelector('#amNewAddress [data-province-for]');
+  if(md&&mp&&!mp.options.length)fillRegions(mp,md.value,'');
  }
  var Address={
+  saved:null,
   openList:function(){setTimeout(Address.showList,80);},
   showList:function(){
-   var s=document.querySelector('#amBusinessEditor .am-business-results select');if(!s||s.disabled||s.options.length<2)return;
-   s.focus();
-   try{if(typeof s.showPicker==='function'){s.showPicker();return;}}catch(blocked){}
-   s.size=Math.min(s.options.length,7);s.classList.add('am-list-open');
-   var close=function(){s.removeAttribute('size');s.classList.remove('am-list-open');s.removeEventListener('blur',close);};
-   s.addEventListener('blur',close);s.addEventListener('change',close);
+   // Deck: the matching addresses are shown as an open list under the field.
+   var s=byId('AddressChoices');if(!s||s.disabled||s.options.length<2)return;
+   s.size=Math.min(s.options.length,7);s.classList.add('am-list-open');s.focus();
+   var close=function(){s.removeAttribute('size');s.classList.remove('am-list-open');s.removeEventListener('change',close);};
+   s.addEventListener('change',close);
   },
   openNew:function(){
-   var m=document.getElementById('amNewAddress');if(!m)return;
+   var m=byId('amNewAddress');if(!m)return;
    Array.prototype.forEach.call(m.querySelectorAll('[data-addr]'),function(f){f.value=f.getAttribute('data-addr')==='Country'?'Canada':'';f.removeAttribute('aria-invalid');});
-   document.getElementById('amNewAddressError').hidden=true;
+   var mp=m.querySelector('[data-province-for]');if(mp)fillRegions(mp,'Canada','');
+   byId('amNewAddressError').hidden=true;
    m.hidden=false;document.body.classList.add('am-addr-open');Address.back=document.activeElement;
    var first=m.querySelector('[data-addr]');if(first)first.focus();
   },
-  close:function(){var m=document.getElementById('amNewAddress');if(!m||m.hidden)return;m.hidden=true;document.body.classList.remove('am-addr-open');if(Address.back&&Address.back.focus)Address.back.focus();},
+  close:function(){var m=byId('amNewAddress');if(!m||m.hidden)return;m.hidden=true;document.body.classList.remove('am-addr-open');if(Address.back&&Address.back.focus)Address.back.focus();},
   apply:function(){
-   var m=document.getElementById('amNewAddress'),missing=[];
-   Array.prototype.forEach.call(m.querySelectorAll('[data-req]'),function(f){var bad=!f.value.trim();if(bad)f.setAttribute('aria-invalid','true');else f.removeAttribute('aria-invalid');if(bad)missing.push(f.parentNode.firstChild.textContent.replace('(Required)','').trim());});
-   var err=document.getElementById('amNewAddressError');
+   var m=byId('amNewAddress'),missing=[],err=byId('amNewAddressError');
+   Array.prototype.forEach.call(m.querySelectorAll('[data-req]'),function(f){var bad=!f.value.trim();if(bad)f.setAttribute('aria-invalid','true');else f.removeAttribute('aria-invalid');if(bad)missing.push(f.parentNode.firstChild.textContent.replace('*','').trim());});
    if(missing.length){err.textContent='Enter '+missing.join(', ')+'.';err.hidden=false;m.querySelector('[aria-invalid]').focus();return;}
+   var country=m.querySelector('[data-addr=Country]').value,pf=m.querySelector('[data-addr=txtPostalCode]'),pc=pf.value.replace(/[\s-]+/g,'').toUpperCase();
+   if(POSTAL[country]&&!POSTAL[country].test(pc)){pf.setAttribute('aria-invalid','true');err.textContent=country==='United States'?'Enter a valid US ZIP code (e.g. 33185).':'Enter a valid Canadian postal code (e.g. M1B 2W1).';err.hidden=false;pf.focus();return;}
    Array.prototype.forEach.call(m.querySelectorAll('[data-addr]'),function(f){
-    var t=document.getElementById(f.getAttribute('data-addr'));if(!t)return;
+    var t=byId(f.getAttribute('data-addr'));if(!t)return;
     var v=f.value.trim();if(t.id==='txtPostalCode'||t.id==='txtProvince'||t.id==='txtCity'||t.id==='txtStreetName')v=v.toUpperCase();
     if(t.id==='txtPostalCode')v=v.replace(/\s+/g,'');
     t.value=v;
    });
+   syncFromServer();
    Address.close();
-   var h=document.getElementById('business-address-heading');if(h){h.setAttribute('tabindex','-1');h.focus();}
+   var h=byId('business-address-heading');if(h){h.setAttribute('tabindex','-1');h.focus();}
+  },
+  // Address card Cancel: discard edits and keep the saved address (nothing is written to the database).
+  cancel:function(){
+   var v=Address.saved||{};Object.keys(v).forEach(function(id){var f=byId(id);if(f)f.value=v[id];});
+   var r=byId('AddressChoices');if(r)r.selectedIndex=0;
+   var n=byId('AddressMessage');if(n)n.hidden=true;
+   syncFromServer();
+  },
+  // Address card Save Changes: runs the page's existing server save (business + address in one transaction).
+  save:function(){
+   var b=document.querySelector('#amBusinessEditor [id$=btnUpdateBusinessDetails]')||document.querySelector('#amBusinessEditor [id$=btnSaveBusinessDetails]');
+   if(b)b.click();
   }
  };
  root.AnyminuteBusinessAddress=Address;
  if(typeof document!=='undefined'){
-  document.addEventListener('click',function(e){var t=e.target;if(!t.closest)return;if(t.closest('[data-addr-close]')||t.id==='amNewAddress'){e.preventDefault();Address.close();}else if(t.closest('[data-addr-apply]')){e.preventDefault();Address.apply();}});
-  document.addEventListener('keydown',function(e){var m=document.getElementById('amNewAddress');if(!m||m.hidden)return;if(e.key==='Escape')Address.close();else if(e.key==='Enter'&&e.target.closest&&e.target.closest('#amNewAddress')&&e.target.tagName!=='BUTTON'){e.preventDefault();Address.apply();}});
+  document.addEventListener('click',function(e){var t=e.target;if(!t.closest)return;
+   if(t.closest('[data-addr-close]')||t.id==='amNewAddress'){e.preventDefault();Address.close();}
+   else if(t.closest('[data-addr-apply]')){e.preventDefault();Address.apply();}
+   else if(t.closest('[data-al-clear]')){e.preventDefault();var q=byId('txtSearchPostalCode');if(q){q.value='';q.focus();}}
+   else if(t.closest('[data-al-cancel]')){e.preventDefault();Address.cancel();}
+   else if(t.closest('[data-al-save]')){e.preventDefault();Address.save();}
+  });
+  document.addEventListener('change',function(e){var t=e.target;
+   if(t.id==='amCountrySel'){var c=byId('Country'),p=byId('txtProvince');if(c)c.value=t.value;var ps=byId('amProvinceSel');if(ps){fillRegions(ps,t.value,p?p.value:'');if(p)p.value=ps.value;}}
+   else if(t.id==='amProvinceSel'){var pb=byId('txtProvince');if(pb)pb.value=t.value;}
+   else if(t.id==='LookupCountry')setFlag();
+   else if(t.id==='amMdCountry'){var mp=document.querySelector('#amNewAddress [data-province-for]');if(mp)fillRegions(mp,t.value,mp.value);}
+  });
+  document.addEventListener('keydown',function(e){var m=byId('amNewAddress');if(!m||m.hidden)return;if(e.key==='Escape')Address.close();else if(e.key==='Enter'&&e.target.closest&&e.target.closest('#amNewAddress')&&e.target.tagName!=='BUTTON'&&e.target.tagName!=='SELECT'){e.preventDefault();Address.apply();}});
  }
  if(typeof module!=='undefined'&&module.exports)module.exports={fileError:fileError};
  if(typeof document!=='undefined'){

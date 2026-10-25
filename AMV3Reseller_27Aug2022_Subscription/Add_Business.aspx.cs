@@ -356,7 +356,7 @@ public partial class Add_Business : System.Web.UI.Page
                 return;
             }
             BsnsRegDate.Attributes.Add("max", System.DateTime.Now.Date.ToString("yyyy-MM-dd"));
-            ResetAddressChoices("");
+            ResetAddressChoices(AddressPlaceholder);
             try
             {
                 if (Session["Redirect"] != null)
@@ -613,6 +613,9 @@ public partial class Add_Business : System.Web.UI.Page
         if (!Regex.IsMatch(postal, @"^[A-Z0-9-]{5,10}$")) return "Enter a valid postal code.";
         if (String.IsNullOrWhiteSpace(Country.Text) || Country.Text.Trim().Length > 100)
             return "Enter a country (maximum 100 characters).";
+        if (!PostalValidFor(Country.Text, postal))
+            return String.Equals(Country.Text.Trim(), "United States", StringComparison.OrdinalIgnoreCase)
+                ? "Enter a valid US ZIP code (e.g. 33185)." : "Enter a valid Canadian postal code (e.g. M1B 2W1).";
         // v3: Contact Phone / Mobile are no longer on the form (not in the deck); stored values are kept as they are.
         if (!IsValidEmail(txtMainEmail.Text.Trim())) return "Enter a valid primary email address.";
         // "0" = Not Active (same value the Dashboard Active/Not Active menu writes); a legacy stored "2" is kept as-is.
@@ -644,7 +647,7 @@ public partial class Add_Business : System.Web.UI.Page
     public void ClearAddressContactDetails()
     {
         txtSearchPostalCode.Text = "";
-        ResetAddressChoices("");
+        ResetAddressChoices(AddressPlaceholder);
         txtStreetNo.Text = "";
         txtStreetName.Text = "";
         txtStreetType.Text = "";
@@ -692,31 +695,40 @@ public partial class Add_Business : System.Web.UI.Page
     protected void lnkSearch_Click(object sender, EventArgs e)
     {
         AddressMessage.Visible = false;
-        ResetAddressChoices("");
+        ResetAddressChoices(AddressPlaceholder);
         gvAddressList.DataSource = null; gvAddressList.DataBind();
         string postal = AnyminuteBusinessAddressInput.Postal(txtSearchPostalCode.Text);
-        if (!Regex.IsMatch(postal, @"^[A-Z0-9-]{5,10}$"))
-        { AddressFeedback("Enter a postal code of 5 to 10 letters or digits."); return; }
+        bool us = LookupCountry.SelectedValue == "United States";
+        if (!PostalValidFor(LookupCountry.SelectedValue, postal))
+        { AddressFeedback(us ? "Enter a valid US ZIP code (e.g. 33185)." : "Enter a valid Canadian postal code (e.g. M1B 2W1)."); return; }
         DataTable matches = AnyminuteAddressLookup.Search(postal);
         ViewState["BusinessAddressMatches"] = matches;
         ViewState["BusinessAddressLookupPostal"] = postal;
         resultdiv.Visible = true;
         AddressChoices.Items.Clear();
-        AddressChoices.Items.Add(new ListItem("", ""));
+        AddressChoices.Items.Add(new ListItem(AddressPlaceholder, ""));
         for (int i = 0; i < matches.Rows.Count; i++)
         {
             string label = Convert.ToString(matches.Rows[i]["SEARCHADDRESS"]).Trim();
-            if (label.Length > 0 && !String.Equals(label, "ADD NEW ADDRESS", StringComparison.OrdinalIgnoreCase))
-                AddressChoices.Items.Add(new ListItem(label, i.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+            if (label.Length == 0 || String.Equals(label, "ADD NEW ADDRESS", StringComparison.OrdinalIgnoreCase)) continue;
+            var found = AnyminuteBusinessAddressInput.FromRow(matches.Rows[i], postal);
+            if (found.Street.Length > 0 && found.City.Length > 0)
+            {
+                // Deck H result format: "Street, City, Province Postal, Country" (street numbers only when the official table has one).
+                string first = (found.Number + " " + found.Street).Trim();
+                string region = (found.Province + " " + PostalDisplay(found.PostalCode)).Trim();
+                label = first + ", " + found.City + (region.Length > 0 ? ", " + region : "") + (found.Country.Length > 0 ? ", " + found.Country : "");
+            }
+            AddressChoices.Items.Add(new ListItem(label, i.ToString(System.Globalization.CultureInfo.InvariantCulture)));
         }
         AddressChoices.Enabled = AddressChoices.Items.Count > 1;
         if (AddressChoices.Items.Count == 1)
         {
-            AddressFeedback("No matching addresses found. Please check the postal code or enter the address manually.");
+            AddressFeedback(NoAddressFound);
         }
         else
         {
-            AddressFeedback((AddressChoices.Items.Count - 1) + " matching address" + (AddressChoices.Items.Count == 2 ? "" : "es") + " found. Select one, then click Use This Address.", false);
+            AddressFeedback((AddressChoices.Items.Count - 1) + " matching address" + (AddressChoices.Items.Count == 2 ? "" : "es") + " found. Select one from the list to fill the address fields.", false);
             ScriptManager.RegisterStartupScript(UpdatePanel1, typeof(Add_Business), "amOpenAddressList", "if(window.AnyminuteBusinessAddress)AnyminuteBusinessAddress.openList();", true);
         }
         // Searching is read-only. Never select or save the first result automatically.
@@ -731,9 +743,9 @@ public partial class Add_Business : System.Web.UI.Page
 
     protected void AddressChoices_SelectedIndexChanged(object sender, EventArgs e)
     {
-        // v10: selecting only enables Use This Address; the fields are filled when it is clicked.
-        UseThisAddress.Enabled = AddressChoices.SelectedValue != "";
+        // v11 Deck H step 3: choosing a result fills the address fields automatically (nothing is saved yet).
         AddressMessage.Visible = false;
+        if (AddressChoices.SelectedValue != "") ApplySelectedAddress();
     }
 
     protected void UseThisAddress_Click(object sender, EventArgs e)
@@ -744,10 +756,10 @@ public partial class Add_Business : System.Web.UI.Page
         DataTable matches = ViewState["BusinessAddressMatches"] as DataTable;
         int index;
         if (matches == null || !Int32.TryParse(AddressChoices.SelectedValue, out index) || index < 0 || index >= matches.Rows.Count)
-        { AddressFeedback("Search and select an address first, or use Add New Address."); return; }
+        { AddressFeedback("Search and select an address first, or select Enter Address Manually."); return; }
         var address = AnyminuteBusinessAddressInput.FromRow(matches.Rows[index], Convert.ToString(ViewState["BusinessAddressLookupPostal"]));
         if (address.Street.Length == 0 || address.City.Length == 0 || address.Province.Length == 0)
-        { AddressFeedback("This result is incomplete. Use Add New Address to enter it manually."); return; }
+        { AddressFeedback("This result is incomplete. Select Enter Address Manually to complete it."); return; }
         ResetAddressFields();
         txtStreetNo.Text = address.Number; txtStreetName.Text = address.Street;
         txtStreetType.Text = address.Line2; txtCity.Text = address.City;
@@ -755,7 +767,7 @@ public partial class Add_Business : System.Web.UI.Page
         Country.Text = address.Country;
         ViewState["ManualBusinessAddress"] = true;
         EnableAddressFields();
-        AddressFeedback("Address filled. Check the street number and suite, then save the business.", false);
+        AddressFeedback("Address filled. Review the fields, add the street number or suite if needed, then click Save Changes.", false);
     }
 
     public bool IsValidEmail(string email)
@@ -840,11 +852,12 @@ public partial class Add_Business : System.Web.UI.Page
         SaveTopText.Text = editing ? "Save Changes" : "Save";
         // v3 field layout per deck: Add = 2 columns, no Status/Country/Clear Address; Update = 2/3/4 columns with Status and Country.
         BusinessDetailsCard.Attributes["class"] = "am-business-card am-fields-v3 " + (editing ? "am-mode-edit" : "am-mode-add");
-        divAdd.Attributes["class"] = "am-business-card " + (editing ? "am-mode-edit" : "am-mode-add");
+        divAdd.Attributes["class"] = "am-al-details " + (editing ? "am-mode-edit" : "am-mode-add");
         // v10 address spec: Country (default Canada) and Clear Address in both Add and Update.
         StatusField.Visible = editing; CountryField.Style["display"] = "";
-        ClearBusinessAddress.Visible = true;
+        ClearBusinessAddress.Visible = false; // v11 Deck H: not on the slide; Cancel restores the saved address instead.
         if (Country.Text.Trim().Length == 0) Country.Text = "Canada";
+        if (!IsPostBack && String.Equals(Country.Text.Trim(), "United States", StringComparison.OrdinalIgnoreCase)) LookupCountry.SelectedValue = "United States";
         // Logo: picture when one exists, otherwise initials (edit) or the upload prompt (add).
         bool hasLogo = !String.IsNullOrEmpty(previewImage.ImageUrl);
         string initials = BusinessInitials(txtCompanyName.Text);
@@ -881,10 +894,30 @@ public partial class Add_Business : System.Web.UI.Page
     protected void ClearBusinessAddress_Click(object sender, EventArgs e)
     {
         ResetAddressFields(); txtSearchPostalCode.Text = "";
-        ResetAddressChoices("");
+        ResetAddressChoices(AddressPlaceholder);
         ViewState.Remove("BusinessAddressMatches"); ViewState.Remove("BusinessAddressLookupPostal");
         ViewState["ManualBusinessAddress"] = true;
         EnableAddressFields(); AddressMessage.Visible = false;
+    }
+
+    private const string AddressPlaceholder = "Select an address from the list below";
+    private const string NoAddressFound = "No matching address found. Please verify the postal/ZIP code or select Enter Address Manually.";
+
+    // v11 Deck H: postal/ZIP validation follows the selected country.
+    private static bool PostalValidFor(string country, string postal)
+    {
+        string compact = (postal ?? "").Replace(" ", "").Replace("-", "").ToUpperInvariant();
+        if (String.Equals((country ?? "").Trim(), "United States", StringComparison.OrdinalIgnoreCase))
+            return Regex.IsMatch(compact, @"^\d{5}(\d{4})?$");
+        if (String.Equals((country ?? "").Trim(), "Canada", StringComparison.OrdinalIgnoreCase))
+            return Regex.IsMatch(compact, @"^[A-Z]\d[A-Z]\d[A-Z]\d$");
+        return Regex.IsMatch(compact, @"^[A-Z0-9]{3,10}$");
+    }
+
+    private static string PostalDisplay(string postal)
+    {
+        string compact = (postal ?? "").Replace(" ", "").ToUpperInvariant();
+        return Regex.IsMatch(compact, @"^[A-Z]\d[A-Z]\d[A-Z]\d$") ? compact.Substring(0, 3) + " " + compact.Substring(3) : compact;
     }
 
     private void ResetAddressChoices(string placeholder)
