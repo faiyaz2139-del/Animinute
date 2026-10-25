@@ -40,7 +40,7 @@ public static class AnyminuteUiNavigation
             {
                 Add(items,"Payroll ready","PayrollReady.aspx",-206);Add(items,"Settings","BusinessSettings.aspx",-207);
                 Add(items,"Edit Business","BusinessActions.aspx?action=edit",-210);
-                Add(items,"Accountant & Payroll Access","AccountantAccess.aspx",-211); // v9 Deck G
+                // v14 tester doc item 5: "Accountant & Payroll Access" is no longer added to the menu (page still opens by URL).
                 Add(items,"Add User","EmployeeEditor.aspx",-212);
                 Add(items,"Edit User","Users.aspx?action=edit",-213);
                 Add(items,"Add Project","ProjectEditor.aspx",-214); // v8 Deck F: new Add Project page
@@ -112,6 +112,8 @@ public static class AnyminuteUiNavigation
             else if (group==GProjects && route.Split('?')[0].EndsWith("add_project.aspx")) { item.Name="Add Project"; item.Href="ProjectEditor.aspx"; }
             // v9 Deck G: every Assign Accountant / legacy accountant route opens the new Accountant & Payroll Access list.
             if (group==GBusinesses && (label.Contains("accountant") || route.Contains("action=accountant") || route.Contains("businessaccountant") || route.Contains("assignaccountant"))) { item.Name="Accountant & Payroll Access"; item.Href="AccountantAccess.aspx"; }
+            // v14 tester doc item 5: no "Accountant & Payroll Access" submenu under Businesses (AccountantAccess.aspx stays reachable by URL).
+            if (group==GBusinesses && item.Name=="Accountant & Payroll Access") continue;
             // Same label twice in one menu (e.g. two Assign Accountant routes, two Dashboards) is shown once.
             if (!labels.Add(group + "|" + item.Name.Trim())) continue;
             groups[group].SubMenu.Add(item);

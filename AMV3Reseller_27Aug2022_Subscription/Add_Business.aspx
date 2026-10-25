@@ -1,7 +1,7 @@
 <%@ Page Title="Business" Language="C#" MasterPageFile="~/Main.master" AutoEventWireup="true" CodeFile="Add_Business.aspx.cs" Inherits="Add_Business" %>
 <%@ Register Assembly="AjaxControlToolkit" Namespace="AjaxControlToolkit" TagPrefix="cc1" %>
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
- <link rel="stylesheet" href="css/AnyminuteBusinessEditor.css?v=20261025v13" />
+ <link rel="stylesheet" href="css/AnyminuteBusinessEditor.css?v=20261025v14" />
  <script src="Scripts/AnyminuteBusinessEditor.js?v=20261024v11" defer="defer"></script>
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">

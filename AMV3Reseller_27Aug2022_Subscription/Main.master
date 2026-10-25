@@ -259,7 +259,7 @@
     <script src="Scripts/AnyminuteUI2026.js?v=20261024v10"></script>
     <script src="Scripts/AnyminuteUIUnified.js?v=20261024e1"></script>
     <script src="Scripts/AnyminuteUiBugFixes.js?v=20261024e1"></script>
-<script src="Scripts/AnyminuteNavigationActions.js?v=20261024e1"></script><script src="Scripts/AnyminuteNavDrawer.js?v=20261024v2"></script></form>
+<script src="Scripts/AnyminuteNavigationActions.js?v=20261024e1"></script><script src="Scripts/AnyminuteNavDrawer.js?v=20261025v14"></script></form>
     <!-- Datatables -->
     <script src="Assets/assets/js/plugin/datatables/datatables.min.js"></script>
     <script>

@@ -219,3 +219,20 @@ html body.am-ui .am-pj-assign .am-pj-inline-foot{border-top:0!important;padding:
 html body.am-ui .am-pj-assign .am-pj-inline-foot .am-pj-btn{min-width:112px!important;min-height:42px!important;font-size:14px!important}
 html body.am-ui .am-pj-assign .am-pj-inline-foot .am-pj-primary{min-width:146px!important}
 html body.am-ui .am-pj-assign [data-pj-scope=add] .am-pj-search-sm{flex:0 1 310px!important}
+/* ===== 2026-10-25 v14 (tester doc v2 item 2, live screenshot): filters no longer truncate ("All Departme", "Active Emplo"),
+   design-style chevron selects and square blue checkboxes, navy cell text like the image ===== */
+html body.am-ui .am-pj-assign .am-pj-cfilters{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:10px!important}
+html body.am-ui .am-pj-assign .am-pj-cfilters select,html body.am-ui .am-pj-assign .am-pj-pop select{-webkit-appearance:none!important;-moz-appearance:none!important;appearance:none!important;min-width:0!important;width:100%!important;padding:0 28px 0 10px!important;border:1px solid #cfd8e3!important;border-radius:6px!important;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6' fill='none' stroke='%231e2f4d' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 10px center!important;color:#1c2f55!important;text-overflow:ellipsis;white-space:nowrap;overflow:hidden;box-shadow:none!important}
+html body.am-ui .am-pj-assign .am-pj-cfilters select::-ms-expand{display:none}
+html body.am-ui .am-pj-assign .am-pj-grid input[type=checkbox]{-webkit-appearance:none!important;-moz-appearance:none!important;appearance:none!important;width:17px!important;height:17px!important;min-width:17px;margin:0!important;padding:0!important;border:1.5px solid #8ea3bf!important;border-radius:3px!important;background:#fff!important;vertical-align:middle;cursor:pointer;display:inline-block;position:relative;box-shadow:none!important}
+html body.am-ui .am-pj-assign .am-pj-grid input[type=checkbox]:checked{background:#1a5fd6 no-repeat center/13px 13px!important;border-color:#1a5fd6!important}
+html body.am-ui .am-pj-assign .am-pj-grid input[type=checkbox]:checked{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5' fill='none' stroke='%23fff' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")!important}
+/* design shows the header box empty while only some rows are ticked */
+html body.am-ui .am-pj-assign .am-pj-grid input[type=checkbox]:indeterminate:not(:checked){background:#fff!important;border-color:#8ea3bf!important}
+html body.am-ui .am-pj-assign .am-pj-grid input[type=checkbox]:focus-visible{outline:2px solid #93c0ff;outline-offset:2px}
+html body.am-ui .am-pj-assign .am-pj-grid td{color:#1c2f55!important}
+html body.am-ui .am-pj-assign .am-pj-grid td a:not(.am-pj-ic){color:#1c2f55!important;text-decoration:none}
+html body.am-ui .am-pj-assign .am-pj-selected .am-pj-empty{color:#64748b!important;text-align:center;padding:16px 12px!important}
+html body.am-ui .am-pj-assign .am-pj-dhead h1{color:#0f2a5c!important}
+html body.am-ui .am-pj-assign .am-pj-dhead p{color:#1c2f55!important;font-size:14px!important}
+html body.am-ui .am-pj-assign .am-pj-close{color:#1c2f55!important;font-size:22px!important}

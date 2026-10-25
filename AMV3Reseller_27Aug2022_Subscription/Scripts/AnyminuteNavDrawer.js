@@ -2,7 +2,8 @@
 // Runs in the capture phase so older collapse handlers on the same button do not also fire.
 (function(window,document){
  'use strict';
- var ICON='<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><rect x="3.5" y="3.5" width="17" height="17" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M7.5 8.5h9M7.5 12h9M7.5 15.5h9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+ // v14 (tester doc item 6): exactly three plain bars, no rounded box around them.
+ var ICON='<svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" focusable="false"><path d="M4 6.5h16M4 12h16M4 17.5h16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';
  var SEL='[data-toggle-sidebar],#menu-toggle';
  function toggles(){return document.querySelectorAll(SEL);}
  function set(open){
