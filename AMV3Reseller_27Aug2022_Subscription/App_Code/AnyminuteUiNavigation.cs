@@ -40,7 +40,7 @@ public static class AnyminuteUiNavigation
             {
                 Add(items,"Payroll ready","PayrollReady.aspx",-206);Add(items,"Settings","BusinessSettings.aspx",-207);
                 Add(items,"Edit Business","BusinessActions.aspx?action=edit",-210);
-                Add(items,"Assign Accountant","BusinessActions.aspx?action=accountant",-211);
+                Add(items,"Accountant & Payroll Access","AccountantAccess.aspx",-211); // v9 Deck G
                 Add(items,"Add User","EmployeeEditor.aspx",-212);
                 Add(items,"Edit User","Users.aspx?action=edit",-213);
                 Add(items,"Add Project","ProjectEditor.aspx",-214); // v8 Deck F: new Add Project page
@@ -109,14 +109,15 @@ public static class AnyminuteUiNavigation
             if (group==GProjects && (route.Contains("add_project.aspx?mode=add") || route.Split('?')[0].EndsWith("projecteditor.aspx"))) { item.Name="Add Project"; item.Href="ProjectEditor.aspx"; }
             else if (group==GProjects && route.Contains("add_project.aspx?mode=edit")) { item.Name="Edit Project"; item.Href="Projects.aspx"; }
             else if (group==GProjects && route.Split('?')[0].EndsWith("add_project.aspx")) { item.Name="Add Project"; item.Href="ProjectEditor.aspx"; }
-            if (group==GBusinesses && label.Contains("assign") && label.Contains("accountant")) item.Name="Assign Accountant";
+            // v9 Deck G: every Assign Accountant / legacy accountant route opens the new Accountant & Payroll Access list.
+            if (group==GBusinesses && (label.Contains("accountant") || route.Contains("action=accountant") || route.Contains("businessaccountant") || route.Contains("assignaccountant"))) { item.Name="Accountant & Payroll Access"; item.Href="AccountantAccess.aspx"; }
             // Same label twice in one menu (e.g. two Assign Accountant routes, two Dashboards) is shown once.
             if (!labels.Add(group + "|" + item.Name.Trim())) continue;
             groups[group].SubMenu.Add(item);
         }
         if (!groups[GEmployees].SubMenu.Any(m => m.Name == "Edit Employee") && employeesFallback != null) { employeesFallback.Name = "Edit Employee"; groups[GEmployees].SubMenu.Add(employeesFallback); }
         Func<string,string[],int> rank = (n, order) => { int i = Array.IndexOf(order, n); return i < 0 ? order.Length : i; };
-        groups[GBusinesses].SubMenu = groups[GBusinesses].SubMenu.OrderBy(m => rank(m.Name, new[] { "Add Business", "Edit Business", "Assign Accountant" })).ToList();
+        groups[GBusinesses].SubMenu = groups[GBusinesses].SubMenu.OrderBy(m => rank(m.Name, new[] { "Add Business", "Edit Business", "Accountant & Payroll Access" })).ToList();
         groups[GEmployees].SubMenu = groups[GEmployees].SubMenu.OrderBy(m => rank(m.Name, new[] { "Add Employee", "Edit Employee", "Assign User" })).ToList();
         groups[GProjects].SubMenu = groups[GProjects].SubMenu.OrderBy(m => rank(m.Name, new[] { "Add Project", "Edit Project" })).ToList();
         // Account: Change Password, then Plan Upgrade directly below it (only where the role already has an upgrade page).
