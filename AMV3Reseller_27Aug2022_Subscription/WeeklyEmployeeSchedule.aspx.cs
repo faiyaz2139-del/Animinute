@@ -54,15 +54,19 @@ public partial class AnyminuteWeeklySchedulePage : System.Web.UI.Page
         if (WsEmployee.Items.Count == 0) WsEmployee.Items.Add(new ListItem("No employees in this business", ""));
     }
 
+    // v16: employees (no edit right) see their own Work Schedule read-only.
+    private bool viewOnly;
     private void LoadWeek(DateTime? copyFrom)
     {
         DateTime monday = Week; Week = monday;
         List<AnyminuteScheduleDay> week = AnyminuteWeeklySchedule.DefaultWeek(monday);
+        bool saved = false;
+        viewOnly = Business > 0 && Employee > 0 && !AnyminuteWeeklySchedule.CanEdit(Business, Employee);
+        if (viewOnly && copyFrom.HasValue) { Error("You can view this schedule but not change it."); copyFrom = null; }
         if (Business > 0 && Employee > 0)
         {
             try
             {
-                bool saved;
                 if (copyFrom.HasValue)
                 {
                     var prev = AnyminuteWeeklySchedule.Load(Business, Employee, copyFrom.Value, out saved);
@@ -77,6 +81,10 @@ public partial class AnyminuteWeeklySchedulePage : System.Web.UI.Page
         }
         Days.DataSource = week; Days.DataBind();
         TotalHours.Text = week.Sum(d => d.Hours).ToString("0.00", Inv);
+        SaveWeek.Visible = CopyPrevious.Visible = CancelWeek.Visible = amWsRepeat.Visible = !viewOnly;
+        GridWrap.Visible = !viewOnly || saved;
+        if (viewOnly) WsSub.InnerText = "Your planned working hours, days off and break time for the selected week.";
+        if (viewOnly && !saved) { TotalHours.Text = "0.00"; Notice("No work schedule has been published for this week yet."); }
     }
 
     protected void Days_ItemDataBound(object sender, RepeaterItemEventArgs e)
@@ -91,6 +99,7 @@ public partial class AnyminuteWeeklySchedulePage : System.Web.UI.Page
         start.Text = d.Working ? d.Start.ToString(@"hh\:mm", Inv) : ""; end.Text = d.Working ? d.End.ToString(@"hh\:mm", Inv) : "";
         brk.SelectedValue = d.BreakMinutes.ToString(Inv); notes.Text = d.Notes ?? "";
         hours.Text = d.Hours.ToString("0.00", Inv);
+        if (viewOnly) foreach (System.Web.UI.WebControls.WebControl w in new System.Web.UI.WebControls.WebControl[] { type, start, end, brk, notes }) w.Enabled = false;
         if (!d.Working)
         {
             // Day Off: the script greys out and disables these inputs (server never reads them for a Day Off).
@@ -139,6 +148,7 @@ public partial class AnyminuteWeeklySchedulePage : System.Web.UI.Page
     protected void Save_Click(object sender, EventArgs e)
     {
         if (Business <= 0 || Employee <= 0) { Error("Select a business and an employee."); return; }
+        if (!AnyminuteWeeklySchedule.CanEdit(Business, Employee)) { Error("You can view this schedule but not change it."); LoadWeek(null); return; }
         try
         {
             var week = ReadGrid();
@@ -152,7 +162,7 @@ public partial class AnyminuteWeeklySchedulePage : System.Web.UI.Page
                 until = u;
             }
             int written = AnyminuteWeeklySchedule.Save(Business, Employee, week, until, apply, selected);
-            AnyminuteFlash.Set("schedule", "Weekly schedule saved (" + written + " day" + (written == 1 ? "" : "s") + (until.HasValue ? ", repeated until " + until.Value.ToString("yyyy-MM-dd", Inv) : "") + ").");
+            AnyminuteFlash.Set("schedule", "Work schedule saved (" + written + " day" + (written == 1 ? "" : "s") + (until.HasValue ? ", repeated until " + until.Value.ToString("yyyy-MM-dd", Inv) : "") + ").");
             Response.Redirect(SelfUrl(), false); Context.ApplicationInstance.CompleteRequest();
         }
         catch (InvalidOperationException ex) { Error(ex.Message); }

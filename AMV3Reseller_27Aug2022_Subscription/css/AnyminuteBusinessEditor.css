@@ -283,3 +283,17 @@ html body .am-business-editor .am-md-grid>label select,html body .am-business-ed
 html body .am-business-editor .am-md-grid>label select::-ms-expand,html body .am-business-editor .am-al-details .am-al-f select::-ms-expand{display:none}
 html body .am-business-editor .am-md-grid>label input[type=text],html body .am-business-editor .am-md-grid>label select,html body .am-business-editor .am-al-details .am-al-f input[type=text],html body .am-business-editor .am-al-details .am-al-f select{height:40px!important;border:1px solid #cfd8e3!important;border-radius:6px!important;font-size:14px!important}
 html body .am-business-editor .am-md-grid>label select:disabled,html body .am-business-editor .am-al-details .am-al-f select:disabled{background-color:#f1f5f9!important}
+/* 2026-10-25 v16: pencil unlock (edit mode). Fields start read-only; pencil in the field or Edit in the card heading unlocks. */
+html body .am-business-editor .am-v16-lockwrap{position:relative;display:block;margin-top:7px}
+html body .am-business-editor .am-al-f .am-v16-lockwrap{margin-top:0}
+html body .am-business-editor .am-v16-lockwrap>.am-business-input{margin-top:0!important}
+html body .am-business-editor .am-v16-locked .am-v16-lockwrap>input{padding-right:40px!important;background-color:#f5f8fb!important;color:#2d3d50!important;cursor:default}
+html body .am-business-editor .am-v16-locked .am-v16-lockwrap>select{padding-right:62px!important;background-color:#f5f8fb!important;color:#2d3d50!important;pointer-events:none}
+html body .am-business-editor .am-v16-pencil{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:6px;background:transparent;color:#1f6fd1;cursor:pointer;padding:0;z-index:2}
+html body .am-business-editor .am-v16-pencil[hidden]{display:none}
+html body .am-business-editor .am-v16-lockwrap>select+.am-v16-pencil{right:30px}
+html body .am-business-editor .am-v16-pencil:hover,html body .am-business-editor .am-v16-pencil:focus-visible{background:#e8f1fc;outline:2px solid #1f6fd1;outline-offset:0}
+html body .am-business-editor .am-v16-cardedit{display:inline-flex;align-items:center;gap:6px;margin-left:auto;float:right;height:32px;padding:0 12px;border:1px solid #1f6fd1;border-radius:6px;background:#fff;color:#1f6fd1;font:600 13px/1 inherit;text-transform:none;letter-spacing:0;cursor:pointer}
+html body .am-business-editor .am-v16-cardedit[hidden]{display:none}
+html body .am-business-editor .am-v16-cardedit:hover,html body .am-business-editor .am-v16-cardedit:focus-visible{background:#e8f1fc;outline:2px solid #1f6fd1;outline-offset:1px}
+html body .am-business-editor .am-al-details-head .am-v16-cardedit{float:none;margin-left:10px}

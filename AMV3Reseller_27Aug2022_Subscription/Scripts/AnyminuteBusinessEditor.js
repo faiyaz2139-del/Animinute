@@ -40,6 +40,7 @@
   var notice=document.getElementById('AddressMessage');
   if(notice&&notice.textContent&&notice.dataset.amNotice!==notice.textContent){notice.dataset.amNotice=notice.textContent;notice.focus();}
   addressInit();
+  Lock.init();
  }
 
  // 2026-10-25 v11 Deck H (Address Lookup + Enter Address Manually), following the slides.
@@ -115,6 +116,7 @@
    });
    syncFromServer();
    Address.close();
+   if(root.AnyminuteBusinessLock)root.AnyminuteBusinessLock.unlockCard('address',false);
    var h=byId('business-address-heading');if(h){h.setAttribute('tabindex','-1');h.focus();}
   },
   // Address card Cancel: discard edits and keep the saved address (nothing is written to the database).
@@ -123,6 +125,7 @@
    var r=byId('AddressChoices');if(r)r.selectedIndex=0;
    var n=byId('AddressMessage');if(n)n.hidden=true;
    syncFromServer();
+   if(root.AnyminuteBusinessLock)root.AnyminuteBusinessLock.relock('address');
   },
   // Address card Save Changes: runs the page's existing server save (business + address in one transaction).
   save:function(){
@@ -131,6 +134,77 @@
   }
  };
  root.AnyminuteBusinessAddress=Address;
+
+ // 2026-10-25 v16: pencil unlock. When editing an existing business, Business Details and Address Details
+ // fields start read-only; the pencil in a field (or the Edit pencil in the card heading) makes them editable.
+ // Fields use readOnly (not disabled) so their values still post back; delegated handlers survive UpdatePanel refreshes.
+ var PENCIL='<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path fill="currentColor" d="M3 17.25V21h3.75L17.8 9.94l-3.75-3.75L3 17.25zM20.7 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>';
+ var Lock={
+  open:{},
+  cards:function(){
+   var out=[],b=document.querySelector('#amBusinessEditor [id$=BusinessDetailsCard]'),a=document.querySelector('#amBusinessEditor .am-al-details');
+   if(b)out.push({key:'business',el:b,fields:'.am-business-grid .am-business-field',head:'h2'});
+   if(a)out.push({key:'address',el:a,fields:'.am-al-grid .am-al-f',head:'.am-al-details-head'});
+   return out;
+  },
+  editing:function(){return !!document.querySelector('#amBusinessEditor [id$=btnUpdateBusinessDetails]');},
+  control:function(field){return field.querySelector('input:not([type=hidden]):not([type=file]),select');},
+  init:function(){
+   if(!Lock.editing())return;
+   Lock.cards().forEach(function(card){
+    Array.prototype.forEach.call(card.el.querySelectorAll(card.fields),function(field){
+     var input=Lock.control(field);if(!input||field.getAttribute('data-am-lockable'))return;
+     field.setAttribute('data-am-lockable',card.key);
+     var wrap=document.createElement('span');wrap.className='am-v16-lockwrap';input.parentNode.insertBefore(wrap,input);wrap.appendChild(input);
+     var b=document.createElement('button');b.type='button';b.className='am-v16-pencil';b.setAttribute('data-am-unlock','field');
+     var label=field.querySelector('label');b.setAttribute('aria-label','Edit '+(label?label.textContent.replace(/[*]|\(Required\)|\(Optional\)/g,'').trim():'field'));b.title='Edit';b.innerHTML=PENCIL;
+     wrap.appendChild(b);
+    });
+    var head=card.el.querySelector(card.head);
+    if(head&&!head.querySelector('.am-v16-cardedit')){
+     var e=document.createElement('button');e.type='button';e.className='am-v16-cardedit';e.setAttribute('data-am-unlock','card');e.setAttribute('data-am-card',card.key);
+     e.innerHTML=PENCIL+'<span>Edit</span>';e.setAttribute('aria-label','Edit '+(card.key==='business'?'business details':'address details'));
+     head.appendChild(e);
+    }
+    Lock.apply(card.key);
+   });
+  },
+  fields:function(key){return document.querySelectorAll('#amBusinessEditor [data-am-lockable="'+key+'"]');},
+  set:function(field,locked){
+   var input=Lock.control(field),b=field.querySelector('.am-v16-pencil');if(!input)return;
+   field.classList.toggle('am-v16-locked',locked);
+   if(input.tagName==='SELECT'){if(locked){input.setAttribute('aria-readonly','true');input.setAttribute('tabindex','-1');}else{input.removeAttribute('aria-readonly');input.removeAttribute('tabindex');}}
+   else input.readOnly=locked;
+   if(b)b.hidden=!locked;
+  },
+  apply:function(key){
+   var open=!!Lock.open[key];
+   Array.prototype.forEach.call(Lock.fields(key),function(f){Lock.set(f,!open&&!f.getAttribute('data-am-open'));});
+   var e=document.querySelector('#amBusinessEditor .am-v16-cardedit[data-am-card="'+key+'"]');if(e)e.hidden=open;
+  },
+  unlockCard:function(key,focus){
+   if(!Lock.editing())return;Lock.open[key]=true;Lock.apply(key);
+   if(focus){var f=Lock.fields(key)[0],c=f&&Lock.control(f);if(c)c.focus();}
+  },
+  relock:function(key){
+   Lock.open[key]=false;Array.prototype.forEach.call(Lock.fields(key),function(f){f.removeAttribute('data-am-open');});Lock.apply(key);
+  }
+ };
+ root.AnyminuteBusinessLock=Lock;
+ if(typeof document!=='undefined'){
+  document.addEventListener('click',function(e){var t=e.target;if(!t.closest)return;
+   var b=t.closest('[data-am-unlock]');if(!b)return;e.preventDefault();
+   if(b.getAttribute('data-am-unlock')==='card'){Lock.unlockCard(b.getAttribute('data-am-card'),true);return;}
+   var field=b.closest('[data-am-lockable]');if(!field)return;
+   field.setAttribute('data-am-open','1');Lock.set(field,false);var c=Lock.control(field);if(c)c.focus();
+  });
+  document.addEventListener('keydown',function(e){var t=e.target;
+   if(t&&t.tagName==='SELECT'&&t.closest&&t.closest('.am-v16-locked')&&e.key!=='Tab')e.preventDefault();
+  },true);
+  document.addEventListener('mousedown',function(e){var t=e.target;
+   if(t&&t.tagName==='SELECT'&&t.closest&&t.closest('.am-v16-locked'))e.preventDefault();
+  },true);
+ }
  if(typeof document!=='undefined'){
   document.addEventListener('click',function(e){var t=e.target;if(!t.closest)return;
    if(t.closest('[data-addr-close]')||t.id==='amNewAddress'){e.preventDefault();Address.close();}
@@ -143,6 +217,7 @@
    if(t.id==='amCountrySel'){var c=byId('Country'),p=byId('txtProvince');if(c)c.value=t.value;var ps=byId('amProvinceSel');if(ps){fillRegions(ps,t.value,p?p.value:'');if(p)p.value=ps.value;}}
    else if(t.id==='amProvinceSel'){var pb=byId('txtProvince');if(pb)pb.value=t.value;}
    else if(t.id==='LookupCountry')setFlag();
+   else if(/AddressChoices$/.test(t.id||'')&&t.value&&root.AnyminuteBusinessLock)root.AnyminuteBusinessLock.open.address=true;
    else if(t.id==='amMdCountry'){var mp=document.querySelector('#amNewAddress [data-province-for]');if(mp)fillRegions(mp,t.value,mp.value);}
   });
   document.addEventListener('keydown',function(e){var m=byId('amNewAddress');if(!m||m.hidden)return;if(e.key==='Escape')Address.close();else if(e.key==='Enter'&&e.target.closest&&e.target.closest('#amNewAddress')&&e.target.tagName!=='BUTTON'&&e.target.tagName!=='SELECT'){e.preventDefault();Address.apply();}});

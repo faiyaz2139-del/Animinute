@@ -1,0 +1,141 @@
+/* 2026-10-25 v16: Address Lookup design (Add Business) for the employee editor.
+   Rules copied from AnyminuteBusinessEditor.css with the scope .am-business-editor -> .am-emp-al. */
+body.am-ui .am-addr-modal{position:fixed;inset:0;z-index:2000;background:rgba(15,30,50,.45);display:flex;align-items:center;justify-content:center;padding:16px}
+body.am-ui .am-addr-modal[hidden]{display:none}
+body.am-addr-open{overflow:hidden}
+body.am-ui .am-addr-dialog{background:#fff;border-radius:12px;max-width:760px;width:100%;max-height:92vh;overflow:auto;padding:20px 22px;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+body.am-ui .am-addr-dialog header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+body.am-ui .am-addr-dialog h2{margin:0;font-size:20px}
+body.am-ui .am-addr-x{border:0;background:transparent;font-size:26px;line-height:1;cursor:pointer;color:#4a5a6c}
+body.am-ui .am-addr-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 14px;margin:12px 0 16px}
+body.am-ui .am-addr-grid label{display:flex;flex-direction:column;gap:6px;font-weight:600;font-size:14px}
+body.am-ui .am-addr-grid label .am-required{font-weight:400}
+body.am-ui .am-addr-grid input,body.am-ui .am-addr-grid select{height:40px;border:1px solid #cfd9e5;border-radius:8px;padding:0 10px;font-weight:400;width:100%}
+body.am-ui .am-addr-grid [aria-invalid=true]{border-color:#c62828;box-shadow:0 0 0 2px rgba(198,40,40,.15)}
+body.am-ui .am-addr-dialog footer{display:flex;justify-content:flex-end;gap:10px}
+@media(max-width:1000px){body.am-ui .am-addr-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){body.am-ui .am-addr-grid{grid-template-columns:1fr}}
+html body .am-emp-al .am-al-layout{display:grid;grid-template-columns:minmax(0,1.62fr) minmax(300px,1fr);gap:14px;align-items:start;margin:0 0 18px}
+html body .am-emp-al .am-al-main{background:#fff;border:1px solid #e3e8f0;border-radius:10px;padding:20px 22px;box-shadow:0 1px 3px rgba(15,23,42,.05)}
+html body .am-emp-al .am-al-main>h2{margin:0;font-size:24px;font-weight:700;color:#0f2a5c;line-height:1.2}
+html body .am-emp-al .am-al-sub{margin:4px 0 18px;color:#475569;font-size:13.5px}
+html body .am-emp-al .am-al-f{display:flex;flex-direction:column;gap:6px;min-width:0}
+html body .am-emp-al .am-al-f>label,html body .am-emp-al .am-al-results>label{font-size:13px;font-weight:600;color:#1e293b;margin:0}
+html body .am-emp-al .am-al-req{color:#dc2626;font-weight:700}
+html body .am-emp-al .am-al-main input[type=text],html body .am-emp-al .am-al-main select,
+html body .am-emp-al .am-addr-dialog input[type=text],html body .am-emp-al .am-addr-dialog select{height:40px!important;border:1px solid #cfd8e3!important;border-radius:6px!important;padding:0 12px!important;font-size:13.5px!important;color:#0f172a!important;background-color:#fff!important;width:100%!important;box-shadow:none!important;margin:0!important}
+html body .am-emp-al .am-al-main input::placeholder,html body .am-emp-al .am-addr-dialog input::placeholder{color:#94a3b8}
+html body .am-emp-al .am-al-search{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto auto;gap:12px;align-items:end;margin:0}
+html body .am-emp-al .am-al-flagsel{position:relative;display:block}
+html body .am-emp-al .am-al-flag{position:absolute;left:11px;top:50%;transform:translateY(-50%);display:flex;pointer-events:none;z-index:1}
+html body .am-emp-al .am-al-flag svg{border-radius:2px;box-shadow:0 0 0 1px rgba(0,0,0,.08)}
+html body .am-emp-al .am-al-flag .am-flag-us,html body .am-emp-al .am-al-flag.is-us .am-flag-ca{display:none}
+html body .am-emp-al .am-al-flag.is-us .am-flag-us{display:block}
+html body .am-emp-al .am-al-flagsel select{padding-left:44px!important}
+html body .am-emp-al .am-al-clearwrap{position:relative;display:block}
+html body .am-emp-al .am-al-clearwrap input{padding-right:34px!important}
+html body .am-emp-al .am-al-clear{position:absolute;right:6px;top:50%;transform:translateY(-50%);border:0;background:transparent;font-size:20px;line-height:1;color:#475569;width:26px;height:26px;cursor:pointer;padding:0}
+html body .am-emp-al .am-al-btn{display:inline-flex!important;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 16px!important;border-radius:6px!important;font-size:13.5px!important;font-weight:600!important;text-decoration:none!important;white-space:nowrap;cursor:pointer;border:1px solid #1a5fd6!important;line-height:1;box-shadow:none!important}
+html body .am-emp-al .am-al-primary{background:#1a5fd6!important;color:#fff!important}
+html body .am-emp-al .am-al-primary:hover{background:#154fb5!important}
+html body .am-emp-al .am-al-outline{background:#fff!important;color:#1a3f8f!important}
+html body .am-emp-al .am-al-outline:hover{background:#f1f6ff!important}
+html body .am-emp-al .am-al-outline svg{color:#1a5fd6}
+html body .am-emp-al .am-al-wide{min-width:120px}
+html body .am-emp-al .am-al-info{display:flex;align-items:center;gap:12px;background:#eaf3ff;border:1px solid #d3e5fb;border-radius:8px;padding:11px 14px;margin:16px 0;color:#1e3a5f;font-size:13px}
+html body .am-emp-al .am-al-i{flex:0 0 22px;height:22px;border-radius:50%;background:#1a5fd6;color:#fff;font:700 13px/22px Georgia,serif;text-align:center}
+html body .am-emp-al .am-al-main .am-notice{display:block;margin:0 0 12px}
+html body .am-emp-al .am-al-results{display:flex;flex-direction:column;gap:7px;margin:0 0 16px}
+html body .am-emp-al .am-al-results select[disabled]{background-color:#fff!important;color:#64748b!important;opacity:1}
+html body .am-emp-al .am-al-results select.am-list-open{height:auto!important;padding:4px!important}
+html body .am-emp-al .am-al-results select.am-list-open option{padding:7px 8px;border-bottom:1px solid #eef2f7}
+html body .am-emp-al .am-al-results select.am-list-open option:first-child{color:#64748b}
+html body .am-emp-al .am-al-details{border:1px solid #e3e8f0;border-radius:8px;padding:0 14px 6px;margin:0;background:#fff;display:block}
+html body .am-emp-al .am-al-details-head{display:flex;align-items:center;justify-content:space-between;margin:0 -14px 14px;padding:12px 14px;background:#f8fafc;border-bottom:1px solid #e3e8f0;border-radius:8px 8px 0 0}
+html body .am-emp-al .am-al-details-head h3{margin:0;font-size:16px;font-weight:700;color:#0f2a5c}
+html body .am-emp-al .am-al-pill{background:#e3eefc;color:#1a4f9c;border:1px solid #c9dcf7;border-radius:999px;padding:3px 10px;font-size:11.5px;font-weight:600}
+html body .am-emp-al .am-al-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:14px 16px}
+html body .am-emp-al .am-al-grid>.am-al-f{grid-column:span 2}
+html body .am-emp-al .am-al-grid>.am-al-f:nth-child(1),html body .am-emp-al .am-al-grid>.am-al-f:nth-child(2){grid-column:span 3}
+html body .am-emp-al .am-al-grid>.am-al-f:nth-child(9){grid-column:1 / span 4}
+html body .am-emp-al .am-al-proxied{display:none!important}
+html body .am-emp-al .am-al-actions{display:flex;justify-content:flex-end;gap:12px;border-top:1px solid #e3e8f0;margin:18px -14px 0;padding:14px 14px 8px}
+html body .am-emp-al .am-al-help{display:flex;flex-direction:column;gap:10px}
+html body .am-emp-al .am-al-help-head{background:#eaf3ff;border:1px solid #d3e5fb;border-radius:10px;padding:14px 16px}
+html body .am-emp-al .am-al-help-head h2{margin:0;font-size:19px;font-weight:700;color:#0f2a5c}
+html body .am-emp-al .am-al-help-head p{margin:4px 0 0;font-size:12.5px;color:#334155}
+html body .am-emp-al .am-al-steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+html body .am-emp-al .am-al-steps li{display:grid;grid-template-columns:26px 44px 1fr;gap:10px;align-items:start;background:#fff;border:1px solid #e3e8f0;border-radius:10px;padding:12px}
+html body .am-emp-al .am-al-num{width:24px;height:24px;border-radius:50%;background:#1a5fd6;color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-top:-2px}
+html body .am-emp-al .am-al-sico{width:44px;height:44px;border-radius:8px;background:#eef4fd;display:flex;align-items:center;justify-content:center}
+html body .am-emp-al .am-al-sico svg,html body .am-emp-al .am-al-noteico svg{width:24px;height:24px;fill:none;stroke:#1a5fd6;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+html body .am-emp-al .am-al-help .am-al-fill{fill:#1a5fd6;stroke:#1a5fd6}
+html body .am-emp-al .am-al-help .am-al-white{stroke:#fff}
+html body .am-emp-al .am-al-help .am-al-white-f{fill:#fff;stroke:none}
+html body .am-emp-al .am-al-steps strong,html body .am-emp-al .am-al-tip strong,html body .am-emp-al .am-al-notes strong{display:block;font-size:13.5px;color:#0f2a5c;margin:0 0 3px}
+html body .am-emp-al .am-al-steps p,html body .am-emp-al .am-al-tip p{margin:0;font-size:12px;color:#475569;line-height:1.45}
+html body .am-emp-al .am-al-tip{display:grid;grid-template-columns:30px 1fr;gap:12px;border-radius:10px;padding:13px 14px;align-items:start}
+html body .am-emp-al .am-al-tipico{width:28px;height:28px;border-radius:50%;color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:15px}
+html body .am-emp-al .am-al-green{background:#e9f7ee;border:1px solid #c9ebd4}
+html body .am-emp-al .am-al-green .am-al-tipico{background:#22a352}
+html body .am-emp-al .am-al-green strong{color:#14532d}
+html body .am-emp-al .am-al-orange{background:#fff4e5;border:1px solid #fbdcb0}
+html body .am-emp-al .am-al-orange .am-al-tipico{background:#f07f13}
+html body .am-emp-al .am-al-orange strong{color:#7c2d12}
+html body .am-emp-al .am-al-orange p b{color:#1e293b}
+html body .am-emp-al .am-al-notes{display:grid;grid-template-columns:30px 1fr;gap:10px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:10px;padding:13px 14px}
+html body .am-emp-al .am-al-notes ul{margin:0;padding-left:16px;font-size:11.5px;color:#334155;line-height:1.6}
+html body .am-emp-al .am-al-noteico svg{stroke:#0f2a5c}
+html body .am-emp-al .am-al-notes .am-al-fill{fill:#0f2a5c;stroke:#0f2a5c}
+html body .am-emp-al .am-addr-dialog{max-width:700px!important;width:calc(100% - 32px)!important;padding:0!important;border-radius:10px!important;overflow:hidden}
+html body .am-emp-al .am-md-head{display:flex;justify-content:space-between;align-items:flex-start;padding:18px 22px 12px!important;border-bottom:1px solid #e3e8f0;margin:0!important}
+html body .am-emp-al .am-md-head h2{margin:0;font-size:21px;font-weight:700;color:#0f2a5c}
+html body .am-emp-al .am-md-head p{margin:4px 0 0;font-size:13px;color:#475569}
+html body .am-emp-al .am-md-body{padding:4px 22px 6px;max-height:calc(100vh - 210px);overflow:auto}
+html body .am-emp-al .am-md-sec{border:1px solid #e3e8f0;border-radius:8px;padding:0 14px 14px;margin:0 0 14px;min-width:0}
+html body .am-emp-al .am-md-sec legend{float:left;width:calc(100% + 28px);margin:0 -14px 12px;padding:10px 14px;background:#f8fafc;border-bottom:1px solid #e3e8f0;border-radius:8px 8px 0 0;font-size:14.5px;font-weight:700;color:#0f2a5c}
+html body .am-emp-al .am-md-sec legend+*{clear:both}
+html body .am-emp-al .am-md-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px 14px}
+html body .am-emp-al .am-md-grid>label{grid-column:span 2;display:flex;flex-direction:column;gap:6px;margin:0;font-size:13px;font-weight:600;color:#1e293b}
+html body .am-emp-al .am-md-sec:first-of-type .am-md-grid>label:nth-child(1){grid-column:span 2}
+html body .am-emp-al .am-md-grid>label.am-al-span2{grid-column:span 4}
+html body .am-emp-al .am-md-foot{display:flex;justify-content:flex-end;gap:12px;padding:14px 22px!important;border-top:1px solid #e3e8f0;margin:0!important}
+html body .am-emp-al .am-addr-dialog [aria-invalid=true]{border-color:#dc2626!important}
+@media (max-width:1100px){html body .am-emp-al .am-al-layout{grid-template-columns:1fr}}
+@media (max-width:760px){html body .am-emp-al .am-al-search{grid-template-columns:1fr 1fr}html body .am-emp-al .am-al-grid>.am-al-f,html body .am-emp-al .am-al-grid>.am-al-f:nth-child(n){grid-column:1 / -1}html body .am-emp-al .am-md-grid>label,html body .am-emp-al .am-md-grid>label.am-al-span2{grid-column:1 / -1}}
+html body .am-emp-al .am-al-search{grid-template-columns:minmax(175px,1fr) minmax(160px,1.1fr) auto auto}
+); the design uses normal case.
+   Card grid now mirrors the modal: Street Number 1/3 + Address Line 1 2/3; Line 2 / Suite Type / Suite Number; section bar;
+   City / Province / Postal on one even row; Country 2/3. ===== */
+html body .am-emp-al .am-al-layout label,html body .am-emp-al .am-addr-dialog label,
+html body .am-emp-al .am-al-f>label,html body .am-emp-al .am-md-grid>label,html body .am-emp-al .am-md-grid>label>span{text-transform:none!important;letter-spacing:normal!important;color:#0f2a5c!important;font-size:13.5px!important;font-weight:700!important;line-height:1.3!important;margin:0!important}
+html body .am-emp-al .am-al-opt{font-style:normal!important;font-weight:500!important;color:#0f2a5c}
+html body .am-emp-al .am-al-req{color:#dc2626!important;margin-left:2px}
+html body .am-emp-al .am-al-grid{grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:14px 20px!important;align-items:end}
+html body .am-emp-al .am-al-grid>.am-al-f,html body .am-emp-al .am-al-grid>.am-al-f:nth-child(n){grid-column:span 2!important}
+html body .am-emp-al .am-al-grid>.am-al-f.am-al-span2:nth-child(n){grid-column:span 4!important}
+html body .am-emp-al .am-al-grid>.am-al-f.am-al-countryf:nth-child(n){grid-column:1 / span 4!important}
+html body .am-emp-al .am-al-subhead{grid-column:1 / -1;margin:6px -14px 0;padding:10px 14px;background:#f1f6fd;border-top:1px solid #e3e8f0;border-bottom:1px solid #e3e8f0;font-size:15px;font-weight:700;color:#0f2a5c}
+html body .am-emp-al .am-al-details-head{background:#f1f6fd!important}
+html body .am-emp-al .am-al-details-head h3{font-size:16.5px!important}
+html body .am-emp-al .am-al-main select,html body .am-emp-al .am-addr-dialog select{font-weight:400!important}
+html body .am-emp-al .am-al-main input[type=text],html body .am-emp-al .am-al-main select,html body .am-emp-al .am-addr-dialog input[type=text],html body .am-emp-al .am-addr-dialog select{margin:0!important;box-shadow:none}
+html body .am-emp-al .am-addr-dialog{max-width:1000px!important}
+html body .am-emp-al .am-md-head{border-bottom:1px solid #e3e8f0!important;padding:18px 26px 12px!important}
+html body .am-emp-al .am-md-head h2{font-size:26px!important;font-weight:800!important;color:#0f2a5c!important;border:0!important;padding:0!important;margin:0!important;font-family:inherit!important;line-height:1.2!important}
+html body .am-emp-al .am-md-head p{font-size:14px!important;color:#1e3a8a!important;margin:6px 0 0!important}
+html body .am-emp-al .am-addr-x{font-size:30px!important;color:#0f2a5c!important;line-height:1!important}
+html body .am-emp-al .am-md-body{padding:10px 26px 6px!important}
+html body .am-emp-al .am-md-body .am-al-info{font-size:13.5px}
+html body .am-emp-al .am-md-sec{border-color:#e3e8f0!important;padding:0 16px 16px!important}
+html body .am-emp-al .am-md-sec legend{width:calc(100% + 32px)!important;margin:0 -16px 14px!important;padding:11px 16px!important;background:#f1f6fd!important;font-size:17px!important;font-weight:700!important;color:#0f2a5c!important;border-bottom:0!important;text-transform:none!important}
+html body .am-emp-al .am-md-grid{gap:16px 24px!important}
+html body .am-emp-al .am-md-grid>label{gap:8px!important}
+html body .am-emp-al .am-md-foot{padding:16px 26px!important}
+@media (max-width:760px){html body .am-emp-al .am-al-grid>.am-al-f:nth-child(n),html body .am-emp-al .am-al-grid>.am-al-f.am-al-span2:nth-child(n),html body .am-emp-al .am-al-grid>.am-al-f.am-al-countryf:nth-child(n){grid-column:1 / -1!important}}
+html body .am-emp-al .am-md-grid>label input,html body .am-emp-al .am-md-grid>label select,html body .am-emp-al .am-al-f input,html body .am-emp-al .am-al-f select{font-weight:400!important;text-transform:none!important}
+html body .am-emp-al .am-md-body .am-al-i{flex:0 0 30px;height:30px;font-size:17px;line-height:30px}
+html body .am-emp-al .am-md-grid>label select,html body .am-emp-al .am-al-details .am-al-f select{-webkit-appearance:none!important;-moz-appearance:none!important;appearance:none!important;padding:0 34px 0 12px!important;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6' fill='none' stroke='%231e2f4d' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 12px center!important;color:#1c2f55!important}
+html body .am-emp-al .am-md-grid>label select::-ms-expand,html body .am-emp-al .am-al-details .am-al-f select::-ms-expand{display:none}
+html body .am-emp-al .am-md-grid>label input[type=text],html body .am-emp-al .am-md-grid>label select,html body .am-emp-al .am-al-details .am-al-f input[type=text],html body .am-emp-al .am-al-details .am-al-f select{height:40px!important;border:1px solid #cfd8e3!important;border-radius:6px!important;font-size:14px!important}
+html body .am-emp-al .am-md-grid>label select:disabled,html body .am-emp-al .am-al-details .am-al-f select:disabled{background-color:#f1f5f9!important}

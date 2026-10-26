@@ -274,7 +274,13 @@ public partial class AnyminuteEmployeeEditorPage : System.Web.UI.Page
         {
             AccessOn.Checked = a.Enabled; AccessOff.Checked = !a.Enabled; RequireChange.Checked = a.RequireChange; TwoFactor.Checked = a.TwoFactor;
             var first = card.First; AccessRole.Items.Clear();
-            foreach (DataRow r in AnyminuteEmployeeEditor.Roles(first.BusinessId).Rows) AccessRole.Items.Add(new ListItem(Convert.ToString(r["UserType"]), Convert.ToString(r["User_TypeId"])));
+            // v16: Role for Portal Access offers only Employee, Manager and Administrator (Accountant, Product Manager,
+            // Senior Area Manager and other custom roles removed). An existing other role stays listed so it is not changed silently.
+            foreach (DataRow r in AnyminuteEmployeeEditor.Roles(first.BusinessId).Rows)
+            {
+                int id = Convert.ToInt32(r["User_TypeId"]);
+                if (id == 2 || id == 4 || id == 5 || id == first.RoleId) AccessRole.Items.Add(new ListItem(Convert.ToString(r["UserType"]), id.ToString(Inv)));
+            }
             Select(AccessRole, first.RoleId.ToString(Inv)); AccessRole.ToolTip = "Role in " + first.Business;
         }
         if (!a.TablesReady) ShowError(AnyminuteEmployeeEditor.MissingTables.Replace(" Nothing was changed.", " Login settings cannot be saved until it is installed."));

@@ -9,13 +9,32 @@ public partial class AnyminuteWeekTimeCard : System.Web.UI.Page
 {
  int Business {get{return Int32.Parse(Request.QueryString["BusinessId"]);}}
  int Target {get{return Int32.Parse(Employee.SelectedValue);}}
- DateTime StartWeek {get{return AnyminuteWeekService.Monday(DateTime.ParseExact(Week.Text,"yyyy-MM-dd",CultureInfo.InvariantCulture));}}
+ // v16: a cleared/invalid week box falls back to the current week instead of a server error.
+ DateTime StartWeek {get{DateTime d;return AnyminuteWeekService.Monday(DateTime.TryParseExact(Week.Text,"yyyy-MM-dd",CultureInfo.InvariantCulture,DateTimeStyles.None,out d)?d:DateTime.Today);}}
+ static bool TryTime(string text,out TimeSpan t){return TimeSpan.TryParseExact((text??"").Trim(),new[]{@"hh\:mm",@"hh\:mm\:ss",@"h\:mm"},CultureInfo.InvariantCulture,out t);}
  int Revision {get{return Convert.ToInt32(ViewState["Revision"]);}}
  protected void Page_Init(object s,EventArgs e)
- {int b;if(!Int32.TryParse(Request.QueryString["BusinessId"],out b))throw new HttpException(400,"Select a business from the dashboard.");AnyminuteModernScope.Login();ViewStateUserKey=Session.SessionID;}
+ {
+  AnyminuteModernScope.Login();ViewStateUserKey=Session.SessionID;
+  // v16: opened without ?BusinessId (nav, bookmarks, quick actions) -> first accessible business instead of HTTP 400.
+  int b;if(!Int32.TryParse(Request.QueryString["BusinessId"],out b))
+  {
+   var list=AnyminuteModernScope.Businesses();
+   if(list.Rows.Count==0)throw new HttpException(403,"No business is available for your account.");
+   string extra=Request.QueryString["EmployeeId"]!=null?"&EmployeeId="+HttpUtility.UrlEncode(Request.QueryString["EmployeeId"]):"";
+   if(Request.QueryString["Week"]!=null)extra+="&Week="+HttpUtility.UrlEncode(Request.QueryString["Week"]);
+   Response.Redirect("~/WeekTimeCard.aspx?BusinessId="+Convert.ToInt32(list.Rows[0]["BusinessID"])+extra,false);Context.ApplicationInstance.CompleteRequest();return;
+  }
+ }
  protected void Page_Load(object s,EventArgs e)
  {
-  if(IsPostBack)return;
+  int qb;if(!Int32.TryParse(Request.QueryString["BusinessId"],out qb))return; // redirecting (Page_Init)
+  // v16: the Manage Breaks panel only stays open for break actions; it was re-opening on Save/Submit after being closed.
+  if(IsPostBack){BreakModal.Visible=false;return;}
+  var businesses=AnyminuteModernScope.Businesses();
+  foreach(DataRow r in businesses.Rows)BusinessPick.Items.Add(new ListItem(Convert.ToString(r["CompanyName"]),Convert.ToString(r["BusinessID"])));
+  if(BusinessPick.Items.FindByValue(qb.ToString())==null)throw new HttpException(403,"This business is outside your access.");
+  BusinessPick.SelectedValue=qb.ToString();BusinessField.Visible=BusinessPick.Items.Count>1;
   var users=AnyminuteModernScope.Users(Business);Employee.DataSource=users;Employee.DataTextField="EmpName";Employee.DataValueField="EmployeeID";Employee.DataBind();
   if(Employee.Items.Count==0)throw new HttpException(403,"No accessible timecard in this business.");
   string selected=Request.QueryString["EmployeeId"];if(selected!=null){if(Employee.Items.FindByValue(selected)==null)throw new HttpException(403,"Employee is outside your access.");Employee.SelectedValue=selected;}
@@ -23,6 +42,11 @@ public partial class AnyminuteWeekTimeCard : System.Web.UI.Page
   DateTime week;Week.Text=DateTime.TryParseExact(Request.QueryString["Week"],"yyyy-MM-dd",CultureInfo.InvariantCulture,DateTimeStyles.None,out week)?AnyminuteWeekService.Monday(week).ToString("yyyy-MM-dd"):AnyminuteWeekService.Monday(AnyminuteClockEvidence.Today(Business)).ToString("yyyy-MM-dd");Bind();AnyminuteClockEvidence.Record(Business,"OpenTimeCard");
  }
  protected void SelectionChanged(object s,EventArgs e){BreakModal.Visible=false;Bind();}
+ protected void BusinessChanged(object s,EventArgs e)
+ {
+  int b;if(!Int32.TryParse(BusinessPick.SelectedValue,out b)||b<=0)return;
+  Response.Redirect("~/WeekTimeCard.aspx?BusinessId="+b+"&Week="+StartWeek.ToString("yyyy-MM-dd",CultureInfo.InvariantCulture),false);Context.ApplicationInstance.CompleteRequest();
+ }
  void FreshSelection(){if(Convert.ToString(ViewState["WeekKey"])!=Target+":"+StartWeek.ToString("yyyy-MM-dd"))throw new InvalidOperationException("Load the selected employee and week before applying an action.");}
  void Run(Action action, string successMessage = null)
  {
@@ -92,7 +116,7 @@ public partial class AnyminuteWeekTimeCard : System.Web.UI.Page
  {
   Run(()=>{var input=new List<AnyminuteDraftDay>();foreach(RepeaterItem row in Days.Items)
    {DateTime date=DateTime.ParseExact(((HiddenField)row.FindControl("DateKey")).Value,"yyyy-MM-dd",CultureInfo.InvariantCulture);string worked=((DropDownList)row.FindControl("Worked")).SelectedValue;string start=((TextBox)row.FindControl("Start")).Text,end=((TextBox)row.FindControl("End")).Text;
-    var d=new AnyminuteDraftDay {Date=date,Worked=worked==""?(bool?)null:worked=="Yes"};if(d.Worked==true){TimeSpan t;if(start!=""){if(!TimeSpan.TryParseExact(start,@"hh\:mm",CultureInfo.InvariantCulture,out t))throw new FormatException();d.Start=date+t;}if(end!=""){if(!TimeSpan.TryParseExact(end,@"hh\:mm",CultureInfo.InvariantCulture,out t))throw new FormatException();d.End=date+t+(((CheckBox)row.FindControl("NextDay")).Checked?TimeSpan.FromDays(1):TimeSpan.Zero);}}input.Add(d);}
+    var d=new AnyminuteDraftDay {Date=date,Worked=worked==""?(bool?)null:worked=="Yes"};if(d.Worked==true){TimeSpan t;if(start!=""){if(!TryTime(start,out t))throw new FormatException();d.Start=date+t;}if(end!=""){if(!TryTime(end,out t))throw new FormatException();d.End=date+t+(((CheckBox)row.FindControl("NextDay")).Checked?TimeSpan.FromDays(1):TimeSpan.Zero);}}input.Add(d);}
    AnyminuteWeekService.SaveDraft(Business,Target,StartWeek,Revision,input);}, "Draft saved. Use Submit Week to send it for approval.");
  }
  void Transition(string action)
@@ -102,7 +126,7 @@ public partial class AnyminuteWeekTimeCard : System.Web.UI.Page
  }
  protected void Submit_Click(object s,EventArgs e){Transition("Submit");}protected void Approve_Click(object s,EventArgs e){Transition("Approve");}protected void Reject_Click(object s,EventArgs e){Transition("Reject");}protected void Reopen_Click(object s,EventArgs e){Transition("Reopen");}
  protected void Copy_Click(object s,EventArgs e)
- {Run(()=>{var dates=Enumerable.Range(1,4).Select(i=>StartWeek.AddDays(i)).ToArray();AnyminuteTimesheetRepair.Copy(Convert.ToInt32(Session["EmployeeId"]),Convert.ToInt32(Session["UserTypeid"]),Business,Target,dates.Select(d=>StartWeek).ToArray(),dates,false);});}
+ {Run(()=>{var dates=Enumerable.Range(1,4).Select(i=>StartWeek.AddDays(i)).ToArray();AnyminuteTimesheetRepair.Copy(Convert.ToInt32(Session["EmployeeId"]),Convert.ToInt32(Session["UserTypeid"]),Business,Target,dates.Select(d=>StartWeek).ToArray(),dates,false);},"Monday copied to the empty weekdays. Review the times, then Save changes.");}
  protected void DayCommand(object s,RepeaterCommandEventArgs e)
  {
   DateTime day=DateTime.ParseExact(Convert.ToString(e.CommandArgument),"yyyy-MM-dd",CultureInfo.InvariantCulture);if(day<StartWeek||day>=StartWeek.AddDays(7))throw new HttpException(400,"Invalid day.");
@@ -132,7 +156,7 @@ public partial class AnyminuteWeekTimeCard : System.Web.UI.Page
  protected void CancelBreakEdit_Click(object s,EventArgs e){Run(()=>{ClearBreakEditor();OpenBreaks();});}
  protected void SaveBreak_Click(object s,EventArgs e)
  {Run(()=>{DateTime day=Convert.ToDateTime(ViewState["BreakDay"]);int? id=ViewState["BreakID"]==null?(int?)null:Convert.ToInt32(ViewState["BreakID"]);
-  TimeSpan a,z;if(!TimeSpan.TryParseExact(BreakStart.Text,@"hh\:mm",CultureInfo.InvariantCulture,out a)||!TimeSpan.TryParseExact(BreakEnd.Text,@"hh\:mm",CultureInfo.InvariantCulture,out z))throw new FormatException();
+  TimeSpan a,z;if(!TryTime(BreakStart.Text,out a)||!TryTime(BreakEnd.Text,out z))throw new FormatException();
   DateTime start=day.Date+a,end=day.Date+z;
   using(var c=AnyminuteTimesheetRepair.Open())
   {AnyminuteWeekService.ReadAccess(c,null,Business,Target);var rows=AnyminuteTimesheetRepair.Day(c,null,Business,Target,day);

@@ -68,12 +68,32 @@ public static class AnyminuteWeeklySchedule
         AnyminuteTimesheetRepair.Authorize(c, tx, actor, role, business, employee, false);
     }
 
+    // 2026-10-25 v16: read access also allows an employee to view their own Work Schedule (read-only);
+    // editing still needs Authorize (owner, or manager/admin per the timesheet rule).
+    public static void AuthorizeView(SqlConnection c, SqlTransaction tx, int business, int employee)
+    {
+        try { Authorize(c, tx, business, employee); }
+        catch (InvalidOperationException)
+        {
+            int role, actor = AnyminuteModernScope.Actor(c, tx, business, out role);
+            AnyminuteTimesheetRepair.AuthorizeRead(c, tx, actor, role, business, employee);
+        }
+    }
+    public static bool CanEdit(int business, int employee)
+    {
+        using (var c = AnyminuteTimesheetRepair.Open())
+        {
+            try { Authorize(c, null, business, employee); return true; }
+            catch (InvalidOperationException) { return false; }
+        }
+    }
+
     public static List<AnyminuteScheduleDay> Load(int business, int employee, DateTime monday, out bool anySaved)
     {
         var week = DefaultWeek(monday); anySaved = false;
         using (var c = AnyminuteTimesheetRepair.Open())
         {
-            Authorize(c, null, business, employee);
+            AuthorizeView(c, null, business, employee);
             if (!AnyminuteEmployeeEditor.HasTable(c, null, Table)) return week;
             var rows = AnyminuteTimesheetRepair.Query(c, null, "SELECT WorkDate,ScheduleType,StartTime,EndTime,BreakMinutes,Notes FROM dbo.AnyminuteWeeklySchedule WHERE BusinessID=@b AND EmployeeID=@e AND WorkDate BETWEEN @f AND @t",
                 "@b", business, "@e", employee, "@f", monday, "@t", monday.AddDays(6));

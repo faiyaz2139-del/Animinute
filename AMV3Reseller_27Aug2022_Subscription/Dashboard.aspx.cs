@@ -27,6 +27,8 @@ public partial class AnyminuteDashboard : System.Web.UI.Page
   AddUser.Visible=owner;AddBusiness.Visible=Convert.ToString(Session["UserTypeid"])=="1";
   string report=AnyminuteUiNavigation.ReportHref(AnyminuteUiNavigation.Load());ReportsQuick.Visible=report!=null;if(report!=null)ReportsQuick.NavigateUrl=report;
   ViewApprovals.Visible=AnyminuteDirectoryScope.CanReadDirectory();
+  // v16: role-based quick actions - every user with a business gets Work Schedule; employees also get their weekly time card.
+  WorkScheduleQuick.Visible=rows.Rows.Count>0;TimeCardQuick.Visible=rows.Rows.Count>0&&!owner&&!ViewApprovals.Visible;
   BusinessRows.DataSource=StatusFilter.SelectedValue=="All"?rows:rows.Select("DisplayStatus='"+(StatusFilter.SelectedValue=="Inactive"?"Not Active":"Active")+"'").CopyToDataTableOrEmpty(rows);
   BusinessRows.DataBind();Empty.Visible=BusinessRows.Items.Count==0;
  }

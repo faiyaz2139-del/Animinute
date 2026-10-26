@@ -14,6 +14,8 @@
 <asp:HyperLink ID="AddBusiness" runat="server" NavigateUrl="~/Add_Business.aspx" CssClass="am-button secondary"><span data-am-icon="business" aria-hidden="true"></span>Add Business</asp:HyperLink>
 <asp:HyperLink ID="AddUser" runat="server" NavigateUrl="~/EmployeeEditor.aspx" CssClass="am-button secondary"><span data-am-icon="people" aria-hidden="true"></span>Add Employee</asp:HyperLink>
 <asp:HyperLink ID="ViewApprovals" runat="server" NavigateUrl="~/TimeCards.aspx?status=Submitted" CssClass="am-button secondary"><span data-am-icon="check" aria-hidden="true"></span>View Approvals</asp:HyperLink>
+<asp:HyperLink ID="TimeCardQuick" runat="server" Visible="false" NavigateUrl="~/WeekTimeCard.aspx" CssClass="am-button secondary"><span data-am-icon="clock" aria-hidden="true"></span>My Time Card</asp:HyperLink>
+<asp:HyperLink ID="WorkScheduleQuick" runat="server" Visible="false" NavigateUrl="~/WeeklyEmployeeSchedule.aspx" CssClass="am-button secondary"><span data-am-icon="dashboard" aria-hidden="true"></span>Work Schedule</asp:HyperLink>
 <asp:HyperLink ID="ReportsQuick" runat="server" Visible="false" CssClass="am-button secondary"><span data-am-icon="reports" aria-hidden="true"></span>Reports</asp:HyperLink>
 </div></section></div>
 <div class="am-toolbar"><label><span>Search businesses</span><input type="search" data-search="#business-grid" placeholder="Business or contact name&#8230;" /></label><label><span>Status</span><asp:DropDownList ID="StatusFilter" runat="server" AutoPostBack="true" OnSelectedIndexChanged="FilterChanged"><asp:ListItem Value="All">All statuses</asp:ListItem><asp:ListItem Value="Active">Active</asp:ListItem><asp:ListItem Value="Inactive">Not Active</asp:ListItem></asp:DropDownList></label></div>

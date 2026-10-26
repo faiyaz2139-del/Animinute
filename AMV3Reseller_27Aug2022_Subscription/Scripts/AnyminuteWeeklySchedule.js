@@ -12,7 +12,8 @@
   if(!type)return 0;
   var working=type.value==='Working';
   type.classList.toggle('is-working',working);type.classList.toggle('is-off',!working);tr.classList.toggle('am-ws-off',!working);
-  [start,end,brk,notes].forEach(function(f){if(f)f.disabled=!working;});
+  // v16: a read-only (employee) view keeps every input disabled.
+  [start,end,brk,notes].forEach(function(f){if(f)f.disabled=!working||type.disabled;});
   var h=hours(type.value,start.value,end.value,brk.value);out.textContent=h.toFixed(2);return h;
  }
  function total(){

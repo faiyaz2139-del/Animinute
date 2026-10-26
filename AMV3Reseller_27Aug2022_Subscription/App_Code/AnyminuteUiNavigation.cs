@@ -25,12 +25,16 @@ public static class AnyminuteUiNavigation
             }
         }
         var items=new MenuHandler().GetMenusDetails(roleName).ToList();
-        if(String.Equals(roleName,"Manager",StringComparison.OrdinalIgnoreCase)) Add(items,"Calendar","Schedular.aspx",-208);
+        // 2026-10-25 v16: the Calendar group (Schedular.aspx "Time Sheet Schedule") is no longer in the left navigation;
+        // the page still opens by URL, so the manager-only Calendar link is not added any more.
         if(HasAccount())
         {
             Add(items,"Dashboard","Dashboard.aspx",-201);
             Add(items,"Time Cards","TimeCards.aspx",-202);
             Add(items,"Notifications","Notifications.aspx",-203);
+            // v16: Work Schedule (was "Weekly Schedule") for every signed-in account; employees see their own planned
+            // schedule read-only, owners/managers edit it (WeeklyEmployeeSchedule.aspx authorizes every load/save).
+            Add(items,"Work Schedule","WeeklyEmployeeSchedule.aspx",-216);
             if(AnyminuteDirectoryScope.CanReadDirectory())
             {Add(items,"Employees","Users.aspx",-204);Add(items,"Approvals","TimeCards.aspx?status=Submitted",-205);}
             bool owner=false;
@@ -40,12 +44,13 @@ public static class AnyminuteUiNavigation
             {
                 Add(items,"Payroll ready","PayrollReady.aspx",-206);Add(items,"Settings","BusinessSettings.aspx",-207);
                 Add(items,"Edit Business","BusinessActions.aspx?action=edit",-210);
-                // v14 tester doc item 5: "Accountant & Payroll Access" is no longer added to the menu (page still opens by URL).
+                // v16: "Accountant & Payroll Access" is back in the menu, now under the User Access group (below Reports).
+                Add(items,"Accountant & Payroll Access","AccountantAccess.aspx",-211);
                 Add(items,"Add User","EmployeeEditor.aspx",-212);
                 Add(items,"Edit User","Users.aspx?action=edit",-213);
                 Add(items,"Add Project","ProjectEditor.aspx",-214); // v8 Deck F: new Add Project page
                 Add(items,"Edit Project","Projects.aspx",-215); // v8 Deck F: edit from the Projects list
-                Add(items,"Weekly Schedule","WeeklyEmployeeSchedule.aspx",-216); // v11 Deck I
+                // v11 Deck I Weekly Schedule is added above as "Work Schedule" (v16).
             }
         }
         return items.OrderBy(item=>item.Seq);
@@ -60,13 +65,14 @@ public static class AnyminuteUiNavigation
     // Assign Accountant lives under Businesses, Assign User under Employees, tickets under Need Help.
     // Every link still comes from the role-permitted menu; only Change Password, Help Center and Chat are added,
     // and those were already offered to every signed-in user in the header menus.
-    const int GDashboard=0,GQuick=1,GBusinesses=2,GEmployees=3,GProjects=4,GTimeCards=5,GApprovals=6,GReports=7,GSettings=8,GNotifications=9,GPayroll=10,GCalendar=11,GAccount=12,GHelp=13;
+    // 2026-10-25 v16: + Work Schedule (after Time Cards) and User Access (after Reports); Calendar and Account are not shown.
+    const int GDashboard=0,GQuick=1,GBusinesses=2,GEmployees=3,GProjects=4,GTimeCards=5,GWorkSchedule=6,GApprovals=7,GReports=8,GUserAccess=9,GSettings=10,GNotifications=11,GPayroll=12,GCalendar=13,GAccount=14,GHelp=15;
     private static IEnumerable<MenuViewModel> UiMenuGroups(IEnumerable<MenuViewModel> permitted)
     {
         var all = permitted.ToList();
         var leaves = new List<MenuViewModel>();
         foreach (var item in all) CollectUiMenuItems(item, leaves);
-        string[] names = { "Dashboard", "Quick Actions", "Businesses", "Employees", "Projects", "Time Cards", "Approvals", "Reports", "Settings", "Notifications", "Payroll", "Calendar", "Account", "Need Help" };
+        string[] names = { "Dashboard", "Quick Actions", "Businesses", "Employees", "Projects", "Time Cards", "Work Schedule", "Approvals", "Reports", "User Access", "Settings", "Notifications", "Payroll", "Calendar", "Account", "Need Help" };
         var groups = new List<MenuViewModel>();
         for (int i = 0; i < names.Length; i++)
             groups.Add(new MenuViewModel { Id = -500-i, Seq = i, Name = names[i], Href = "#", Icon = "", SubMenu = new List<MenuViewModel>() });
@@ -81,14 +87,16 @@ public static class AnyminuteUiNavigation
             // Change Password and Plan Upgrade are added once, together, at the top of Account (below).
             if (route.Contains("enterprise_plan") || route.Contains("change%20password") || route.Contains("change password") || label.Contains("plan upgrade")) continue;
             int group = GAccount;
-            if (label.Contains("accountant")) group=GBusinesses;
-            else if (label == "assign user" || route.Contains("assignuser")) group=GEmployees;
+            // v16: Assign User is removed from the left navigation (the page still opens by URL).
+            if (label == "assign user" || route.Contains("assignuser")) continue;
+            if (label.Contains("accountant") || route.Contains("accountantaccess") || route.Contains("businessaccountant") || route.Contains("assignaccountant")) group=GUserAccess;
             else if (route.Contains("ticket") || label.Contains("ticket")) group=GHelp;
             else if (route.Contains("businessactions")) group=GBusinesses;
             else if (label.Contains("setting")) group=GSettings;
             else if (route.Contains("notification")) group=GNotifications;
             else if (route.Contains("payroll")) group=GPayroll;
-            else if (route.Contains("schedular") || route.Contains("scheduler") || route.Contains("weeklyemployeeschedule")) group=GCalendar;
+            else if (route.Contains("weeklyemployeeschedule")) { group=GWorkSchedule; item.Name="Work Schedule"; }
+            else if (route.Contains("schedular") || route.Contains("scheduler")) group=GCalendar; // v16: Time Sheet Schedule / Calendar, not shown
             else if (route.Contains("view=businesses")) group=GBusinesses;
             else if (route.Contains("dashboard") || label == "home" || label == "dashboard" || route.EndsWith("home_page.aspx")) group=GDashboard;
             else if (route.Contains("report") || label.Contains("report")) group=GReports;
@@ -111,14 +119,17 @@ public static class AnyminuteUiNavigation
             else if (group==GProjects && route.Contains("add_project.aspx?mode=edit")) { item.Name="Edit Project"; item.Href="Projects.aspx"; }
             else if (group==GProjects && route.Split('?')[0].EndsWith("add_project.aspx")) { item.Name="Add Project"; item.Href="ProjectEditor.aspx"; }
             // v9 Deck G: every Assign Accountant / legacy accountant route opens the new Accountant & Payroll Access list.
-            if (group==GBusinesses && (label.Contains("accountant") || route.Contains("action=accountant") || route.Contains("businessaccountant") || route.Contains("assignaccountant"))) { item.Name="Accountant & Payroll Access"; item.Href="AccountantAccess.aspx"; }
-            // v14 tester doc item 5: no "Accountant & Payroll Access" submenu under Businesses (AccountantAccess.aspx stays reachable by URL).
-            if (group==GBusinesses && item.Name=="Accountant & Payroll Access") continue;
+            // v16: it lives under User Access (not Businesses).
+            if (group==GUserAccess) { item.Name="Accountant & Payroll Access"; item.Href="AccountantAccess.aspx"; }
             // Same label twice in one menu (e.g. two Assign Accountant routes, two Dashboards) is shown once.
             if (!labels.Add(group + "|" + item.Name.Trim())) continue;
             groups[group].SubMenu.Add(item);
         }
         if (!groups[GEmployees].SubMenu.Any(m => m.Name == "Edit Employee") && employeesFallback != null) { employeesFallback.Name = "Edit Employee"; groups[GEmployees].SubMenu.Add(employeesFallback); }
+        // v16: Edit Business always sits under Businesses next to Add Business. Owners get the Edit Business picker
+        // (BusinessActions.aspx?action=edit); otherwise it opens the Businesses list, whose rows carry the per-business Edit.
+        if (groups[GBusinesses].SubMenu.Any(m => (m.Name ?? "").Trim() == "Add Business") && !groups[GBusinesses].SubMenu.Any(m => (m.Name ?? "").Trim() == "Edit Business"))
+            groups[GBusinesses].SubMenu.Add(Link(-631, "Edit Business", VirtualPathUtility.ToAbsolute("~/Dashboard.aspx?view=businesses&mode=edit")));
         Func<string,string[],int> rank = (n, order) => { int i = Array.IndexOf(order, n); return i < 0 ? order.Length : i; };
         groups[GBusinesses].SubMenu = groups[GBusinesses].SubMenu.OrderBy(m => rank(m.Name, new[] { "Add Business", "Edit Business", "Accountant & Payroll Access" })).ToList();
         groups[GEmployees].SubMenu = groups[GEmployees].SubMenu.OrderBy(m => rank(m.Name, new[] { "Add Employee", "Edit Employee", "Assign User" })).ToList();
@@ -143,7 +154,7 @@ public static class AnyminuteUiNavigation
         groups[GQuick].SubMenu = quick;
         foreach (var group in groups.Where(g => g.SubMenu.Count > 0))
         {
-            if (group.Seq == GQuick || group.Seq == GAccount || group.Seq == GHelp) continue; // pure sections: the header only opens/closes
+            if (group.Seq == GQuick || group.Seq == GAccount || group.Seq == GHelp || group.Seq == GUserAccess) continue; // pure sections: the header only opens/closes
             group.Href = group.SubMenu[0].Href;
             // Without a landing page, Businesses/Employees/Projects open as sections so Add X stays visible as a child link.
             if ((group.Seq == GBusinesses || group.Seq == GEmployees || group.Seq == GProjects) && group.SubMenu.Count > 1) group.Href = "#";
@@ -156,7 +167,8 @@ public static class AnyminuteUiNavigation
         // (help, tickets and chat stay in the header Help menu; quick actions are on the Dashboard).
         // 2026-10-25 v15 (t52u): the Account group and all its links (Change Password, Plan Upgrade, ...) are removed from the
         // left navigation; Change password / Plan Upgrade stay in the header profile menu and every page still opens by URL.
-        return groups.Where(g => g.SubMenu.Count > 0 && g.Seq != GQuick && g.Seq != GSettings && g.Seq != GPayroll && g.Seq != GHelp && g.Seq != GAccount);
+        // 2026-10-25 v16: the Calendar group (Calendar / Time Sheet Schedule) is removed as well; Account stays removed for every role.
+        return groups.Where(g => g.SubMenu.Count > 0 && g.Seq != GQuick && g.Seq != GSettings && g.Seq != GPayroll && g.Seq != GHelp && g.Seq != GAccount && g.Seq != GCalendar);
     }
     static MenuViewModel Link(int id, string name, string href) { return new MenuViewModel { Id = id, Seq = 0, Name = name, Href = href, Icon = "", SubMenu = new List<MenuViewModel>() }; }
 
