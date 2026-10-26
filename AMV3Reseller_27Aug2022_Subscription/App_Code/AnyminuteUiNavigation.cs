@@ -154,7 +154,9 @@ public static class AnyminuteUiNavigation
         }
         // 2026-10-24 v10: Quick Actions, Settings, Payroll and Need Help are no longer sidebar groups
         // (help, tickets and chat stay in the header Help menu; quick actions are on the Dashboard).
-        return groups.Where(g => g.SubMenu.Count > 0 && g.Seq != GQuick && g.Seq != GSettings && g.Seq != GPayroll && g.Seq != GHelp);
+        // 2026-10-25 v15 (t52u): the Account group and all its links (Change Password, Plan Upgrade, ...) are removed from the
+        // left navigation; Change password / Plan Upgrade stay in the header profile menu and every page still opens by URL.
+        return groups.Where(g => g.SubMenu.Count > 0 && g.Seq != GQuick && g.Seq != GSettings && g.Seq != GPayroll && g.Seq != GHelp && g.Seq != GAccount);
     }
     static MenuViewModel Link(int id, string name, string href) { return new MenuViewModel { Id = id, Seq = 0, Name = name, Href = href, Icon = "", SubMenu = new List<MenuViewModel>() }; }
 
