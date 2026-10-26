@@ -219,6 +219,15 @@ public static class AnyminuteUiNavigation
     public static string Render(IEnumerable<MenuViewModel> menu)
     {
         var html = new StringBuilder();
+        // 2026-10-26 v18 (deck slides 1-3): employees and supervisors get the deck's flat navigation
+        // (no My Employees for employee-only users). Owners/admins/accountants keep the grouped menu below.
+        if (AnyminuteRoleDashboard.Applies())
+        {
+            foreach (var link in AnyminuteRoleDashboard.NavLinks(menu))
+                html.Append("<li><a href='").Append(HttpUtility.HtmlAttributeEncode(link.Value)).Append("' data-am-primary='true'><i class='' aria-hidden='true'></i><span>")
+                    .Append(HttpUtility.HtmlEncode(link.Key)).Append("</span></a></li>");
+            return html.ToString();
+        }
         foreach (var item in UiMenuGroups(menu))
         {
             var childrenMenu = item.SubMenu.Where(child => CanonicalRoute(UiMenuHref(child)) != CanonicalRoute(UiMenuHref(item))).ToList();

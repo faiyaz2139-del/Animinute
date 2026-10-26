@@ -12,6 +12,13 @@ public partial class AnyminuteDashboard : System.Web.UI.Page
    // Confirmation set by Add_Business after a successful save (shown once).
    string flash=AnyminuteFlash.Take("dashboard");
    if(flash!=null){SavedFlashText.Text=HttpUtility.HtmlEncode(flash);SavedFlash.Visible=true;}
+   // v18 (deck slides 1-3): employees / supervisors get the role dashboard; owners, admins, accountants and
+   // "My Businesses" (?view=businesses) keep the existing businesses dashboard below.
+   if(Request.QueryString["view"]!="businesses" && AnyminuteRoleDashboard.Applies())
+   {
+    var model=AnyminuteRoleDashboard.Load(Request.QueryString["b"],Request.QueryString["mode"]);
+    RoleDashboard.Text=AnyminuteRoleDashboard.Render(model,null);RoleDashboard.Visible=true;OwnerView.Visible=false;return;
+   }
    Bind();
   }
  }
