@@ -38,8 +38,8 @@ public partial class AnyminuteEmployeeEditorPage : System.Web.UI.Page
     private void SetupAdd()
     {
         PageTitle.Text = "Add Employee"; PageSubtitle.Text = "Enter the employee details and assign to one or more businesses with roles and pay details.";
-        // v7 Deck D slide 8: Login & Access block removed from Add mode, replaced by an info banner (panel kept, managed after save).
-        NewAssignments.Visible = LookupSection.Visible = AddNotice.Visible = true; NewAccess.Visible = false; SaveEmployee.Text = "Save Employee";
+        // v17 (Pandey image1, supersedes v7 Deck D slide 8): Add mode shows Login & Access again and no info banner.
+        NewAssignments.Visible = LookupSection.Visible = NewAccess.Visible = true; AddNotice.Visible = false; SaveEmployee.Text = "Save Employee";
         if (IsPostBack) return;
         HireDate.Text = NewEffective.Text = DateTime.Today.ToString("yyyy-MM-dd", Inv);
         NewBusiness.Items.Add(new ListItem("Select a business", ""));
@@ -93,9 +93,11 @@ public partial class AnyminuteEmployeeEditorPage : System.Web.UI.Page
         LookupChoices.Items.Add(new ListItem("Select an address", ""));
         for (int i = 0; i < matches.Rows.Count; i++) { string label = Convert.ToString(matches.Rows[i]["SEARCHADDRESS"]).Trim(); if (label.Length > 0 && !String.Equals(label, "ADD NEW ADDRESS", StringComparison.OrdinalIgnoreCase)) LookupChoices.Items.Add(new ListItem(label, i.ToString(Inv))); }
         if (LookupChoices.Items.Count == 1) { LookupChoices.Items[0].Text = "No matching addresses found"; ShowError("No matching addresses found. Check the postal code or use Add New Address to enter it manually."); }
+        LookupChoices.Items.Add(new ListItem("+ Add New Address", "new")); // v17: "Select Address from List or Add New"
     }
     protected void LookupChoice_Changed(object sender, EventArgs e)
     {
+        if (LookupChoices.SelectedValue == "new") { AddNewAddress_Click(sender, e); return; }
         var matches = ViewState["EmpMatches"] as DataTable; int i;
         if (matches == null || !Int32.TryParse(LookupChoices.SelectedValue, out i) || i < 0 || i >= matches.Rows.Count) return;
         var a = AnyminuteBusinessAddressInput.FromRow(matches.Rows[i], Convert.ToString(ViewState["EmpPostal"]));

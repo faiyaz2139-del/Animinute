@@ -174,6 +174,7 @@ public partial class EmployeeProfile : System.Web.UI.Page
             //dtSearchAddress = comm.GetAllDataFromTable("EmpAddress", "EmpAddressId,StreetName+', '+ StreetType+', '+StreetDirection+', '+City+', '+Province as SEARCHADDRESS", "Postalcode='" + txtSearchPostalCode.Text + "'", "EmpAddressId");
             //dtSearchAddress = comm.GetSearchAddress(txtSearchPostalCode.Text.Trim());
             dtSearchAddress = comm.GetSearchAddress(strsearch);
+            BindAddressChoices(dtSearchAddress); // v17: new "Select Address from List or Add New" dropdown
             DataRow row1 = dtSearchAddress.NewRow();
             row1["id"] = 0;
             row1["SEARCHADDRESS"] = " ADD NEW ADDRESS"; //"None of the Above";
@@ -213,6 +214,40 @@ public partial class EmployeeProfile : System.Web.UI.Page
             }
             rdobtnlist.DataBind();
         }
+    }
+
+    // 2026-10-26 v17 (Pandey image5): the Address and Contacts tab lists the postal-code matches in a dropdown
+    // (plus "+ Add New Address"); choosing one fills the Employee Address fields, which btnSaveAddress saves as before.
+    private void BindAddressChoices(DataTable matches)
+    {
+        DataTable copy = matches.Copy(); if (String.IsNullOrEmpty(copy.TableName)) copy.TableName = "ProfileMatches";
+        ViewState["ProfileMatches"] = copy;
+        ddlAddressChoices.Items.Clear();
+        ddlAddressChoices.Items.Add(new ListItem(copy.Rows.Count > 0 ? "Select an address" : "No matching addresses found", ""));
+        for (int i = 0; i < copy.Rows.Count; i++)
+        {
+            string label = Convert.ToString(copy.Rows[i]["SEARCHADDRESS"]).Trim();
+            if (label.Length > 0 && !String.Equals(label, "ADD NEW ADDRESS", StringComparison.OrdinalIgnoreCase)) ddlAddressChoices.Items.Add(new ListItem(label, i.ToString()));
+        }
+        ddlAddressChoices.Items.Add(new ListItem("+ Add New Address", "new"));
+    }
+
+    protected void ddlAddressChoices_Changed(object sender, EventArgs e)
+    {
+        string postal = txtSearchPostalCode.Text.Trim().ToUpper();
+        txtStreetNo.ReadOnly = txtStreetName.ReadOnly = txtStreetType.ReadOnly = txtCity.ReadOnly = txtProvince.ReadOnly = txtPostalCode.ReadOnly = false;
+        if (ddlAddressChoices.SelectedValue == "new")
+        {
+            txtStreetNo.Text = txtStreetName.Text = txtStreetType.Text = txtStreetType1.Text = txtSuiteNumber.Text = txtCity.Text = txtProvince.Text = "";
+            DropDownList1.SelectedValue = ""; txtPostalCode.Text = postal; txtStreetNo.Focus();
+            return;
+        }
+        var matches = ViewState["ProfileMatches"] as DataTable; int i;
+        if (matches == null || !Int32.TryParse(ddlAddressChoices.SelectedValue, out i) || i < 0 || i >= matches.Rows.Count) return;
+        var a = AnyminuteBusinessAddressInput.FromRow(matches.Rows[i], postal);
+        txtStreetNo.Text = a.Number; txtStreetName.Text = (a.Street ?? "").ToUpper(); txtStreetType.Text = (a.Line2 ?? "").ToUpper(); txtStreetType1.Text = txtStreetName.Text;
+        txtCity.Text = (a.City ?? "").ToUpper(); txtProvince.Text = (a.Province ?? "").Trim().ToUpper();
+        txtPostalCode.Text = postal.Length > 0 ? postal : a.PostalCode;
     }
 
     public void ClearAddress()

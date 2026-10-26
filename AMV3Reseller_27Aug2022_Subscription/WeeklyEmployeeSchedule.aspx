@@ -1,6 +1,6 @@
 <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="WeeklyEmployeeSchedule.aspx.cs" Inherits="AnyminuteWeeklySchedulePage" Title="Work Schedule" %>
 <%-- 2026-10-25 v11 Deck I: Weekly Employee Schedule (planned hours; needs DB_REQUIRED/REQUIRED_05_WeeklySchedule.sql). --%>
-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteFlash.css?v=20261024v2" rel="stylesheet" /><link href="css/AnyminuteWeeklySchedule.css?v=20261025v13" rel="stylesheet" /><script src="Scripts/AnyminuteDateText.js?v=20261024v8" defer="defer"></script><script src="Scripts/AnyminuteWeeklySchedule.js?v=20261025v16" defer="defer"></script></asp:Content>
+<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteFlash.css?v=20261024v2" rel="stylesheet" /><link href="css/AnyminuteWeeklySchedule.css?v=20261026v17" rel="stylesheet" /><script src="Scripts/AnyminuteDateText.js?v=20261024v8" defer="defer"></script><script src="Scripts/AnyminuteWeeklySchedule.js?v=20261025v16" defer="defer"></script></asp:Content>
 <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
 <section class="am-ws" id="amWeeklySchedule" aria-labelledby="am-ws-title">
  <nav class="am-ws-crumb" aria-label="Breadcrumb"><a href="Dashboard.aspx">Home</a><span aria-hidden="true">&gt;</span><span aria-current="page">Work Schedule</span></nav>
@@ -8,6 +8,8 @@
  <p class="am-ws-sub" id="WsSub" runat="server">Set up weekly working hours, days off and break time for the selected employee. You can also repeat this schedule for multiple weeks.</p>
  <asp:Panel ID="Flash" runat="server" Visible="false" CssClass="am-flash" role="status"><span class="am-flash-icon" aria-hidden="true">&#10003;</span><asp:Literal ID="FlashText" runat="server" /></asp:Panel>
  <asp:Label ID="PageError" runat="server" Visible="false" CssClass="am-flash am-flash-error" role="alert" />
+ <%-- v17: employees cannot edit planned hours here; their own Mon-Sun times are entered in My Time Card (WeekTimeCard.aspx). --%>
+ <asp:Panel ID="TimeCardCta" runat="server" Visible="false" CssClass="am-ws-cta" role="note"><svg class="am-ws-cta-ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><div class="am-ws-cta-text"><strong>Enter the hours you worked in My Time Card</strong><span>Work Schedule shows the hours your manager planned for you. Record your actual clock-in and clock-out times for Monday to Sunday in My Time Card.</span></div><asp:HyperLink ID="TimeCardLink" runat="server" NavigateUrl="~/WeekTimeCard.aspx" CssClass="am-ws-btn am-ws-primary"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Enter My Times</span></asp:HyperLink></asp:Panel>
  <div class="am-ws-card">
   <div class="am-ws-filters">
    <div class="am-ws-f"><label for="WsBusiness">Business <b>*</b></label><asp:DropDownList ID="WsBusiness" runat="server" ClientIDMode="Static" AutoPostBack="true" OnSelectedIndexChanged="Business_Changed" /></div>

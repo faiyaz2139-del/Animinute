@@ -35,6 +35,8 @@ public static class AnyminuteUiNavigation
             // v16: Work Schedule (was "Weekly Schedule") for every signed-in account; employees see their own planned
             // schedule read-only, owners/managers edit it (WeeklyEmployeeSchedule.aspx authorizes every load/save).
             Add(items,"Work Schedule","WeeklyEmployeeSchedule.aspx",-216);
+            // v17: employees enter their own Mon-Sun times in My Time Card (WeekTimeCard.aspx; no BusinessId -> first business).
+            if(!AnyminuteDirectoryScope.CanReadDirectory())Add(items,"My Time Card","WeekTimeCard.aspx",-217);
             if(AnyminuteDirectoryScope.CanReadDirectory())
             {Add(items,"Employees","Users.aspx",-204);Add(items,"Approvals","TimeCards.aspx?status=Submitted",-205);}
             bool owner=false;

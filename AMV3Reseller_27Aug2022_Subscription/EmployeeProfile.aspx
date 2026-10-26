@@ -3,6 +3,7 @@
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="Server">
     <link href="css/bootstrap.min.css" rel="stylesheet" />
+    <link href="css/AnyminuteAddressLookup.css?v=20261026v17" rel="stylesheet" />
 
     <%--for making the label control font size less in small screens--%>
     <script src="js/label_control_font_small.js"></script>
@@ -1259,214 +1260,70 @@
 
                     <asp:UpdatePanel ID="UpdatePanel1" runat="server" UpdateMode="Conditional">
                                     <ContentTemplate>
-                    <div class="row">
-                        <div class="col-md-3"></div>
-                        <div class="col-md-6">
-                        <label for="Name">Enter Postal Code</label>&nbsp;<span style="color: black; font-weight:bolder;">(Required)</span>
-                        <div class="row">
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <table>
-                                        <tr>
-                                            <td>
-                                                <asp:TextBox ID="txtSearchPostalCode" Width="150px" MaxLength="7" style="text-transform:uppercase" runat="server" CssClass="form-control" 
+                    <%-- 2026-10-26 v17 (Pandey image5): Address and Contacts tab in the new Address Lookup UI (same layout as Add Employee).
+                         Server control IDs, the postal search (lnkSearch_Click) and the Save button (btnSaveAddress) are unchanged. --%>
+                    <div class="am-al2 am-al2-profile" id="amEmpAddress">
+                    <asp:Panel ID="pnlAddressLookup" runat="server" CssClass="am-section am-al2-lookup" DefaultButton="lnkSearch">
+                        <div class="am-band"><h2><svg class="am-al2-pin" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7z" fill="#1a5fd6"/><circle cx="12" cy="9" r="2.6" fill="#fff"/></svg>Address Lookup</h2></div>
+                        <p class="am-al2-sub">Enter a postal code to search for an address, then select one from the list below or add a new address.</p>
+                        <div class="am-al2-row">
+                            <div class="am-al2-f am-al2-postal"><label for="txtSearchPostalCode">Enter Postal Code <span class="am-req">(Required)</span></label><span class="am-al2-join">
+                                <asp:TextBox ID="txtSearchPostalCode" MaxLength="7" style="text-transform:uppercase" runat="server" placeholder="e.g. M1B 2W1" data-addr-field="LookupPostal"
                                     OnTextChanged="txtSearchPostalCode_TextChanged" AutoPostBack="false" ClientIDMode="Static" onkeyup="addHyphenn(this)"></asp:TextBox>
-                                                <script>
-        $(document).ready(function () {
-            $('#txtSearchPostalCode').keyup(function (event) {
-                addHyphenn(this);
-            });
-        });
-
-        function addHyphenn(element) {
-            let val = $(element).val().split(' ').join('');   // Remove dash (-) if mistakenly entered.
-            let n = val.length;
-
-            if (n <= 6) {
-                let finalVal = val.match(/.{1,3}/g).join(' ');    // Add (-) after 3rd every char.
-                $(element).val(finalVal);		// Update the input box.
-            }
-        }
-    </script>
-                                            </td>
-                                            <td>
-                                                <asp:LinkButton Style="font-size:x-large;" Height="40.5px" CssClass="buttonClass" ID="lnkSearch" runat="server" OnClientClick="return validatefields();"
-                                    Text="" OnClick="lnkSearch_Click"><i class="fa fa-search" aria-hidden="true"></i>
-                                </asp:LinkButton>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                </div>  
-                            </div>
-                                    
-                            <div class="col-md-1" style="margin-left:-40px;margin-top:0px;">
-                                
+                                <asp:LinkButton CssClass="am-al2-search" ID="lnkSearch" runat="server" OnClientClick="return validatefields();" ToolTip="Search address" aria-label="Search address"
+                                    OnClick="lnkSearch_Click"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></asp:LinkButton>
+                            </span></div>
+                            <div class="am-al2-f am-al2-choice"><label for="ddlAddressChoices">Select Address from List or Add New <span class="am-req">(Required)</span></label>
+                                <asp:DropDownList ID="ddlAddressChoices" runat="server" ClientIDMode="Static" AutoPostBack="true" OnSelectedIndexChanged="ddlAddressChoices_Changed"><asp:ListItem Value="">Search a postal code first</asp:ListItem></asp:DropDownList></div>
+                            <button type="button" class="am-al2-new" onclick="if(window.AnyminuteAddressLookup&amp;&amp;AnyminuteAddressLookup.newAddress)AnyminuteAddressLookup.newAddress(this);"><span aria-hidden="true">+</span>Add New Address</button>
+                        </div>
+                        <script>
+                            function addHyphenn(element) {
+                                let val = $(element).val().split(' ').join('');   // Remove spaces, then show "A1A 1A1".
+                                if (val.length > 0 && val.length <= 6) $(element).val(val.match(/.{1,3}/g).join(' '));
+                            }
+                        </script>
+                        <%-- Legacy result list, kept hidden for the existing code-behind; the dropdown above replaces it. --%>
+                        <div style="display:none">
+                            <div id="resultdiv" runat="server" visible="false">
+                                <asp:GridView ID="gvAddressList" runat="server" ClientIDMode="Static" AutoGenerateColumns="False" ShowHeader="False">
+                                    <Columns>
+                                        <asp:TemplateField HeaderText="Address">
+                                            <ItemTemplate>
+                                                <asp:LinkButton ID="StartDate" runat="server" Text='<%#DataBinder.Eval(Container.DataItem, "SEARCHADDRESS")%>' OnClick="StartDate_Click" />
+                                                <asp:HiddenField ID="hfdid" runat="server" Value='<%#DataBinder.Eval(Container.DataItem, "ID")%>' />
+                                            </ItemTemplate>
+                                        </asp:TemplateField>
+                                    </Columns>
+                                </asp:GridView>
+                                <asp:RadioButtonList ID="rdobtnlist" runat="server" RepeatDirection="Vertical" OnSelectedIndexChanged="rdobtnlist_SelectedIndexChanged" AutoPostBack="true" Visible="false">
+                                    <asp:ListItem Text=" Add New Address" Value="0"></asp:ListItem>
+                                </asp:RadioButtonList>
                             </div>
                         </div>
+                    </asp:Panel>
+
+                    <div id="divAddres" runat="server" class="am-section am-al2-addr">
+                        <div class="am-band"><h2>Employee Address</h2></div>
+                        <p class="am-al2-banner">When an address is selected from the list, the fields below will be automatically filled. You can also enter or edit the address manually.</p>
+                        <div class="am-al2-grid">
+                            <div class="am-al2-f"><label for="txtStreetNo">Street Number <span class="am-req">(Required)</span></label><asp:TextBox ID="txtStreetNo" runat="server" ClientIDMode="Static" MaxLength="20" placeholder="Enter street number" data-addr-field="StreetNo"></asp:TextBox></div>
+                            <div class="am-al2-f"><label for="txtStreetName">Address Line 1 <span class="am-req">(Required)</span></label><asp:TextBox ID="txtStreetName" runat="server" ClientIDMode="Static" placeholder="Enter address line 1" data-addr-field="Line1"></asp:TextBox></div>
+                            <div class="am-al2-f"><label for="txtStreetType">Address Line 2 <span class="am-al2-opt">(Optional)</span></label><asp:TextBox ID="txtStreetType" runat="server" ClientIDMode="Static" placeholder="Enter address line 2 (e.g. Unit, Floor, etc.)" data-addr-field="Line2"></asp:TextBox></div>
+                            <div class="am-al2-f"><label for="txtSuiteNumber">Suite Number</label><asp:TextBox ID="txtSuiteNumber" runat="server" ClientIDMode="Static" placeholder="Enter suite number" data-addr-field="SuiteNumber"></asp:TextBox></div>
+                            <div class="am-al2-f"><label for="DropDownList1">Suite Type</label><asp:DropDownList ID="DropDownList1" runat="server" ClientIDMode="Static" AppendDataBoundItems="true" data-addr-field="SuiteType">
+                                <asp:ListItem Value="" Text="Select"></asp:ListItem>
+                                <asp:ListItem Value="Apartment" Text="Apartment"></asp:ListItem>
+                                <asp:ListItem Value="Suite" Text="Suite"></asp:ListItem>
+                                <asp:ListItem Value="Unit" Text="Unit"></asp:ListItem>
+                            </asp:DropDownList></div>
+                            <div class="am-al2-f"><label for="txtCity">City <span class="am-req">(Required)</span></label><asp:TextBox ID="txtCity" runat="server" ClientIDMode="Static" placeholder="Enter city" data-addr-field="City"></asp:TextBox><div id="divautocompleteCity" class="tt-menu" style="display: none"></div></div>
+                            <div class="am-al2-f"><label for="amProfileProvince">Province/State <span class="am-req">(Required)</span></label><select id="amProfileProvince" data-addr-field="Province" data-al2-mirror="txtProvince"><option value="">Select</option><option>ALBERTA</option><option>BRITISH COLUMBIA</option><option>MANITOBA</option><option>NEW BRUNSWICK</option><option>NEWFOUNDLAND AND LABRADOR</option><option>NORTHWEST TERRITORIES</option><option>NOVA SCOTIA</option><option>NUNAVUT</option><option>ONTARIO</option><option>PRINCE EDWARD ISLAND</option><option>QUEBEC</option><option>SASKATCHEWAN</option><option>YUKON</option><option>ALABAMA</option><option>ALASKA</option><option>ARIZONA</option><option>ARKANSAS</option><option>CALIFORNIA</option><option>COLORADO</option><option>CONNECTICUT</option><option>DELAWARE</option><option>DISTRICT OF COLUMBIA</option><option>FLORIDA</option><option>GEORGIA</option><option>HAWAII</option><option>IDAHO</option><option>ILLINOIS</option><option>INDIANA</option><option>IOWA</option><option>KANSAS</option><option>KENTUCKY</option><option>LOUISIANA</option><option>MAINE</option><option>MARYLAND</option><option>MASSACHUSETTS</option><option>MICHIGAN</option><option>MINNESOTA</option><option>MISSISSIPPI</option><option>MISSOURI</option><option>MONTANA</option><option>NEBRASKA</option><option>NEVADA</option><option>NEW HAMPSHIRE</option><option>NEW JERSEY</option><option>NEW MEXICO</option><option>NEW YORK</option><option>NORTH CAROLINA</option><option>NORTH DAKOTA</option><option>OHIO</option><option>OKLAHOMA</option><option>OREGON</option><option>PENNSYLVANIA</option><option>RHODE ISLAND</option><option>SOUTH CAROLINA</option><option>SOUTH DAKOTA</option><option>TENNESSEE</option><option>TEXAS</option><option>UTAH</option><option>VERMONT</option><option>VIRGINIA</option><option>WASHINGTON</option><option>WEST VIRGINIA</option><option>WISCONSIN</option><option>WYOMING</option></select>
+                                <asp:TextBox ID="txtProvince" runat="server" ClientIDMode="Static" style="display:none" aria-hidden="true" tabindex="-1"></asp:TextBox><div id="divautocompleteProvince" class="tt-menu" style="display: none"></div></div>
+                            <div class="am-al2-f"><label for="txtPostalCode">Postal Code <span class="am-req">(Required)</span></label><asp:TextBox ID="txtPostalCode" MaxLength="7" runat="server" ClientIDMode="Static" onkeyup="addHyphenn(this)" style="text-transform:uppercase" placeholder="Enter postal code" data-addr-field="PostalCode"></asp:TextBox></div>
+                            <div class="am-al2-f"><label for="amProfileCountry">Country</label><select id="amProfileCountry" data-addr-field="Country"><option>Canada</option><option>United States</option></select></div>
                         </div>
-                        <div class="col-md-3"></div>
-                    </div>
-                <div class="row">
-                        <div class="col-md-3"></div>
-                        <div class="col-md-6">
-                            <div id="resultdiv" style="border: 0px solid #349fce; border-radius: 0px; padding: 0px;"
-                                runat="server" visible="false">
-                                <div>
-                                    <span style="color:gray;">SELECT THE ADDRESS FROM THE LIST BELOW OR ADD NEW</span> <span style="color: black; font-weight:bolder">(Required)</span>
-                                </div>
-                                <br />
-                                <div>
-                                    <asp:GridView ID="gvAddressList" runat="server" ClientIDMode="Static"
-                                        CssClass="table nowrap" AutoGenerateColumns="False" CellPadding="1" ShowHeader="False"
-                                        GridLines="Vertical" BorderWidth="1" EmptyDataText="No Records Found">
-                                        <%--HeaderStyle-BackColor="#0275d8" HeaderStyle-ForeColor="White">--%>
-                                        <AlternatingRowStyle BackColor="#f4f4f4" ForeColor="#284775" />
-                                        <%--<HeaderStyle CssClass="bg-clouds" />--%>
-                                        <Columns>
-                                            <asp:TemplateField HeaderText="Address">
-                                                <ItemTemplate>
-                                                    <asp:LinkButton ID="StartDate" runat="server" Text='<%#DataBinder.Eval(Container.DataItem, "SEARCHADDRESS")%>'
-                                                        OnClick="StartDate_Click" />
-                                                    <asp:HiddenField ID="hfdid" runat="server" Value='<%#DataBinder.Eval(Container.DataItem, "ID")%>' />
-                                                </ItemTemplate>
-                                            </asp:TemplateField>
-
-
-
-                                        </Columns>
-                                        <EmptyDataTemplate>
-                                            <div>No records found.</div>
-                                        </EmptyDataTemplate>
-                                    </asp:GridView>
-                                </div>
-                                <div style="display: none">
-                                    <asp:RadioButtonList ID="rdobtnlist" runat="server" RepeatDirection="Vertical" OnSelectedIndexChanged="rdobtnlist_SelectedIndexChanged"
-                                        AutoPostBack="true" Visible="false">
-                                        <asp:ListItem Text=" Add New Address" Value="0"></asp:ListItem>
-                                    </asp:RadioButtonList>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-2">
-                                </div>
-                                <div class="col-md-2"></div>
-                            </div>
-                        </div>
-                        <div class="col-md-3"></div>
-                    </div>
-                                
-
-
-                    <div class="clearfix"></div>
-
-                    <div id="divAddres" runat="server" style="display: none">
-                        <div class="row">
-                            <div class="col-md-3"></div>
-                            <div class="col-md-6">
-                                <h4 style="text-decoration: none;">Insert New Address</h4>
-                                <div class="row">                        
-                                    <div class="col-md-4">
-                                        <div class="form-group">
-                                            <label for="Name">Street Number</label>&nbsp;<span style="font-weight:bold">(Required)</span>
-                                            <asp:TextBox ID="txtStreetNo" runat="server" CssClass="form-control" ClientIDMode="Static"></asp:TextBox>
-                                        </div>
-                                    </div>                           
-                                    <div class="col-md-8">
-                                        <div class="form-group">
-                                            <label for="Name">Address - Line 1</label>&nbsp;<span style="font-weight:bold">(Required)</span>
-                                            <asp:TextBox ID="txtStreetName" runat="server" CssClass="form-control" ClientIDMode="Static"></asp:TextBox>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="row">
-                                    <div class="col-md-12">
-                                        <div class="form-group">
-                                            <label for="Name">Address - Line 2</label>
-                                            <asp:TextBox ID="txtStreetType" runat="server" CssClass="form-control"></asp:TextBox>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="row">                                    
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label for="Name">Suite Number</label>
-                                            <asp:TextBox ID="txtSuiteNumber" CssClass="form-control" runat="server"></asp:TextBox>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <div style="display: none;">
-                                                <label for="Name">Street Direction</label>
-                                                <asp:TextBox ID="txtStreetDirection" ClientIDMode="Static" runat="server" CssClass="form-control"></asp:TextBox>
-                                            </div>
-                                            <label>Suite Type</label><br />
-                                            <asp:DropDownList ID="DropDownList1"
-                                                CssClass="form-control" AppendDataBoundItems="true" runat="server" Width="100%">
-                                                <asp:ListItem Value="" Text="Please Select"></asp:ListItem>
-                                                <asp:ListItem Value="Apartment" Text="Apartment"></asp:ListItem>
-                                                <asp:ListItem Value="Suite" Text="Suite"></asp:ListItem>
-                                                <asp:ListItem Value="Unit" Text="Unit"></asp:ListItem>
-                                            </asp:DropDownList>
-                                        </div>
-
-                                    </div>
-                                </div>
-
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label for="Name">City</label>&nbsp;<span style="font-weight:bold">(Required)</span>
-                                            <asp:TextBox ID="txtCity" runat="server" Enabled="false" CssClass="form-control" ClientIDMode="Static"></asp:TextBox>
-                                            <div id="divautocompleteCity" class="tt-menu" style="display: none"></div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label for="Name">Province</label>&nbsp;<span style="font-weight:bold">(Required)</span>
-                                            <asp:TextBox ID="txtProvince" runat="server" Enabled="false" CssClass="form-control" ClientIDMode="Static"></asp:TextBox>
-                                            <div id="divautocompleteProvince" class="tt-menu" style="display: none"></div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label for="Name">Postal Code</label>&nbsp;<span style="font-weight:bold">(Required)</span>
-                                            <asp:TextBox ID="txtPostalCode" MaxLength="7" Enabled="false" runat="server" CssClass="form-control"
-                                                ClientIDMode="Static"  onkeyup="addHyphenn(this)" style="text-transform:uppercase"></asp:TextBox>
-                                            <script>
-        $(document).ready(function () {
-            $('#txtPostalCode').keyup(function (event) {
-                addHyphenn(this);
-            });
-        });
-
-        function addHyphenn(element) {
-            let val = $(element).val().split(' ').join('');   // Remove dash (-) if mistakenly entered.
-            let n = val.length;
-
-            if (n <= 6) {
-                let finalVal = val.match(/.{1,3}/g).join(' ');    // Add (-) after 3rd every char.
-                $(element).val(finalVal);		// Update the input box.
-            }
-        }
-    </script>
-                                            <%--<asp:RegularExpressionValidator Display = "Dynamic" ControlToValidate = "txtPostalCode" ID="RegularExpressionValidator3" ValidationExpression = "^[a-zA-Z0-9'@&#.\s]{6,6}$" runat="server" ErrorMessage="Postal Code length must be 6 characters"></asp:RegularExpressionValidator>--%>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-
-                            </div>
-                            <div class="col-md-3"></div>
-                        </div>
-
-
-
+                        <div style="display: none;"><asp:TextBox ID="txtStreetDirection" ClientIDMode="Static" runat="server"></asp:TextBox></div>
                         <div class="form-group" style="display: none;">
                             <div class="col-md-6">
                                 <label for="ddlnumbersuffix">Number Suffix</label><span>*</span>
@@ -1829,5 +1686,6 @@
                 </div>
             </div>
         </div>
+<script src="Scripts/AnyminuteAddressLookup.js?v=20261026v17"></script>
 </asp:Content>
 

@@ -51,6 +51,30 @@
    var card=root()&&root().querySelector('.am-al-details');if(card&&card.scrollIntoView)card.scrollIntoView({block:'start',behavior:'smooth'});
   }
  };
+ // v17 (Pandey image1/image5): "+ Add New Address" clears the Employee Address fields in place, copies the searched
+ // postal code and focuses Street Number (no modal, no postback). Works for any .am-al2 block on the page.
+ Lookup.newAddress=function(btn){
+  var r=(btn&&btn.closest&&btn.closest('.am-al2'))||root();if(!r)return;
+  var get=function(n){return r.querySelector('[data-addr-field="'+n+'"]');};
+  ['StreetNo','Line1','Line2','SuiteNumber','SuiteType','City','Province','PostalCode'].forEach(function(n){
+   var el=get(n);if(!el)return;if(el.tagName==='SELECT')el.selectedIndex=0;else el.value='';
+   try{el.dispatchEvent(new Event('change',{bubbles:true}));}catch(e){}
+  });
+  var co=get('Country');if(co&&co.tagName==='SELECT')setSelect(co,'Canada');
+  var lp=get('LookupPostal'),pc=get('PostalCode');if(lp&&pc)pc.value=lp.value.trim().toUpperCase();
+  var ch=r.querySelector('.am-al2-choice select');if(ch){for(var i=0;i<ch.options.length;i++)if(ch.options[i].value==='new'){ch.selectedIndex=i;break;}}
+  var first=get('StreetNo');if(first){if(first.scrollIntoView)first.scrollIntoView({block:'center'});first.focus();}
+ };
+ // v17: EmployeeProfile keeps its server province TextBox (hidden) behind a Province/State select; keep both in step,
+ // also after the Address tab UpdatePanel refreshes.
+ function syncProvince(){
+  Array.prototype.forEach.call(document.querySelectorAll('select[data-al2-mirror]'),function(sel){
+   var box=document.getElementById(sel.getAttribute('data-al2-mirror'));if(!box)return;
+   setSelect(sel,(box.value||'').trim().toUpperCase());
+   if(!sel.getAttribute('data-al2-bound')){sel.setAttribute('data-al2-bound','1');sel.addEventListener('change',function(){var b=document.getElementById(sel.getAttribute('data-al2-mirror'));if(b)b.value=sel.value;});}
+  });
+ }
+ Lookup.syncProvince=syncProvince;
  window.AnyminuteAddressLookup=Lookup;
  document.addEventListener('click',function(e){
   var t=e.target;if(!t||!t.closest)return;
@@ -67,5 +91,6 @@
   if(c&&(saved||(fc&&fc.value)))setSelect(c,saved||fc.value);
   syncCountry();
  }
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+ function init2(){init();syncProvince();try{if(window.Sys&&Sys.WebForms&&Sys.WebForms.PageRequestManager)Sys.WebForms.PageRequestManager.getInstance().add_endRequest(syncProvince);}catch(e){}}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init2);else init2();
 })();

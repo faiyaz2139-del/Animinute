@@ -85,6 +85,9 @@ public partial class AnyminuteWeeklySchedulePage : System.Web.UI.Page
         GridWrap.Visible = !viewOnly || saved;
         if (viewOnly) WsSub.InnerText = "Your planned working hours, days off and break time for the selected week.";
         if (viewOnly && !saved) { TotalHours.Text = "0.00"; Notice("No work schedule has been published for this week yet."); }
+        // v17: employees get a clear way to enter their own times (My Time Card), published schedule or not.
+        TimeCardCta.Visible = viewOnly;
+        if (viewOnly) TimeCardLink.NavigateUrl = "~/WeekTimeCard.aspx?BusinessId=" + Business + "&Week=" + monday.ToString("yyyy-MM-dd", Inv);
     }
 
     protected void Days_ItemDataBound(object sender, RepeaterItemEventArgs e)

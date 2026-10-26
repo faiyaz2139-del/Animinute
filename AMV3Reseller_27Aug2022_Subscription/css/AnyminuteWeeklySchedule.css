@@ -118,3 +118,8 @@ html body .am-ws-table thead th:nth-child(3),html body .am-ws-table thead th:nth
 html body .am-ws-table thead th:nth-child(5){width:118px}
 html body .am-ws-table thead th:nth-child(6){width:98px}
 html body .am-ws-repeat-row{align-items:start!important}
+/* v17: employee "Enter My Times" call to action (links to My Time Card). */
+html body .am-ws-cta{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:0 0 14px;padding:14px 16px;background:#eef5ff;border:1px solid #bcd4f6;border-left:4px solid #1a5fd6;border-radius:10px}
+html body .am-ws-cta-ic{width:28px;height:28px;flex:0 0 28px;fill:none;stroke:#1a5fd6;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+html body .am-ws-cta-text{flex:1 1 320px;display:flex;flex-direction:column;gap:3px;color:#334155;font-size:13px;line-height:1.45}
+html body .am-ws-cta-text strong{color:#123a63;font-size:15px}

@@ -187,3 +187,6 @@ html body.am-ui .am-header-help>summary{width:42px!important;height:42px!importa
 html body.am-ui .am-header-help>summary svg{width:24px!important;height:24px!important}
 html body.am-ui .am-account-avatar,html body.am-ui [id$=imgProfile]{width:42px!important;height:42px!important;box-sizing:border-box}
 @media(max-width:720px){html body.am-ui .am-header-help>summary,html body.am-ui .am-account-avatar,html body.am-ui [id$=imgProfile]{width:38px!important;height:38px!important}html body.am-ui .am-header-help>summary svg{width:22px!important;height:22px!important}}
+/* 2026-10-26 v17 (Pandey: My Profile "extra white boxes"): DataTables gives each pager <li class="paginate_button"> its own padding + 1px border,
+   while Bootstrap floats the inner <a class="page-link">, so the empty <li> shells drew as blank squares beside Previous / 1 / Next. */
+body.am-ui .dataTables_paginate li.paginate_button{border:0!important;padding:0!important;margin:0!important;background:none!important;box-shadow:none!important;min-width:0!important}
