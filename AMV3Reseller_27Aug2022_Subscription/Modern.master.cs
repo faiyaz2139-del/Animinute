@@ -15,6 +15,9 @@ public partial class AnyminuteModernMaster : System.Web.UI.MasterPage
   string displayName=Convert.ToString(Session["user"]).Trim();
   while(displayName.StartsWith("Welcome!",StringComparison.OrdinalIgnoreCase))displayName=displayName.Substring(8).TrimStart();
   Welcome.Text=HttpUtility.HtmlEncode(displayName);
+  // v20 (Pandey images 1/3/4): employee / supervisor role and business under the welcome line.
+  string context=AnyminuteRoleDashboard.HeaderContext();
+  if(!String.IsNullOrEmpty(context))WelcomeContext.Text="<small class='am-welcome-context' style='display:block;font-size:12px;font-weight:500;color:#5b6778;line-height:1.3'>"+HttpUtility.HtmlEncode(context)+"</small>";
 
   int business;
   if(Int32.TryParse(Request.QueryString["BusinessId"]??Request.QueryString["BusinessIDEdit"]??Request.QueryString["BusinessIdFromDefaultPapge"],out business)) AnyminuteClockEvidence.Record(business,"PageAction");

@@ -21,13 +21,14 @@ public sealed class AnyminuteBusinessRole
 }
 public sealed class AnyminuteDashDay { public DateTime Date; public string Business; public bool Working; public TimeSpan Start, End; public decimal Hours; }
 public sealed class AnyminuteDashCard { public int BusinessID, EmployeeID; public string Business, Employee, State; public DateTime Week; public DateTime? Submitted; public decimal Hours; }
-public sealed class AnyminuteDashShift { public int BusinessID, EmployeeID; public string Business, Employee, Notes; public DateTime Date; public TimeSpan Start, End; public decimal Hours; }
+public sealed class AnyminuteDashShift { public int BusinessID, EmployeeID; public string Business, Employee, Notes, Project; public DateTime Date; public TimeSpan Start, End; public decimal Hours; }
 public sealed class AnyminuteDashModel
 {
     public string Kind = "employee";   // employee | supervisor (the view rendered)
     public List<AnyminuteBusinessRole> Roles = new List<AnyminuteBusinessRole>();
     public string Selected = "";       // BusinessID or "all"
     public bool CanSwitch;             // both views are possible for the selection
+    public bool DualRole;              // v20: Employee somewhere and Supervisor somewhere (Switch Dashboard is offered)
     public DateTime Monday;
     // employee view
     public decimal Hours, Scheduled; public int Shifts, Pending, Projects;
@@ -55,6 +56,7 @@ public static class AnyminuteRoleDashboard
         var cached = h.Items[ItemKey] as List<AnyminuteBusinessRole>;
         if (cached != null) return cached;
         var list = new List<AnyminuteBusinessRole>();
+        var typeNames = new Dictionary<int, string>();
         int sessionRole; Int32.TryParse(Convert.ToString(h.Session["UserTypeid"]), out sessionRole);
         using (var c = AnyminuteTimesheetRepair.Open())
             foreach (DataRow b in AnyminuteModernScope.Businesses().Rows)
@@ -66,13 +68,29 @@ public static class AnyminuteRoleDashboard
                 var r = new AnyminuteBusinessRole { BusinessID = business, Name = Convert.ToString(b["CompanyName"]), Actor = actor, Role = role };
                 if (LegacyRoles.Contains(role)) { r.Legacy = true; list.Add(r); continue; }
                 bool manages = AnyminuteTimesheetRepair.Query(c, null, "SELECT TOP(1) 1 FROM AssgineManager WHERE BusinessID=@b AND ManagerID=@a AND EmpId<>@a", "@b", business, "@a", actor).Rows.Count > 0;
-                r.Supervisor = role != 4 || manages;
-                r.Employee = role == 4 || OwnWork(c, business, actor);
+                // v20 (Pandey #1): a membership is Supervisor only when it really supervises - it manages employees in
+                // AssgineManager, or its role is Manager (2) / Team Leader (13) / a custom role named like a supervisor.
+                // Every other role (Employee 4, custom staff roles, unset) is an Employee membership, so a pure employee in
+                // several businesses no longer gets Switch Dashboard, Roles by Business or the Employees link.
+                r.Supervisor = manages || SupervisorRole(c, role, typeNames);
+                r.Employee = role == 4 || !r.Supervisor || OwnWork(c, business, actor);
                 list.Add(r);
             }
         if (sessionRole == 1 || sessionRole == 5 || sessionRole == 12) foreach (var r in list) r.Legacy = true;
         h.Items[ItemKey] = list;
         return list;
+    }
+    static bool SupervisorRole(SqlConnection c, int role, Dictionary<int, string> names)
+    {
+        if (role == 2 || role == 13) return true;
+        if (role == 4 || role <= 0) return false;
+        string n;
+        if (!names.TryGetValue(role, out n))
+        {
+            var dt = AnyminuteTimesheetRepair.Query(c, null, "SELECT UserType FROM UserType WHERE User_TypeId=@r", "@r", role);
+            n = dt.Rows.Count == 1 ? Convert.ToString(dt.Rows[0][0]).Trim().ToLowerInvariant() : ""; names[role] = n;
+        }
+        return n.Contains("manag") || n.Contains("supervis") || n.Contains("lead") || n.Contains("foreman") || n.Contains("scheduler");
     }
     static bool OwnWork(SqlConnection c, int b, int a)
     {
@@ -105,11 +123,15 @@ public static class AnyminuteRoleDashboard
         if (sel == null) sel = m.Roles.Count == 1 ? Convert.ToString(m.Roles[0].BusinessID) : (m.Roles.Any(r => r.Employee) ? "all" : Convert.ToString(m.Roles[0].BusinessID));
         m.Selected = sel;
         bool emp = m.Scope.Any(r => r.Employee), sup = m.Scope.Any(r => r.Supervisor);
-        string mode = qMode ?? Convert.ToString(s[SessionMode]);
-        if (mode != "supervisor") mode = "employee";
+        string chosen = qMode ?? Convert.ToString(s[SessionMode]);
+        if (chosen != "supervisor") chosen = "employee";
+        string mode = chosen;
         if (!emp) mode = "supervisor"; if (!sup) mode = "employee";
         m.Kind = mode; m.CanSwitch = emp && sup;
-        s[SessionBusiness] = sel; s[SessionMode] = mode;
+        m.DualRole = m.Roles.Any(r => r.Employee) && m.Roles.Any(r => r.Supervisor);
+        // v20 (Pandey #2): remember the dashboard the user picked, not the one forced by a supervisor-only (or
+        // employee-only) business, so going back to an Employee + Supervisor business restores their choice.
+        s[SessionBusiness] = sel; s[SessionMode] = chosen;
     }
 
     public static string CurrentMode()
@@ -121,6 +143,26 @@ public static class AnyminuteRoleDashboard
         bool emp = scope.Any(r => r.Employee), sup = scope.Any(r => r.Supervisor);
         if (!emp) return "supervisor"; if (!sup) return "employee";
         return mode == "supervisor" ? "supervisor" : "employee";
+    }
+
+    // v20 (images 1/3/4): header line under "Welcome! name" - "Employee | Multiple Businesses",
+    // "Employee & Supervisor | M.A. Consulting Corp.", "Supervisor | Food Services Inc.". Null for owners/admins.
+    public static string HeaderContext()
+    {
+        try
+        {
+            if (!Applies()) return null;
+            var roles = Roles(); if (roles.Count == 0) return null;
+            string sel = Convert.ToString(HttpContext.Current.Session[SessionBusiness]);
+            var picked = roles.FirstOrDefault(r => Convert.ToString(r.BusinessID) == sel);
+            if (roles.Count == 1) picked = roles[0];
+            var scope = picked != null ? new List<AnyminuteBusinessRole> { picked } : roles;
+            bool emp = scope.Any(r => r.Employee), sup = scope.Any(r => r.Supervisor);
+            string role = emp && sup ? "Employee & Supervisor" : sup ? "Supervisor" : "Employee";
+            return role + " | " + (picked != null ? picked.Name : "Multiple Businesses");
+        }
+        catch (HttpException) { return null; }
+        catch (InvalidOperationException) { return null; }
     }
 
     // Slide 1 / 3 left navigation. Labels follow the deck; every target is an existing page.
@@ -211,18 +253,27 @@ public static class AnyminuteRoleDashboard
                     }
                     if (!sched) continue;
                     var active = new HashSet<int>();
+                    // v20 (image 4): Upcoming Schedules show the employee's assigned project (schedules have no project field).
+                    var projects = new Dictionary<int, List<string>>();
+                    foreach (DataRow p in AnyminuteTimesheetRepair.Query(c, null, "SELECT DISTINCT x.EMPLOYEEID,p.ProjectName FROM ASSIGNPROJECT x JOIN AddProject p ON p.ProjectID=x.PROJECTID WHERE x.BUSINESSID=@b AND ISNULL(p.Status,'')<>'D' AND x.EMPLOYEEID IN (" + ids + ")", "@b", r.BusinessID).Rows)
+                    {
+                        int pe = Convert.ToInt32(p["EMPLOYEEID"]); List<string> pl;
+                        if (!projects.TryGetValue(pe, out pl)) projects[pe] = pl = new List<string>();
+                        pl.Add(Convert.ToString(p["ProjectName"]).Trim());
+                    }
                     foreach (DataRow d in AnyminuteTimesheetRepair.Query(c, null, "SELECT EmployeeID,WorkDate,StartTime,EndTime,BreakMinutes,Notes FROM dbo.AnyminuteWeeklySchedule WHERE BusinessID=@b AND ScheduleType='Working' AND WorkDate BETWEEN @f AND @t AND EmployeeID IN (" + ids + ") ORDER BY WorkDate,StartTime", "@b", r.BusinessID, "@f", m.Monday, "@t", sunday).Rows)
                     {
                         int e = Convert.ToInt32(d["EmployeeID"]); active.Add(e);
                         var sh = new AnyminuteDashShift { BusinessID = r.BusinessID, EmployeeID = e, Business = r.Name, Employee = team[e], Date = Convert.ToDateTime(d["WorkDate"]).Date, Notes = d["Notes"] == DBNull.Value ? "" : Convert.ToString(d["Notes"]) };
                         if (d["StartTime"] != DBNull.Value && d["EndTime"] != DBNull.Value) { sh.Start = (TimeSpan)d["StartTime"]; sh.End = (TimeSpan)d["EndTime"]; sh.Hours = Hrs(sh.Start, sh.End, Convert.ToInt32(d["BreakMinutes"])); }
-                        m.TeamScheduled += sh.Hours; if (sh.Date >= today) m.Upcoming.Add(sh);
+                        List<string> names; if (projects.TryGetValue(e, out names)) sh.Project = names.Count <= 2 ? String.Join(", ", names) : names[0] + ", " + names[1] + " +" + (names.Count - 2);
+                        m.TeamScheduled += sh.Hours; m.Upcoming.Add(sh); // v20: whole week (Mon-Sun), as in the design
                     }
                     m.ActiveSchedules += active.Count;
                 }
         }
         m.Recent = m.Recent.OrderByDescending(x => x.Week).Take(5).ToList();
-        m.Queue = m.Queue.Take(10).ToList(); m.Upcoming = m.Upcoming.OrderBy(x => x.Date).ThenBy(x => x.Start).Take(10).ToList();
+        m.Queue = m.Queue.Take(10).ToList(); m.Upcoming = m.Upcoming.OrderBy(x => x.Date).ThenBy(x => x.Start).Take(12).ToList();
         return m;
     }
     static AnyminuteDashCard Card(SqlConnection c, AnyminuteBusinessRole r, int e, string name, DataRow w)
@@ -270,42 +321,49 @@ public static class AnyminuteRoleDashboard
         bool sup = m.Kind == "supervisor";
         h.Append("<div class='am-title'><div><h1>").Append(sup ? "Supervisor Dashboard" : "Employee Dashboard").Append("</h1><p>")
          .Append(sup ? "Manage your team&#39;s time cards, schedules and employees." : "Here is your schedule and time card information.").Append("</p></div></div>");
-        // Business picker (slide 1 single business = fixed name + badge; otherwise Select Business + optional Switch Dashboard)
-        h.Append("<div class='am-rd-top'><div class='am-card am-rd-pickers'>");
-        if (m.Roles.Count == 1)
+        // v20 (Pandey #1-#3). Pickers:
+        //  - one business, employee only (image 1 left): fixed business name + role pill;
+        //  - several businesses, or any supervisor role (images 1 right, 3, 4): Select Business (All My Businesses (N)
+        //    when N > 1; role tags only when the user supervises somewhere);
+        //  - Switch Dashboard whenever the user is Employee somewhere and Supervisor somewhere (image 3). For a
+        //    supervisor-only / employee-only business the other dashboard is listed but disabled.
+        // Right card: Your Roles by Business for dual-role users (image 3); "Your Role for This Business: Supervisor"
+        // for supervisor-only users (image 4); none for a pure employee (image 1).
+        bool anySup = m.Roles.Any(r => r.Supervisor);
+        h.Append("<div class='am-rd-top").Append(anySup ? "" : " am-rd-top-full").Append("'><div class='am-card am-rd-pickers'>");
+        if (m.Roles.Count == 1 && !anySup)
         {
             var r = m.Roles[0];
-            h.Append("<div class='am-rd-single'><span data-am-icon='business' aria-hidden='true'></span><strong>").Append(E(r.Name)).Append("</strong><span class='am-rd-pill'>")
-             .Append(E(sup && !r.Employee ? "Supervisor" : r.Employee && r.Supervisor ? "Employee + Supervisor" : r.Employee ? "Employee" : "Supervisor")).Append("</span></div>");
+            h.Append("<div class='am-rd-single'><span data-am-icon='business' aria-hidden='true'></span><strong>").Append(E(r.Name)).Append("</strong><span class='am-rd-pill'>Employee</span></div>");
         }
         else
         {
-            bool showRoles = m.Roles.Any(r => r.Supervisor);
             h.Append("<label class='am-rd-field'><span>Select Business</span><select id='AmDashBusiness' onchange=\"location.href='Dashboard.aspx?b='+encodeURIComponent(this.value)\">");
-            h.Append("<option value='all'").Append(m.All ? " selected" : "").Append(">All My Businesses (").Append(m.Roles.Count).Append(")</option>");
+            if (m.Roles.Count > 1) h.Append("<option value='all'").Append(m.All ? " selected" : "").Append(">All My Businesses (").Append(m.Roles.Count).Append(")</option>");
             foreach (var r in m.Roles)
                 h.Append("<option value='").Append(r.BusinessID).Append("'").Append(Convert.ToString(r.BusinessID) == m.Selected ? " selected" : "").Append(">")
-                 .Append(E(r.Name + (showRoles ? " (" + r.Label + ")" : ""))).Append("</option>");
+                 .Append(E(r.Name + (anySup ? " (" + r.Label + ")" : ""))).Append("</option>");
             h.Append("</select></label>");
         }
-        if (m.CanSwitch)
-            h.Append("<label class='am-rd-field'><span>Switch Dashboard</span><select id='AmDashMode' onchange=\"location.href='Dashboard.aspx?b=")
-             .Append(A(HttpUtility.UrlEncode(m.Selected))).Append("&amp;mode='+this.value\"><option value='employee'").Append(sup ? "" : " selected")
-             .Append(">Employee Dashboard</option><option value='supervisor'").Append(sup ? " selected" : "").Append(">Supervisor Dashboard</option></select></label>");
-        h.Append("</div>");
-        if (m.Roles.Any(r => r.Supervisor))
+        if (m.DualRole)
         {
-            if (m.Roles.Any(r => r.Employee))
-            {
-                h.Append("<div class='am-card am-rd-roles'><h2>Your Roles by Business</h2><table class='am-table'><thead><tr><th>Business</th><th>Employee</th><th>Supervisor</th></tr></thead><tbody>");
-                foreach (var r in m.Roles)
-                    h.Append("<tr><td>").Append(E(r.Name)).Append("</td><td>").Append(r.Employee ? "<span class='am-rd-yes' aria-label='Yes'>&#10003;</span>" : "<span aria-label='No'>&#8212;</span>")
-                     .Append("</td><td>").Append(r.Supervisor ? "<span class='am-rd-yes' aria-label='Yes'>&#10003;</span>" : "<span aria-label='No'>&#8212;</span>").Append("</td></tr>");
-                h.Append("</tbody></table></div>");
-            }
-            else
-                h.Append("<div class='am-card am-rd-rolecard'><span data-am-icon='people' aria-hidden='true'></span><div><strong>Your Role for This Business</strong><b>Supervisor</b><small>You can approve employee time cards, manage schedules and view reports.</small></div></div>");
+            bool scopeEmp = m.Scope.Any(r => r.Employee), scopeSup = m.Scope.Any(r => r.Supervisor);
+            h.Append("<label class='am-rd-field'><span>Switch Dashboard</span><select id='AmDashMode' onchange=\"location.href='Dashboard.aspx?b=")
+             .Append(A(HttpUtility.UrlEncode(m.Selected))).Append("&amp;mode='+this.value\"><option value='employee'").Append(sup ? "" : " selected").Append(scopeEmp ? "" : " disabled")
+             .Append(">Employee Dashboard").Append(scopeEmp ? "" : " (not available for this business)").Append("</option><option value='supervisor'").Append(sup ? " selected" : "").Append(scopeSup ? "" : " disabled")
+             .Append(">Supervisor Dashboard").Append(scopeSup ? "" : " (not available for this business)").Append("</option></select></label>");
         }
+        h.Append("</div>");
+        if (m.DualRole)
+        {
+            h.Append("<div class='am-card am-rd-roles'><h2><span data-am-icon='business' aria-hidden='true'></span>Your Roles by Business</h2><table class='am-table'><colgroup><col /><col class='am-rd-rolecol' /><col class='am-rd-rolecol' /></colgroup><thead><tr><th>Business</th><th>Employee</th><th>Supervisor</th></tr></thead><tbody>");
+            foreach (var r in m.Roles)
+                h.Append("<tr").Append(Convert.ToString(r.BusinessID) == m.Selected ? " class='is-current'" : "").Append("><td>").Append(E(r.Name)).Append("</td><td>").Append(r.Employee ? "<span class='am-rd-yes' role='img' aria-label='Yes'>&#10003;</span>" : "<span class='am-rd-no' role='img' aria-label='No'>&#8212;</span>")
+                 .Append("</td><td>").Append(r.Supervisor ? "<span class='am-rd-yes' role='img' aria-label='Yes'>&#10003;</span>" : "<span class='am-rd-no' role='img' aria-label='No'>&#8212;</span>").Append("</td></tr>");
+            h.Append("</tbody></table></div>");
+        }
+        else if (anySup)
+            h.Append("<div class='am-card am-rd-rolecard'><span data-am-icon='people' aria-hidden='true'></span><div><small>Your Role for This Business</small><b>Supervisor</b><small>You can approve employee time cards, manage schedules and view reports.</small></div></div>");
         h.Append("</div>");
         if (sup) Supervisor(h, m); else Employee(h, m);
         return h.Append("</div>").ToString();
@@ -315,12 +373,13 @@ public static class AnyminuteRoleDashboard
     {
         h.Append("<div class='am-stats'>");
         Stat(h, "clock", "Hours Worked This Week", N(m.Hours) + " hrs", "Scheduled: " + N(m.Scheduled) + " hrs", Url("WeekTimeCard.aspx", m, Biz(m)));
-        Stat(h, "dashboard", "Upcoming Shifts", m.Shifts.ToString(Inv), m.All ? "This week (All businesses)" : "This week", Url("WeeklyEmployeeSchedule.aspx", m, Biz(m)));
+        string one = m.Roles.Count > 1 && !m.All ? m.Scope.Select(r => r.Name).FirstOrDefault() : null; // v20: multi-business, one selected
+        Stat(h, "dashboard", "Upcoming Shifts", m.Shifts.ToString(Inv), m.All && m.Roles.Count > 1 ? "This week (All businesses)" : one != null ? "This week (" + one + ")" : "This week", Url("WeeklyEmployeeSchedule.aspx", m, Biz(m)));
         Stat(h, "check", "My Pending Time Cards", m.Pending.ToString(Inv), "Waiting for approval", "TimeCards.aspx");
         Stat(h, "folder", "My Projects", m.Projects.ToString(Inv), "Active projects", Url("Projects.aspx", m, Biz(m)));
         h.Append("</div>");
         // My Schedule week strip
-        h.Append("<section class='am-card'><div class='am-rd-head'><h2>My Schedule").Append(m.All && m.Roles.Count > 1 ? " (All Businesses)" : "").Append("<small>")
+        h.Append("<section class='am-card'><div class='am-rd-head'><h2>My Schedule").Append(m.All && m.Roles.Count > 1 ? " (All Businesses)" : one != null ? " \u2013 " + E(one) : "").Append("<small>")
          .Append(E(m.Monday.ToString("MMMM d, yyyy", Inv) + " \u2013 " + m.Monday.AddDays(6).ToString("MMMM d, yyyy", Inv))).Append("</small></h2><a href='")
          .Append(A(Url("WeeklyEmployeeSchedule.aspx", m, Biz(m)))).Append("'>View Full Schedule &#8250;</a></div><div class='am-rd-week'>");
         for (int i = 0; i < 7; i++)
@@ -360,7 +419,7 @@ public static class AnyminuteRoleDashboard
         bool multi = m.All && m.Roles.Count(r => r.Supervisor) > 1;
         h.Append("<div class='am-stats am-rd-sup'>");
         Stat(h, "check", "Pending Approvals", m.Approvals.ToString(Inv), "Time cards waiting for approval", "TimeCards.aspx?status=Submitted");
-        Stat(h, "people", "Team Members", m.Team.ToString(Inv), "Under my supervision", m.Directory ? Url("Users.aspx", m, Biz(m)) : null);
+        Stat(h, "people", "Team Employees", m.Team.ToString(Inv), "Active employees", m.Directory ? Url("Users.aspx", m, Biz(m)) : null); // v20: image 4 labels
         Stat(h, "dashboard", "Active Schedules", m.ActiveSchedules.ToString(Inv), "Employees this week", Url("WeeklyEmployeeSchedule.aspx", m, Biz(m)));
         Stat(h, "folder", "Active Projects", m.ActiveProjects.ToString(Inv), "Team projects", Url("Projects.aspx", m, Biz(m)));
         h.Append("</div><div class='am-rd-grid'><div>");
@@ -373,12 +432,12 @@ public static class AnyminuteRoleDashboard
         if (m.Queue.Count == 0) h.Append("<tr><td colspan='7' class='am-muted'>No submitted time cards are waiting for your approval.</td></tr>");
         h.Append("</tbody></table></div></section>");
         h.Append("<section class='am-card'><div class='am-rd-head'><h2>Upcoming Schedules (This Week)</h2><a href='").Append(A(Url("WeeklyEmployeeSchedule.aspx", m, Biz(m)))).Append("'>View Full Schedule &#8250;</a></div><div class='am-table-wrap'><table class='am-table'><thead><tr><th>Employee</th>")
-         .Append(multi ? "<th>Business</th>" : "").Append("<th>Date</th><th>Shift</th><th>Hours</th><th>Notes</th><th>Status</th></tr></thead><tbody>");
+         .Append(multi ? "<th>Business</th>" : "").Append("<th>Date</th><th>Shift</th><th>Hours</th><th>Project</th><th>Status</th></tr></thead><tbody>");
         foreach (var s in m.Upcoming)
             h.Append("<tr><td>").Append(E(s.Employee)).Append("</td>").Append(multi ? "<td>" + E(s.Business) + "</td>" : "").Append("<td>").Append(E(s.Date.ToString("MMM dd, yyyy (ddd)", Inv)))
-             .Append("</td><td>").Append(E(T(s.Start) + " \u2013 " + T(s.End))).Append("</td><td>").Append(N(s.Hours)).Append("</td><td>").Append(E(s.Notes))
+             .Append("</td><td>").Append(E(T(s.Start) + " \u2013 " + T(s.End))).Append("</td><td>").Append(N(s.Hours)).Append("</td><td>").Append(String.IsNullOrEmpty(s.Project) ? (String.IsNullOrEmpty(s.Notes) ? "&#8212;" : E(s.Notes)) : E(s.Project))
              .Append("</td><td><span class='am-badge Active'>Scheduled</span></td></tr>");
-        if (m.Upcoming.Count == 0) h.Append("<tr><td colspan='7' class='am-muted'>No upcoming shifts are scheduled for your team this week.</td></tr>");
+        if (m.Upcoming.Count == 0) h.Append("<tr><td colspan='7' class='am-muted'>No shifts are scheduled for your team this week.</td></tr>");
         h.Append("</tbody></table></div></section></div><div>");
         h.Append("<section class='am-card'><h2>").Append(m.CanSwitch ? "Supervisor Actions" : "Quick Actions").Append("</h2><div class='am-rd-actions'>");
         Action(h, "clock", "Review Time Cards", "Approve or reject employee time cards", "TimeCards.aspx?status=Submitted");

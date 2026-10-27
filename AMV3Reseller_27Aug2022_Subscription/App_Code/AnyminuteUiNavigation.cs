@@ -57,7 +57,9 @@ public static class AnyminuteUiNavigation
             // 2026-10-26 v19: Reports hub for every role that has at least one report (Report Access matrix);
             // User Access > Login & Access (t77u) for owners/administrators and Report Access (slide 6) for owners.
             if(AnyminuteReports.AnyAvailable())Add(items,"All Reports","Reports.aspx",-218);
-            if(AnyminuteReports.AdminSomewhere())Add(items,"Login & Access","LoginAccess.aspx",-220);
+            // v20 (Pandey #4): User Access = Login & Access, Accountant & Payroll Access, Report Access. Owners always get all
+            // three (no longer dependent on the report-permission probe); administrators get Login & Access.
+            if(owner || AnyminuteReports.AdminSomewhere())Add(items,"Login & Access","LoginAccess.aspx",-220);
             if(owner)Add(items,"Report Access","ReportAccess.aspx",-219);
         }
         return items.OrderBy(item=>item.Seq);

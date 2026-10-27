@@ -35,8 +35,21 @@
     }
     from.value = iso(a); to.value = iso(b);
   }
+  // v20 (Pandey #5): clicking anywhere on an Available Reports row (or Enter/Space on it) selects that report and
+  // opens its Filters & Preview panel; PDF / Excel links inside the row keep their own action.
+  function pick(row) {
+    var href = row && row.getAttribute('data-rp-href'); if (!href) return;
+    var rows = document.querySelectorAll('.am-rp-item.is-active');
+    for (var i = 0; i < rows.length; i++) { rows[i].classList.remove('is-active'); rows[i].setAttribute('aria-pressed', 'false'); }
+    row.classList.add('is-active'); row.setAttribute('aria-pressed', 'true');
+    var panel = document.getElementById('rp-preview'); if (panel) panel.classList.add('is-loading');
+    location.href = href;
+  }
   document.addEventListener('click', function (e) {
-    var b = e.target.closest ? e.target.closest('[data-rp-go]') : null;
+    if (!e.target.closest) return;
+    var row = e.target.closest('.am-rp-item[data-rp-href]');
+    if (row && !e.target.closest('.am-rp-acts')) { e.preventDefault(); pick(row); return; }
+    var b = e.target.closest('[data-rp-go]');
     if (!b) return;
     e.preventDefault();
     go(b.closest('[data-rp-form]'), b.getAttribute('data-rp-export'));
@@ -48,7 +61,9 @@
   });
   // Enter inside a filter panel previews instead of posting the WebForms page.
   document.addEventListener('keydown', function (e) {
-    if (e.key !== 'Enter' || !e.target.closest) return;
+    if (!e.target.closest) return;
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.classList && e.target.classList.contains('am-rp-item')) { e.preventDefault(); pick(e.target); return; }
+    if (e.key !== 'Enter') return;
     var box = e.target.closest('[data-rp-form]');
     if (box) { e.preventDefault(); go(box, null); }
     else if (e.target.hasAttribute('data-rp-search')) e.preventDefault();
@@ -62,6 +77,14 @@
       rows[i].style.display = !q || text.indexOf(q) >= 0 ? '' : 'none';
     }
   });
+  // v20: after selecting a report, bring its panel into view when it sits below the list (one-column layout).
+  function reveal() {
+    var panel = document.getElementById('rp-preview'); if (!panel || location.hash !== '#rp-preview') return;
+    var r = panel.getBoundingClientRect();
+    if (r.top > window.innerHeight * 0.6 || r.top < 0) panel.scrollIntoView({ block: 'start' });
+    try { panel.focus({ preventScroll: true }); } catch (x) { panel.focus(); }
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', reveal); else reveal();
   // Report Access: "Use Global Defaults" toggle hides/shows the override matrix without a round trip.
   document.addEventListener('change', function (e) {
     var t = e.target; if (!t.hasAttribute || !t.hasAttribute('data-ra-toggle')) return;

@@ -79,3 +79,13 @@
 .am-ra-how li:before{content:counter(s);position:absolute;left:0;top:0;width:26px;height:26px;border-radius:50%;background:#eaf2ff;color:var(--rp-blue);font-weight:700;display:flex;align-items:center;justify-content:center}
 .am-ra-how b{display:block;font-size:13px}.am-ra-how span{font-size:12px;color:#5b6778}
 .am-la-table small{color:#8a94a3}
+/* v20 (Pandey #5): whole report row selects it; the Filters & Preview panel stays in view beside the list. */
+.am-rp-item[data-rp-href]{cursor:pointer;transition:border-color .15s,background .15s}
+.am-rp-item[data-rp-href]:hover{border-color:#9dbcf0;background:#f8fbff}
+.am-rp-item[data-rp-href]:focus-visible{outline:2px solid var(--rp-blue);outline-offset:2px}
+.am-rp-item.is-active{box-shadow:inset 3px 0 0 var(--rp-blue)}
+@media(min-width:1101px){.am-rp-preview{position:sticky;top:88px;max-height:calc(100vh - 104px);overflow:auto}}
+.am-rp-preview:focus{outline:none}
+.am-rp-preview.is-loading{opacity:.6}
+.am-rp-preview-head{margin-top:14px;border-top:1px solid var(--rp-line);padding-top:12px}
+.am-rp-preview-head h3{margin:0}.am-rp-preview-head small{color:#6b7686;font-size:12px}

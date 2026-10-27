@@ -174,7 +174,9 @@ public static partial class AnyminuteReports
         var c = h.Session["AmRptNav"] as Tuple<DateTime, bool[]>;
         if (c != null && c.Item1 > DateTime.UtcNow) return c.Item2;
         bool[] f = { false, false };
-        try { f[0] = Available("").Count > 0; f[1] = Scope().Any(b => b.Tier == 2); } catch (HttpException) { } catch (InvalidOperationException) { } catch (SqlException) { }
+        // v20: the two probes are independent, so a report-matrix failure can no longer hide User Access > Login & Access.
+        try { f[1] = Scope().Any(b => b.Tier == 2); } catch (HttpException) { } catch (InvalidOperationException) { } catch (SqlException) { }
+        try { f[0] = Available("").Count > 0; } catch (HttpException) { } catch (InvalidOperationException) { } catch (SqlException) { }
         h.Session["AmRptNav"] = Tuple.Create(DateTime.UtcNow.AddMinutes(2), f); return f;
     }
     public static bool AnyAvailable() { return Flags()[0]; }
