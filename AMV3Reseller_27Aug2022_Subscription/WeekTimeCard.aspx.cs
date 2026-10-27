@@ -12,6 +12,11 @@ public partial class AnyminuteWeekTimeCard : System.Web.UI.Page
  // v16: a cleared/invalid week box falls back to the current week instead of a server error.
  DateTime StartWeek {get{DateTime d;return AnyminuteWeekService.Monday(DateTime.TryParseExact(Week.Text,"yyyy-MM-dd",CultureInfo.InvariantCulture,DateTimeStyles.None,out d)?d:DateTime.Today);}}
  static bool TryTime(string text,out TimeSpan t){return TimeSpan.TryParseExact((text??"").Trim(),new[]{@"hh\:mm",@"hh\:mm\:ss",@"h\:mm"},CultureInfo.InvariantCulture,out t);}
+ static bool PlanTime(object v,out TimeSpan t)
+ {
+  t=TimeSpan.Zero;if(v==null||v==DBNull.Value)return false;if(v is TimeSpan){t=(TimeSpan)v;return true;}if(v is DateTime){t=((DateTime)v).TimeOfDay;return true;}
+  DateTime d;if(DateTime.TryParse(Convert.ToString(v),CultureInfo.InvariantCulture,DateTimeStyles.None,out d)){t=d.TimeOfDay;return true;}return TimeSpan.TryParse(Convert.ToString(v),out t);
+ }
  int Revision {get{return Convert.ToInt32(ViewState["Revision"]);}}
  protected void Page_Init(object s,EventArgs e)
  {
@@ -83,10 +88,21 @@ public partial class AnyminuteWeekTimeCard : System.Web.UI.Page
    // the time card. A day with no time entry yet is pre-filled from the schedule (Worked / Day Off + start/end) and marked
    // "Scheduled"; Save Draft stores it as the employee's time. Days already entered keep their recorded time; the planned
    // shift is shown under the net hours. Nothing is written until the user saves.
-   var plan=new Dictionary<DateTime,DataRow>();
-   if(AnyminuteEmployeeEditor.HasTable(c,null,AnyminuteWeeklySchedule.Table))
-    foreach(DataRow p in AnyminuteTimesheetRepair.Query(c,null,"SELECT WorkDate,ScheduleType,StartTime,EndTime,BreakMinutes FROM dbo.AnyminuteWeeklySchedule WHERE BusinessID=@b AND EmployeeID=@e AND WorkDate>=@f AND WorkDate<DATEADD(day,7,@f)","@b",Business,"@e",Target,"@f",StartWeek).Rows)
+   // v22 (Pandey #4): v21 matched the schedule only on the exact EmployeeID. The schedule is now read for the same person
+   // (any EmployeeID of the same login in this business, exact ID preferred), dates compared as DATE, and times parsed from
+   // time / datetime / text columns. When nothing is found the card says so (with a link) instead of staying silent.
+   var plan=new Dictionary<DateTime,DataRow>();bool planTable=AnyminuteEmployeeEditor.HasTable(c,null,AnyminuteWeeklySchedule.Table);
+   if(planTable)
+    foreach(DataRow p in AnyminuteTimesheetRepair.Query(c,null,@"SELECT s.WorkDate,s.ScheduleType,s.StartTime,s.EndTime,s.BreakMinutes,CASE WHEN s.EmployeeID=@e THEN 0 ELSE 1 END AS Pref
+      FROM dbo.AnyminuteWeeklySchedule s WHERE s.BusinessID=@b AND s.WorkDate>=CONVERT(date,@f) AND s.WorkDate<DATEADD(day,7,CONVERT(date,@f))
+       AND (s.EmployeeID=@e OR s.EmployeeID IN (SELECT m2.EmployeeID FROM MappingTable m1 JOIN MappingTable m2 ON m2.USERID=m1.USERID AND m2.BusinessID=m1.BusinessID
+         WHERE m1.EmployeeID=@e AND m1.BusinessID=@b AND m1.USERID IS NOT NULL))
+      ORDER BY Pref DESC,s.WorkDate","@b",Business,"@e",Target,"@f",StartWeek.Date).Rows)
      plan[Convert.ToDateTime(p["WorkDate"]).Date]=p;
+   string scheduleUrl="WeeklyEmployeeSchedule.aspx?BusinessId="+Business+"&EmployeeId="+Target+"&week="+StartWeek.ToString("yyyy-MM-dd",CultureInfo.InvariantCulture);
+   PlanInfo.Text=!planTable?"<p class='am-notice am-plan-info'>Work Schedule is not installed on this database (run DB_REQUIRED/REQUIRED_05_WeeklySchedule.sql), so planned shifts cannot be shown.</p>"
+    :plan.Count==0?"<p class='am-muted am-plan-info'>No saved Work Schedule for this employee and week. <a href='"+HttpUtility.HtmlAttributeEncode(scheduleUrl)+"'>Open Work Schedule</a> and click Save Weekly Schedule to plan it.</p>"
+    :"<p class='am-muted am-plan-info'>Work Schedule found for "+plan.Count+" day"+(plan.Count==1?"":"s")+" of this week. Empty days are pre-filled and marked <span class='am-badge Scheduled'>Scheduled</span>; Save changes or Submit Week stores them.</p>";
    for(int i=0;i<7;i++)
    {
     DateTime date=StartWeek.AddDays(i);var rows=AnyminuteTimesheetRepair.Day(c,null,Business,Target,date);if(rows.Rows.Count>1)throw new InvalidOperationException("Duplicate daily entries need administrator review.");
@@ -107,8 +123,8 @@ public partial class AnyminuteWeekTimeCard : System.Web.UI.Page
     string worked=day==null?"":AttendanceValue(day["Worked"]),start=day==null||day["ReqularStart"]==DBNull.Value?"":Convert.ToDateTime(day["ReqularStart"]).ToString("HH:mm"),finish=day==null||day["Regularend"]==DBNull.Value?"":Convert.ToDateTime(day["Regularend"]).ToString("HH:mm"),planNote="";
     DataRow sp;if(plan.TryGetValue(date,out sp))
     {
-     bool planWork=Convert.ToString(sp["ScheduleType"])=="Working"&&sp["StartTime"]!=DBNull.Value&&sp["EndTime"]!=DBNull.Value;
-     string ps=planWork?DateTime.Today.Add((TimeSpan)sp["StartTime"]).ToString("HH:mm"):"",pe=planWork?DateTime.Today.Add((TimeSpan)sp["EndTime"]).ToString("HH:mm"):"";
+     TimeSpan pst=TimeSpan.Zero,pet=TimeSpan.Zero;bool planWork=String.Equals(Convert.ToString(sp["ScheduleType"]).Trim(),"Working",StringComparison.OrdinalIgnoreCase)&&PlanTime(sp["StartTime"],out pst)&PlanTime(sp["EndTime"],out pet);
+     string ps=planWork?DateTime.Today.Add(pst).ToString("HH:mm"):"",pe=planWork?DateTime.Today.Add(pet).ToString("HH:mm"):"";
      int pb=sp["BreakMinutes"]==DBNull.Value?0:Convert.ToInt32(sp["BreakMinutes"]);
      planNote="<small class='am-muted am-plan-note'>Scheduled: "+(planWork?HttpUtility.HtmlEncode(ps+" \u2013 "+pe)+(pb>0?" \u00b7 "+pb+" min break":""):"Day Off")+"</small>";
      if(day==null&&(state=="Draft"||state=="Rejected")){worked=planWork?"Yes":"No";start=ps;finish=pe;status="Scheduled";}
@@ -126,22 +142,34 @@ public partial class AnyminuteWeekTimeCard : System.Web.UI.Page
    Approve.Enabled=approved==working;Approve.ToolTip=Approve.Enabled?"Approve the reviewed week":"Approve each worked day first";
   }
   ViewState["EditableWeek"]=edit&&(state=="Draft"||state=="Rejected");
-  Save.Visible=edit&&(state=="Draft"||state=="Rejected");SaveTop.Visible=Save.Visible;Copy.Visible=Save.Visible;Submit.Visible=own&&(state=="Draft"||state=="Rejected");SubmitTop.Visible=Submit.Visible;Approve.Visible=Reject.Visible=review&&state=="Submitted";Reopen.Visible=AnyminuteModernScope.Owns(Business)&&state=="Approved";
+  Save.Visible=edit&&(state=="Draft"||state=="Rejected");SaveTop.Visible=Save.Visible;Copy.Visible=Save.Visible;Submit.Visible=edit&&(state=="Draft"||state=="Rejected"); // v22: owner/manager entering time can submit it tooSubmitTop.Visible=Submit.Visible;Approve.Visible=Reject.Visible=review&&state=="Submitted";Reopen.Visible=AnyminuteModernScope.Owns(Business)&&state=="Approved";
   Comment.ReadOnly=!review&&!Reopen.Visible;Comment.Text=Convert.ToString(h["ManagerComment"]);ApprovalInfo.Text=h["ApprovedAtUTC"]==DBNull.Value?"":"<p class='am-muted'>Approved at "+Convert.ToDateTime(h["ApprovedAtUTC"]).ToString("yyyy-MM-dd HH:mm")+" UTC \u00b7 reviewer ID "+Convert.ToString(h["ApprovedBy"])+"</p>";
+ }
+ void SaveGrid()
+ {
+  var input=new List<AnyminuteDraftDay>();foreach(RepeaterItem row in Days.Items)
+   {DateTime date=DateTime.ParseExact(((HiddenField)row.FindControl("DateKey")).Value,"yyyy-MM-dd",CultureInfo.InvariantCulture);string worked=((DropDownList)row.FindControl("Worked")).SelectedValue;string start=((TextBox)row.FindControl("Start")).Text,end=((TextBox)row.FindControl("End")).Text;
+    var d=new AnyminuteDraftDay {Date=date,Worked=worked==""?(bool?)null:worked=="Yes"};if(d.Worked==true){TimeSpan t;if(start!=""){if(!TryTime(start,out t))throw new FormatException();d.Start=date+t;}if(end!=""){if(!TryTime(end,out t))throw new FormatException();d.End=date+t+(((CheckBox)row.FindControl("NextDay")).Checked?TimeSpan.FromDays(1):TimeSpan.Zero);}}input.Add(d);}
+  AnyminuteWeekService.SaveDraft(Business,Target,StartWeek,Revision,input);
  }
  protected void Save_Click(object s,EventArgs e)
  {
-  Run(()=>{var input=new List<AnyminuteDraftDay>();foreach(RepeaterItem row in Days.Items)
-   {DateTime date=DateTime.ParseExact(((HiddenField)row.FindControl("DateKey")).Value,"yyyy-MM-dd",CultureInfo.InvariantCulture);string worked=((DropDownList)row.FindControl("Worked")).SelectedValue;string start=((TextBox)row.FindControl("Start")).Text,end=((TextBox)row.FindControl("End")).Text;
-    var d=new AnyminuteDraftDay {Date=date,Worked=worked==""?(bool?)null:worked=="Yes"};if(d.Worked==true){TimeSpan t;if(start!=""){if(!TryTime(start,out t))throw new FormatException();d.Start=date+t;}if(end!=""){if(!TryTime(end,out t))throw new FormatException();d.End=date+t+(((CheckBox)row.FindControl("NextDay")).Checked?TimeSpan.FromDays(1):TimeSpan.Zero);}}input.Add(d);}
-   AnyminuteWeekService.SaveDraft(Business,Target,StartWeek,Revision,input);}, "Draft saved. Use Submit Week to send it for approval.");
+  Run(SaveGrid,"Draft saved. Use Submit Week to send it for approval.");
  }
  void Transition(string action)
  {
   string feedback=action=="Submit"?"Week submitted. Editing is locked until it is returned. Another authorized reviewer must approve your own timecard.":action=="Approve"?"Week approved and locked.":action=="Reject"?"Week returned for correction.":"Week reopened for correction.";
   Run(()=>AnyminuteWeekService.Transition(Business,Target,StartWeek,Revision,action,Comment.Text),feedback);
  }
- protected void Submit_Click(object s,EventArgs e){Transition("Submit");}protected void Approve_Click(object s,EventArgs e){Transition("Approve");}protected void Reject_Click(object s,EventArgs e){Transition("Reject");}protected void Reopen_Click(object s,EventArgs e){Transition("Reopen");}
+ // v22 (Pandey #5): Submit Week first saves what is on screen (times typed but not saved were lost before, so the week
+ // stayed Draft and never reached Approvals), then submits with the fresh revision.
+ protected void Submit_Click(object s,EventArgs e)
+ {
+  Run(()=>{if(Convert.ToBoolean(ViewState["EditableWeek"]))SaveGrid();
+   int fresh=Convert.ToInt32(AnyminuteWeekService.Header(Business,Target,StartWeek).Rows[0]["Revision"]);
+   AnyminuteWeekService.Transition(Business,Target,StartWeek,fresh,"Submit","");},
+   "Week saved and submitted. It is now listed under Approvals (Team Timesheets \u203a Submitted) for the authorized reviewer.");
+ }protected void Approve_Click(object s,EventArgs e){Transition("Approve");}protected void Reject_Click(object s,EventArgs e){Transition("Reject");}protected void Reopen_Click(object s,EventArgs e){Transition("Reopen");}
  protected void Copy_Click(object s,EventArgs e)
  {Run(()=>{var dates=Enumerable.Range(1,4).Select(i=>StartWeek.AddDays(i)).ToArray();AnyminuteTimesheetRepair.Copy(Convert.ToInt32(Session["EmployeeId"]),Convert.ToInt32(Session["UserTypeid"]),Business,Target,dates.Select(d=>StartWeek).ToArray(),dates,false);},"Monday copied to the empty weekdays. Review the times, then Save changes.");}
  protected void DayCommand(object s,RepeaterCommandEventArgs e)

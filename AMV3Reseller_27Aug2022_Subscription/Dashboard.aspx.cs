@@ -16,7 +16,7 @@ public partial class AnyminuteDashboard : System.Web.UI.Page
    // "My Businesses" (?view=businesses) keep the existing businesses dashboard below.
    if(Request.QueryString["view"]!="businesses" && AnyminuteRoleDashboard.Applies())
    {
-    var model=AnyminuteRoleDashboard.Load(Request.QueryString["b"],Request.QueryString["mode"]);
+    var model=AnyminuteRoleDashboard.Load(Request.QueryString["b"],Request.QueryString["mode"],Request.QueryString["w"]);
     RoleDashboard.Text=AnyminuteRoleDashboard.Render(model,null);RoleDashboard.Visible=true;OwnerView.Visible=false;return;
    }
    Bind();

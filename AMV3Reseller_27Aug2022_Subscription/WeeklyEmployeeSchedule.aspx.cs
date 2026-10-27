@@ -85,6 +85,10 @@ public partial class AnyminuteWeeklySchedulePage : System.Web.UI.Page
         GridWrap.Visible = !viewOnly || saved;
         if (viewOnly) WsSub.InnerText = "Your planned working hours, days off and break time for the selected week.";
         if (viewOnly && !saved) { TotalHours.Text = "0.00"; Notice("No work schedule has been published for this week yet."); }
+        // v22 (Pandey #4): the default Mon-Fri 09:00-17:00 pattern looked like a saved schedule, but nothing reaches the
+        // Weekly Time Card until it is saved. Say so explicitly.
+        if (!viewOnly && !saved && !copyFrom.HasValue && Business > 0 && Employee > 0 && !Flash.Visible)
+            Notice("Not saved yet: this week shows the default pattern. Click Save Weekly Schedule to publish it - only saved schedules appear on the Weekly Time Card.");
         // v17: employees get a clear way to enter their own times (My Time Card), published schedule or not.
         TimeCardCta.Visible = viewOnly;
         if (viewOnly) TimeCardLink.NavigateUrl = "~/WeekTimeCard.aspx?BusinessId=" + Business + "&Week=" + monday.ToString("yyyy-MM-dd", Inv);

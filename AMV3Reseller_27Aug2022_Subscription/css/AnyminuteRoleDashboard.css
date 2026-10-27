@@ -77,3 +77,8 @@ body .am-rd-roles table.am-table{min-width:0!important;width:100%}
 .am-rd-roles-wrap table.am-table{min-width:320px!important}
 .am-rd{max-width:1480px}
 @media(max-width:1100px){.am-rd-top:not(.am-rd-top-full){grid-template-columns:1fr}}
+/* v22: schedule week navigation (image 3) */
+.am-rd-weeknav{display:inline-flex;gap:6px;align-items:center;margin-left:auto}
+.am-rd-weeknav .am-button{padding:4px 10px;min-height:0}
+.am-rd-weeknav .is-current{border-color:#1768e8;color:#1768e8}
+.am-rd-weekpill{background:#1768e8;color:#fff;border-radius:6px;padding:4px 10px;font-size:13px;font-weight:600}

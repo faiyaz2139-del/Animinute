@@ -4,6 +4,7 @@ using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
 using System.Globalization;
+using System.Linq;
 
 public static class AnyminuteTimesheetRepair
 {
@@ -69,7 +70,11 @@ public static class AnyminuteTimesheetRepair
         if(employeeAllowed && ownAccount) return;
         if(role==1) return;
         var permissions=Query(c,tx,"SELECT Role_Permission_Id,Status FROM User_Role_Permission WHERE Employee_Id=@a AND UserTypeId=@r AND (BusinessId=@b OR BusinessId IS NULL)","@a",actor.ToString(),"@r",role.ToString(),"@b",business);
-        bool allowed=permissions.Rows.Count==0 && (role==2 || role==5);
+        // v22 (Pandey #5): a role change inserts a placeholder permission row (empty Role_Permission_Id, Status=1). That row
+        // used to count as "explicit permissions = none", so a newly promoted Manager could not see or approve any time
+        // card. Placeholder rows now keep the role default (Manager / Admin allowed); a disabled or non-empty row is explicit.
+        bool placeholderOnly=permissions.Rows.Cast<DataRow>().All(p=>p["Status"]!=DBNull.Value && Convert.ToBoolean(p["Status"]) && Convert.ToString(p["Role_Permission_Id"]).Replace(",","").Trim().Length==0);
+        bool allowed=placeholderOnly && (role==2 || role==5);
         foreach(DataRow p in permissions.Rows)
         {
             if(p["Status"]==DBNull.Value || !Convert.ToBoolean(p["Status"])) continue;

@@ -14,6 +14,8 @@ public partial class AnyminuteModernMaster : System.Web.UI.MasterPage
   Payroll.Visible=AnyminuteModernScope.Businesses().Rows.Cast<DataRow>().Any(r=>AnyminuteModernScope.Owns(Convert.ToInt32(r["BusinessID"])));
   string displayName=Convert.ToString(Session["user"]).Trim();
   while(displayName.StartsWith("Welcome!",StringComparison.OrdinalIgnoreCase))displayName=displayName.Substring(8).TrimStart();
+  // v22: some logins (Pandey images 4/9/10) have no Session["user"]; fall back to the signed-in person's name.
+  if(displayName.Length==0){int me;if(Int32.TryParse(Convert.ToString(Session["EmployeeId"]),out me))try{using(var c=AnyminuteTimesheetRepair.Open())displayName=Convert.ToString(AnyminuteTimesheetRepair.Query(c,null,"SELECT dbo.FN_DESC('AddEmployee',@e)","@e",me).Rows[0][0]).Trim();}catch(System.Data.SqlClient.SqlException){}}
   Welcome.Text=HttpUtility.HtmlEncode(displayName);
   // v20 (Pandey images 1/3/4): employee / supervisor role and business under the welcome line.
   string context=AnyminuteRoleDashboard.HeaderContext();

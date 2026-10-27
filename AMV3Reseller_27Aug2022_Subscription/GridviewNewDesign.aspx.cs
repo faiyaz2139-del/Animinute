@@ -42,13 +42,16 @@ public partial class GridviewNewDesign : Page
             var edges=AnyminuteApprovalAssignments.Edges(c,null,Business);
             if(people.Select("EmployeeID="+manager+" AND UserTypeId=2").Length!=1) throw new HttpException(403,"Manager is not available.");
             var assigned=people.Clone(); var available=people.Clone();
+            // v22 (Pandey #3): users who already approve this manager (directly or through other current managers), and the
+            // manager's own login, are not offered - assigning them is the only thing that can create a circular chain.
+            var blocked=AnyminuteApprovalAssignments.Blocked(edges,manager,people);
             foreach(DataRow row in people.Rows)
             {
                 int id=Convert.ToInt32(row["EmployeeID"]); if(id==manager) continue;
                 bool has=edges.Select("ManagerID="+manager+" AND EmpId="+id).Length>0;
                 // Keep current rows visible; disallow accidental reassignment of another manager's approver.
                 bool other=Convert.ToInt32(row["UserTypeId"])==2 && edges.Select("ManagerID<>"+manager+" AND EmpId="+id).Length>0;
-                if(has) assigned.ImportRow(row); else if(!other) available.ImportRow(row);
+                if(has) assigned.ImportRow(row); else if(!other && !blocked.Contains(id)) available.ImportRow(row);
             }
             // Do not silently drop inactive/unlisted users from existing assignments.
             foreach(DataRow edge in edges.Select("ManagerID="+manager))

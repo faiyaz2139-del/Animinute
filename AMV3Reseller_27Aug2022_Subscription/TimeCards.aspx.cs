@@ -2,6 +2,7 @@ using System;
 using System.Data;
 using System.Globalization;
 using System.Web;
+using System.Linq;
 public partial class AnyminuteTimeCards : System.Web.UI.Page
 {
  bool ApprovalQueue { get { return String.Equals(Request.QueryString["status"],"Submitted",StringComparison.OrdinalIgnoreCase); } }
@@ -27,7 +28,7 @@ public partial class AnyminuteTimeCards : System.Web.UI.Page
   DateTime week=AnyminuteWeekService.Monday(date);Week.Text=week.ToString("yyyy-MM-dd",CultureInfo.InvariantCulture);
   var result=new DataTable();foreach(string n in new[]{"EmpName","BusinessName","NetDisplay","State"})result.Columns.Add(n);
   foreach(string n in new[]{"EmployeeID","BusinessID"})result.Columns.Add(n,typeof(int));result.Columns.Add("WeekStart",typeof(DateTime));
-  string wanted=ApprovalQueue?"Submitted":State.SelectedValue;
+  string wanted=ApprovalQueue?"Submitted":State.SelectedValue;var notSubmitted=new System.Collections.Generic.List<string>();
   foreach(DataRow b in AnyminuteModernScope.Businesses().Rows)
   {
    int business=Convert.ToInt32(b["BusinessID"]);
@@ -48,6 +49,13 @@ public partial class AnyminuteTimeCards : System.Web.UI.Page
       "SELECT State FROM dbo.AnyminuteWeek WHERE BusinessID=@b AND EmployeeID=@e AND WeekStart=@w",
       "@b",business,"@e",employee,"@w",week);
      string state=header.Rows.Count==0?"Draft":Convert.ToString(header.Rows[0][0]);
+     if(ApprovalQueue && state!="Submitted")
+     {
+      // v22 (Pandey #5): explain an empty queue - time entered but never submitted stays Draft and is not an approval.
+      if(Convert.ToInt32(AnyminuteTimesheetRepair.Query(c,null,"SELECT COUNT(*) FROM TimeSheetEntry WHERE BussID=@b AND EmpId=@e AND TimeSheetDate>=@w AND TimeSheetDate<DATEADD(day,7,@w) AND ISNULL(ProjectId,0)=0","@b",business,"@e",employee,"@w",week).Rows[0][0])>0)
+       notSubmitted.Add(Convert.ToString(employeeRow["EmpName"])+" ("+Convert.ToString(b["CompanyName"])+", "+state+")");
+      continue;
+     }
      if(wanted!="All" && state!=wanted)continue;
      TimeSpan total=TimeSpan.Zero;
      foreach(DataRow row in AnyminuteTimesheetRepair.Query(c,null,
@@ -59,5 +67,8 @@ public partial class AnyminuteTimeCards : System.Web.UI.Page
   }
   Rows.DataSource=result;Rows.DataBind();Empty.Visible=result.Rows.Count==0;
   Empty.Text=ApprovalQueue?"No submitted weeks awaiting your approval for this week. Draft cards appear under Time Cards.":"No timecards match the selected week and status.";
+  if(ApprovalQueue && notSubmitted.Count>0)
+  {Notice.Visible=true;Notice.Text=HttpUtility.HtmlEncode("Time is entered but the week is not submitted yet for: "+String.Join("; ",notSubmitted.Distinct().ToArray())+
+    ". Open the Weekly Time Card and click Submit Week - only submitted weeks appear here.");}
  }
 }

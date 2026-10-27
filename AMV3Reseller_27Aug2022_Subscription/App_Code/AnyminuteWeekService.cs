@@ -74,10 +74,15 @@ public static class AnyminuteWeekService
  }
  public static void Validate(SqlConnection c,SqlTransaction tx,int b,int e,DateTime week)
  {
+  // v22 (Pandey #5): a day left "Not entered" counts as not worked (weekends no longer block Submit Week); the week needs
+  // at least one saved day.
+  int entered=0;
   for(int i=0;i<7;i++)
   {
    DateTime date=week.AddDays(i);var rows=AnyminuteTimesheetRepair.Day(c,tx,b,e,date);
-   if(rows.Rows.Count!=1)throw new InvalidOperationException("Complete "+date.ToString("dddd, MMM d")+" or mark it Not worked before submitting.");
+   if(rows.Rows.Count>1)throw new InvalidOperationException("Duplicate entries on "+date.ToString("dddd, MMM d")+" need administrator review.");
+   if(rows.Rows.Count==0){if(AnyminuteTimesheetRepair.Breaks(c,tx,b,e,date).Rows.Count>0)throw new InvalidOperationException("Breaks on "+date.ToString("dddd, MMM d")+" have no saved shift.");continue;}
+   entered++;
    var r=rows.Rows[0];var breaks=AnyminuteTimesheetRepair.Breaks(c,tx,b,e,date);
    if(Convert.ToString(r["Worked"])=="Yes")
    {
@@ -90,6 +95,7 @@ public static class AnyminuteWeekService
    else if(Convert.ToString(r["Worked"])!="No"||breaks.Rows.Count>0||AnyminuteReportDurations.Parse(r["Regular"])!=TimeSpan.Zero||AnyminuteReportDurations.Parse(r["BreakTotal"])!=TimeSpan.Zero||AnyminuteReportDurations.Parse(r["Total"])!=TimeSpan.Zero)
     throw new InvalidOperationException("Invalid absence record.");
   }
+  if(entered==0)throw new InvalidOperationException("Enter and save at least one day before submitting the week.");
  }
  static void Notify(SqlConnection c,SqlTransaction tx,int b,int e,DateTime w,string kind,bool reviewers)
  {
@@ -109,7 +115,9 @@ public static class AnyminuteWeekService
    if(action=="Submit")
    {
     resolved=AnyminuteModernScope.Actor(c,tx,b,out role);
-    if(resolved!=e)throw new InvalidOperationException("Only the employee can submit their week.");
+    // v22 (Pandey #5): an owner or the employee's manager who enters the time can also submit it for approval
+    // (same right as editing it). Approval still needs an independent reviewer (never the employee themselves).
+    if(resolved!=e)AnyminuteTimesheetRepair.Authorize(c,tx,SessionActor,SessionRole,b,e,true);
     if(before!="Draft"&&before!="Rejected")throw new InvalidOperationException("Only a draft or returned week can be submitted.");
     Validate(c,tx,b,e,week);after="Submitted";
    }
@@ -129,7 +137,7 @@ public static class AnyminuteWeekService
       var pending=AnyminuteTimesheetRepair.Query(c,tx,"SELECT COUNT(*) FROM TimeSheetEntry WHERE BussID=@b AND EmpId=@e AND TimeSheetDate>=@w AND TimeSheetDate<DATEADD(day,7,@w) AND ISNULL(ProjectId,0)=0 AND Worked='Yes' AND ISNULL(Status,0)<>2","@b",b,"@e",e,"@w",week);
       if(Convert.ToInt32(pending.Rows[0][0])>0)throw new InvalidOperationException("Approve each worked day before approving the week.");}}
    }
-   after=AnyminuteWeekRules.Next(before,action,resolved==e,action!="Submit"&&action!="Reopen",action=="Reopen",comment);
+   after=AnyminuteWeekRules.Next(before,action,action=="Submit"||resolved==e,action!="Submit"&&action!="Reopen",action=="Reopen",comment);
    // Trusted workflow operation owns this connection and clears the trigger marker before returning it to the pool.
    AnyminuteTimesheetRepair.Execute(c,tx,"EXEC sys.sp_set_session_context @key=N'AnyminuteWorkflowWrite',@value=1");
    try

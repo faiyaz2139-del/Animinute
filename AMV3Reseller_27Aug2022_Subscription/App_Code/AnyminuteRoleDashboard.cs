@@ -125,7 +125,13 @@ public static class AnyminuteRoleDashboard
         string sel = qBusiness ?? Convert.ToString(s[SessionBusiness]);
         if (sel != "all" && !m.Roles.Any(r => Convert.ToString(r.BusinessID) == sel)) sel = null;
         if (sel == "all" && m.Roles.Count < 2) sel = null;
-        if (sel == null) sel = m.Roles.Count == 1 ? Convert.ToString(m.Roles[0].BusinessID) : (m.Roles.Any(r => r.Employee) ? "all" : Convert.ToString(m.Roles[0].BusinessID));
+        // v22 (Pandey #2, image 3): a dual-role user opens on their first Employee + Supervisor business (role-tagged), so
+        // Switch Dashboard applies to one business; a pure multi-business employee opens on All My Businesses (image 1).
+        var firstDual = m.Roles.FirstOrDefault(r => r.Employee && r.Supervisor);
+        bool dual = m.Roles.Any(r => r.Employee) && m.Roles.Any(r => r.Supervisor);
+        if (sel == null) sel = m.Roles.Count == 1 ? Convert.ToString(m.Roles[0].BusinessID)
+            : dual ? Convert.ToString((firstDual ?? m.Roles.First(r => r.Employee)).BusinessID)
+            : (m.Roles.Any(r => r.Employee) ? "all" : Convert.ToString(m.Roles[0].BusinessID));
         m.Selected = sel;
         bool emp = m.Scope.Any(r => r.Employee), sup = m.Scope.Any(r => r.Supervisor);
         string chosen = qMode ?? Convert.ToString(s[SessionMode]);
@@ -139,6 +145,12 @@ public static class AnyminuteRoleDashboard
         s[SessionBusiness] = sel; s[SessionMode] = chosen;
     }
 
+    static List<AnyminuteBusinessRole> CurrentScope(List<AnyminuteBusinessRole> roles)
+    {
+        string sel = Convert.ToString(HttpContext.Current.Session[SessionBusiness]);
+        var scope = roles.Where(r => sel == "all" || sel == "" || Convert.ToString(r.BusinessID) == sel).ToList();
+        return scope.Count == 0 ? roles : scope;
+    }
     public static string CurrentMode()
     {
         var s = HttpContext.Current.Session; var roles = Roles();
@@ -193,7 +205,7 @@ public static class AnyminuteRoleDashboard
             links.Add(new KeyValuePair<string, string>("My Schedule", u("~/WeeklyEmployeeSchedule.aspx")));
             links.Add(new KeyValuePair<string, string>("My Projects", u("~/Projects.aspx")));
             // Slide 2: an Employee + Supervisor keeps Employees; slide 1 (employee only): no Employees link.
-            if (directory && roles.Any(r => r.Supervisor)) links.Add(new KeyValuePair<string, string>("Employees", u("~/Users.aspx")));
+            if (directory && CurrentScope(roles).Any(r => r.Supervisor)) links.Add(new KeyValuePair<string, string>("Employees", u("~/Users.aspx")));
             if (report != null) links.Add(new KeyValuePair<string, string>("Reports", report));
             links.Add(new KeyValuePair<string, string>("My Businesses", u("~/Dashboard.aspx?view=businesses")));
         }
@@ -210,9 +222,12 @@ public static class AnyminuteRoleDashboard
     static decimal H(TimeSpan t) { return Math.Round((decimal)t.TotalHours, 2); }
     static decimal Hrs(TimeSpan s, TimeSpan e, int brk) { if (e <= s) return 0m; double m = (e - s).TotalMinutes - brk; return m <= 0 ? 0m : Math.Round((decimal)m / 60m, 2); }
 
-    public static AnyminuteDashModel Load(string qBusiness, string qMode)
+    public static AnyminuteDashModel Load(string qBusiness, string qMode) { return Load(qBusiness, qMode, null); }
+    // v22 (image 3): ?w=yyyy-MM-dd moves the schedule week (previous / Today / next).
+    public static AnyminuteDashModel Load(string qBusiness, string qMode, string qWeek)
     {
-        var m = new AnyminuteDashModel { Roles = Roles(), Monday = AnyminuteWeekService.Monday(DateTime.Today) };
+        DateTime wk; bool hasWeek = DateTime.TryParseExact(qWeek ?? "", "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out wk);
+        var m = new AnyminuteDashModel { Roles = Roles(), Monday = AnyminuteWeekService.Monday(hasWeek ? wk : DateTime.Today) };
         Select(m, qBusiness, qMode);
         m.ReportHref = AnyminuteReports.HubHref(AnyminuteUiNavigation.Load()); m.Directory = AnyminuteDirectoryScope.CanReadDirectory();
         DateTime today = DateTime.Today, sunday = m.Monday.AddDays(6);
@@ -350,7 +365,9 @@ public static class AnyminuteRoleDashboard
                  .Append(E(r.Name + (anySup ? " (" + r.Label + ")" : ""))).Append("</option>");
             h.Append("</select></label>");
         }
-        if (m.DualRole)
+        // v22 (Pandey #2): no supervisor chrome for an employee-only business - Switch Dashboard is shown only when the
+        // selection includes a supervisor role (supervisor-only businesses keep it with Employee disabled).
+        if (m.DualRole && m.Scope.Any(r => r.Supervisor))
         {
             bool scopeEmp = m.Scope.Any(r => r.Employee), scopeSup = m.Scope.Any(r => r.Supervisor);
             h.Append("<label class='am-rd-field'><span>Switch Dashboard</span><select id='AmDashMode' onchange=\"location.href='Dashboard.aspx?b=")
@@ -386,7 +403,7 @@ public static class AnyminuteRoleDashboard
         // My Schedule week strip
         h.Append("<section class='am-card'><div class='am-rd-head'><h2>My Schedule").Append(m.All && m.Roles.Count > 1 ? " (All Businesses)" : one != null ? " \u2013 " + E(one) : "").Append("<small>")
          .Append(E(m.Monday.ToString("MMMM d, yyyy", Inv) + " \u2013 " + m.Monday.AddDays(6).ToString("MMMM d, yyyy", Inv))).Append("</small></h2><a href='")
-         .Append(A(Url("WeeklyEmployeeSchedule.aspx", m, Biz(m)))).Append("'>View Full Schedule &#8250;</a></div><div class='am-rd-week'>");
+         .Append(A(Url("WeeklyEmployeeSchedule.aspx", m, Biz(m)))).Append("'>View Full Schedule &#8250;</a>").Append(WeekNav(m)).Append("</div><div class='am-rd-week'>");
         for (int i = 0; i < 7; i++)
         {
             var date = m.Monday.AddDays(i); var days = m.Days.Where(x => x.Date == date).ToList();
@@ -417,6 +434,13 @@ public static class AnyminuteRoleDashboard
         if (both) Action(h, "check", "Team Approvals", "Switch to Supervisor view", "Dashboard.aspx?b=" + HttpUtility.UrlEncode(m.Selected) + "&mode=supervisor");
         else Action(h, "business", "My Businesses", "View business details", "Dashboard.aspx?view=businesses");
         h.Append("</div></section></div>");
+    }
+
+    static string WeekNav(AnyminuteDashModel m)
+    {
+        Func<DateTime, string> link = d => A("Dashboard.aspx?b=" + HttpUtility.UrlEncode(m.Selected) + "&mode=" + m.Kind + "&w=" + d.ToString("yyyy-MM-dd", Inv));
+        bool current = m.Monday == AnyminuteWeekService.Monday(DateTime.Today);
+        return "<span class='am-rd-weeknav'><a class='am-button secondary' aria-label='Previous week' href='" + link(m.Monday.AddDays(-7)) + "'>&#8249;</a><a class='am-button secondary" + (current ? " is-current" : "") + "' href='" + link(DateTime.Today) + "'>Today</a><a class='am-button secondary' aria-label='Next week' href='" + link(m.Monday.AddDays(7)) + "'>&#8250;</a><span class='am-rd-weekpill'>Week</span></span>";
     }
 
     static void Supervisor(StringBuilder h, AnyminuteDashModel m)
