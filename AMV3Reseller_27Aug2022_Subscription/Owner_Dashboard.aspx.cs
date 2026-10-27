@@ -26,6 +26,9 @@ public partial class OwnerDashBoard : System.Web.UI.Page
             Context.ApplicationInstance.CompleteRequest();
             return;
         }
+        // v21 (Pandey #5): the old dashboards are retired - signed-in users always land on the new Dashboard.aspx
+        // (employee / supervisor / owner views). Legacy links and redirects to this page follow automatically.
+        if (!IsPostBack && Session["UserId"] != null && Session["EmployeeId"] != null) { Response.Redirect("~/Dashboard.aspx", false); Context.ApplicationInstance.CompleteRequest(); return; }
 
         // Authorize Owner Dashboard from the persisted business-owner assignment.
         // Existing Owner dashboard queries already use AssginBussiness.UserTypeId = 5.

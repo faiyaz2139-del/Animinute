@@ -19,6 +19,9 @@ public partial class BusinessOwnerDashboard2 : System.Web.UI.Page
         {
             Response.Redirect("Login.aspx");
         }
+        // v21 (Pandey #5): the old dashboards are retired - signed-in users always land on the new Dashboard.aspx
+        // (employee / supervisor / owner views). Legacy links and redirects to this page follow automatically.
+        if (!IsPostBack && Session["UserId"] != null && Session["EmployeeId"] != null) { Response.Redirect("~/Dashboard.aspx", false); Context.ApplicationInstance.CompleteRequest(); return; }
         if (!IsPostBack)
         {
             // comm.FillDropDownList(ddlBussName, "AssginBussiness", "BusinessID", "dbo.FN_DESC('AddBusiness',BusinessID)", "MotherOrgID=" + Session["MotherOrgid"].ToString() + " and EmployeeID=" + Session["EmployeeId"].ToString() + " and UserTypeId in (1,2,4)", "BusinessID");

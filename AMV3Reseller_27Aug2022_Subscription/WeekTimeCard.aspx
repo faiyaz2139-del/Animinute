@@ -9,6 +9,9 @@
 .am-week td label.am-next-day-gap input[type="checkbox"] {
  width:auto; min-width:0; margin:0; flex:none;
 }
+/* v21 (Pandey #7): days pre-filled from the saved Work Schedule. */
+.am-week .am-badge.Scheduled{background:#e6f2ff;color:#1d5fd1}
+.am-week .am-plan-note{display:block;margin-top:4px;white-space:nowrap}
 </style><script src="Scripts/AnyminuteBreaks.js"></script></asp:Content>
 <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server"><section class="am-card"><div class="am-title"><div><h1>Weekly Time Card</h1><p>Enter daily time, review breaks and approve the week. Times use the business time zone.</p></div><asp:Literal ID="Badge" runat="server" /></div>
 <div class="am-toolbar am-week-selection"><asp:PlaceHolder ID="BusinessField" runat="server" Visible="false"><label><span>Business</span><asp:DropDownList ID="BusinessPick" runat="server" AutoPostBack="true" OnSelectedIndexChanged="BusinessChanged" /></label></asp:PlaceHolder><label><span>Employee</span><asp:DropDownList ID="Employee" runat="server" AutoPostBack="true" OnSelectedIndexChanged="SelectionChanged" /></label><label><span>Week starting &#183; Monday&#8211;Sunday</span><asp:TextBox ID="Week" runat="server" TextMode="Date" AutoPostBack="true" OnTextChanged="SelectionChanged" /></label><div class="am-actions"><asp:Button ID="SaveTop" runat="server" Text="Save changes" OnClick="Save_Click" CssClass="am-button" /><asp:Button ID="SubmitTop" runat="server" Text="Submit Week" OnClick="Submit_Click" CssClass="am-button secondary" /><asp:Button ID="Copy" runat="server" Text="Copy Monday to weekdays" OnClick="Copy_Click" OnClientClick="return confirm('Copy saved Monday to empty weekdays? Existing and approved entries will be preserved.');" /></div></div>

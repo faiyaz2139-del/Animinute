@@ -79,6 +79,14 @@ public partial class AnyminuteWeekTimeCard : System.Web.UI.Page
    canPrice=own||AnyminuteModernScope.Owns(Business);
    var table=new DataTable();table.Columns.Add("Date",typeof(DateTime));foreach(string n in new[]{"Day","Worked","Start","End","BreakDisplay","Net","Status","EstimateNote"})table.Columns.Add(n);
    foreach(string n in new[]{"Editable","NextDay","Reviewable","EstimateAvailable"})table.Columns.Add(n,typeof(bool));TimeSpan net=TimeSpan.Zero,unpaid=TimeSpan.Zero,paid=TimeSpan.Zero,overtime=TimeSpan.Zero;int working=0,approved=0;
+   // v21 (Pandey #7): the saved Work Schedule (dbo.AnyminuteWeeklySchedule, same BusinessID + EmployeeID + Mon-Sun week) drives
+   // the time card. A day with no time entry yet is pre-filled from the schedule (Worked / Day Off + start/end) and marked
+   // "Scheduled"; Save Draft stores it as the employee's time. Days already entered keep their recorded time; the planned
+   // shift is shown under the net hours. Nothing is written until the user saves.
+   var plan=new Dictionary<DateTime,DataRow>();
+   if(AnyminuteEmployeeEditor.HasTable(c,null,AnyminuteWeeklySchedule.Table))
+    foreach(DataRow p in AnyminuteTimesheetRepair.Query(c,null,"SELECT WorkDate,ScheduleType,StartTime,EndTime,BreakMinutes FROM dbo.AnyminuteWeeklySchedule WHERE BusinessID=@b AND EmployeeID=@e AND WorkDate>=@f AND WorkDate<DATEADD(day,7,@f)","@b",Business,"@e",Target,"@f",StartWeek).Rows)
+     plan[Convert.ToDateTime(p["WorkDate"]).Date]=p;
    for(int i=0;i<7;i++)
    {
     DateTime date=StartWeek.AddDays(i);var rows=AnyminuteTimesheetRepair.Day(c,null,Business,Target,date);if(rows.Rows.Count>1)throw new InvalidOperationException("Duplicate daily entries need administrator review.");
@@ -96,9 +104,18 @@ public partial class AnyminuteWeekTimeCard : System.Web.UI.Page
     var estimates=AnyminuteTimesheetRepair.Query(c,null,"SELECT EstimatedEnd FROM AnyminuteClockOutEstimate WHERE BusinessID=@b AND EmployeeID=@e AND ShiftDate=@d AND State='NeedsReview'","@b",Business,"@e",Target,"@d",date);
     bool estimated=estimates.Rows.Count>0&&day!=null&&day["Regularend"]==DBNull.Value;
     string status=day!=null&&!isWorked&&AttendanceValue(day["Worked"])=="No"?"Day Off":isApproved?"Approved":day!=null&&Convert.ToString(day["Status"])=="3"?"Rejected":state=="Submitted"?"Submitted":day==null?"Not entered":"Draft";
-    table.Rows.Add(date,date.ToString("dddd"),day==null?"":AttendanceValue(day["Worked"]),day==null||day["ReqularStart"]==DBNull.Value?"":Convert.ToDateTime(day["ReqularStart"]).ToString("HH:mm"),day==null||day["Regularend"]==DBNull.Value?"":Convert.ToDateTime(day["Regularend"]).ToString("HH:mm"),
+    string worked=day==null?"":AttendanceValue(day["Worked"]),start=day==null||day["ReqularStart"]==DBNull.Value?"":Convert.ToDateTime(day["ReqularStart"]).ToString("HH:mm"),finish=day==null||day["Regularend"]==DBNull.Value?"":Convert.ToDateTime(day["Regularend"]).ToString("HH:mm"),planNote="";
+    DataRow sp;if(plan.TryGetValue(date,out sp))
+    {
+     bool planWork=Convert.ToString(sp["ScheduleType"])=="Working"&&sp["StartTime"]!=DBNull.Value&&sp["EndTime"]!=DBNull.Value;
+     string ps=planWork?DateTime.Today.Add((TimeSpan)sp["StartTime"]).ToString("HH:mm"):"",pe=planWork?DateTime.Today.Add((TimeSpan)sp["EndTime"]).ToString("HH:mm"):"";
+     int pb=sp["BreakMinutes"]==DBNull.Value?0:Convert.ToInt32(sp["BreakMinutes"]);
+     planNote="<small class='am-muted am-plan-note'>Scheduled: "+(planWork?HttpUtility.HtmlEncode(ps+" \u2013 "+pe)+(pb>0?" \u00b7 "+pb+" min break":""):"Day Off")+"</small>";
+     if(day==null&&(state=="Draft"||state=="Rejected")){worked=planWork?"Yes":"No";start=ps;finish=pe;status="Scheduled";}
+    }
+    table.Rows.Add(date,date.ToString("dddd"),worked,start,finish,
      AnyminuteReportDurations.Format(dayUnpaid)+" / "+AnyminuteReportDurations.Format(dayPaid),day==null?"-":AnyminuteReportDurations.Format(hours),status,
-     estimated?"<small class='am-muted'>Estimated clock-out "+Convert.ToDateTime(estimates.Rows[0][0]).ToString("HH:mm")+" \u00b7 Needs review</small>":"",
+     (estimated?"<small class='am-muted'>Estimated clock-out "+Convert.ToDateTime(estimates.Rows[0][0]).ToString("HH:mm")+" \u00b7 Needs review</small>":"")+planNote,
      edit&&(state=="Draft"||state=="Rejected")&&!isApproved,
      day!=null&&day["Regularend"]!=DBNull.Value&&Convert.ToDateTime(day["Regularend"]).Date>date,
      review&&state=="Submitted"&&isWorked&&!isApproved,estimated&&edit&&(state=="Draft"||state=="Rejected"));

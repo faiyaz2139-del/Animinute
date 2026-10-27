@@ -65,6 +65,30 @@ public static class AnyminuteApprovalAssignments
         if (graph.ContainsKey(node)) foreach(int child in graph[node]) Visit(child,graph,visited,path);
         path.Remove(node); visited.Add(node);
     }
+    // A chain is circular only when one of the manager's assigned users can reach the manager again through current,
+    // active managers' assignments (UserTypeId 2 in this business). Stale rows of former managers do not approve anything.
+    public static void ValidateManager(IEnumerable<Tuple<int,int>> edges, int manager, DataTable people)
+    {
+        var managers = new HashSet<int>(people.Select("UserTypeId=2").Select(r => Convert.ToInt32(r["EmployeeID"])));
+        var graph = new Dictionary<int,List<int>>();
+        foreach (var edge in edges)
+        {
+            if (edge.Item1 == manager && edge.Item2 == manager) throw new InvalidOperationException("A manager cannot approve their own time.");
+            if (edge.Item1 == edge.Item2 || !managers.Contains(edge.Item1)) continue;
+            List<int> list; if (!graph.TryGetValue(edge.Item1, out list)) graph[edge.Item1] = list = new List<int>();
+            list.Add(edge.Item2);
+        }
+        List<int> start; if (!graph.TryGetValue(manager, out start)) return;
+        var seen = new HashSet<int>(); var stack = new Stack<int>(start);
+        while (stack.Count > 0)
+        {
+            int node = stack.Pop();
+            if (node == manager)
+                throw new InvalidOperationException("This assignment creates a circular approval chain: one of the selected users already approves (directly or through another manager) the time of this manager. Remove that assignment first.");
+            if (!seen.Add(node)) continue;
+            List<int> next; if (graph.TryGetValue(node, out next)) foreach (int n in next) stack.Push(n);
+        }
+    }
     public static void Save(int business,int manager,IEnumerable<int> selected,string expected)
     {
         var ids=selected.Distinct().OrderBy(x=>x).ToArray();
@@ -85,7 +109,9 @@ public static class AnyminuteApprovalAssignments
             // A manager has one designated approver per business. Existing employee mappings are preserved.
             foreach(int id in ids.Where(id=>people.Select("EmployeeID="+id+" AND UserTypeId=2").Length==1))
                 if(next.Count(edge=>edge.Item2==id)>1) throw new InvalidOperationException("This manager already has an approver. Remove that assignment before reassigning.");
-            ValidateGraph(next);
+            // v21 (Pandey #6): only a cycle through THIS manager blocks the save. Before, any legacy loop or self-row anywhere
+            // in the business (or rows left by users who are no longer managers) rejected every assignment.
+            ValidateManager(next, manager, people);
             var previous=old.Rows.Cast<DataRow>().Where(r=>Convert.ToInt32(r["ManagerID"])==manager).Select(r=>Convert.ToInt32(r["EmpId"])).Distinct().OrderBy(x=>x).ToArray();
             if(previous.SequenceEqual(ids)) { tx.Commit(); return; }
             AnyminuteTimesheetRepair.Execute(c,tx,"DELETE AssgineManager WHERE BusinessID=@b AND ManagerID=@m","@b",business,"@m",manager);

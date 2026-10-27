@@ -70,3 +70,10 @@ a.am-stat-link:hover,a.am-stat-link:focus-visible{box-shadow:0 4px 14px rgba(29,
 /* v20: the global table min-width (800px) pushed the Employee / Supervisor columns out of the roles card (image 2). */
 body .am-rd-roles table.am-table{min-width:0!important;width:100%}
 .am-rd .am-rd-roles h2{font-size:15px!important;margin-bottom:10px!important}
+/* v21 (Pandey #2, image 2/3): Roles by Business never clips - fixed right column, own scroll, stacks below 1100px */
+.am-rd-top:not(.am-rd-top-full){grid-template-columns:minmax(0,1fr) minmax(360px,440px)}
+.am-rd-roles{min-width:0;overflow:hidden}
+.am-rd-roles-wrap{overflow-x:auto;max-width:100%}
+.am-rd-roles-wrap table.am-table{min-width:320px!important}
+.am-rd{max-width:1480px}
+@media(max-width:1100px){.am-rd-top:not(.am-rd-top-full){grid-template-columns:1fr}}

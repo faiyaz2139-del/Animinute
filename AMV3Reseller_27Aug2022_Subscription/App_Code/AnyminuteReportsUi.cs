@@ -52,7 +52,7 @@ public static partial class AnyminuteReports
         sb.Append("</select></label><label><span>Role Context</span><span class=\"am-rp-role\">").Append(E(String.Join(" / ", tiers))).Append("</span></label></div></header>");
         sb.Append("<div class=\"am-rp-banner\" role=\"note\"><strong>i</strong><div>The reports shown below update automatically based on the selected business and your user role permissions.<br/><small>Switch business to see the reports available to you there.</small></div></div>");
         sb.Append("<div class=\"am-rp-grid\"><section class=\"am-rp-card am-rp-list\"><div class=\"am-rp-card-head\"><h2>Available Reports (").Append(defs.Count).Append(")</h2><input type=\"search\" placeholder=\"Search reports...\" data-rp-search=\"1\" aria-label=\"Search reports\" /></div>");
-        if (defs.Count == 0) sb.Append("<p class=\"am-rp-empty\">No reports are enabled for your role in this business. A business owner can change this in User Access &rsaquo; Report Access.</p>");
+        if (defs.Count == 0) sb.Append("<p class=\"am-rp-empty\">No reports are enabled for your role in this business. A business owner can change this in Login &amp; Access &rsaquo; Report Access.</p>");
         foreach (var d in defs)
         {
             var biz = inScope.Where(b => Perm(d, b).Any).ToList();
@@ -69,8 +69,8 @@ public static partial class AnyminuteReports
             sb.Append(xls ? "<a class=\"am-rp-xls\" href=\"" + A(Href(q, d.Key, "excel")) + "\">Excel</a>" : "<span class=\"am-rp-xls is-off\" title=\"Excel export is not enabled for your role\">Excel</span>");
             sb.Append("</span></article>");
         }
-        sb.Append("</section><section class=\"am-rp-card am-rp-preview\" id=\"rp-preview\" tabindex=\"-1\" aria-live=\"polite\">");
         var def = defs.FirstOrDefault(x => x.Key == q.Key) ?? defs.FirstOrDefault(x => inScope.Any(b => Perm(x, b).View)) ?? defs.FirstOrDefault();
+        sb.Append("</section><section class=\"am-rp-card am-rp-preview\" id=\"rp-preview\" tabindex=\"-1\" aria-live=\"polite\" data-rp-key=\"").Append(def == null ? "" : A(def.Key)).Append("\">");
         if (def == null) sb.Append("<h2>Report Filters &amp; Preview</h2><p class=\"am-rp-empty\">Select a report to preview it.</p>");
         else Preview(sb, def, q, inScope);
         sb.Append("</section></div>");
@@ -98,6 +98,7 @@ public static partial class AnyminuteReports
         }
         bool pdf = inScope.Any(b => Perm(d, b).Pdf), xls = inScope.Any(b => Perm(d, b).Excel);
         sb.Append("<div class=\"am-rp-card-head\"><h2>Report Filters &amp; Preview</h2><span class=\"am-rp-chip\">").Append(E(d.Name)).Append("</span></div>");
+        sb.Append("<p class=\"am-rp-desc\">").Append(E(d.Desc)).Append("</p>"); // v21: which report these filters belong to
         sb.Append("<div data-rp-form=\"1\" class=\"am-rp-filters\" data-action=\"").Append(A(VirtualPathUtility.ToAbsolute("~/Reports.aspx"))).Append("\"><input type=\"hidden\" name=\"r\" value=\"").Append(A(d.Key)).Append("\" />");
         // v20 (image 8): every report panel starts with its Business filter.
         var all = Scope();

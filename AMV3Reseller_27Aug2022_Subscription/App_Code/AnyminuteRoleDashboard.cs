@@ -67,7 +67,12 @@ public static class AnyminuteRoleDashboard
                 catch (InvalidOperationException) { continue; }
                 var r = new AnyminuteBusinessRole { BusinessID = business, Name = Convert.ToString(b["CompanyName"]), Actor = actor, Role = role };
                 if (LegacyRoles.Contains(role)) { r.Legacy = true; list.Add(r); continue; }
-                bool manages = AnyminuteTimesheetRepair.Query(c, null, "SELECT TOP(1) 1 FROM AssgineManager WHERE BusinessID=@b AND ManagerID=@a AND EmpId<>@a", "@b", business, "@a", actor).Rows.Count > 0;
+                // v21 (Pandey #1/#2): an Employee-role membership (4) never counts as a supervisor - Assign User to Manager only
+                // offers Manager memberships, so AssgineManager rows naming an employee as manager are stale - and only
+                // assignments to people who are still members of this business count.
+                bool manages = role != 4 && AnyminuteTimesheetRepair.Query(c, null, @"SELECT TOP(1) 1 FROM AssgineManager am
+                    WHERE am.BusinessID=@b AND am.ManagerID=@a AND am.EmpId<>@a
+                      AND EXISTS(SELECT 1 FROM AssginBussiness m WHERE m.BusinessID=am.BusinessID AND m.EmployeeID=am.EmpId AND m.UserTypeId NOT IN (1,5,12))", "@b", business, "@a", actor).Rows.Count > 0;
                 // v20 (Pandey #1): a membership is Supervisor only when it really supervises - it manages employees in
                 // AssgineManager, or its role is Manager (2) / Team Leader (13) / a custom role named like a supervisor.
                 // Every other role (Employee 4, custom staff roles, unset) is an Employee membership, so a pure employee in
@@ -356,11 +361,11 @@ public static class AnyminuteRoleDashboard
         h.Append("</div>");
         if (m.DualRole)
         {
-            h.Append("<div class='am-card am-rd-roles'><h2><span data-am-icon='business' aria-hidden='true'></span>Your Roles by Business</h2><table class='am-table'><colgroup><col /><col class='am-rd-rolecol' /><col class='am-rd-rolecol' /></colgroup><thead><tr><th>Business</th><th>Employee</th><th>Supervisor</th></tr></thead><tbody>");
+            h.Append("<div class='am-card am-rd-roles'><h2><span data-am-icon='business' aria-hidden='true'></span>Your Roles by Business</h2><div class='am-rd-roles-wrap'><table class='am-table'><colgroup><col /><col class='am-rd-rolecol' /><col class='am-rd-rolecol' /></colgroup><thead><tr><th>Business</th><th>Employee</th><th>Supervisor</th></tr></thead><tbody>");
             foreach (var r in m.Roles)
                 h.Append("<tr").Append(Convert.ToString(r.BusinessID) == m.Selected ? " class='is-current'" : "").Append("><td>").Append(E(r.Name)).Append("</td><td>").Append(r.Employee ? "<span class='am-rd-yes' role='img' aria-label='Yes'>&#10003;</span>" : "<span class='am-rd-no' role='img' aria-label='No'>&#8212;</span>")
                  .Append("</td><td>").Append(r.Supervisor ? "<span class='am-rd-yes' role='img' aria-label='Yes'>&#10003;</span>" : "<span class='am-rd-no' role='img' aria-label='No'>&#8212;</span>").Append("</td></tr>");
-            h.Append("</tbody></table></div>");
+            h.Append("</tbody></table></div></div>");
         }
         else if (anySup)
             h.Append("<div class='am-card am-rd-rolecard'><span data-am-icon='people' aria-hidden='true'></span><div><small>Your Role for This Business</small><b>Supervisor</b><small>You can approve employee time cards, manage schedules and view reports.</small></div></div>");

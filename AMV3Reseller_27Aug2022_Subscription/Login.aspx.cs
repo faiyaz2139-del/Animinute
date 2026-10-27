@@ -99,19 +99,19 @@ public partial class Login : System.Web.UI.Page
                 //kumar added for new login
                 else if (dtdetails.Rows[0]["UserType"].ToString() == "1")
                 {
-                    Response.Redirect("Business_Owner_Dashboard.aspx", false);
+                    Response.Redirect("Dashboard.aspx", false); // v21 (Pandey #5): new role dashboard
                 }
                 else if (dtdetails.Rows[0]["UserType"].ToString() == "2")
                 {
-                    Response.Redirect("Employee_Dashboard.aspx", false);
+                    Response.Redirect("Dashboard.aspx", false); // v21 (Pandey #5): new role dashboard
                 }
                 else if ((dtdetails.Rows[0]["UserType"].ToString() == "4") || (dtdetails.Rows[0]["UserType"].ToString() == "2"))
                 {
-                    Response.Redirect("Employee_Dashboard.aspx", false);
+                    Response.Redirect("Dashboard.aspx", false); // v21 (Pandey #5): new role dashboard
                 }
                 else if (dtdetails.Rows[0]["UserType"].ToString() == "5")
                 {
-                    Response.Redirect("Owner_Dashboard.aspx", false);
+                    Response.Redirect("Dashboard.aspx", false); // v21 (Pandey #5): new role dashboard
                 }
                 else if (dtdetails.Rows[0]["UserType"].ToString() == "12")
                 {
@@ -119,7 +119,7 @@ public partial class Login : System.Web.UI.Page
                 }
                 else
                 {
-                    Response.Redirect("Employee_Dashboard.aspx", false);
+                    Response.Redirect("Dashboard.aspx", false); // v21 (Pandey #5): new role dashboard
                 }
             }
             else

@@ -19,6 +19,9 @@ public partial class EmpDashBoard2 : System.Web.UI.Page
         {
             Response.Redirect("Login.aspx");
         }
+        // v21 (Pandey #5): the old dashboards are retired - signed-in users always land on the new Dashboard.aspx
+        // (employee / supervisor / owner views). Legacy links and redirects to this page follow automatically.
+        if (!IsPostBack && Session["UserId"] != null && Session["EmployeeId"] != null) { Response.Redirect("~/Dashboard.aspx", false); Context.ApplicationInstance.CompleteRequest(); return; }
         if (!IsPostBack)
         {
             //comm.FillDropDownList(ddlBussName, "AssginBussiness assb join AddBusiness ab on ab.BusinessID=assb.BusinessID", "assb.BusinessID", "dbo.FN_DESC('AddBusiness',assb.BusinessID)", "assb.MotherOrgID=" + Session["MotherOrgid"].ToString() + " and EmployeeID in (select ad.EmployeeID from  AddEmployee ad join EmpAddress empAdd on ad.ADDRESSID=empAdd.EmpAddressId where empAdd.MainEmail='" + Session["email"].ToString() + "') and UserTypeId in (1,2,4,5) and ab.Status<>2", "BusinessID");

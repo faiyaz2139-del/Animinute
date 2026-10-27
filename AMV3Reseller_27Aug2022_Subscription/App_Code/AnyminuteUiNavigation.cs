@@ -169,7 +169,10 @@ public static class AnyminuteUiNavigation
         groups[GQuick].SubMenu = quick;
         foreach (var group in groups.Where(g => g.SubMenu.Count > 0))
         {
-            if (group.Seq == GQuick || group.Seq == GAccount || group.Seq == GHelp || group.Seq == GUserAccess) continue; // pure sections: the header only opens/closes
+            if (group.Seq == GQuick || group.Seq == GAccount || group.Seq == GHelp) continue; // pure sections: the header only opens/closes
+            // v21 (Pandey #3, images 4/5): no "User Access" parent. Its first link (Login & Access for owners/admins) is the
+            // main menu item and opens that page; Accountant & Payroll Access and Report Access are its submenus.
+            if (group.Seq == GUserAccess) { group.Name = group.SubMenu[0].Name; group.Href = group.SubMenu[0].Href; continue; }
             group.Href = group.SubMenu[0].Href;
             // Without a landing page, Businesses/Employees/Projects open as sections so Add X stays visible as a child link.
             if ((group.Seq == GBusinesses || group.Seq == GEmployees || group.Seq == GProjects) && group.SubMenu.Count > 1) group.Href = "#";

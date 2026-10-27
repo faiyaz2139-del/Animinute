@@ -43,8 +43,32 @@
     for (var i = 0; i < rows.length; i++) { rows[i].classList.remove('is-active'); rows[i].setAttribute('aria-pressed', 'false'); }
     row.classList.add('is-active'); row.setAttribute('aria-pressed', 'true');
     var panel = document.getElementById('rp-preview'); if (panel) panel.classList.add('is-loading');
-    location.href = href;
+    // v21 (Pandey #4): swap the Filters & Preview panel in place for the picked report (its own filters, title badge,
+    // preview and PDF / Excel buttons, rendered by the server for that report). Full navigation is the fallback.
+    var url = href.split('#')[0];
+    if (!panel || !window.fetch || !window.DOMParser) { location.href = href; return; }
+    fetch(url, { credentials: 'same-origin', headers: { 'X-Requested-With': 'fetch' } }).then(function (res) {
+      if (!res.ok || res.redirected) throw new Error('nav');
+      return res.text();
+    }).then(function (html) {
+      var doc = new DOMParser().parseFromString(html, 'text/html');
+      var fresh = doc.getElementById('rp-preview'), chip = fresh && fresh.querySelector('.am-rp-chip');
+      if (!fresh || !chip) throw new Error('nav');
+      panel.innerHTML = fresh.innerHTML; panel.classList.remove('is-loading');
+      panel.setAttribute('data-rp-key', fresh.getAttribute('data-rp-key') || '');
+      var ctx = document.querySelector('.am-rp-context input[name="r"]'), key = fresh.getAttribute('data-rp-key');
+      if (key) {
+        if (!ctx) { var box = document.querySelector('.am-rp-context'); if (box) { ctx = document.createElement('input'); ctx.type = 'hidden'; ctx.name = 'r'; box.insertBefore(ctx, box.firstChild); } }
+        if (ctx) ctx.value = key;
+      }
+      try { history.pushState({ rp: 1 }, '', url + '#rp-preview'); } catch (x) { }
+      var r = panel.getBoundingClientRect();
+      if (r.top > window.innerHeight * 0.6 || r.top < 0) panel.scrollIntoView({ block: 'start' });
+      panel.scrollTop = 0;
+      try { panel.focus({ preventScroll: true }); } catch (x) { panel.focus(); }
+    })['catch'](function () { location.href = href; });
   }
+  window.addEventListener('popstate', function () { if (document.getElementById('rp-preview')) location.reload(); });
   document.addEventListener('click', function (e) {
     if (!e.target.closest) return;
     var row = e.target.closest('.am-rp-item[data-rp-href]');
