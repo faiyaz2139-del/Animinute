@@ -84,7 +84,11 @@ public static class AnyminuteWeekService
    if(rows.Rows.Count==0){if(AnyminuteTimesheetRepair.Breaks(c,tx,b,e,date).Rows.Count>0)throw new InvalidOperationException("Breaks on "+date.ToString("dddd, MMM d")+" have no saved shift.");continue;}
    entered++;
    var r=rows.Rows[0];var breaks=AnyminuteTimesheetRepair.Breaks(c,tx,b,e,date);
-   if(Convert.ToString(r["Worked"])=="Yes")
+   // v24 (Pandey post-v23): TimeSheetEntry.Worked is nchar(10), so SQL returns "Yes       " / "No        ". The exact
+   // comparison never matched, every worked day fell into the absence branch and Submit Week failed with
+   // "Invalid absence record." Compare trimmed and case-insensitively (same rule the Weekly Time Card uses to display it).
+   string attendance=Convert.ToString(r["Worked"]).Trim();
+   if(String.Equals(attendance,"Yes",StringComparison.OrdinalIgnoreCase))
    {
     if(r["ReqularStart"]==DBNull.Value||r["Regularend"]==DBNull.Value)throw new InvalidOperationException("Missing clock time on "+date.ToString("MMM d")+".");
     DateTime start=Convert.ToDateTime(r["ReqularStart"]),end=Convert.ToDateTime(r["Regularend"]);
@@ -92,7 +96,7 @@ public static class AnyminuteWeekService
     var unpaid=AnyminuteTimesheetRepair.ValidateSavedBreaks(breaks,start,end);
     if(AnyminuteReportDurations.Parse(r["Regular"])!=end-start||AnyminuteReportDurations.Parse(r["BreakTotal"])!=unpaid||AnyminuteReportDurations.Parse(r["Total"])!=end-start-unpaid)throw new InvalidOperationException("Saved totals do not reconcile.");
    }
-   else if(Convert.ToString(r["Worked"])!="No"||breaks.Rows.Count>0||AnyminuteReportDurations.Parse(r["Regular"])!=TimeSpan.Zero||AnyminuteReportDurations.Parse(r["BreakTotal"])!=TimeSpan.Zero||AnyminuteReportDurations.Parse(r["Total"])!=TimeSpan.Zero)
+   else if(!String.Equals(attendance,"No",StringComparison.OrdinalIgnoreCase)||breaks.Rows.Count>0||AnyminuteReportDurations.Parse(r["Regular"])!=TimeSpan.Zero||AnyminuteReportDurations.Parse(r["BreakTotal"])!=TimeSpan.Zero||AnyminuteReportDurations.Parse(r["Total"])!=TimeSpan.Zero)
     throw new InvalidOperationException("Invalid absence record.");
   }
   if(entered==0)throw new InvalidOperationException("Enter and save at least one day before submitting the week.");
