@@ -59,7 +59,7 @@ public partial class AnyminuteWeeklySchedulePage : System.Web.UI.Page
     private void LoadWeek(DateTime? copyFrom)
     {
         DateTime monday = Week; Week = monday;
-        List<AnyminuteScheduleDay> week = AnyminuteWeeklySchedule.DefaultWeek(monday);
+        List<AnyminuteScheduleDay> week = AnyminuteWeeklySchedule.BlankWeek(monday);
         bool saved = false;
         viewOnly = Business > 0 && Employee > 0 && !AnyminuteWeeklySchedule.CanEdit(Business, Employee);
         if (viewOnly && copyFrom.HasValue) { Error("You can view this schedule but not change it."); copyFrom = null; }
@@ -85,10 +85,14 @@ public partial class AnyminuteWeeklySchedulePage : System.Web.UI.Page
         GridWrap.Visible = !viewOnly || saved;
         if (viewOnly) WsSub.InnerText = "Your planned working hours, days off and break time for the selected week.";
         if (viewOnly && !saved) { TotalHours.Text = "0.00"; Notice("No work schedule has been published for this week yet."); }
-        // v22 (Pandey #4): the default Mon-Fri 09:00-17:00 pattern looked like a saved schedule, but nothing reaches the
-        // Weekly Time Card until it is saved. Say so explicitly.
-        if (!viewOnly && !saved && !copyFrom.HasValue && Business > 0 && Employee > 0 && !Flash.Visible)
-            Notice("Not saved yet: this week shows the default pattern. Click Save Weekly Schedule to publish it - only saved schedules appear on the Weekly Time Card.");
+        // v23 (Pandey #3): an unsaved selection shows a cleared grid (not the 09:00-17:00 default that looked like the previous
+        // employee's data); "Use default pattern" fills Mon-Fri 09:00-17:00 on request. Every load says what is shown.
+        string who = WsEmployee.SelectedItem != null ? WsEmployee.SelectedItem.Text : "";
+        string label = who + " \u00b7 week of " + monday.ToString("MMM d, yyyy", Inv);
+        if (!viewOnly && !copyFrom.HasValue && Business > 0 && Employee > 0 && !Flash.Visible)
+            Notice(saved ? "Loaded the saved schedule for " + label + "."
+                : "No saved schedule for " + label + ". The grid was cleared - set Working or Day Off for each day (or click Use default pattern), then click Save Weekly Schedule. Only saved schedules appear on the Weekly Time Card.");
+        UseDefault.Visible = !viewOnly;
         // v17: employees get a clear way to enter their own times (My Time Card), published schedule or not.
         TimeCardCta.Visible = viewOnly;
         if (viewOnly) TimeCardLink.NavigateUrl = "~/WeekTimeCard.aspx?BusinessId=" + Business + "&Week=" + monday.ToString("yyyy-MM-dd", Inv);
@@ -101,6 +105,16 @@ public partial class AnyminuteWeeklySchedulePage : System.Web.UI.Page
         var brk = (DropDownList)e.Item.FindControl("DayBreak"); var notes = (TextBox)e.Item.FindControl("DayNotes"); var hours = (Literal)e.Item.FindControl("DayHours");
         foreach (int m in AnyminuteWeeklySchedule.BreakOptions) brk.Items.Add(new ListItem(m + " min", m.ToString(Inv)));
         if (brk.Items.FindByValue(d.BreakMinutes.ToString(Inv)) == null) brk.Items.Add(new ListItem(d.BreakMinutes + " min", d.BreakMinutes.ToString(Inv)));
+        if (d.Blank)
+        {
+            // v23 (Pandey #3): cleared day - no type, times, break or notes until the user picks Working / Day Off.
+            type.SelectedValue = ""; type.CssClass = "am-ws-type is-unset";
+            brk.Items.Insert(0, new ListItem("--", "")); brk.SelectedIndex = 0;
+            start.Text = end.Text = notes.Text = ""; hours.Text = "0.00";
+            if (viewOnly) foreach (System.Web.UI.WebControls.WebControl w in new System.Web.UI.WebControls.WebControl[] { type, start, end, brk, notes }) w.Enabled = false;
+            return;
+        }
+        var unset = type.Items.FindByValue(""); if (unset != null) type.Items.Remove(unset);
         type.SelectedValue = d.Working ? "Working" : "DayOff";
         type.CssClass = "am-ws-type " + (d.Working ? "is-working" : "is-off");
         start.Text = d.Working ? d.Start.ToString(@"hh\:mm", Inv) : ""; end.Text = d.Working ? d.End.ToString(@"hh\:mm", Inv) : "";
@@ -121,7 +135,10 @@ public partial class AnyminuteWeeklySchedulePage : System.Web.UI.Page
         foreach (RepeaterItem item in Days.Items)
         {
             var date = DateTime.ParseExact(((HiddenField)item.FindControl("DayDate")).Value, "yyyy-MM-dd", Inv);
-            bool working = ((DropDownList)item.FindControl("DayType")).SelectedValue == "Working";
+            string typeValue = ((DropDownList)item.FindControl("DayType")).SelectedValue;
+            if (String.IsNullOrEmpty(typeValue))
+                throw new InvalidOperationException(date.ToString("dddd", Inv) + ": choose Working or Day Off (or click Use default pattern).");
+            bool working = typeValue == "Working";
             var day = new AnyminuteScheduleDay { Date = date, Working = working, Notes = working ? ((TextBox)item.FindControl("DayNotes")).Text.Trim() : "" };
             if (working)
             {
@@ -144,11 +161,20 @@ public partial class AnyminuteWeeklySchedulePage : System.Web.UI.Page
         value = TimeSpan.Zero; return false;
     }
 
-    protected void Business_Changed(object sender, EventArgs e) { BindEmployees(); LoadWeek(null); }
-    protected void Week_Changed(object sender, EventArgs e) { LoadWeek(null); }
-    protected void PrevWeek_Click(object sender, EventArgs e) { Week = Week.AddDays(-7); LoadWeek(null); }
-    protected void NextWeek_Click(object sender, EventArgs e) { Week = Week.AddDays(7); LoadWeek(null); }
-    protected void TodayWeek_Click(object sender, EventArgs e) { Week = DateTime.Today; LoadWeek(null); }
+    // v23 (Pandey #3): every context change (Business, Employee, Week Starting, <, >, Today) resets Repeat Weekly and
+    // reloads the grid for the new selection: its saved schedule, or a cleared grid when nothing is saved.
+    private void ResetRepeat()
+    {
+        RepeatOn.Checked = false; RepeatUntil.Text = ""; ApplyAll.Checked = true; ApplyWeekdays.Checked = ApplySelected.Checked = false;
+        foreach (ListItem li in SelectedDays.Items) li.Selected = false;
+    }
+    private void Reload() { ResetRepeat(); PageError.Visible = false; Flash.Visible = false; FlashText.Text = ""; LoadWeek(null); }
+    protected void Business_Changed(object sender, EventArgs e) { BindEmployees(); Reload(); }
+    protected void Employee_Changed(object sender, EventArgs e) { Reload(); }
+    protected void Week_Changed(object sender, EventArgs e) { Reload(); }
+    protected void PrevWeek_Click(object sender, EventArgs e) { Week = Week.AddDays(-7); Reload(); }
+    protected void NextWeek_Click(object sender, EventArgs e) { Week = Week.AddDays(7); Reload(); }
+    protected void TodayWeek_Click(object sender, EventArgs e) { Week = DateTime.Today; Reload(); }
     protected void CopyPrevious_Click(object sender, EventArgs e) { LoadWeek(Week.AddDays(-7)); }
     protected void Cancel_Click(object sender, EventArgs e) { Response.Redirect(SelfUrl(), false); Context.ApplicationInstance.CompleteRequest(); }
 

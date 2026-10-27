@@ -57,10 +57,31 @@ public partial class AnyminuteWeekTimeCard : System.Web.UI.Page
  {
   Message.Visible=false;BreakMessage.Visible=false;
   try{FreshSelection();action();Bind();AnyminuteClockEvidence.Record(Business,"TimecardAction");if(successMessage!=null){Message.Text=successMessage;Message.Visible=true;}}
-  catch(InvalidOperationException ex){Message.Text=HttpUtility.HtmlEncode(ex.Message);Message.Visible=true;}
-  catch(FormatException){Message.Text="Enter valid dates and times.";Message.Visible=true;}
-  catch(Exception ex){log4net.LogManager.GetLogger("Log").Error("Weekly timecard action",ex);Message.Text="The action did not complete. Refresh and contact support if it persists.";Message.Visible=true;}
+  catch(InvalidOperationException ex){Message.Text=HttpUtility.HtmlEncode(ex.Message);Message.Visible=true;if(ex.Message.StartsWith("This card changed in another session"))Message.Text=StaleMessage();Resync();}
+  catch(FormatException){Message.Text="Enter valid dates and times.";Message.Visible=true;Resync();}
+  catch(Exception ex){log4net.LogManager.GetLogger("Log").Error("Weekly timecard action",ex);Message.Text="The action did not complete. Refresh and contact support if it persists.";Message.Visible=true;Resync();}
   if(BreakModal.Visible&&Message.Visible){BreakMessage.Text=Message.Text;BreakMessage.Visible=true;}
+ }
+ // v23 (Pandey #2, image 5): a failed action left ViewState["Revision"] behind the database. Submit Week saves the grid
+ // first (revision +1, committed) and then submits; when the submit step failed (validation, access, ...) the page was not
+ // re-bound, so every later Save / Submit hit "This card changed in another session" and the week stayed Draft, never
+ // reaching Approvals. After any failed action the page now re-reads the week revision (the on-screen times are kept)
+ // and refreshes the action buttons for the current state, so the next Save / Submit goes through.
+ void Resync()
+ {
+  try
+  {
+   var h=AnyminuteWeekService.Header(Business,Target,StartWeek).Rows[0];string state=Convert.ToString(h["State"]);
+   ViewState["Revision"]=h["Revision"];Badge.Text="<span class='am-badge "+state+"'>"+state+"</span>";
+   bool open=state=="Draft"||state=="Rejected";
+   if(!open){ViewState["EditableWeek"]=false;Save.Visible=SaveTop.Visible=Copy.Visible=Submit.Visible=SubmitTop.Visible=false;}
+  }
+  catch(Exception ex){log4net.LogManager.GetLogger("Log").Warn("Weekly timecard resync",ex);}
+ }
+ string StaleMessage()
+ {
+  string url=HttpUtility.HtmlAttributeEncode(ResolveUrl("~/WeekTimeCard.aspx")+"?BusinessId="+Business+"&EmployeeId="+Target+"&Week="+StartWeek.ToString("yyyy-MM-dd",CultureInfo.InvariantCulture));
+  return "This card was updated in another session or tab. Your on-screen times were kept and the card is now in sync: click <b>Save changes</b> or <b>Submit Week</b> again to store them, or <a href='"+url+"'>reload the card</a> to see the saved version.";
  }
  static string AttendanceValue(object value)
  {
@@ -142,7 +163,7 @@ public partial class AnyminuteWeekTimeCard : System.Web.UI.Page
    Approve.Enabled=approved==working;Approve.ToolTip=Approve.Enabled?"Approve the reviewed week":"Approve each worked day first";
   }
   ViewState["EditableWeek"]=edit&&(state=="Draft"||state=="Rejected");
-  Save.Visible=edit&&(state=="Draft"||state=="Rejected");SaveTop.Visible=Save.Visible;Copy.Visible=Save.Visible;Submit.Visible=edit&&(state=="Draft"||state=="Rejected"); // v22: owner/manager entering time can submit it tooSubmitTop.Visible=Submit.Visible;Approve.Visible=Reject.Visible=review&&state=="Submitted";Reopen.Visible=AnyminuteModernScope.Owns(Business)&&state=="Approved";
+  Save.Visible=edit&&(state=="Draft"||state=="Rejected");SaveTop.Visible=Save.Visible;Copy.Visible=Save.Visible;Submit.Visible=edit&&(state=="Draft"||state=="Rejected"); /* v22: owner/manager entering time can submit it too. v23: this was a // comment that swallowed the rest of the line, so SubmitTop/Approve/Reject/Reopen visibility never ran. */SubmitTop.Visible=Submit.Visible;Approve.Visible=Reject.Visible=review&&state=="Submitted";Reopen.Visible=AnyminuteModernScope.Owns(Business)&&state=="Approved";
   Comment.ReadOnly=!review&&!Reopen.Visible;Comment.Text=Convert.ToString(h["ManagerComment"]);ApprovalInfo.Text=h["ApprovedAtUTC"]==DBNull.Value?"":"<p class='am-muted'>Approved at "+Convert.ToDateTime(h["ApprovedAtUTC"]).ToString("yyyy-MM-dd HH:mm")+" UTC \u00b7 reviewer ID "+Convert.ToString(h["ApprovedBy"])+"</p>";
  }
  void SaveGrid()
@@ -165,7 +186,11 @@ public partial class AnyminuteWeekTimeCard : System.Web.UI.Page
  // stayed Draft and never reached Approvals), then submits with the fresh revision.
  protected void Submit_Click(object s,EventArgs e)
  {
-  Run(()=>{if(Convert.ToBoolean(ViewState["EditableWeek"]))SaveGrid();
+  // v23 (Pandey #2): Submit Week sends exactly what is on screen, so it reconciles to the current revision instead of
+  // failing on a stale page; submitted/approved weeks are still protected by EnsureEditable and the state checks.
+  Run(()=>{var head=AnyminuteWeekService.Header(Business,Target,StartWeek).Rows[0];string st=Convert.ToString(head["State"]);
+   if(st!="Draft"&&st!="Rejected")throw new InvalidOperationException("This week is already "+st.ToLowerInvariant()+". Reload the card to see it.");
+   if(Convert.ToBoolean(ViewState["EditableWeek"])){ViewState["Revision"]=head["Revision"];SaveGrid();}
    int fresh=Convert.ToInt32(AnyminuteWeekService.Header(Business,Target,StartWeek).Rows[0]["Revision"]);
    AnyminuteWeekService.Transition(Business,Target,StartWeek,fresh,"Submit","");},
    "Week saved and submitted. It is now listed under Approvals (Team Timesheets \u203a Submitted) for the authorized reviewer.");

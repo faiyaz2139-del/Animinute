@@ -17,11 +17,13 @@ public sealed class AnyminuteScheduleDay
     public int BreakMinutes { get; set; }
     public string Notes { get; set; }
     public bool Saved { get; set; }
+    // v23 (Pandey #3): no saved row for this day - the grid shows it cleared (no Schedule Type / times / break / notes).
+    public bool Blank { get; set; }
     public decimal Hours
     {
         get
         {
-            if (!Working || End <= Start) return 0m;
+            if (Blank || !Working || End <= Start) return 0m;
             double minutes = (End - Start).TotalMinutes - BreakMinutes;
             return minutes <= 0 ? 0m : Math.Round((decimal)minutes / 60m, 2);
         }
@@ -88,9 +90,18 @@ public static class AnyminuteWeeklySchedule
         }
     }
 
+    // v23 (Pandey #3): a week with nothing saved is returned cleared instead of the Mon-Fri 09:00-17:00 default, so
+    // switching employee / week visibly resets the grid. Days not saved in a partly saved week are cleared too.
+    public static List<AnyminuteScheduleDay> BlankWeek(DateTime monday)
+    {
+        var list = new List<AnyminuteScheduleDay>();
+        for (int i = 0; i < 7; i++) list.Add(new AnyminuteScheduleDay { Date = monday.AddDays(i), Working = false, Blank = true, Notes = "" });
+        return list;
+    }
+
     public static List<AnyminuteScheduleDay> Load(int business, int employee, DateTime monday, out bool anySaved)
     {
-        var week = DefaultWeek(monday); anySaved = false;
+        var week = BlankWeek(monday); anySaved = false;
         using (var c = AnyminuteTimesheetRepair.Open())
         {
             AuthorizeView(c, null, business, employee);
@@ -106,7 +117,7 @@ public static class AnyminuteWeeklySchedule
                 if (r["EndTime"] != DBNull.Value) day.End = (TimeSpan)r["EndTime"];
                 day.BreakMinutes = Convert.ToInt32(r["BreakMinutes"]);
                 day.Notes = r["Notes"] == DBNull.Value ? "" : Convert.ToString(r["Notes"]);
-                day.Saved = true; anySaved = true;
+                day.Saved = true; day.Blank = false; anySaved = true;
             }
         }
         return week;

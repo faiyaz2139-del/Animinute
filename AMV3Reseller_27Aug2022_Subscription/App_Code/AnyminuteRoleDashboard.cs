@@ -175,8 +175,11 @@ public static class AnyminuteRoleDashboard
             if (roles.Count == 1) picked = roles[0];
             var scope = picked != null ? new List<AnyminuteBusinessRole> { picked } : roles;
             bool emp = scope.Any(r => r.Employee), sup = scope.Any(r => r.Supervisor);
+            // v23 (Pandey #1, image 3): several businesses -> "Multiple Businesses (N) | Employee & Supervisor" (roles across all
+            // businesses); the selected business is shown by Select Business, so the header no longer jumps per selection.
+            if (roles.Count > 1) { emp = roles.Any(r => r.Employee); sup = roles.Any(r => r.Supervisor); }
             string role = emp && sup ? "Employee & Supervisor" : sup ? "Supervisor" : "Employee";
-            return role + " | " + (picked != null ? picked.Name : "Multiple Businesses");
+            return roles.Count > 1 ? "Multiple Businesses (" + roles.Count + ") | " + role : role + " | " + (picked != null ? picked.Name : "Multiple Businesses");
         }
         catch (HttpException) { return null; }
         catch (InvalidOperationException) { return null; }
@@ -375,14 +378,26 @@ public static class AnyminuteRoleDashboard
              .Append(">Employee Dashboard").Append(scopeEmp ? "" : " (not available for this business)").Append("</option><option value='supervisor'").Append(sup ? " selected" : "").Append(scopeSup ? "" : " disabled")
              .Append(">Supervisor Dashboard").Append(scopeSup ? "" : " (not available for this business)").Append("</option></select></label>");
         }
+        // v23 (Pandey #1, image 2): with 3-5 businesses the pickers card stayed short while the roles card grew, leaving a
+        // large empty gap. The pickers card now carries a one-line role summary and both cards share the row height; the
+        // roles table scrolls inside a fixed height (current business scrolled into view) and each row opens that business.
+        if (m.Roles.Count > 1)
+        {
+            int empN = m.Roles.Count(r => r.Employee), supN = m.Roles.Count(r => r.Supervisor);
+            var cur = m.All ? null : m.Roles.FirstOrDefault(r => Convert.ToString(r.BusinessID) == m.Selected);
+            h.Append("<p class='am-rd-summaryline'><span data-am-icon='business' aria-hidden='true'></span><span><b>").Append(m.Roles.Count).Append(" businesses</b> &#183; Employee in ").Append(empN)
+             .Append(supN > 0 ? " &#183; Supervisor in " + supN : "").Append(cur != null ? " &#183; Viewing <b>" + E(cur.Name) + "</b> as " + (sup ? "Supervisor" : "Employee") : m.All ? " &#183; Viewing all businesses" : "").Append("</span></p>");
+        }
         h.Append("</div>");
         if (m.DualRole)
         {
-            h.Append("<div class='am-card am-rd-roles'><h2><span data-am-icon='business' aria-hidden='true'></span>Your Roles by Business</h2><div class='am-rd-roles-wrap'><table class='am-table'><colgroup><col /><col class='am-rd-rolecol' /><col class='am-rd-rolecol' /></colgroup><thead><tr><th>Business</th><th>Employee</th><th>Supervisor</th></tr></thead><tbody>");
+            h.Append("<div class='am-card am-rd-roles").Append(m.Roles.Count > 3 ? " am-rd-roles-many" : "").Append("'><h2><span data-am-icon='business' aria-hidden='true'></span>Your Roles by Business").Append(m.Roles.Count > 1 ? "<small class='am-rd-count'>" + m.Roles.Count + "</small>" : "").Append("</h2><div class='am-rd-roles-wrap' id='AmRolesWrap'><table class='am-table'><colgroup><col /><col class='am-rd-rolecol' /><col class='am-rd-rolecol' /></colgroup><thead><tr><th>Business</th><th>Employee</th><th>Supervisor</th></tr></thead><tbody>");
             foreach (var r in m.Roles)
-                h.Append("<tr").Append(Convert.ToString(r.BusinessID) == m.Selected ? " class='is-current'" : "").Append("><td>").Append(E(r.Name)).Append("</td><td>").Append(r.Employee ? "<span class='am-rd-yes' role='img' aria-label='Yes'>&#10003;</span>" : "<span class='am-rd-no' role='img' aria-label='No'>&#8212;</span>")
+                h.Append("<tr").Append(Convert.ToString(r.BusinessID) == m.Selected ? " class='is-current'" : "").Append(" data-href='Dashboard.aspx?b=").Append(r.BusinessID).Append("' title='Open ").Append(A(r.Name)).Append("'><td><a href='Dashboard.aspx?b=").Append(r.BusinessID).Append("'>").Append(E(r.Name)).Append("</a></td><td>").Append(r.Employee ? "<span class='am-rd-yes' role='img' aria-label='Yes'>&#10003;</span>" : "<span class='am-rd-no' role='img' aria-label='No'>&#8212;</span>")
                  .Append("</td><td>").Append(r.Supervisor ? "<span class='am-rd-yes' role='img' aria-label='Yes'>&#10003;</span>" : "<span class='am-rd-no' role='img' aria-label='No'>&#8212;</span>").Append("</td></tr>");
-            h.Append("</tbody></table></div></div>");
+            h.Append("</tbody></table></div>").Append(m.Roles.Count > 3 ? "<small class='am-rd-scrollhint'>Scroll for all " + m.Roles.Count + " businesses</small>" : "")
+             .Append("<script>(function(){var w=document.getElementById('AmRolesWrap');if(!w)return;var c=w.querySelector('tr.is-current');if(c)w.scrollTop=Math.max(0,c.offsetTop-w.clientHeight/2);")
+             .Append("w.addEventListener('click',function(e){if(e.target.closest('a'))return;var t=e.target.closest('tr[data-href]');if(t)location.href=t.getAttribute('data-href');});})();</script></div>");
         }
         else if (anySup)
             h.Append("<div class='am-card am-rd-rolecard'><span data-am-icon='people' aria-hidden='true'></span><div><small>Your Role for This Business</small><b>Supervisor</b><small>You can approve employee time cards, manage schedules and view reports.</small></div></div>");

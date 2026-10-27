@@ -123,3 +123,8 @@ html body .am-ws-cta{display:flex;align-items:center;gap:14px;flex-wrap:wrap;mar
 html body .am-ws-cta-ic{width:28px;height:28px;flex:0 0 28px;fill:none;stroke:#1a5fd6;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 html body .am-ws-cta-text{flex:1 1 320px;display:flex;flex-direction:column;gap:3px;color:#334155;font-size:13px;line-height:1.45}
 html body .am-ws-cta-text strong{color:#123a63;font-size:15px}
+/* v23 (Pandey #3): cleared (unsaved) rows and the reload state after Business / Employee / Week changes. */
+html body .am-ws select.am-ws-type.is-unset{background-color:#fff!important;border-color:#cbd5e1!important;color:#64748b!important;font-style:italic}
+html body .am-ws .am-ws-unset input,html body .am-ws .am-ws-unset .am-ws-break{background-color:#f8fafc!important;color:#94a3b8!important}
+.am-ws.am-ws-loading .am-ws-tablewrap{opacity:.45;pointer-events:none;transition:opacity .1s}
+#amWsDefault{cursor:pointer}

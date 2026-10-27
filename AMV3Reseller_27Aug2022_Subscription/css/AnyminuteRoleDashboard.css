@@ -82,3 +82,27 @@ body .am-rd-roles table.am-table{min-width:0!important;width:100%}
 .am-rd-weeknav .am-button{padding:4px 10px;min-height:0}
 .am-rd-weeknav .is-current{border-color:#1768e8;color:#1768e8}
 .am-rd-weekpill{background:#1768e8;color:#fff;border-radius:6px;padding:4px 10px;font-size:13px;font-weight:600}
+/* v23 (Pandey #1, image 2 vs design image 3): 3-5 businesses. Both top cards share the row height; the pickers card
+   keeps Select Business + Switch Dashboard on one row with a role summary under them; the roles table scrolls in a
+   fixed height instead of stretching the row and pushing the KPIs down. */
+.am-rd-top:not(.am-rd-top-full){align-items:stretch;grid-template-columns:minmax(0,1fr) minmax(340px,420px)}
+.am-rd-pickers{align-content:flex-start;align-items:flex-end;row-gap:12px}
+.am-rd-pickers .am-rd-field{flex:1 1 240px;min-width:220px}
+.am-rd-pickers .am-rd-field select{min-height:42px;text-overflow:ellipsis}
+.am-rd-summaryline{flex:1 1 100%;display:flex;gap:8px;align-items:center;margin:2px 0 0;font-size:13px;color:#475569;line-height:1.4}
+.am-rd-summaryline [data-am-icon]{flex:0 0 18px;width:18px;height:18px;color:#1768e8}
+.am-rd-summaryline [data-am-icon] svg{width:18px;height:18px}
+.am-rd-roles{display:flex;flex-direction:column;padding-bottom:10px}
+.am-rd-roles h2 .am-rd-count{margin-left:auto;background:#fde9c2;color:#8a5300;border-radius:10px;padding:1px 9px;font-size:12px;font-weight:700}
+.am-rd-roles-wrap{overflow-y:auto;overflow-x:hidden;max-height:none}
+.am-rd-roles-many .am-rd-roles-wrap{max-height:172px}
+.am-rd-roles-wrap thead th{position:sticky;top:0;z-index:1;background:#fffaf0!important;box-shadow:inset 0 -1px 0 #f3dfb5}
+.am-rd-roles-wrap table.am-table{min-width:0!important}
+.am-rd-roles .am-table th,.am-rd-roles .am-table td{padding:6px 8px;font-size:13px;line-height:1.3}
+.am-rd-roles .am-table col.am-rd-rolecol{width:84px}
+.am-rd-roles tr[data-href]{cursor:pointer}.am-rd-roles tr[data-href]:hover td{background:#fff3d6!important}
+.am-rd-roles td a{color:#172b44;text-decoration:none}.am-rd-roles td a:hover{text-decoration:underline}
+.am-rd-yes{width:18px;height:18px;font-size:11px}
+.am-rd-scrollhint{display:block;margin-top:6px;color:#8a6d3b;font-size:11px;text-align:right}
+@media(max-width:1100px){.am-rd-top:not(.am-rd-top-full){grid-template-columns:1fr}.am-rd-roles-many .am-rd-roles-wrap{max-height:220px}}
+@media(max-width:620px){.am-rd-pickers .am-rd-field{flex-basis:100%;min-width:0}}
