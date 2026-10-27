@@ -297,3 +297,9 @@ html body .am-business-editor .am-v16-cardedit{display:inline-flex;align-items:c
 html body .am-business-editor .am-v16-cardedit[hidden]{display:none}
 html body .am-business-editor .am-v16-cardedit:hover,html body .am-business-editor .am-v16-cardedit:focus-visible{background:#e8f1fc;outline:2px solid #1f6fd1;outline-offset:1px}
 html body .am-business-editor .am-al-details-head .am-v16-cardedit{float:none;margin-left:10px}
+/* 2026-10-26 v19: auto-save status pill (Update Business Profile) */
+.am-autosave{display:inline-flex;align-items:center;margin-right:6px;padding:5px 12px;border-radius:999px;font-size:12.5px;font-weight:600;background:#eef2f7;color:#536174;border:1px solid #d9e0ea}
+.am-autosave:empty{display:none}
+.am-autosave-ok{background:#e8f6ee;color:#17693d;border-color:#bfe3cd}
+.am-autosave-error{background:#fdeeee;color:#8f1d1d;border-color:#efb4b4}
+.am-autosave-busy,.am-autosave-pending{background:#fff7e6;color:#8a5a00;border-color:#f3d9a4}

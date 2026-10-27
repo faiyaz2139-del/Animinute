@@ -32,7 +32,7 @@ public partial class AnyminuteDashboard : System.Web.UI.Page
    row["DisplayStatus"]=Convert.ToString(row["Status"])=="1"?"Active":"Not Active";}
   BusinessCount.Text=rows.Rows.Count.ToString();EmployeeCount.Text=employees.ToString();ProjectCount.Text=projects.ToString();ApprovalCount.Text=AnyminuteModernScope.Pending().ToString();
   AddUser.Visible=owner;AddBusiness.Visible=Convert.ToString(Session["UserTypeid"])=="1";
-  string report=AnyminuteUiNavigation.ReportHref(AnyminuteUiNavigation.Load());ReportsQuick.Visible=report!=null;if(report!=null)ReportsQuick.NavigateUrl=report;
+  string report=AnyminuteReports.HubHref(AnyminuteUiNavigation.Load());ReportsQuick.Visible=report!=null;if(report!=null)ReportsQuick.NavigateUrl=report;
   ViewApprovals.Visible=AnyminuteDirectoryScope.CanReadDirectory();
   // v16: role-based quick actions - every user with a business gets Work Schedule; employees also get their weekly time card.
   WorkScheduleQuick.Visible=rows.Rows.Count>0;TimeCardQuick.Visible=rows.Rows.Count>0&&!owner&&!ViewApprovals.Visible;

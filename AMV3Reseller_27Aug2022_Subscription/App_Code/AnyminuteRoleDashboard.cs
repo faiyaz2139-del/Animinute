@@ -128,7 +128,7 @@ public static class AnyminuteRoleDashboard
     {
         var roles = Roles(); string mode = CurrentMode(); var links = new List<KeyValuePair<string, string>>();
         Func<string, string> u = VirtualPathUtility.ToAbsolute;
-        string report = AnyminuteUiNavigation.ReportHref(permitted);
+        string report = AnyminuteReports.HubHref(permitted); // v19: Reports hub
         bool directory = AnyminuteDirectoryScope.CanReadDirectory();
         links.Add(new KeyValuePair<string, string>("Home", u("~/Dashboard.aspx")));
         if (mode == "supervisor")
@@ -167,7 +167,7 @@ public static class AnyminuteRoleDashboard
     {
         var m = new AnyminuteDashModel { Roles = Roles(), Monday = AnyminuteWeekService.Monday(DateTime.Today) };
         Select(m, qBusiness, qMode);
-        m.ReportHref = AnyminuteUiNavigation.ReportHref(AnyminuteUiNavigation.Load()); m.Directory = AnyminuteDirectoryScope.CanReadDirectory();
+        m.ReportHref = AnyminuteReports.HubHref(AnyminuteUiNavigation.Load()); m.Directory = AnyminuteDirectoryScope.CanReadDirectory();
         DateTime today = DateTime.Today, sunday = m.Monday.AddDays(6);
         using (var c = AnyminuteTimesheetRepair.Open())
         {
@@ -246,6 +246,13 @@ public static class AnyminuteRoleDashboard
     }
     static string Biz(AnyminuteDashModel m) { return m.All ? "" : "BusinessId=" + m.Selected; }
 
+    // v19 (t79u): every KPI card opens the page behind its number.
+    static void Stat(StringBuilder h, string icon, string title, string value, string sub, string href)
+    {
+        if (String.IsNullOrEmpty(href)) { Stat(h, icon, title, value, sub); return; }
+        h.Append("<a class='am-card am-stat am-stat-link' href='").Append(A(href)).Append("' title='").Append(A("Open " + title)).Append("'><span class='am-stat-icon' data-am-icon='").Append(icon).Append("' aria-hidden='true'></span><div><small>")
+         .Append(E(title)).Append("</small><strong>").Append(E(value)).Append("</strong><small>").Append(E(sub)).Append("</small></div></a>");
+    }
     static void Stat(StringBuilder h, string icon, string title, string value, string sub)
     {
         h.Append("<div class='am-card am-stat'><span class='am-stat-icon' data-am-icon='").Append(icon).Append("' aria-hidden='true'></span><div><small>")
@@ -307,10 +314,10 @@ public static class AnyminuteRoleDashboard
     static void Employee(StringBuilder h, AnyminuteDashModel m)
     {
         h.Append("<div class='am-stats'>");
-        Stat(h, "clock", "Hours Worked This Week", N(m.Hours) + " hrs", "Scheduled: " + N(m.Scheduled) + " hrs");
-        Stat(h, "dashboard", "Upcoming Shifts", m.Shifts.ToString(Inv), m.All ? "This week (All businesses)" : "This week");
-        Stat(h, "check", "My Pending Time Cards", m.Pending.ToString(Inv), "Waiting for approval");
-        Stat(h, "folder", "My Projects", m.Projects.ToString(Inv), "Active projects");
+        Stat(h, "clock", "Hours Worked This Week", N(m.Hours) + " hrs", "Scheduled: " + N(m.Scheduled) + " hrs", Url("WeekTimeCard.aspx", m, Biz(m)));
+        Stat(h, "dashboard", "Upcoming Shifts", m.Shifts.ToString(Inv), m.All ? "This week (All businesses)" : "This week", Url("WeeklyEmployeeSchedule.aspx", m, Biz(m)));
+        Stat(h, "check", "My Pending Time Cards", m.Pending.ToString(Inv), "Waiting for approval", "TimeCards.aspx");
+        Stat(h, "folder", "My Projects", m.Projects.ToString(Inv), "Active projects", Url("Projects.aspx", m, Biz(m)));
         h.Append("</div>");
         // My Schedule week strip
         h.Append("<section class='am-card'><div class='am-rd-head'><h2>My Schedule").Append(m.All && m.Roles.Count > 1 ? " (All Businesses)" : "").Append("<small>")
@@ -352,10 +359,10 @@ public static class AnyminuteRoleDashboard
     {
         bool multi = m.All && m.Roles.Count(r => r.Supervisor) > 1;
         h.Append("<div class='am-stats am-rd-sup'>");
-        Stat(h, "check", "Pending Approvals", m.Approvals.ToString(Inv), "Time cards waiting for approval");
-        Stat(h, "people", "Team Members", m.Team.ToString(Inv), "Under my supervision");
-        Stat(h, "dashboard", "Active Schedules", m.ActiveSchedules.ToString(Inv), "Employees this week");
-        Stat(h, "folder", "Active Projects", m.ActiveProjects.ToString(Inv), "Team projects");
+        Stat(h, "check", "Pending Approvals", m.Approvals.ToString(Inv), "Time cards waiting for approval", "TimeCards.aspx?status=Submitted");
+        Stat(h, "people", "Team Members", m.Team.ToString(Inv), "Under my supervision", m.Directory ? Url("Users.aspx", m, Biz(m)) : null);
+        Stat(h, "dashboard", "Active Schedules", m.ActiveSchedules.ToString(Inv), "Employees this week", Url("WeeklyEmployeeSchedule.aspx", m, Biz(m)));
+        Stat(h, "folder", "Active Projects", m.ActiveProjects.ToString(Inv), "Team projects", Url("Projects.aspx", m, Biz(m)));
         h.Append("</div><div class='am-rd-grid'><div>");
         h.Append("<section class='am-card'><div class='am-rd-head'><h2>Pending Time Card Approvals</h2><a href='TimeCards.aspx?status=Submitted'>View All &#8250;</a></div><div class='am-table-wrap'><table class='am-table'><thead><tr><th>Employee</th>")
          .Append(multi ? "<th>Business</th>" : "").Append("<th>Week</th><th>Total Hours</th><th>Status</th><th>Submitted On</th><th>Action</th></tr></thead><tbody>");
@@ -377,7 +384,7 @@ public static class AnyminuteRoleDashboard
         Action(h, "clock", "Review Time Cards", "Approve or reject employee time cards", "TimeCards.aspx?status=Submitted");
         Action(h, "dashboard", "Manage Schedules", "Create and edit employee schedules", Url("WeeklyEmployeeSchedule.aspx", m, Biz(m)));
         if (m.Directory) Action(h, "people", "View Employees", "See team members and details", "Users.aspx");
-        if (m.ReportHref != null) Action(h, "reports", m.CanSwitch ? "Team Reports" : "Reports", "View time and attendance reports", m.ReportHref);
+        if (m.ReportHref != null) Action(h, "reports", m.CanSwitch ? "Team Reports" : "Reports", "View time and attendance reports", m.ReportHref.EndsWith("/Reports.aspx", StringComparison.OrdinalIgnoreCase) ? m.ReportHref + "?b=" + HttpUtility.UrlEncode(m.Selected) : m.ReportHref);
         h.Append("</div></section>");
         h.Append("<section class='am-card am-rd-summary'><h2>Team Summary (This Week)</h2><dl>");
         foreach (var kv in new[] { new KeyValuePair<string, decimal>("Total Scheduled Hours", m.TeamScheduled), new KeyValuePair<string, decimal>("Total Submitted Hours", m.TeamSubmitted), new KeyValuePair<string, decimal>("Approved Hours", m.TeamApproved), new KeyValuePair<string, decimal>("Pending Hours", m.TeamPending) })

@@ -54,6 +54,11 @@ public static class AnyminuteUiNavigation
                 Add(items,"Edit Project","Projects.aspx",-215); // v8 Deck F: edit from the Projects list
                 // v11 Deck I Weekly Schedule is added above as "Work Schedule" (v16).
             }
+            // 2026-10-26 v19: Reports hub for every role that has at least one report (Report Access matrix);
+            // User Access > Login & Access (t77u) for owners/administrators and Report Access (slide 6) for owners.
+            if(AnyminuteReports.AnyAvailable())Add(items,"All Reports","Reports.aspx",-218);
+            if(AnyminuteReports.AdminSomewhere())Add(items,"Login & Access","LoginAccess.aspx",-220);
+            if(owner)Add(items,"Report Access","ReportAccess.aspx",-219);
         }
         return items.OrderBy(item=>item.Seq);
     }
@@ -91,7 +96,11 @@ public static class AnyminuteUiNavigation
             int group = GAccount;
             // v16: Assign User is removed from the left navigation (the page still opens by URL).
             if (label == "assign user" || route.Contains("assignuser")) continue;
-            if (label.Contains("accountant") || route.Contains("accountantaccess") || route.Contains("businessaccountant") || route.Contains("assignaccountant")) group=GUserAccess;
+            // v19 (t78u): the BusinessUsers.aspx "Edit User" picker is retired; it is never linked from the menu.
+            if (route.Contains("businessusers.aspx")) continue;
+            bool v19Access = route.Contains("loginaccess.aspx") || route.Contains("reportaccess.aspx");
+            if (v19Access) group=GUserAccess;
+            else if (label.Contains("accountant") || route.Contains("accountantaccess") || route.Contains("businessaccountant") || route.Contains("assignaccountant")) group=GUserAccess;
             else if (route.Contains("ticket") || label.Contains("ticket")) group=GHelp;
             else if (route.Contains("businessactions")) group=GBusinesses;
             else if (label.Contains("setting")) group=GSettings;
@@ -122,7 +131,7 @@ public static class AnyminuteUiNavigation
             else if (group==GProjects && route.Split('?')[0].EndsWith("add_project.aspx")) { item.Name="Add Project"; item.Href="ProjectEditor.aspx"; }
             // v9 Deck G: every Assign Accountant / legacy accountant route opens the new Accountant & Payroll Access list.
             // v16: it lives under User Access (not Businesses).
-            if (group==GUserAccess) { item.Name="Accountant & Payroll Access"; item.Href="AccountantAccess.aspx"; }
+            if (group==GUserAccess && !v19Access) { item.Name="Accountant & Payroll Access"; item.Href="AccountantAccess.aspx"; }
             // Same label twice in one menu (e.g. two Assign Accountant routes, two Dashboards) is shown once.
             if (!labels.Add(group + "|" + item.Name.Trim())) continue;
             groups[group].SubMenu.Add(item);
@@ -135,6 +144,8 @@ public static class AnyminuteUiNavigation
         Func<string,string[],int> rank = (n, order) => { int i = Array.IndexOf(order, n); return i < 0 ? order.Length : i; };
         groups[GBusinesses].SubMenu = groups[GBusinesses].SubMenu.OrderBy(m => rank(m.Name, new[] { "Add Business", "Edit Business", "Accountant & Payroll Access" })).ToList();
         groups[GEmployees].SubMenu = groups[GEmployees].SubMenu.OrderBy(m => rank(m.Name, new[] { "Add Employee", "Edit Employee", "Assign User" })).ToList();
+        groups[GUserAccess].SubMenu = groups[GUserAccess].SubMenu.OrderBy(m => rank(m.Name, new[] { "Login & Access", "Accountant & Payroll Access", "Report Access" })).ToList();
+        groups[GReports].SubMenu = groups[GReports].SubMenu.OrderBy(m => rank(m.Name, new[] { "All Reports" })).ToList();
         groups[GProjects].SubMenu = groups[GProjects].SubMenu.OrderBy(m => rank(m.Name, new[] { "Add Project", "Edit Project" })).ToList();
         // Account: Change Password, then Plan Upgrade directly below it (only where the role already has an upgrade page).
         var account = new List<MenuViewModel> { Link(-601, "Change Password", VirtualPathUtility.ToAbsolute("~/Change%20Password.aspx")) };

@@ -41,3 +41,7 @@
 @media(max-width:620px){.am-rd-week{grid-template-columns:repeat(2,minmax(0,1fr))}.am-rd-actions,.am-rd-stack .am-rd-actions{grid-template-columns:1fr}.am-rd-field{min-width:0}}
 .am-rd .am-stat-icon svg{width:27px;height:27px}.am-rd-action>[data-am-icon] svg,.am-rd-single [data-am-icon] svg,.am-rd-rolecard [data-am-icon] svg{width:22px;height:22px}
 .am-rd-grid{row-gap:0}
+
+/* v19 (t79u): KPI cards are links to the page behind each number. */
+a.am-stat-link{text-decoration:none;color:inherit;transition:box-shadow .15s,transform .15s}
+a.am-stat-link:hover,a.am-stat-link:focus-visible{box-shadow:0 4px 14px rgba(29,95,209,.18);transform:translateY(-1px)}

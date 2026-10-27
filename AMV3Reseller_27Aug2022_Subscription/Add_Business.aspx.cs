@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
@@ -606,16 +606,25 @@ public partial class Add_Business : System.Web.UI.Page
             return "Enter the company name and primary contact name.";
         if (Regex.Replace(PrmContNmbr.Text, @"\D", "").Length != 10)
             return "Enter a valid 10-digit primary contact number.";
-        if (String.IsNullOrWhiteSpace(txtStreetNo.Text) || String.IsNullOrWhiteSpace(txtStreetName.Text) ||
-            String.IsNullOrWhiteSpace(txtCity.Text) || String.IsNullOrWhiteSpace(txtProvince.Text))
-            return "Enter the street number, address line 1, city and province/state.";
         string postal = AnyminuteBusinessAddressInput.Postal(txtPostalCode.Text);
-        if (!Regex.IsMatch(postal, @"^[A-Z0-9-]{5,10}$")) return "Enter a valid postal code.";
-        if (String.IsNullOrWhiteSpace(Country.Text) || Country.Text.Trim().Length > 100)
-            return "Enter a country (maximum 100 characters).";
-        if (!PostalValidFor(Country.Text, postal))
-            return String.Equals(Country.Text.Trim(), "United States", StringComparison.OrdinalIgnoreCase)
-                ? "Enter a valid US ZIP code (e.g. 33185)." : "Enter a valid Canadian postal code (e.g. M1B 2W1).";
+        // 2026-10-26 v19 (t76u): on an EXISTING business an empty postal code no longer blocks saving the business
+        // details (company name, contact, email, status ...). The stored address is kept as it is; postal format and
+        // address completeness are only enforced for a new business or when a postal code was actually entered.
+        bool editing = Request.QueryString["BusinessIDEdit"] != null || ViewState["SavedBusinessId"] != null;
+        bool keepAddress = editing && postal.Length == 0;
+        if (!keepAddress)
+        {
+            if (String.IsNullOrWhiteSpace(txtStreetNo.Text) || String.IsNullOrWhiteSpace(txtStreetName.Text) ||
+                String.IsNullOrWhiteSpace(txtCity.Text) || String.IsNullOrWhiteSpace(txtProvince.Text))
+                return "Enter the street number, address line 1, city and province/state.";
+            if (!Regex.IsMatch(postal, @"^[A-Z0-9-]{5,10}$")) return "Enter a valid postal code.";
+            if (String.IsNullOrWhiteSpace(Country.Text) || Country.Text.Trim().Length > 100)
+                return "Enter a country (maximum 100 characters).";
+            if (!PostalValidFor(Country.Text, postal))
+                return String.Equals(Country.Text.Trim(), "United States", StringComparison.OrdinalIgnoreCase)
+                    ? "Enter a valid US ZIP code (e.g. 33185)." : "Enter a valid Canadian postal code (e.g. M1B 2W1).";
+        }
+        else if (Country.Text.Trim().Length > 100) return "Enter a country (maximum 100 characters).";
         // v3: Contact Phone / Mobile are no longer on the form (not in the deck); stored values are kept as they are.
         if (!IsValidEmail(txtMainEmail.Text.Trim())) return "Enter a valid primary email address.";
         // "0" = Not Active (same value the Dashboard Active/Not Active menu writes); a legacy stored "2" is kept as-is.
