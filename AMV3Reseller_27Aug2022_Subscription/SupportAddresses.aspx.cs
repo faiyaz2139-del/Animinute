@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Data;
+using System.Data.SqlClient;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -10,12 +12,17 @@ using SA = AnyminuteSupportAdmin;
 // lookup table (Verifed=1 is the verified address database). Edit & Verify keeps the original submitted address in
 // AnyminuteAddressReview (REQUIRED_07) and records corrected address, admin, date/time and reason in AnyminuteSupportAudit.
 // Verify Address (format/province check) is separate from Approve & Add to Database, which re-verifies on the server.
+// 2026-10-28 v26 strict pass: Verify Address now also checks the existing address lookup (verified AddressMaster rows +
+// employee addresses for the same postal code, as SearchAddress / AnyminuteAddressLookup use) and offers suggestions;
+// city / province ids are shown as names and kept as ids on approve; Submitted By comes from the review row or the
+// matching employee address, Submitted Date from the review row (REQUIRED_08 trigger records it for new addresses).
 public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
 {
     const int PageSize = 8;
     protected void Page_Init(object sender, EventArgs e) { SA.Require(); }
     protected void Page_Load(object sender, EventArgs e)
     {
+        if (SA.Get("verify") == "1") { VerifyJson(); return; }
         if (IsPostBack && SA.Form("sa_op").Length > 0) { Act(); return; }
         string tab = SA.Get("tab"); if (tab != "verified" && tab != "rejected") tab = "pending";
         string q = SA.Get("q"), country = SA.Get("country"), prov = SA.Get("prov"), date = SA.Get("date");
@@ -29,7 +36,7 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
             string rj = ready ? " LEFT JOIN AnyminuteAddressReview r ON r.AddressMasterId=a.AddressMasterId" : "";
             string status = ready ? "CASE WHEN a.Verifed=1 THEN 'Verified' WHEN r.Status='Rejected' THEN 'Rejected' ELSE 'Pending' END" : "CASE WHEN a.Verifed=1 THEN 'Verified' ELSE 'Pending' END";
             string cols = ready ? ",r.SubmittedBy,r.SubmittedAtUTC,r.Country,r.ReviewedAtUTC,r.ReviewedByName,r.Notes" : ",CAST(NULL AS nvarchar(150)) SubmittedBy,CAST(NULL AS datetime2) SubmittedAtUTC,CAST(NULL AS nvarchar(60)) Country,CAST(NULL AS datetime2) ReviewedAtUTC,CAST(NULL AS nvarchar(150)) ReviewedByName,CAST(NULL AS nvarchar(500)) Notes";
-            var all = SA.Q(c, "SELECT a.AddressMasterId,a.Street_Name,a.City,a.Province,a.PostalCode," + status + " St" + cols + " FROM AddressMaster a" + rj);
+            var all = SA.Q(c, "SELECT a.AddressMasterId,a.Street_Name," + Names + ",a.PostalCode," + status + " St" + cols + " FROM AddressMaster a" + NameJoins + rj);
             Func<string, int> count = s => all.Rows.Cast<DataRow>().Count(r => SA.S(r["St"]) == s);
             string wanted = tab == "verified" ? "Verified" : tab == "rejected" ? "Rejected" : "Pending";
             var rows = all.Rows.Cast<DataRow>().Where(r => SA.S(r["St"]) == wanted).Where(r =>
@@ -62,9 +69,10 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
             foreach (var r in rows.Skip((page - 1) * PageSize).Take(PageSize))
             {
                 int rid = Convert.ToInt32(r["AddressMasterId"]); string ctry = SA.S(r["Country"]); if (ctry.Length == 0) ctry = SA.GuessCountry(SA.S(r["PostalCode"]));
+                string who = Submitter(c, r);
                 sb.Append("<tr").Append(rid == id ? " class='sa-selected'" : "").Append("><td><input type='checkbox' aria-label='Select' /></td><td>").Append(SA.H(r["Street_Name"])).Append("</td><td>").Append(SA.H(r["City"]))
                   .Append("</td><td>").Append(SA.H(r["Province"])).Append("</td><td>").Append(SA.H(ctry)).Append("</td><td>").Append(SA.H(r["PostalCode"])).Append("</td><td>")
-                  .Append(SA.S(r["SubmittedBy"]).Length > 0 ? SA.H(r["SubmittedBy"]) : "<span class='sa-muted'>Manual entry</span>").Append("</td><td>").Append(SA.Day(r["SubmittedAtUTC"])).Append("</td><td class='sa-actions'>")
+                  .Append(who != null ? SA.H(who) : "<span class='sa-muted' title='No employee or subscriber address uses this address'>Not linked</span>").Append("</td><td>").Append(r["SubmittedAtUTC"] != DBNull.Value ? SA.Day(r["SubmittedAtUTC"]) : "<span class='sa-muted' title='Added before submission dates were recorded'>&mdash;</span>").Append("</td><td class='sa-actions'>")
                   .Append("<a class='sa-btn sa-btn-sm sa-btn-outline' href='SupportAddresses.aspx?").Append(SA.A(baseQ)).Append("&amp;page=").Append(page).Append("&amp;id=").Append(rid).Append("'>").Append(tab == "pending" ? "Edit" : "View").Append("</a>");
                 if (tab == "pending") sb.Append(" <a class='sa-btn sa-btn-sm sa-btn-danger' href='SupportAddresses.aspx?").Append(SA.A(baseQ)).Append("&amp;page=").Append(page).Append("&amp;id=").Append(rid).Append("#sa-reject'>Reject</a>");
                 sb.Append("</td></tr>");
@@ -76,21 +84,61 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
             Panel.Text = pick == null ? "" : EditPanel(c, pick, ready, baseQ + "&page=" + page);
         }
     }
-    string EditPanel(System.Data.SqlClient.SqlConnection c, DataRow r, bool ready, string back)
+    // City / Province hold CityMaster / ProvinceMaster ids in most rows (and names in a few): show names, keep raw values.
+    const string Names = "COALESCE(ci.CityName,a.City) City,COALESCE(pr.ProvinceName,a.Province) Province,a.City CityRaw,a.Province ProvRaw";
+    const string NameJoins = " LEFT JOIN CityMaster ci ON CAST(ci.CityId AS nvarchar(50))=CAST(a.City AS nvarchar(50)) LEFT JOIN ProvinceMaster pr ON CAST(pr.ProvinceId AS nvarchar(50))=CAST(a.Province AS nvarchar(50))";
+    // Recorded submitter, else the subscriber / employee whose own address is this address (same postal code and street).
+    static string Submitter(SqlConnection c, DataRow r)
+    {
+        if (SA.S(r["SubmittedBy"]).Length > 0) return SA.S(r["SubmittedBy"]);
+        try
+        {
+            var t = SA.Q(c, @"SELECT TOP 1 LTRIM(RTRIM(ISNULL(ae.FirstName,'')+' '+ISNULL(ae.LastName,''))) Name,ae.UserType FROM EmpAddress e JOIN AddEmployee ae ON ae.ADDRESSID=e.EmpAddressId
+                WHERE REPLACE(REPLACE(UPPER(e.Postalcode),' ',''),'-','')=@p AND UPPER(LTRIM(RTRIM(e.StreetName)))=UPPER(LTRIM(RTRIM(@s))) ORDER BY CASE WHEN ae.UserType=1 THEN 0 ELSE 1 END,ae.EmployeeID",
+                "@p", SA.CompactPostal(SA.S(r["PostalCode"])), "@s", SA.S(r["Street_Name"]));
+            if (t.Rows.Count == 1 && SA.S(t.Rows[0]["Name"]).Length > 0) return SA.S(t.Rows[0]["Name"]) + (SA.S(t.Rows[0]["UserType"]) == "1" ? " (Subscriber)" : " (Employee)");
+        }
+        catch (SqlException) { }
+        return null;
+    }
+    // GET SupportAddresses.aspx?verify=1&id=&street=&city=&prov=&country=&postal= -> {level,message,suggestions[]} for the Verify Address button.
+    void VerifyJson()
+    {
+        int id; Int32.TryParse(SA.Get("id"), out id);
+        string level, message; DataTable known;
+        using (var c = SA.Open()) message = SA.LookupVerify(c, id, SA.Get("street"), SA.Get("city"), SA.Get("prov"), SA.Get("country"), SA.Get("postal"), out level, out known);
+        var sugg = new List<Dictionary<string, string>>();
+        if (known != null) foreach (DataRow k in known.Rows) sugg.Add(new Dictionary<string, string> { { "street", SA.S(k["Street"]) }, { "city", SA.S(k["City"]) }, { "province", SA.S(k["Province"]) }, { "postal", SA.S(k["PostalCode"]) }, { "source", SA.S(k["Source"]) } });
+        Response.Clear(); Response.ContentType = "application/json"; Response.Cache.SetCacheability(HttpCacheability.NoCache);
+        Response.Write(new System.Web.Script.Serialization.JavaScriptSerializer().Serialize(new Dictionary<string, object> { { "level", level }, { "message", message }, { "suggestions", level == "match" ? new List<Dictionary<string, string>>() : sugg } }));
+        Response.Flush(); Response.SuppressContent = true; Context.ApplicationInstance.CompleteRequest();
+    }
+    // Keep CityMaster / ProvinceMaster ids when the row used ids (as AnyminuteAddressLookup joins on them); text rows stay text.
+    static string MasterValue(SqlConnection c, SqlTransaction tx, string raw, string table, string nameCol, string idCol, string name)
+    {
+        int n; if (!Int32.TryParse(raw, out n)) return name;
+        var t = AnyminuteTimesheetRepair.Query(c, tx, "IF NOT EXISTS(SELECT 1 FROM dbo." + table + " WITH(UPDLOCK,HOLDLOCK) WHERE " + nameCol + "=@n) INSERT dbo." + table + "(" + nameCol + ",Duplicate) VALUES(@n,0); SELECT TOP(1) " + idCol + " FROM dbo." + table + " WHERE " + nameCol + "=@n ORDER BY " + idCol, "@n", name.Trim().ToUpperInvariant());
+        return Convert.ToString(t.Rows[0][0], CultureInfo.InvariantCulture);
+    }
+    string EditPanel(SqlConnection c, DataRow r, bool ready, string back)
     {
         int id = Convert.ToInt32(r["AddressMasterId"]);
         DataRow review = null;
         if (ready) { var t = SA.Q(c, "SELECT * FROM AnyminuteAddressReview WHERE AddressMasterId=@i", "@i", id); if (t.Rows.Count == 1) review = t.Rows[0]; }
         string os = review != null ? SA.S(review["OrigStreet"]) : SA.S(r["Street_Name"]), oc = review != null ? SA.S(review["OrigCity"]) : SA.S(r["City"]),
                op = review != null ? SA.S(review["OrigProvince"]) : SA.S(r["Province"]), opc = review != null ? SA.S(review["OrigPostal"]) : SA.S(r["PostalCode"]);
+        // Original values were captured as stored (ids); show names.
+        if (oc == SA.S(r["CityRaw"])) oc = SA.S(r["City"]); else { int x; if (Int32.TryParse(oc, out x)) { var n = SA.Q(c, "SELECT CityName FROM CityMaster WHERE CityId=@i", "@i", x); if (n.Rows.Count == 1) oc = SA.S(n.Rows[0][0]); } }
+        if (op == SA.S(r["ProvRaw"])) op = SA.S(r["Province"]); else { int x; if (Int32.TryParse(op, out x)) { var n = SA.Q(c, "SELECT ProvinceName FROM ProvinceMaster WHERE ProvinceId=@i", "@i", x); if (n.Rows.Count == 1) op = SA.S(n.Rows[0][0]); } }
+        string who = Submitter(c, r);
         string octry = review != null && SA.S(review["OrigCountry"]).Length > 0 ? SA.S(review["OrigCountry"]) : SA.GuessCountry(opc);
         string ctry = SA.S(r["Country"]).Length > 0 ? SA.S(r["Country"]) : SA.GuessCountry(SA.S(r["PostalCode"]));
         bool pending = SA.S(r["St"]) == "Pending";
         string dis = pending && ready ? "" : " disabled";
         var sb = new StringBuilder("<aside class='sa-card sa-panel' id='sa-edit' aria-label='Edit and verify address'><div class='sa-panel-head'><h2>Edit &amp; Verify Address</h2><a href='SupportAddresses.aspx?" + SA.A(back) + "' class='sa-x' aria-label='Close'>&times;</a></div>");
         sb.Append("<h3>Original Submitted Address</h3><div class='sa-original'><p>").Append(SA.H(os + ", " + oc + ", " + op + ", " + octry + ", " + opc)).Append("</p><dl><dt>Submitted By:</dt><dd>")
-          .Append(review != null && SA.S(review["SubmittedBy"]).Length > 0 ? SA.H(review["SubmittedBy"]) : "Manual entry").Append("</dd><dt>Submitted Date:</dt><dd>")
-          .Append(review != null && review["SubmittedAtUTC"] != DBNull.Value ? SA.When(review["SubmittedAtUTC"]).Replace("<br />", " ") : "&mdash;").Append("</dd></dl></div>");
+          .Append(who != null ? SA.H(who) : "Not linked to a subscriber or employee address").Append("</dd><dt>Submitted Date:</dt><dd>")
+          .Append(review != null && review["SubmittedAtUTC"] != DBNull.Value ? SA.When(review["SubmittedAtUTC"]).Replace("<br />", " ") : "Not recorded (added before v26)").Append("</dd></dl></div>");
         sb.Append("<div data-sa-address='1'><input type='hidden' name='sa_id' value='").Append(id).Append("' /><h3>Corrected Address (Edit if needed)</h3>")
           .Append("<label class='sa-field'><span>Street Address *</span><input name='sa_street' maxlength='200' value='").Append(SA.A(r["Street_Name"])).Append("'").Append(dis).Append(" /></label>")
           .Append("<div class='sa-row2'><label class='sa-field'><span>City *</span><input name='sa_city' maxlength='200' value='").Append(SA.A(r["City"])).Append("'").Append(dis).Append(" /></label>")
@@ -103,7 +151,7 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
         if (pending)
             sb.Append("<div class='sa-panel-foot'><a class='sa-btn sa-btn-outline' href='SupportAddresses.aspx?").Append(SA.A(back)).Append("'>Cancel</a>")
               .Append("<button type='submit' id='sa-reject' class='sa-btn sa-btn-danger' name='sa_op' value='reject' data-sa-need-notes='Enter the reason for rejecting this address in Support Notes.'").Append(dis).Append(">&#10005; Reject</button>")
-              .Append("<button type='submit' class='sa-btn sa-btn-success' name='sa_op' value='approve' data-sa-approve='1' disabled>&#10003; Approve &amp; Add to Database</button></div><p class='sa-muted sa-small'>Verify the address first; Approve &amp; Add to Database stays off until the current values pass Verify Address.</p>");
+              .Append("<button type='submit' class='sa-btn sa-btn-success' name='sa_op' value='approve' data-sa-approve='1' disabled>&#10003; Approve &amp; Add to Database</button></div><p class='sa-muted sa-small'>Verify the address first: it checks the format and the existing address lookup for this postal code. Approve &amp; Add to Database stays off until the current values pass Verify Address.</p>");
         else if (review != null)
             sb.Append("<p class='sa-muted'>").Append(SA.H(SA.S(r["St"]) + " by " + SA.S(review["ReviewedByName"]))).Append(" &middot; ").Append(SA.When(review["ReviewedAtUTC"]).Replace("<br />", " ")).Append("</p>");
         sb.Append("</div><datalist id='sa-prov-list'>");
@@ -121,7 +169,7 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
             if (!SA.Has(c, "AnyminuteAddressReview") || !SA.Has(c, "AnyminuteSupportAudit")) { SA.Flash(SA.MissingTables); Back(id); return; }
             using (var tx = c.BeginTransaction(IsolationLevel.Serializable))
             {
-                var cur = AnyminuteTimesheetRepair.Query(c, tx, "SELECT a.*,r.Status RStatus FROM AddressMaster a WITH (UPDLOCK) LEFT JOIN AnyminuteAddressReview r ON r.AddressMasterId=a.AddressMasterId WHERE a.AddressMasterId=@i", "@i", id);
+                var cur = AnyminuteTimesheetRepair.Query(c, tx, "SELECT a.AddressMasterId,a.Street_Name,a.PostalCode,a.Verifed," + Names + ",r.Status RStatus,r.SubmittedBy FROM AddressMaster a WITH (UPDLOCK)" + NameJoins + " LEFT JOIN AnyminuteAddressReview r ON r.AddressMasterId=a.AddressMasterId WHERE a.AddressMasterId=@i", "@i", id);
                 if (cur.Rows.Count != 1) { SA.Flash("That address was not found."); tx.Rollback(); Back(0); return; }
                 var a = cur.Rows[0];
                 if (SA.S(a["Verifed"]) == "1" || SA.S(a["RStatus"]) == "Rejected") { SA.Flash("This address was already reviewed by another Support Admin."); tx.Rollback(); Back(id); return; }
@@ -130,12 +178,18 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
                 AnyminuteTimesheetRepair.Execute(c, tx, @"IF NOT EXISTS(SELECT 1 FROM AnyminuteAddressReview WHERE AddressMasterId=@i)
                     INSERT AnyminuteAddressReview(AddressMasterId,OrigStreet,OrigCity,OrigProvince,OrigCountry,OrigPostal,Status) VALUES(@i,@s,@c,@p,@co,@pc,'Pending')",
                     "@i", id, "@s", SA.S(a["Street_Name"]), "@c", SA.S(a["City"]), "@p", SA.S(a["Province"]), "@co", SA.GuessCountry(SA.S(a["PostalCode"])), "@pc", SA.S(a["PostalCode"]));
+                string who = Submitter(c, a);
+                if (who != null && SA.S(a["SubmittedBy"]).Length == 0)
+                    AnyminuteTimesheetRepair.Execute(c, tx, "UPDATE AnyminuteAddressReview SET SubmittedBy=@w WHERE AddressMasterId=@i AND SubmittedBy IS NULL", "@w", who.Length > 150 ? who.Substring(0, 150) : who, "@i", id);
                 if (op == "approve")
                 {
-                    string problem = SA.VerifyAddress(street, city, prov, country, postal);
-                    if (problem != null) { tx.Rollback(); SA.Flash("Not approved: " + problem); Back(id); return; }
+                    string level; DataTable known;
+                    string verdict = SA.LookupVerify(c, id, street, city, prov, country, postal, out level, out known);
+                    if (level == "error") { tx.Rollback(); SA.Flash("Not approved: " + verdict); Back(id); return; }
                     postal = SA.NormalizePostal(country, postal);
-                    AnyminuteTimesheetRepair.Execute(c, tx, "UPDATE AddressMaster SET Street_Name=@s,City=@c,Province=@p,PostalCode=@pc,Verifed=1 WHERE AddressMasterId=@i", "@s", street, "@c", city, "@p", prov, "@pc", postal, "@i", id);
+                    string cityValue = MasterValue(c, tx, SA.S(a["CityRaw"]), "CityMaster", "CityName", "CityId", city), provValue = MasterValue(c, tx, SA.S(a["ProvRaw"]), "ProvinceMaster", "ProvinceName", "ProvinceId", prov);
+                    AnyminuteTimesheetRepair.Execute(c, tx, "UPDATE AddressMaster SET Street_Name=@s,City=@c,Province=@p,PostalCode=@pc,Verifed=1 WHERE AddressMasterId=@i", "@s", street, "@c", cityValue, "@p", provValue, "@pc", postal, "@i", id);
+                    notes = (notes + " [Verify: " + verdict + "]").Trim(); if (notes.Length > 500) notes = notes.Substring(0, 500);
                     AnyminuteTimesheetRepair.Execute(c, tx, "UPDATE AnyminuteAddressReview SET Status='Verified',Country=@co,Notes=@n,ReviewedBy=@b,ReviewedByName=@bn,ReviewedAtUTC=SYSUTCDATETIME() WHERE AddressMasterId=@i",
                         "@co", country, "@n", notes, "@b", SA.ActorId(), "@bn", SA.ActorName(), "@i", id);
                     string after = street + ", " + city + ", " + prov + ", " + country + ", " + postal;

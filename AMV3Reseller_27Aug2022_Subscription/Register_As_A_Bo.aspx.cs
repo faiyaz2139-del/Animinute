@@ -277,10 +277,15 @@ public partial class Register_As_A_Bo : System.Web.UI.Page
                     Uac.Sp_InsertMapping(Uae);
 
                     if (ViewState["Enterprise_Plan"].ToString() == "")
+                    {
+                        // 2026-10-28 v26: Basic limits come from the Support Admin plan catalogue (falls back to the old 5 users / 1 business).
+                        int basicUsers, basicBusinesses;
+                        AnyminuteSupportAdmin.CatalogueLimits("BASIC PLAN", 5, 1, out basicUsers, out basicBusinesses);
                         comm.ExecuteQuery("insert into PlanHistory(PlanId,PriceId,PlanName,StartDate,EndDate,AmountPaid,TransId,EmpId," +
                         "EmailId,No_Of_Users,Business,IsActive)" +
                         "values('prod_basic','prod_basic_priceid','BASIC PLAN','" + DateTime.Today + "','" + DateTime.Today.AddDays(365) + "'," +
-                        "'0','BASIC','" + int.Parse(hfdEmpID.Value) + "','" + txtMainEmail.Text.Trim() + "','5','1','1')");
+                        "'0','BASIC','" + int.Parse(hfdEmpID.Value) + "','" + txtMainEmail.Text.Trim() + "','" + basicUsers + "','" + basicBusinesses + "','1')");
+                    }
 
                     GetList();
                     if (txtMainEmail.Text != string.Empty)

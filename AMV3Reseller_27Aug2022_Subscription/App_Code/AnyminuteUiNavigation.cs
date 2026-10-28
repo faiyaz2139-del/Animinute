@@ -248,11 +248,27 @@ public static class AnyminuteUiNavigation
                     .Append(HttpUtility.HtmlEncode(link.Key)).Append("</span></a></li>");
             return html.ToString();
         }
+        // 2026-10-28 v26 (Support Admin deck, strict): the exact SupportAdmin role no longer sees legacy pages the deck pages
+        // replace; the remaining legacy tools are grouped under "More tools". SuperAdmin and all other roles are unchanged.
+        bool supportOnly = support && AnyminuteSupportAdmin.IsSupportAdminOnly();
+        Func<MenuViewModel, bool> superseded = m =>
+        {
+            string page = System.IO.Path.GetFileName((m.Href ?? "").Split('?')[0]);
+            return supportOnly && SupportSuperseded.Any(x => x.Equals(page, StringComparison.OrdinalIgnoreCase));
+        };
+        bool labelled = false;
         foreach (var item in UiMenuGroups(menu))
         {
             var childrenMenu = item.SubMenu.Where(child => CanonicalRoute(UiMenuHref(child)) != CanonicalRoute(UiMenuHref(item))).ToList();
             if (item.Name == "Dashboard") childrenMenu.Clear();
             if (support && item.Name == "Dashboard") continue;
+            if (supportOnly)
+            {
+                bool hadChildren = childrenMenu.Count > 0;
+                childrenMenu = childrenMenu.Where(child => !superseded(child)).ToList();
+                if ((hadChildren && childrenMenu.Count == 0 && (item.Href ?? "#") == "#") || superseded(item)) continue;
+                if (!labelled) { labelled = true; html.Append("<li class='am-sa-nav-label' role='presentation' style='padding:14px 16px 4px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;opacity:.65'>More tools</li>"); }
+            }
             bool children = childrenMenu.Count > 0;
             html.Append("<li" + (children ? " class='am-nav-parent'" : "") + "><a href='")
                 .Append(HttpUtility.HtmlAttributeEncode(UiMenuHref(item))).Append("'")
@@ -270,6 +286,8 @@ public static class AnyminuteUiNavigation
         return html.ToString();
     }
 
+    // Legacy pages replaced for Support Admin by SupportTickets / SupportAddresses / SupportSubscribers / the deck Dashboard link.
+    static readonly string[] SupportSuperseded = { "Ticket_List.aspx", "Raise_Ticket_By_User.aspx", "SearchAddress.aspx", "PostalCode.aspx", "SuperAdmin.aspx", "LoginAccess.aspx" };
     public static string PermittedHref(IEnumerable<MenuViewModel> permitted, params string[] pages)
     {
         var leaves=new List<MenuViewModel>();
@@ -297,11 +315,14 @@ public static class AnyminuteUiNavigation
         html.Append("<details class='am-header-help'><summary aria-label='Help and support'><span data-am-icon='help' aria-hidden='true'></span></summary><div class='am-account-popover'><strong>Need help using AnyMinute?</strong>");
         HeaderLink(html,VirtualPathUtility.ToAbsolute("~/Help.aspx"),"Help Center","help");
         string tickets=PermittedHref(items,"Ticket_List.aspx","Raise_Ticket_By_User.aspx");
+        // v26: the SupportAdmin role uses the deck ticket console instead of the legacy ticket pages.
+        bool supportOnly=AnyminuteSupportAdmin.IsSupportAdminOnly();
+        if(supportOnly&&tickets!=null)tickets=VirtualPathUtility.ToAbsolute("~/SupportTickets.aspx");
 
         if(tickets!=null)HeaderLink(html,tickets,"Tickets","ticket");
         HeaderLink(html,VirtualPathUtility.ToAbsolute("~/HelpChat.aspx"),"Chat","message");
         string suggestion=PermittedHref(items,"Raise_Ticket_By_User.aspx");
-        if(suggestion!=null)HeaderLink(html,suggestion,"Share suggestion","message");
+        if(suggestion!=null&&!supportOnly)HeaderLink(html,suggestion,"Share suggestion","message");
         html.Append("</div></details>");return html.ToString();
     }
     // 2026-10-24 v10: one Plan Upgrade link for the sidebar Account group and the header profile menu.

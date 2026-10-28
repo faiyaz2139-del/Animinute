@@ -16,7 +16,9 @@ public partial class Login : System.Web.UI.Page
     {
         if (!IsPostBack)
         {
-
+            // v26: sent here by AnyminuteSessionGuard after Support disabled login access / revoked the session.
+            if (Request.QueryString["revoked"] == "1")
+                this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('Signed out', 'Your session was ended by an administrator. Please sign in again or contact your administrator.', 'warning');", true);
         }
     }
 
@@ -53,6 +55,7 @@ public partial class Login : System.Web.UI.Page
                 Session["email"] = dt.Rows[0]["Email"].ToString();
                 AnyminuteEmployeeEditor.RecordLogin(dt.Rows[0]["UserId"].ToString()); // v7 last login, never throws
                 AnyminuteSupportAdmin.LoginEvent(txtemail.Text, dt.Rows[0]["UserId"].ToString(), true, "Signed in to AnyMinute."); // v25 Login Activity History, never throws
+                AnyminuteSessionGuard.SignedIn(dt.Rows[0]["UserId"].ToString()); // v26 active session (Disable Login Access revokes it), never throws
                 Session["MotherOrgid"] = dt.Rows[0]["MotherOrgid"].ToString();
                 DataTable dataTable = comm.GetAllDataFromTable("AddEmployee with (Nolock)", "MotherOrgid", "EmployeeID=" + strEmployeeID + "", "");
                 if (dataTable.Rows.Count > 0)

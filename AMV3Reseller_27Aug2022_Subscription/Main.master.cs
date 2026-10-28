@@ -328,6 +328,7 @@ public partial class MasterPage : System.Web.UI.MasterPage
 
     protected void lnkLogout_Click(object sender, EventArgs e)
     {
+        AnyminuteSessionGuard.SignedOut(); // v26, never throws
         System.Web.Security.FormsAuthentication.SignOut();
         Session.Clear();
         Session.Abandon();

@@ -28,7 +28,7 @@ public partial class AnyminuteModernMaster : System.Web.UI.MasterPage
  protected void SignOut_Click(object sender,EventArgs e)
  {
   signingOut=true;
-  System.Web.Security.FormsAuthentication.SignOut();Session.Clear();Session.Abandon();
+  AnyminuteSessionGuard.SignedOut();System.Web.Security.FormsAuthentication.SignOut();Session.Clear();Session.Abandon();
   Response.Redirect("Login.aspx",false);Context.ApplicationInstance.CompleteRequest();
  }
  protected void Page_PreRender(object sender,EventArgs e)

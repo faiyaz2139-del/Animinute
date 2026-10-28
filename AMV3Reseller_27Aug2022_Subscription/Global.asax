@@ -34,6 +34,12 @@
     //    }
     //}
 
+    // 2026-10-28 v26: end sessions revoked by Support Admin "Disable Login Access" (no-op until REQUIRED_08 is run).
+    void Application_PostAcquireRequestState(object sender, EventArgs e)
+    {
+        AnyminuteSessionGuard.Check(HttpContext.Current);
+    }
+
     void Session_Start(object sender, EventArgs e)
     {
         // Code that runs when a new session is started  

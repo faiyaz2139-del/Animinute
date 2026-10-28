@@ -10,10 +10,21 @@ public partial class ResetPassord : System.Web.UI.Page
 {
     CommanClass comm = new CommanClass();
     UserAccController UActrl = new UserAccController();
+    // 2026-10-28 v26: links sent by Support Admin "Send Password Reset" carry &rt=<one-time token> (24 hours, AnyminutePasswordReset).
+    // A valid token skips the temporary-password step; an expired / used token shows an error. Links without rt keep the old flow.
+    string Token { get { return Request.QueryString["rt"]; } }
+    bool HasToken { get { return !String.IsNullOrEmpty(Token); } }
+    const string ExpiredJs = "swal('Link expired', 'This password reset link has expired or was already used. Please ask AnyMinute support for a new link.', 'error');";
     protected void Page_Load(object sender, EventArgs e)
     {
         if (!IsPostBack)
         {
+            if (Request.QueryString["empid"] != null && HasToken)
+            {
+                OldPasswordPanel.Visible = false;
+                LoginPanel.Visible = Request.QueryString["LoginType"] == null && AnyminutePasswordReset.Check(Request.QueryString["empid"], Token) > 0;
+                if (!LoginPanel.Visible) { this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", ExpiredJs, true); return; }
+            }
             if (Request.QueryString["empid"] != null)
             {
                 if (Request.QueryString["LoginType"] == null)
@@ -69,7 +80,14 @@ public partial class ResetPassord : System.Web.UI.Page
             LoginType = Request.QueryString["LoginType"].ToString();
         }
 
+        int tokenUser = 0;
+        if (HasToken)
+        {
+            tokenUser = LoginType == "EMP" ? AnyminutePasswordReset.Check(Request.QueryString["empid"], Token) : 0;
+            if (tokenUser <= 0) { LoginPanel.Visible = false; OldPasswordPanel.Visible = false; this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", ExpiredJs, true); return; }
+        }
         UActrl.Sp_ReSetPassword(int.Parse(Request.QueryString["empid"].ToString()), txtConfirmPass.Text, LoginType);
+        if (tokenUser > 0) AnyminutePasswordReset.Consume(Token, tokenUser); // one-time use + activity log
         //Response.Redirect("Login.aspx", false);   //Commented after hemal code
         ScriptManager.RegisterStartupScript(this.Page, this.GetType(), "SweetAlert", "swal('Success!', 'Password Changed Successfully', 'success').then((value) => {window.location = 'Login.aspx';});", true);
     }

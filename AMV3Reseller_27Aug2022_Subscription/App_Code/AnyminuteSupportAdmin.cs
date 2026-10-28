@@ -17,6 +17,13 @@ public static class AnyminuteSupportAdmin
 {
     public const string MissingTables = "Database update needed: run DB_REQUIRED/REQUIRED_07_SupportAdmin.sql to save Support Admin changes and activity history.";
     static HttpContext Ctx { get { return HttpContext.Current; } }
+    // v26: the exact SupportAdmin role (not SuperAdmin) gets the trimmed navigation.
+    public static bool IsSupportAdminOnly()
+    {
+        var h = Ctx; if (h == null || h.Session == null) return false;
+        string t = Convert.ToString(h.Session["UserType"]).Trim();
+        return t.Equals("SupportAdmin", StringComparison.OrdinalIgnoreCase) || t.Equals("Support Admin", StringComparison.OrdinalIgnoreCase);
+    }
     public static bool IsSupport()
     {
         var h = Ctx; if (h == null || h.Session == null) return false;
@@ -130,7 +137,7 @@ public static class AnyminuteSupportAdmin
         }
         catch (Exception) { }
     }
-    static string Platform(string ua)
+    public static string Platform(string ua)
     {
         ua = ua ?? "";
         if (ua.Contains("Windows NT 10")) return "Windows 10/11"; if (ua.Contains("Windows")) return "Windows";
@@ -225,5 +232,60 @@ public static class AnyminuteSupportAdmin
             html.Append("</a></li>");
         }
         return html.ToString();
+    }
+
+    // ---- v26: Address Verify against the existing address lookup (same sources as AnyminuteAddressLookup / SearchAddress.aspx) ----
+    public static string CompactPostal(string p) { return (p ?? "").ToUpperInvariant().Replace(" ", "").Replace("-", "").Trim(); }
+    static string Norm(string v) { return Regex.Replace((v ?? "").ToUpperInvariant(), @"[^A-Z0-9]", ""); }
+    // Known addresses for a postal code: verified AddressMaster rows (city/province ids resolved to names) and employee addresses.
+    public static DataTable KnownAddresses(SqlConnection c, string postal, int excludeId)
+    {
+        string p = CompactPostal(postal);
+        return Q(c, @"SELECT DISTINCT TOP 12 Street, City, Province, PostalCode, Source FROM (
+            SELECT UPPER(LTRIM(RTRIM(a.Street_Name))) Street, UPPER(LTRIM(RTRIM(COALESCE(ci.CityName,a.City)))) City, UPPER(LTRIM(RTRIM(COALESCE(pr.ProvinceName,a.Province)))) Province, UPPER(LTRIM(RTRIM(a.PostalCode))) PostalCode, 'Verified address' Source
+              FROM AddressMaster a LEFT JOIN CityMaster ci ON CAST(ci.CityId AS nvarchar(50))=CAST(a.City AS nvarchar(50)) LEFT JOIN ProvinceMaster pr ON CAST(pr.ProvinceId AS nvarchar(50))=CAST(a.Province AS nvarchar(50))
+             WHERE a.Verifed=1 AND a.AddressMasterId<>@id AND REPLACE(REPLACE(UPPER(a.PostalCode),' ',''),'-','')=@p
+            UNION SELECT UPPER(LTRIM(RTRIM(e.StreetName))), UPPER(LTRIM(RTRIM(e.City))), UPPER(LTRIM(RTRIM(e.Province))), UPPER(LTRIM(RTRIM(e.Postalcode))), 'Employee address'
+              FROM EmpAddress e WHERE REPLACE(REPLACE(UPPER(e.Postalcode),' ',''),'-','')=@p) x
+            WHERE ISNULL(Street,'')<>'' AND ISNULL(City,'')<>'' AND ISNULL(Province,'')<>'' ORDER BY Source DESC, Street", "@p", p, "@id", excludeId);
+    }
+    // level: "error" (format), "match" (same address already known), "partial" (postal known, address differs), "new" (valid format, postal not known yet).
+    public static string LookupVerify(SqlConnection c, int id, string street, string city, string province, string country, string postal, out string level, out DataTable known)
+    {
+        known = null;
+        string err = VerifyAddress(street ?? "", city ?? "", province ?? "", country ?? "", postal ?? "");
+        if (err != null) { level = "error"; return err; }
+        known = KnownAddresses(c, postal, id);
+        foreach (DataRow r in known.Rows)
+            if (Norm(S(r["Street"])) == Norm(street) && Norm(S(r["City"])) == Norm(city) && (Norm(S(r["Province"])) == Norm(province) || Norm(S(r["Province"])).StartsWith(Norm(province)) || Norm(province).StartsWith(Norm(S(r["Province"])))))
+            { level = "match"; return "Matches a known " + S(r["Source"]).ToLowerInvariant() + " for this postal code."; }
+        if (known.Rows.Count > 0) { level = "partial"; return "Postal code is known, but the street / city differ from " + known.Rows.Count + " known address(es). Pick a suggestion or approve as entered."; }
+        level = "new"; return "Format is valid. No existing address uses this postal code yet (new address).";
+    }
+
+    // ---- v26: plan catalogue -> PlanHistory limits ----
+    // 'BASIC PLAN' (PlanHistory) == 'Basic' / 'Basic Plan' (catalogue).
+    public static string PlanKey(string name)
+    {
+        string k = Regex.Replace((name ?? "").Trim().ToUpperInvariant(), @"\s+", " ");
+        return k.EndsWith(" PLAN") ? k.Substring(0, k.Length - 5) : k;
+    }
+    public const string PlanKeySql = "CASE WHEN UPPER(LTRIM(RTRIM({0}))) LIKE '% PLAN' THEN LEFT(UPPER(LTRIM(RTRIM({0}))),LEN(LTRIM(RTRIM({0})))-5) ELSE UPPER(LTRIM(RTRIM({0}))) END";
+    // Catalogue limits for a plan name; falls back to the defaults when the catalogue or the plan is missing or the limit is blank.
+    public static void CatalogueLimits(string planName, int defaultEmployees, int defaultBusinesses, out int employees, out int businesses)
+    {
+        employees = defaultEmployees; businesses = defaultBusinesses;
+        try
+        {
+            using (var c = Open())
+            {
+                if (!Has(c, "AnyminuteSubscriptionPlan")) return;
+                var t = Q(c, "SELECT TOP 1 MaxEmployees,MaxBusinesses FROM AnyminuteSubscriptionPlan WHERE IsActive=1 AND " + String.Format(PlanKeySql, "PlanName") + "=@k ORDER BY PlanID", "@k", PlanKey(planName));
+                if (t.Rows.Count == 0) return;
+                if (t.Rows[0]["MaxEmployees"] != DBNull.Value) employees = Convert.ToInt32(t.Rows[0]["MaxEmployees"]);
+                if (t.Rows[0]["MaxBusinesses"] != DBNull.Value) businesses = Convert.ToInt32(t.Rows[0]["MaxBusinesses"]);
+            }
+        }
+        catch (Exception) { }
     }
 }

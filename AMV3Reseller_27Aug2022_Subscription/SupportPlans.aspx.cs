@@ -68,14 +68,32 @@ public partial class AnyminuteSupportPlansPage : System.Web.UI.Page
               .Append("</td><td>").Append(SA.Pill(p.Active ? "Active" : "Inactive", p.Active ? "green" : "grey")).Append("</td><td class='sa-actions'><a class='sa-btn sa-btn-sm sa-btn-outline' href='SupportPlans.aspx?edit=").Append(p.Id).Append("' aria-label='Edit ").Append(SA.A(p.Name)).Append("'>&#9998;</a></td></tr>");
         return sb.Append("</tbody></table></div><div class='sa-pager'><span>Showing 1 to ").Append(plans.Count).Append(" of ").Append(plans.Count).Append(" plans</span></div>").ToString();
     }
+    // v26: PlanHistory 'BASIC PLAN' and catalogue 'Basic Plan' / 'Basic' are the same plan (SA.PlanKey). "Limits applied" counts
+    // active subscriptions whose PlanHistory employee / business limits equal the catalogue (the values the app enforces).
     static string Usage(SqlConnection c, List<Plan> plans)
     {
-        var counts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        foreach (DataRow r in SA.Q(c, "SELECT ISNULL(PlanName,'(unnamed)') N,COUNT(DISTINCT EmailId) C FROM PlanHistory WHERE ISNULL(IsActive,0)=1 AND ISNULL(Is_Cancelled,0)=0 GROUP BY ISNULL(PlanName,'(unnamed)')").Rows) counts[SA.S(r["N"])] = Convert.ToInt32(r["C"]);
-        var sb = new StringBuilder("<div class='sa-table-wrap'><table class='sa-table'><thead><tr><th>Plan</th><th>Active Subscriptions</th><th>Max Businesses</th><th>Max Employees</th><th>Max Projects</th><th>Trial Days</th></tr></thead><tbody>");
-        foreach (var p in plans) { int n; counts.TryGetValue(p.Name, out n); counts.Remove(p.Name); sb.Append("<tr><td>").Append(SA.H(p.Name)).Append("</td><td>").Append(n).Append("</td><td>").Append(Num(p.Businesses)).Append("</td><td>").Append(Num(p.Employees)).Append("</td><td>").Append(Num(p.Projects)).Append("</td><td>").Append(p.Trial).Append("</td></tr>"); }
-        foreach (var k in counts) sb.Append("<tr><td>").Append(SA.H(k.Key)).Append(" <small class='sa-muted'>(billing plan)</small></td><td>").Append(k.Value).Append("</td><td colspan='4' class='sa-muted'>Not in the plan catalogue</td></tr>");
-        return sb.Append("</tbody></table></div>").ToString();
+        var counts = new Dictionary<string, int[]>(StringComparer.OrdinalIgnoreCase); var names = new Dictionary<string, string>();
+        foreach (DataRow r in SA.Q(c, "SELECT " + String.Format(SA.PlanKeySql, "ISNULL(PlanName,'(unnamed)')") + " K,MIN(PlanName) N,No_Of_Users U,Business B,COUNT(DISTINCT EmailId) C FROM PlanHistory WHERE ISNULL(IsActive,0)=1 AND ISNULL(Is_Cancelled,0)=0 GROUP BY " + String.Format(SA.PlanKeySql, "ISNULL(PlanName,'(unnamed)')") + ",No_Of_Users,Business").Rows)
+        {
+            string k = SA.S(r["K"]); int[] v; if (!counts.TryGetValue(k, out v)) { v = new int[2]; counts[k] = v; names[k] = SA.S(r["N"]); }
+            v[0] += Convert.ToInt32(r["C"]);
+            var p = plans.FirstOrDefault(x => SA.PlanKey(x.Name) == k);
+            if (p != null && (p.Employees == null || SA.S(r["U"]) == Raw(p.Employees)) && (p.Businesses == null || SA.S(r["B"]) == Raw(p.Businesses))) v[1] += Convert.ToInt32(r["C"]);
+        }
+        var sb = new StringBuilder("<div class='sa-table-wrap'><table class='sa-table'><thead><tr><th>Plan</th><th>Active Subscriptions</th><th>Limits Applied</th><th>Max Businesses</th><th>Max Employees</th><th>Max Projects</th><th>Trial Days</th></tr></thead><tbody>");
+        foreach (var p in plans)
+        {
+            int[] n; string k = SA.PlanKey(p.Name); if (!counts.TryGetValue(k, out n)) n = new int[2]; counts.Remove(k);
+            sb.Append("<tr><td>").Append(SA.H(p.Name)).Append("</td><td>").Append(n[0]).Append("</td><td>").Append(n[0] == 0 ? "&mdash;" : n[1] + " of " + n[0]).Append("</td><td>").Append(Num(p.Businesses)).Append("</td><td>").Append(Num(p.Employees)).Append("</td><td>").Append(Num(p.Projects)).Append("</td><td>").Append(p.Trial).Append("</td></tr>");
+        }
+        foreach (var k in counts) sb.Append("<tr><td>").Append(SA.H(names[k.Key])).Append(" <small class='sa-muted'>(billing plan)</small></td><td>").Append(k.Value[0]).Append("</td><td colspan='5' class='sa-muted'>Not in the plan catalogue</td></tr>");
+        return sb.Append("</tbody></table></div><p class='sa-muted'>Max Businesses and Max Employees are enforced by AnyMinute through each subscription's plan record; saving a plan can apply them to active subscribers. Max Projects and Trial Days are catalogue values only (no AnyMinute page enforces them yet); Stripe prices are not changed here.</p>").ToString();
+    }
+    // Active, non-cancelled PlanHistory rows for these plan names (old and new name when renamed).
+    const string ApplyWhere = " FROM PlanHistory WHERE ISNULL(IsActive,0)=1 AND ISNULL(Is_Cancelled,0)=0 AND {0} IN(@k1,@k2)";
+    static int Subscribed(SqlConnection c, SqlTransaction tx, string oldName, string newName)
+    {
+        return Convert.ToInt32(AnyminuteTimesheetRepair.Query(c, tx, "SELECT COUNT(*)" + String.Format(ApplyWhere, String.Format(SA.PlanKeySql, "PlanName")), "@k1", SA.PlanKey(oldName), "@k2", SA.PlanKey(newName)).Rows[0][0]);
     }
     static string Form(Plan p, bool ready, bool add)
     {
@@ -127,6 +145,7 @@ public partial class AnyminuteSupportPlansPage : System.Web.UI.Page
         var diff = Diff(before, p);
         if (diff.Count == 0) { Flash.Text += "<div class='sa-flash' role='status'>No changes to save.</div>"; return; }
         string reason = SA.Form("sa_reason"); if (reason.Length > 500) reason = reason.Substring(0, 500);
+        bool limits = diff.Any(d => d[0] == "Max Businesses" || d[0] == "Max Employees") && (p.Employees != null || p.Businesses != null);
         if (save && reason.Length > 0)
         {
             using (var tx = c.BeginTransaction())
@@ -137,8 +156,16 @@ public partial class AnyminuteSupportPlansPage : System.Web.UI.Page
                 if (add) id = Convert.ToInt32(AnyminuteTimesheetRepair.Query(c, tx, @"INSERT AnyminuteSubscriptionPlan(PlanName,Description,MonthlyPrice,AnnualPrice,MaxBusinesses,MaxEmployees,MaxProjects,TrialDays,BillingFrequency,Features,IsActive,UpdatedBy)
                     VALUES(@n,@d,@m,@a,@b,@e,@p,@t,@f,@ft,@ac,@u); SELECT CAST(SCOPE_IDENTITY() AS int)", args).Rows[0][0]);
                 else AnyminuteTimesheetRepair.Execute(c, tx, @"UPDATE AnyminuteSubscriptionPlan SET PlanName=@n,Description=@d,MonthlyPrice=@m,AnnualPrice=@a,MaxBusinesses=@b,MaxEmployees=@e,MaxProjects=@p,TrialDays=@t,BillingFrequency=@f,Features=@ft,IsActive=@ac,UpdatedBy=@u,UpdatedAtUTC=SYSUTCDATETIME() WHERE PlanID=@i", args);
+                string applied = "";
+                if (limits && SA.Form("sa_apply") == "1" && (p.Employees != null || p.Businesses != null))
+                {
+                    var set = new List<string>(); if (p.Employees != null) set.Add("No_Of_Users=@e"); if (p.Businesses != null) set.Add("Business=@b");
+                    int n = Convert.ToInt32(AnyminuteTimesheetRepair.Query(c, tx, "UPDATE PlanHistory SET " + String.Join(",", set) + " WHERE Id IN(SELECT Id" + String.Format(ApplyWhere, String.Format(SA.PlanKeySql, "PlanName")) + "); SELECT @@ROWCOUNT",
+                        "@e", p.Employees == null ? "" : Raw(p.Employees), "@b", p.Businesses == null ? "" : Raw(p.Businesses), "@k1", SA.PlanKey(before.Name), "@k2", SA.PlanKey(p.Name)).Rows[0][0]);
+                    applied = " [Limits applied to " + n + " active subscription(s)]";
+                }
                 SA.Audit(c, tx, "Plan", id.ToString(CultureInfo.InvariantCulture), add ? "Plan Added" : "Plan Updated", add ? null : (before.Active ? "Active" : "Inactive"), p.Active ? "Active" : "Inactive",
-                    String.Join("; ", diff.Select(d => d[0] + ": " + d[1])), String.Join("; ", diff.Select(d => d[0] + ": " + d[2])), reason);
+                    String.Join("; ", diff.Select(d => d[0] + ": " + d[1])), String.Join("; ", diff.Select(d => d[0] + ": " + d[2])), (reason + applied).Length > 500 ? (reason + applied).Substring(0, 500) : reason + applied);
                 tx.Commit();
                 Response.Redirect("SupportPlans.aspx?saved=" + id, false); Context.ApplicationInstance.CompleteRequest(); return;
             }
@@ -148,6 +175,11 @@ public partial class AnyminuteSupportPlansPage : System.Web.UI.Page
         foreach (var d in diff) sb.Append("<tr><td>").Append(SA.H(d[0])).Append("</td><td>").Append(d[1].Length == 0 ? "&mdash;" : SA.H(d[1])).Append("</td><td><strong>").Append(SA.H(d[2])).Append("</strong></td></tr>");
         sb.Append("</tbody></table></div>");
         if (save && reason.Length == 0) sb.Append("<div class='sa-flash sa-warn' role='alert'>Enter the reason for this change.</div>");
+        if (limits)
+        {
+            int n = Subscribed(c, null, before.Name, p.Name);
+            sb.Append("<label class='sa-check'><input type='checkbox' name='sa_apply' value='1'").Append(!save || SA.Form("sa_apply") == "1" ? " checked" : "").Append(" /> Apply the new employee / business limits to the ").Append(n).Append(" active subscription(s) on this plan</label><p class='sa-muted sa-small'>AnyMinute enforces these limits from each subscription's plan record (PlanHistory). Leave unchecked to change the catalogue only; new Basic sign-ups always use the catalogue.</p>");
+        }
         sb.Append("<label class='sa-field'><span>Reason for Change *</span><textarea name='sa_reason' rows='3' maxlength='500' required data-sa-counter='500'>").Append(SA.H(reason)).Append("</textarea><small data-sa-count='1'>0/500</small></label>")
           .Append("<div class='sa-panel-foot'><a class='sa-btn sa-btn-outline' href='SupportPlans.aspx'>Cancel</a><button type='button' class='sa-btn sa-btn-outline' data-sa-close='1'>Back</button><button type='submit' class='sa-btn' name='sa_op' value='save'>Confirm &amp; Save</button></div></div></div>");
         Modal.Text = sb.ToString();

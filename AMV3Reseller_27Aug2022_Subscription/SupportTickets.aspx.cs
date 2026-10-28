@@ -13,6 +13,8 @@ using SA = AnyminuteSupportAdmin;
 // Uses the existing Ticket / Ticket_Comments tables and legacy StatusType codes (Ticket_List.aspx keeps working);
 // subject/category/priority/assignee/archive live in AnyminuteTicketMeta and every action is written to
 // AnyminuteSupportAudit (Ticket Activity History). Both tables come from REQUIRED_07.
+// 2026-10-28 v26: Create Ticket on behalf of a subscriber (?create=1): writes Ticket, the first Ticket_Comments row,
+// AnyminuteTicketMeta and a "Created" audit row in one transaction (direct insert: Sp_InsertTicket cuts the description).
 public partial class AnyminuteSupportTicketsPage : System.Web.UI.Page
 {
     const int PageSize = 10;
@@ -104,6 +106,7 @@ public partial class AnyminuteSupportTicketsPage : System.Web.UI.Page
                 var one = Load(c, ready, id);
                 if (one.Rows.Count == 1) Panel.Text = TicketPanel(c, one.Rows[0], panel, ready, here);
             }
+            else if (SA.Get("create") == "1") Panel.Text = CreatePanel(c, ready);
         }
     }
     static string Pager(int total, int page, string baseQ)
@@ -141,8 +144,7 @@ public partial class AnyminuteSupportTicketsPage : System.Web.UI.Page
               .Append(field("Comments (reason)", "<textarea name='sa_comment' rows='2' maxlength='1000'" + dis + "></textarea>")).Append(Foot(back, "edit", "Save Changes", dis));
         else if (panel == "assign")
         {
-            var admins = SA.Q(c, "SELECT LTRIM(RTRIM(ISNULL(FirstName,'')+' '+ISNULL(LastName,''))) N FROM SupportAdmin WHERE ISNULL(Status,'') NOT IN('0','Inactive','False') ORDER BY 1").Rows.Cast<DataRow>().Select(x => SA.S(x[0])).Where(x => x.Length > 0).Distinct().ToList();
-            if (!admins.Contains(SA.ActorName())) admins.Insert(0, SA.ActorName());
+            var admins = Admins(c);
             sb.Append(field("Assign To", "<select name='sa_assignee'" + dis + ">" + SA.Options(admins, SA.S(r["AssignedTo"]), "Unassigned") + "</select>"))
               .Append(field("Comments", "<textarea name='sa_comment' rows='3' maxlength='1000'" + dis + "></textarea>")).Append(Foot(back, "assign", "Save Assignment", dis));
         }
@@ -159,12 +161,76 @@ public partial class AnyminuteSupportTicketsPage : System.Web.UI.Page
             sb.Append(SA.HistoryTable(ready ? SA.History(c, "Ticket", tid.ToString(CultureInfo.InvariantCulture)) : null, "No support actions recorded for this ticket yet."));
         return sb.Append("</aside>").ToString();
     }
+    static DataTable Subscribers(SqlConnection c, int user)
+    {
+        return SA.Q(c, @"SELECT u.UserId,u.EmployeeId,u.Email,u.MotherOrgid,ae.MotherOrgID AeOrg,ae.MobilePhone,LTRIM(RTRIM(ISNULL(ae.FirstName,'')+' '+ISNULL(ae.LastName,''))) Name
+            FROM UserAcc u LEFT JOIN AddEmployee ae ON ae.EmployeeID=u.EmployeeId WHERE EXISTS(SELECT 1 FROM MappingTable m WHERE m.USERID=u.UserId AND m.UserTypeId=1)" + (user > 0 ? " AND u.UserId=@u" : "") + " ORDER BY Name,u.Email", "@u", user);
+    }
+    static List<string> Admins(SqlConnection c)
+    {
+        var admins = SA.Q(c, "SELECT LTRIM(RTRIM(ISNULL(FirstName,'')+' '+ISNULL(LastName,''))) N FROM SupportAdmin WHERE ISNULL(Status,'') NOT IN('0','Inactive','False') ORDER BY 1").Rows.Cast<DataRow>().Select(x => SA.S(x[0])).Where(x => x.Length > 0).Distinct().ToList();
+        if (!admins.Contains(SA.ActorName())) admins.Insert(0, SA.ActorName());
+        return admins;
+    }
+    string CreatePanel(SqlConnection c, bool ready)
+    {
+        string dis = ready ? "" : " disabled"; int pre; Int32.TryParse(SA.Get("user"), out pre);
+        var sb = new StringBuilder("<aside class='sa-card sa-panel' aria-label='Create Ticket'><div class='sa-panel-head'><div><h2>Create Ticket</h2><small>On behalf of a subscriber</small></div><a class='sa-x' aria-label='Close' href='SupportTickets.aspx'>&times;</a></div>");
+        sb.Append("<label class='sa-field'><span>Subscriber *</span><select name='sa_user' required").Append(dis).Append("><option value=''>Select subscriber</option>");
+        foreach (DataRow r in Subscribers(c, 0).Rows)
+        {
+            int u = Convert.ToInt32(r["UserId"]); string n = SA.S(r["Name"]);
+            sb.Append("<option value='").Append(u).Append("'").Append(u == pre ? " selected" : "").Append(">").Append(SA.H((n.Length > 0 ? n + " - " : "") + SA.S(r["Email"]))).Append("</option>");
+        }
+        sb.Append("</select></label><label class='sa-field'><span>Subject *</span><input name='sa_subject' maxlength='200' required").Append(dis).Append(" /></label>")
+          .Append("<div class='sa-row2'><label class='sa-field'><span>Category</span><select name='sa_category'").Append(dis).Append(">").Append(SA.Options(SA.Categories, "Other", null)).Append("</select></label>")
+          .Append("<label class='sa-field'><span>Priority</span><select name='sa_priority'").Append(dis).Append(">").Append(SA.Options(SA.Priorities, "Medium", null)).Append("</select></label></div>")
+          .Append("<div class='sa-row2'><label class='sa-field'><span>Assign To</span><select name='sa_assignee'").Append(dis).Append(">").Append(SA.Options(Admins(c), SA.ActorName(), "Unassigned")).Append("</select></label>")
+          .Append("<label class='sa-field'><span>Status</span><select name='sa_status'").Append(dis).Append(">").Append(SA.Options(SA.TicketStatuses.Where(x => x != "Resolved"), "Open", null)).Append("</select></label></div>")
+          .Append("<label class='sa-field'><span>Description *</span><textarea name='sa_desc' rows='6' maxlength='4000' required").Append(dis).Append("></textarea></label>")
+          .Append("<div class='sa-panel-foot'><a class='sa-btn sa-btn-outline' href='SupportTickets.aspx'>Cancel</a><button type='submit' class='sa-btn' name='sa_op' value='create'").Append(dis).Append(">Create Ticket</button></div>");
+        return sb.Append("</aside>").ToString();
+    }
+    void Create()
+    {
+        int u; Int32.TryParse(SA.Form("sa_user"), out u);
+        string subj = SA.Form("sa_subject"), cat = SA.Form("sa_category"), pr = SA.Form("sa_priority"), who = SA.Form("sa_assignee"), stl = SA.Form("sa_status"), desc = SA.Form("sa_desc");
+        Action<string> fail = m => { SA.Flash(m); Response.Redirect("SupportTickets.aspx?create=1" + (u > 0 ? "&user=" + u : ""), false); Context.ApplicationInstance.CompleteRequest(); };
+        if (u <= 0) { fail("Choose the subscriber."); return; }
+        if (subj.Length == 0 || desc.Length == 0) { fail("Enter a subject and a description."); return; }
+        if (!SA.Categories.Contains(cat) || !SA.Priorities.Contains(pr) || !SA.TicketStatuses.Contains(stl) || stl == "Resolved") { fail("Choose a valid category, priority and status."); return; }
+        if (subj.Length > 200) subj = subj.Substring(0, 200); if (desc.Length > 4000) desc = desc.Substring(0, 4000);
+        int tid;
+        using (var c = SA.Open())
+        {
+            if (!SA.Has(c, "AnyminuteTicketMeta") || !SA.Has(c, "AnyminuteSupportAudit")) { fail(SA.MissingTables); return; }
+            var t = Subscribers(c, u); if (t.Rows.Count != 1) { fail("Subscriber not found."); return; }
+            var r = t.Rows[0]; string name = SA.S(r["Name"]).Length > 0 ? SA.S(r["Name"]) : SA.S(r["Email"]);
+            int org; if (!Int32.TryParse(SA.S(r["MotherOrgid"]), out org)) Int32.TryParse(SA.S(r["AeOrg"]), out org);
+            using (var tx = c.BeginTransaction())
+            {
+                tid = Convert.ToInt32(AnyminuteTimesheetRepair.Query(c, tx, @"INSERT Ticket(MotherOrgId,EmpId,Name,EmailId,PhoneNO,ProblemType,Module,FileUploadName,Description,StatusType,TicketSeverity,TicketRaiseDate)
+                    VALUES(@o,@e,@n,@m,@p,'4','1','No_attachment.png',@d,@s,@pr,CAST(GETDATE() AS date)); SELECT CAST(SCOPE_IDENTITY() AS int)",
+                    "@o", org, "@e", Convert.ToInt32(r["EmployeeId"]), "@n", name, "@m", SA.S(r["Email"]), "@p", SA.S(r["MobilePhone"]), "@d", desc, "@s", SA.StatusCode(stl), "@pr", pr).Rows[0][0]);
+                AnyminuteTimesheetRepair.Execute(c, tx, "UPDATE Ticket SET TicketNo=@no WHERE TicketId=@i", "@no", "TK-" + tid, "@i", tid);
+                AnyminuteTimesheetRepair.Execute(c, tx, "INSERT Ticket_Comments(TicketId,EmpId,Name,EmailId,CommentsBy,Comments,CommentsDate) VALUES(@i,@e,@n,@m,@b,@c,GETDATE())",
+                    "@i", tid, "@e", Convert.ToInt32(r["EmployeeId"]), "@n", name, "@m", SA.S(r["Email"]), "@b", name + " (created by " + SA.ActorName() + ", Support Admin)", "@c", desc);
+                AnyminuteTimesheetRepair.Execute(c, tx, "INSERT AnyminuteTicketMeta(TicketId,Subject,Category,Priority,AssignedTo,UpdatedAtUTC) VALUES(@i,@s,@c,@p,@a,SYSUTCDATETIME())",
+                    "@i", tid, "@s", subj, "@c", cat, "@p", pr, "@a", who.Length == 0 ? (object)DBNull.Value : who);
+                SA.Audit(c, tx, "Ticket", tid.ToString(CultureInfo.InvariantCulture), "Created", null, stl, null, subj, "Created on behalf of " + name + " (" + SA.S(r["Email"]) + ")" + (who.Length > 0 ? "; assigned to " + who : ""));
+                tx.Commit();
+            }
+        }
+        SA.Flash("Ticket TK-" + tid + " created on behalf of the subscriber.");
+        Back(tid, "details");
+    }
     static string Foot(string back, string op, string label, string dis)
     {
         return "<div class='sa-panel-foot'><a class='sa-btn sa-btn-outline' href='SupportTickets.aspx?" + SA.A(back) + "'>Cancel</a><button type='submit' class='sa-btn' name='sa_op' value='" + op + "'" + dis + ">" + label + "</button></div>";
     }
     void Act()
     {
+        if (SA.Form("sa_op") == "create") { Create(); return; }
         string op = SA.Form("sa_op"); int tid; Int32.TryParse(SA.Form(op == "archive" ? "sa_id" : "sa_tid"), out tid); // archive comes from the row menu
         string comment = SA.Form("sa_comment"); if (comment.Length > 1000) comment = comment.Substring(0, 1000);
         using (var c = SA.Open())
