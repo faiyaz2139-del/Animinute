@@ -120,7 +120,7 @@ public partial class Login : System.Web.UI.Page
                 }
                 else if (dtdetails.Rows[0]["UserType"].ToString() == "12")
                 {
-                    Response.Redirect("Accountant_Newuser_Dashboard.aspx", false);
+                    Response.Redirect("Dashboard.aspx", false); // v27: accountants use the modern dashboard (was old Accountant_Newuser_Dashboard)
                 }
                 else
                 {

@@ -1,138 +1,85 @@
-﻿using System;
-using System.Collections.Generic;
+using System;
 using System.Configuration;
-using System.Data;
-using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Web;
 using System.Web.UI;
-using System.Web.UI.WebControls;
 
+// 2026-10-28 v27: Help > Tickets / Share suggestion. Null-safe session reads (root cause of the all-roles error page), Modern.master,
+// Support Admin goes to the SupportTickets console, failures show a friendly message instead of the error page.
 public partial class Raise_Ticket_By_User : System.Web.UI.Page
 {
-    CommanClass comm = new CommanClass();
     AddTicketEntityClass AddTicketEntity = new AddTicketEntityClass();
     AddTicketControllerClass AddTicket = new AddTicketControllerClass();
     EmailSettingController emailctrl = new EmailSettingController();
+    static readonly string[] Allowed = { ".png", ".jpg", ".jpeg", ".pdf", ".doc", ".docx", ".xls", ".xlsx" };
+
+    string S(string key) { return Convert.ToString(Session[key]).Trim(); }
     protected void Page_Load(object sender, EventArgs e)
     {
-        if (Session["EmployeeId"] == null)
+        if (Session["EmployeeId"] == null) { Response.Redirect("Login.aspx", false); Context.ApplicationInstance.CompleteRequest(); return; }
+        if (AnyminuteSupportAdmin.IsSupportAdminOnly()) { Response.Redirect("SupportTickets.aspx", false); Context.ApplicationInstance.CompleteRequest(); return; }
+        if (IsPostBack) return;
+        string name = S("NameOfLoggedInUser");
+        if (name.Length == 0) { name = S("user"); while (name.StartsWith("Welcome!", StringComparison.OrdinalIgnoreCase)) name = name.Substring(8).Trim(); }
+        if (name.Length == 0)
         {
-            Response.Redirect("Login.aspx");
+            int me;
+            if (Int32.TryParse(S("EmployeeId"), out me))
+                try { using (var c = AnyminuteTimesheetRepair.Open()) name = Convert.ToString(AnyminuteTimesheetRepair.Query(c, null, "SELECT dbo.FN_DESC('AddEmployee',@e)", "@e", me).Rows[0][0]); }
+                catch (Exception ex) { log4net.LogManager.GetLogger("Log").Warn("Ticket page name lookup failed", ex); }
         }
-        if (!IsPostBack)
-        {
-            if (Session["UserType"].ToString() == "Admin")
-            {
-                A1.HRef = "Accountant.aspx";
-                A3.HRef = "Accountant.aspx";
-            }
-            else if (Session["UserType"].ToString() == "SupportAdmin" && Session["email"].ToString() == "support@anyminute.net")
-            {
-                A1.HRef = "SuperAdmin_Approve_Subscriber.aspx";
-                A3.HRef = "SuperAdmin_Approve_Subscriber.aspx";
-            }
-            else
-            {
-                A1.HRef = "Home_Page.aspx";
-                A3.HRef = "Home_Page.aspx";
-            }
-
-            if (Session["UserType"].ToString() == "Admin")
-            {
-                DataTable dt1 = comm.GetAllDataFromTable("userACC UA JOIN MotherOrg Mo on ua.Email=mo.Email", "*", "mo.MotherOrgID=" + Session["MotherOrgid"].ToString() + " and ua.UserType='ADMIN' AND UA.UserId=" + Session["UserId"].ToString() + "", "");
-                if (dt1.Rows.Count > 0)
-                {
-                    string MotherOrgName_Seperate = dt1.Rows[0]["MotherOrgName"].ToString();
-                    string[] MotherOrgName_Seperate_Label = MotherOrgName_Seperate.Split('-');
-                    txt_fullname.Text = MotherOrgName_Seperate_Label[0].ToString();
-                    txt_fullname.ReadOnly = true;
-                }
-            }
-            if (Session["UserType"].ToString() != "Admin")
-            {
-                txt_fullname.Text = Session["NameOfLoggedInUser"].ToString();
-                txt_fullname.ReadOnly = true;
-            }
-                
-            txt_Email.Text = Session["email"].ToString();
-            txt_Email.ReadOnly = true;
-        }
+        txt_fullname.Text = AnyminuteDisplayText.Tidy(name);
+        txt_fullname.ReadOnly = txt_fullname.Text.Length > 0;
+        txt_Email.Text = S("email");
+        txt_Email.ReadOnly = txt_Email.Text.Length > 0;
     }
 
-    DataTable GenNoticeID()
+    void Show(string text, bool error)
     {
-        return comm.GetAllDataFromTable("Ticket", "isnull(max(TicketId),0) + 1 as tid", "", "");
+        Notice.Text = HttpUtility.HtmlEncode(text); Notice.CssClass = error ? "am-notice am-error" : "am-notice"; Notice.Visible = true;
     }
 
     protected void btn_save_Click(object sender, EventArgs e)
     {
-        if (txt_Phone.Text.Replace("-", string.Empty).Trim().Length < 10)
+        if (txt_Phone.Text.Replace("-", string.Empty).Trim().Length < 10) { Show("Please enter a 10-digit phone number.", true); return; }
+        if (ddl_problemtype.SelectedValue == "" || txt_Describe.Text.Trim().Length == 0 || txt_fullname.Text.Trim().Length == 0 || txt_Email.Text.Trim().Length == 0)
+        { Show("Please complete all required fields.", true); return; }
+        try
         {
-            this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('Warning!', 'Please Enter Phone Number Properly', 'warning');", true);
-            return;
-        }
-
-        string photofilename = string.Empty;
-        if (FileUpload.HasFile)
-        {
-            DataTable tkid = GenNoticeID();
-            int TktIdId = Convert.ToInt32(tkid.Rows[0]["tid"].ToString());
-            string fileName = Path.GetFileName(FileUpload.PostedFile.FileName);
-            FileUpload.PostedFile.SaveAs(Server.MapPath("~/images/" + TktIdId) + fileName);
-            photofilename = TktIdId + fileName;
-        }
-        if (!FileUpload.HasFile)
-        {
-            photofilename = "No_attachment.png";
-        }
-
-        DataSet dsticketno = new DataSet();
-        int TicketId1;
-        DataTable TicketNo = new DataTable();
-        if (btn_save.Text == "Save")
-        {
-            AddTicketEntity.MotherOrgId = int.Parse(Session["MotherOrgid"].ToString());
-            AddTicketEntity.EmpId = int.Parse(Session["EmployeeId"].ToString());
-            AddTicketEntity.Name = txt_fullname.Text;
-            AddTicketEntity.EmailId = txt_Email.Text;
-            AddTicketEntity.PhoneNO = txt_Phone.Text;
-            AddTicketEntity.ProblemType = ddl_problemtype.SelectedValue;
-            AddTicketEntity.Module = ddl_module.SelectedValue;
-            AddTicketEntity.Description = txt_Describe.Text;
-            AddTicketEntity.FileUploadName = photofilename;
-
-            TicketId1 = AddTicket.InsertTicket(AddTicketEntity);
-            comm.ExecuteQuery(" Insert Into Ticket_Comments (TicketId,EmpId,Name,EmailId,PhoneNO,FileUploadName,CommentsBy,Comments,CommentsDate) " +
-                " Values (" + TicketId1 + "," + AddTicketEntity.EmpId + ",'" + AddTicketEntity.Name + "','" + AddTicketEntity.EmailId + "','" + AddTicketEntity.PhoneNO + "'," +
-                " '" + AddTicketEntity.FileUploadName + "','" + AddTicketEntity.Name + "','" + AddTicketEntity.Description + "','" + DateTime.Now.ToString() + "')");
-            ClearTicketDetails();
-
-            bool IsSend = Convert.ToBoolean(ConfigurationManager.AppSettings["IsSendMail"].ToString());
-            if (IsSend)
+            string attachment = "No_attachment.png";
+            if (FileUpload.HasFile)
             {
-                emailctrl.SendTicketMail(AddTicketEntity, Session["email"].ToString(), TicketId1.ToString());
-                emailctrl.SendTicketDetailsToUser(AddTicketEntity, Session["email"].ToString(), TicketId1.ToString());
+                string fileName = Path.GetFileName(FileUpload.PostedFile.FileName);
+                if (!Allowed.Contains(Path.GetExtension(fileName).ToLowerInvariant())) { Show("Attach a PNG, JPG, PDF, Word or Excel file.", true); return; }
+                attachment = DateTime.UtcNow.ToString("yyyyMMddHHmmss") + "_" + fileName;
+                FileUpload.PostedFile.SaveAs(Server.MapPath("~/images/" + attachment));
             }
-
-            //this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('success!', 'Ticket Details Added Successfully, Thanks for your Valuable Feedback', 'success');", true);
-            this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('success!', 'Thank you for creating the Ticket, One of our staff member will look into this issue and will get back to you as soon as possible.', 'success');", true);
+            int mother, emp; Int32.TryParse(S("MotherOrgid"), out mother); Int32.TryParse(S("EmployeeId"), out emp);
+            AddTicketEntity.MotherOrgId = mother; AddTicketEntity.EmpId = emp;
+            AddTicketEntity.Name = txt_fullname.Text.Trim(); AddTicketEntity.EmailId = txt_Email.Text.Trim(); AddTicketEntity.PhoneNO = txt_Phone.Text.Trim();
+            AddTicketEntity.ProblemType = ddl_problemtype.SelectedValue; AddTicketEntity.Module = ddl_module.Value;
+            AddTicketEntity.Description = txt_Describe.Text.Trim(); AddTicketEntity.FileUploadName = attachment;
+            int ticket = AddTicket.InsertTicket(AddTicketEntity);
+            using (var c = AnyminuteTimesheetRepair.Open())
+                AnyminuteTimesheetRepair.Execute(c, null, @"INSERT INTO Ticket_Comments (TicketId,EmpId,Name,EmailId,PhoneNO,FileUploadName,CommentsBy,Comments,CommentsDate)
+                    VALUES (@t,@e,@n,@m,@p,@f,@n,@d,@at)", "@t", ticket, "@e", emp, "@n", AddTicketEntity.Name, "@m", AddTicketEntity.EmailId, "@p", AddTicketEntity.PhoneNO,
+                    "@f", attachment, "@d", AddTicketEntity.Description, "@at", DateTime.Now.ToString());
+            bool send; Boolean.TryParse(ConfigurationManager.AppSettings["IsSendMail"], out send);
+            if (send)
+                try { emailctrl.SendTicketMail(AddTicketEntity, txt_Email.Text, ticket.ToString()); emailctrl.SendTicketDetailsToUser(AddTicketEntity, txt_Email.Text, ticket.ToString()); }
+                catch (Exception ex) { log4net.LogManager.GetLogger("Log").Warn("Ticket mail failed", ex); }
+            ClearTicketDetails();
+            Show("Thank you - ticket #" + ticket + " was created. One of our staff members will look into it and get back to you as soon as possible.", false);
+        }
+        catch (Exception ex)
+        {
+            log4net.LogManager.GetLogger("Log").Error("Create ticket failed", ex);
+            Show("The ticket could not be saved right now. Please try again, or email support@anyminute.net.", true);
         }
     }
 
-    protected void btn_Reset_Click(object sender, EventArgs e)
-    {
-        ClearTicketDetails();
-    }
+    protected void btn_Reset_Click(object sender, EventArgs e) { ClearTicketDetails(); Notice.Visible = false; }
 
-    public void ClearTicketDetails()
-    {
-        //txt_fullname.Text = "";
-        //txt_Email.Text = "";
-        txt_Phone.Text = "";
-        ddl_problemtype.SelectedValue = "";
-        //ddl_module.SelectedValue = "";
-        txt_Describe.Text = "";
-    }
+    public void ClearTicketDetails() { txt_Phone.Text = ""; ddl_problemtype.SelectedValue = ""; txt_Describe.Text = ""; }
 }

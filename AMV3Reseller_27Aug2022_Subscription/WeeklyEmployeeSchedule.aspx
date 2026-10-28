@@ -13,7 +13,7 @@
  <div class="am-ws-card">
   <div class="am-ws-filters">
    <div class="am-ws-f"><label for="WsBusiness">Business <b>*</b></label><asp:DropDownList ID="WsBusiness" runat="server" ClientIDMode="Static" AutoPostBack="true" OnSelectedIndexChanged="Business_Changed" /></div>
-   <div class="am-ws-f"><label for="WsEmployee">Employee <b>*</b></label><asp:DropDownList ID="WsEmployee" runat="server" ClientIDMode="Static" AutoPostBack="true" OnSelectedIndexChanged="Employee_Changed" /></div>
+   <div class="am-ws-f"><label for="WsEmployee"><asp:Literal ID="WsEmployeeLabel" runat="server" Text="Employee" /> <b>*</b></label><asp:DropDownList ID="WsEmployee" runat="server" ClientIDMode="Static" AutoPostBack="true" OnSelectedIndexChanged="Employee_Changed" /></div>
    <div class="am-ws-f am-datefmt"><label for="WsWeek">Week Starting <b>*</b></label><asp:TextBox ID="WsWeek" runat="server" ClientIDMode="Static" TextMode="Date" AutoPostBack="true" OnTextChanged="Week_Changed" /></div>
    <div class="am-ws-nav">
     <asp:LinkButton ID="PrevWeek" runat="server" CssClass="am-ws-btn am-ws-outline am-ws-sq am-ws-ctx" OnClick="PrevWeek_Click" ToolTip="Previous week" aria-label="Previous week"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></asp:LinkButton>

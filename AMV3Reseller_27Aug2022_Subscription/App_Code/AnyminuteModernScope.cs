@@ -57,7 +57,7 @@ public static class AnyminuteModernScope
  {
   int total=0;foreach(DataRow business in Businesses().Rows)
    using(var c=AnyminuteTimesheetRepair.Open())
-   {int role,b=Convert.ToInt32(business["BusinessID"]),actor=Actor(c,null,b,out role);
+   {int role,b=Convert.ToInt32(business["BusinessID"]),actor;try{actor=Actor(c,null,b,out role);}catch(InvalidOperationException){continue;} // v27
     var dt=AnyminuteTimesheetRepair.Query(c,null,@"SELECT COUNT(*) FROM AnyminuteWeek w WHERE BusinessID=@b AND State='Submitted'
       AND (@r IN(1,5) OR EXISTS (SELECT 1 FROM AssgineManager m WHERE m.BusinessID=w.BusinessID AND m.ManagerID=@a AND m.EmpId=w.EmployeeID))","@b",b,"@a",actor,"@r",role);total+=Convert.ToInt32(dt.Rows[0][0]);}
   return total;

@@ -159,6 +159,7 @@ public class CommanClass
                 ddlList.DataValueField = ds.Tables[0].Columns[0].ToString();
                 ddlList.DataTextField = ds.Tables[0].Columns[1].ToString();
                 ddlList.DataBind();
+                foreach (ListItem item in ddlList.Items) item.Text = AnyminuteDisplayText.Tidy(item.Text); // v27: "Adam  Rhodes", "Supervisor Emplyee"
                 ddlList.SelectedIndex = 0;
             }
 
@@ -1398,4 +1399,4 @@ public class CommanClass
             ddlList.SelectedIndex = 0;
         }
     }
-}
+}

@@ -18,6 +18,16 @@ public partial class AnyminuteWeeklySchedulePage : System.Web.UI.Page
         foreach (var d in Order) SelectedDays.Items.Add(new ListItem(d.ToString().Substring(0, 3), d.ToString()));
     }
 
+    bool IsSelf()
+    {
+        try
+        {
+            int actor, role; Int32.TryParse(Convert.ToString(Session["EmployeeId"]), out actor); Int32.TryParse(Convert.ToString(Session["UserTypeid"]), out role);
+            using (var c = AnyminuteTimesheetRepair.Open()) AnyminuteTimesheetRepair.ResolveBusinessActor(c, null, ref actor, ref role, Business);
+            return actor == Employee;
+        }
+        catch (InvalidOperationException) { return false; }
+    }
     protected void Page_Load(object sender, EventArgs e)
     {
         string flash = AnyminuteFlash.Take("schedule"); if (flash != null) { FlashText.Text = HttpUtility.HtmlEncode(flash); Flash.Visible = true; }
@@ -83,7 +93,13 @@ public partial class AnyminuteWeeklySchedulePage : System.Web.UI.Page
         TotalHours.Text = week.Sum(d => d.Hours).ToString("0.00", Inv);
         SaveWeek.Visible = CopyPrevious.Visible = CancelWeek.Visible = amWsRepeat.Visible = !viewOnly;
         GridWrap.Visible = !viewOnly || saved;
-        if (viewOnly) WsSub.InnerText = "Your planned working hours, days off and break time for the selected week.";
+        // v27 (live: accountant saw "your manager planned for you" while Reports calls the same people Supervisor/Employee):
+        // the personal wording and My Time Card prompt are only for the signed-in person's own schedule.
+        bool self = viewOnly && IsSelf();
+        string typeId = Convert.ToString(Session["UserTypeid"]).Trim();
+        if (typeId == "12" || (typeId == "0" && Convert.ToString(Session["UserType"]) == "Admin")) WsEmployeeLabel.Text = "Employee / Supervisor";
+        if (viewOnly) WsSub.InnerText = self ? "Your planned working hours, days off and break time for the selected week."
+            : "Read-only view of the planned working hours, days off and break time for the selected employee or supervisor.";
         if (viewOnly && !saved) { TotalHours.Text = "0.00"; Notice("No work schedule has been published for this week yet."); }
         // v23 (Pandey #3): an unsaved selection shows a cleared grid (not the 09:00-17:00 default that looked like the previous
         // employee's data); "Use default pattern" fills Mon-Fri 09:00-17:00 on request. Every load says what is shown.
@@ -94,7 +110,7 @@ public partial class AnyminuteWeeklySchedulePage : System.Web.UI.Page
                 : "No saved schedule for " + label + ". The grid was cleared - set Working or Day Off for each day (or click Use default pattern), then click Save Weekly Schedule. Only saved schedules appear on the Weekly Time Card.");
         UseDefault.Visible = !viewOnly;
         // v17: employees get a clear way to enter their own times (My Time Card), published schedule or not.
-        TimeCardCta.Visible = viewOnly;
+        TimeCardCta.Visible = self;
         if (viewOnly) TimeCardLink.NavigateUrl = "~/WeekTimeCard.aspx?BusinessId=" + Business + "&Week=" + monday.ToString("yyyy-MM-dd", Inv);
     }
 

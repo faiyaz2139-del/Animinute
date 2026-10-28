@@ -22,7 +22,7 @@ public static class AnyminuteTimesheetRepair
     public static DataTable Query(SqlConnection c, SqlTransaction tx, string sql, params object[] args)
     {
         using(var cmd=Command(c,tx,sql,args)) using(var da=new SqlDataAdapter(cmd))
-        { var dt=new DataTable(); da.Fill(dt); return dt; }
+        { var dt=new DataTable(); da.Fill(dt); return AnyminuteDisplayText.Tidy(dt); } // v27: tidy display names/roles
     }
     public static void Execute(SqlConnection c, SqlTransaction tx, string sql, params object[] args)
     { using(var cmd=Command(c,tx,sql,args)) cmd.ExecuteNonQuery(); }

@@ -26,16 +26,35 @@ public partial class AnyminuteDashboard : System.Web.UI.Page
  void Bind()
  {
   var rows=AnyminuteModernScope.Businesses();rows.Columns.Add("Manage",typeof(bool));rows.Columns.Add("Users",typeof(int));rows.Columns.Add("DisplayStatus");
-  int employees=0,projects=0;bool owner=false;foreach(DataRow row in rows.Rows)
+  int projects=0;bool owner=false;var people=new System.Collections.Generic.HashSet<int>();foreach(DataRow row in rows.Rows)
   {int b=Convert.ToInt32(row["BusinessID"]);row["Manage"]=AnyminuteModernScope.Owns(b);owner|=Convert.ToBoolean(row["Manage"]);
-   var users=AnyminuteModernScope.Users(b);row["Users"]=users.Rows.Count;employees+=users.Rows.Count;projects+=AnyminuteModernScope.Projects(b).Rows.Count;
+   row["Users"]=0;
+   try{var users=AnyminuteModernScope.Users(b);row["Users"]=users.Rows.Count;foreach(DataRow u in users.Rows)people.Add(Convert.ToInt32(u["EmployeeID"]));projects+=AnyminuteModernScope.Projects(b).Rows.Count;}
+   catch(InvalidOperationException){} // v27: one ambiguous membership (e.g. accountant) no longer breaks the whole dashboard
    row["DisplayStatus"]=Convert.ToString(row["Status"])=="1"?"Active":"Not Active";}
+  // v27 (live: Total Employees 77 vs Users 43): the card summed per-business assignments, so a person in several businesses
+  // counted several times. It now counts people the same way the Users directory does (one card per person), else distinct IDs.
+  int employees=people.Count;
+  if(AnyminuteDirectoryScope.CanReadDirectory())try{employees=AnyminuteEmployeesView.Load().Count;}catch(HttpException){}catch(InvalidOperationException){}
   BusinessCount.Text=rows.Rows.Count.ToString();EmployeeCount.Text=employees.ToString();ProjectCount.Text=projects.ToString();ApprovalCount.Text=AnyminuteModernScope.Pending().ToString();
   AddUser.Visible=owner;AddBusiness.Visible=Convert.ToString(Session["UserTypeid"])=="1";
   string report=AnyminuteReports.HubHref(AnyminuteUiNavigation.Load());ReportsQuick.Visible=report!=null;if(report!=null)ReportsQuick.NavigateUrl=report;
   ViewApprovals.Visible=AnyminuteDirectoryScope.CanReadDirectory();
   // v16: role-based quick actions - every user with a business gets Work Schedule; employees also get their weekly time card.
   WorkScheduleQuick.Visible=rows.Rows.Count>0;TimeCardQuick.Visible=rows.Rows.Count>0&&!owner&&!ViewApprovals.Visible;
+  // v27: role-aware copy - accountants and employee-only users no longer see manager wording / a Pending Approvals card.
+  string typeId=Convert.ToString(Session["UserTypeid"]).Trim();bool accountant=typeId=="12"||(typeId=="0"&&Convert.ToString(Session["UserType"])=="Admin");
+  if(accountant)
+  {
+   TimeCardQuick.Visible=false;BusinessesIntro.Text="Businesses you have accountant access to. Use Reports for timesheet and payroll exports; Work Schedule is read-only.";
+   ApprovalTitle.Text="Reports";ApprovalCount.Text=report!=null?"Open":"\u2014";ApprovalHint.Text=report!=null?"Timesheet and payroll reports":"No reports granted yet";ApprovalCard.HRef=report??"Dashboard.aspx";
+  }
+  else if(!owner&&!ViewApprovals.Visible)
+  {
+   BusinessesIntro.Text="Businesses you work for. Use Quick Actions to open your time card or work schedule.";
+   ApprovalTitle.Text="My Time Card";ApprovalCount.Text="Open";ApprovalHint.Text="Enter and submit your hours";ApprovalCard.HRef="WeekTimeCard.aspx";
+  }
+  if(rows.Rows.Count==0)Empty.Text=accountant?"No businesses have shared accountant access with you yet. Ask the business owner to invite you from Accountant & Payroll Access.":"No accessible businesses found.";
   BusinessRows.DataSource=StatusFilter.SelectedValue=="All"?rows:rows.Select("DisplayStatus='"+(StatusFilter.SelectedValue=="Inactive"?"Not Active":"Active")+"'").CopyToDataTableOrEmpty(rows);
   BusinessRows.DataBind();Empty.Visible=BusinessRows.Items.Count==0;
  }

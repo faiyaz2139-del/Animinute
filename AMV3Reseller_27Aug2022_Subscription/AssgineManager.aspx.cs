@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -6,132 +6,88 @@ using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 
+// 2026-10-28 v27 (live: old UI, empty Manager/Employee pickers when opened without ?BusinessIdFromDefaultPapge, no circular messaging).
+// Owner/admin businesses come from AnyminuteModernScope; reads/saves use AnyminuteApprovalAssignments (RequireOwner + circular guard).
 public partial class AssgineManager : System.Web.UI.Page
 {
-    CommanClass comm = new CommanClass();
-    AssgineManagerEntity Ame = new AssgineManagerEntity();
-    AssgineManagerController Amc = new AssgineManagerController();
-    AssgienDelegateEntity Ade = new AssgienDelegateEntity();
-    AssgienDelegateController ADC = new AssgienDelegateController();
+    int Business { get { int b; Int32.TryParse(ddlbusiness.SelectedValue, out b); return b; } }
+    protected void Page_Init(object sender, EventArgs e) { if (Session["EmployeeId"] == null) { Response.Redirect("Login.aspx", false); Context.ApplicationInstance.CompleteRequest(); return; } ViewStateUserKey = Session.SessionID; }
     protected void Page_Load(object sender, EventArgs e)
     {
-        if (!IsPostBack)
+        if (IsPostBack || Session["EmployeeId"] == null) return;
+        try
         {
-            if (Request.QueryString["BusinessIdFromDefaultPapge"] != null)
+            foreach (DataRow r in AnyminuteModernScope.Businesses().Rows)
             {
-                GetMangerList();
+                int b = Convert.ToInt32(r["BusinessID"]);
+                if (AnyminuteModernScope.Owns(b)) ddlbusiness.Items.Add(new ListItem(AnyminuteDisplayText.Tidy(Convert.ToString(r["CompanyName"])), b.ToString()));
             }
         }
+        catch (Exception ex) { log4net.LogManager.GetLogger("Log").Error("AssgineManager business list failed", ex); }
+        if (ddlbusiness.Items.Count == 0) { Editor.Visible = false; Show("Access denied. Only the subscriber or business owner can assign users to managers.", true); return; }
+        string q = Request.QueryString["BusinessIdFromDefaultPapge"] ?? Request.QueryString["BusinessId"];
+        if (q != null && ddlbusiness.Items.FindByValue(q) != null) ddlbusiness.SelectedValue = q;
+        LoadManagers();
     }
-
-    public void GetMangerList()
+    void Show(string text, bool error) { Notice.Text = HttpUtility.HtmlEncode(text); Notice.CssClass = error ? "am-notice am-error" : "am-notice"; Notice.Visible = true; }
+    void LoadManagers()
     {
-        comm.FillDropDownList(ddlmanager, "AddEmployee ab join AssginBussiness asb on ab.EmployeeID=asb.EmployeeID", "ab.EmployeeID", "dbo.FN_DESC('AddEmployee',ab.EmployeeID) as empname", "UserTypeid=2 and asb.BusinessID=" + Request.QueryString["BusinessIdFromDefaultPapge"].ToString() + " and ab.IsActive='YES       '", "ab.EmployeeID");
+        ddlmanager.Items.Clear(); ddlmanager.Items.Add(new ListItem("Select a manager", ""));
+        using (var c = AnyminuteTimesheetRepair.Open())
+        {
+            var people = AnyminuteApprovalAssignments.People(c, null, Business);
+            foreach (DataRow r in people.Select("UserTypeId=2", "empname")) ddlmanager.Items.Add(new ListItem(Convert.ToString(r["empname"]), Convert.ToString(r["EmployeeID"])));
+        }
+        if (ddlmanager.Items.Count == 1) ddlmanager.Items[0].Text = "No active managers in this business";
+        else if (ddlmanager.Items.Count == 2) ddlmanager.SelectedIndex = 1;
+        LoadPeople();
     }
-
-    protected void ddlmanager_SelectedIndexChanged(object sender, EventArgs e)
+    void LoadPeople()
     {
-        int managerid = 0;
-        if (ddlmanager.SelectedValue != "")
+        int manager; ddlemp.Items.Clear(); Stale.Text = ""; ViewState.Remove("Fingerprint");
+        People.Visible = Int32.TryParse(ddlmanager.SelectedValue, out manager);
+        if (!People.Visible) return;
+        ManagerName.Text = HttpUtility.HtmlEncode(ddlmanager.SelectedItem.Text);
+        using (var c = AnyminuteTimesheetRepair.Open())
         {
-            managerid = int.Parse(ddlmanager.SelectedValue);
-        }
-
-        if (ddlmanager.SelectedValue == "")
-        {
-            return;
-        }
-
-        //comm.FillDropDownList(ddlemp, "AddEmployee ab join AssginBussiness asb on ab.EmployeeID=asb.EmployeeID", "ab.EmployeeID", "dbo.FN_DESC('AddEmployee',ab.EmployeeID) as empname", "UserType not in (2,1) and asb.BusinessID=" + Request.QueryString["BusinessIdFromDefaultPapge"].ToString() + "", "ab.EmployeeID");
-        //changes by ragini on 02.11.2021
-        //DataTable dt1 = comm.GetAllDataFromTable("AddEmployee ab join AssginBussiness asb on ab.EmployeeID=asb.EmployeeID", "ab.EmployeeID , dbo.FN_DESC('AddEmployee',ab.EmployeeID) as empname,ab.EMPLOYEETYPE", "UserTypeid=2 and asb.BusinessID=" + Request.QueryString["BusinessIdFromDefaultPapge"].ToString() + "  and ab.EmployeeID='" + this.ddlmanager.SelectedValue.ToString() + "'", "ab.EmployeeID");
-        //kumar commented
-        DataTable dt1 = comm.GetAllDataFromTable("AddEmployee ab join AssginBussiness asb on ab.EmployeeID=asb.EmployeeID", "ab.EmployeeID , dbo.FN_DESC('AddEmployee',ab.EmployeeID) as empname", "UserTypeid=2 and asb.BusinessID=" + Request.QueryString["BusinessIdFromDefaultPapge"].ToString() + "  and ab.EmployeeID='" + this.ddlmanager.SelectedValue.ToString() + "'", "ab.EmployeeID");
-        if (dt1.Rows.Count > 0)
-        {
-            ddlemp.Items.Clear();
-            //commented by kumar
-            //DataTable dt = comm.GetAllDataFromTable("AddEmployee ab join AssginBussiness asb on ab.EmployeeID=asb.EmployeeID", "ab.EmployeeID,dbo.FN_DESC('AddEmployee',ab.EmployeeID) as empname", "UserTypeid not in (2,1,5) and asb.BusinessID=" + Request.QueryString["BusinessIdFromDefaultPapge"].ToString() + " and AB.EMPLOYEETYPE ='" + dt1.Rows[0]["EMPLOYEETYPE"].ToString() + "'", "ab.EmployeeID");
-            //added by kumar as we have to show only the user type who is employee
-            //DataTable dt = comm.GetAllDataFromTable("AddEmployee ab join AssginBussiness asb on ab.EmployeeID=asb.EmployeeID", "ab.EmployeeID,dbo.FN_DESC('AddEmployee',ab.EmployeeID) as empname", "UserTypeid in (4) and asb.BusinessID=" + Request.QueryString["BusinessIdFromDefaultPapge"].ToString() + " and AB.EMPLOYEETYPE ='" + dt1.Rows[0]["EMPLOYEETYPE"].ToString() + "'", "ab.EmployeeID");
-            //kumar commented
-            //DataTable dt = comm.GetAllDataFromTable("AddEmployee ab join AssginBussiness asb on ab.EmployeeID=asb.EmployeeID", "ab.EmployeeID,dbo.FN_DESC('AddEmployee',ab.EmployeeID) as empname", "UserTypeid in (4) and asb.BusinessID=" + Request.QueryString["BusinessIdFromDefaultPapge"].ToString() + " ", "ab.EmployeeID");
-            //added by kumar because custom role as well as employee can be assigned under the manager
-            DataTable dt = comm.GetAllDataFromTable("AddEmployee ab join AssginBussiness asb on ab.EmployeeID=asb.EmployeeID", "ab.EmployeeID,dbo.FN_DESC('AddEmployee',ab.EmployeeID) as empname", "UserTypeid not in (1,2,5,12) and asb.BusinessID=" + Request.QueryString["BusinessIdFromDefaultPapge"].ToString() + " and ab.IsActive='YES       ' ", "ab.EmployeeID");
-            ddlemp.DataSource = dt;
-            ddlemp.DataTextField = "empname";
-            ddlemp.DataValueField = "EmployeeID";
-            ddlemp.DataBind();
-            foreach (ListItem item in ddlemp.Items)
+            var people = AnyminuteApprovalAssignments.People(c, null, Business);
+            var edges = AnyminuteApprovalAssignments.Edges(c, null, Business);
+            var blocked = AnyminuteApprovalAssignments.Blocked(edges, manager, people);
+            foreach (DataRow r in people.Rows)
             {
-                bool check = comm.IfExistsInTable("AssgineManager", "*", "BusinessID=" + Request.QueryString["BusinessIdFromDefaultPapge"].ToString() + " and EmpId=" + item.Value + " and ManagerID=" + managerid + "");
-                if (check == true)
-                {
-                    item.Selected = true;
-                }
+                int id = Convert.ToInt32(r["EmployeeID"]); if (id == manager) continue;
+                bool has = edges.Select("ManagerID=" + manager + " AND EmpId=" + id).Length > 0;
+                bool other = Convert.ToInt32(r["UserTypeId"]) == 2 && edges.Select("ManagerID<>" + manager + " AND EmpId=" + id).Length > 0;
+                var item = new ListItem(Convert.ToString(r["empname"]), id.ToString()) { Selected = has };
+                if (!has && blocked.Contains(id)) { item.Enabled = false; item.Text += " (already approves this manager - circular chain) [AM-" + AnyminuteApprovalAssignments.Build + "]"; }
+                else if (!has && other) { item.Enabled = false; item.Text += " (already has an approver)"; }
+                ddlemp.Items.Add(item);
             }
+            int stale = edges.Select("ManagerID=" + manager).Count(x => people.Select("EmployeeID=" + x["EmpId"]).Length == 0);
+            if (stale > 0) Stale.Text = "<p class='am-notice'>" + stale + " inactive or unlisted user(s) are still assigned to this manager. Saving keeps only the active users ticked above.</p>";
+            ViewState["Fingerprint"] = AnyminuteApprovalAssignments.Fingerprint(edges);
         }
-        //changes end by ragini on 02.11.2021
+        Empty.Visible = ddlemp.Items.Count == 0;
     }
-
+    protected void ddlbusiness_SelectedIndexChanged(object sender, EventArgs e) { Notice.Visible = false; Guard(LoadManagers); }
+    protected void ddlmanager_SelectedIndexChanged(object sender, EventArgs e) { Notice.Visible = false; Guard(LoadPeople); }
+    void Guard(Action a)
+    {
+        try { a(); }
+        catch (InvalidOperationException ex) { Show(ex.Message, true); }
+        catch (HttpException ex) { Show(ex.Message, true); }
+    }
     protected void btnSave_Click(object sender, EventArgs e)
     {
-        string keyWords = hfSelected.Value;
-        string[] arrayval = keyWords.Trim().Split(',');
-
-        if (ddlmanager.SelectedValue == "")
+        int manager;
+        if (!Int32.TryParse(ddlmanager.SelectedValue, out manager)) { Show("Select a manager first.", true); return; }
+        var ids = ddlemp.Items.Cast<ListItem>().Where(i => i.Selected && i.Enabled).Select(i => Int32.Parse(i.Value)).ToList();
+        try
         {
-            this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('Warning!', 'Select Manager First', 'warning');", true);
-            return;
+            AnyminuteApprovalAssignments.Save(Business, manager, ids, Convert.ToString(ViewState["Fingerprint"]));
+            LoadPeople(); Show("Approval assignments saved for " + ddlmanager.SelectedItem.Text + ".", false);
         }
-
-        if (hfSelected.Value == "")
-        {
-            this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('Warning!', 'If Employee is Assigned then Add or Remove Employee. <br/> Otherwise Select Employee to Assign Under Manager if No Employee is Selected', 'warning');", true);
-            return;
-        }
-
-        string busname = comm.GetNameFromId("AddBusiness", int.Parse(Request.QueryString["BusinessIdFromDefaultPapge"].ToString()));
-        comm.ExecuteQuery("delete from AssgineManager where BusinessID=" + int.Parse(Request.QueryString["BusinessIdFromDefaultPapge"].ToString()) + " and ManagerID=" + ddlmanager.SelectedValue + "");
-
-        for (int i = 0; i < arrayval.Length; i++)
-        {
-            if (!string.IsNullOrEmpty(arrayval[i]))
-            {
-                Ame.EmpId = int.Parse(arrayval[i]);
-                Ame.ManagerID = int.Parse(ddlmanager.SelectedValue);
-                Ame.MangerName = ddlmanager.SelectedItem.Text;
-                Ame.BusinessID = int.Parse(Request.QueryString["BusinessIdFromDefaultPapge"].ToString());
-                Ame.EmpName = comm.GetNameFromId("AddEmployee", int.Parse(arrayval[i].ToString()));
-                Ame.BusinessName = busname;
-                Amc.InsertAssgineManger(Ame);
-            }
-        }
-        this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('success!', 'Manager Assigned Successfully', 'success');", true);
-        Response.Redirect("Home_Page.aspx");
-    }
-
-    protected void ddlemp_SelectedIndexChanged(object sender, EventArgs e)
-    {
-        //if (ddlmanager.SelectedValue != "")
-        //{
-        //    int a = 0;
-        //    foreach (ListItem itm in ddlemp.Items)
-        //    {
-        //        if (itm.Selected == false)
-        //        {
-        //            string empid = itm.Value;
-        //            bool chk = comm.IfExistsInTable("AssgineManager", "*", "ManagerID=" + ddlmanager.SelectedValue + " and BusinessID=" + Request.QueryString["BusinessIdFromDefaultPapge"].ToString() + "");
-        //            if (chk == true)
-        //            {
-        //                a = comm.ExecuteQuery("delete from AssgineManager where EmpId=" + empid + " and ManagerID=" + ddlmanager.SelectedValue + " and BusinessID=" + Request.QueryString["BusinessIdFromDefaultPapge"].ToString() + "");
-        //            }
-        //        }
-        //    }
-        //    if (a > 0)
-        //    {
-        //        this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('success!', 'Employee Removed from Manger " + ddlmanager.SelectedItem.Text + "  Successfully', 'success');", true);
-        //    }
-        //}
+        catch (InvalidOperationException ex) { Show(ex.Message, true); }
+        catch (Exception ex) { log4net.LogManager.GetLogger("Log").Error("AssgineManager save failed", ex); Show("Assignments were not saved. Please refresh and try again. [AM-" + AnyminuteApprovalAssignments.Build + "]", true); }
     }
 }

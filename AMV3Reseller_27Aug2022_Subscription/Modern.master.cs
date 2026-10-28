@@ -16,7 +16,7 @@ public partial class AnyminuteModernMaster : System.Web.UI.MasterPage
   while(displayName.StartsWith("Welcome!",StringComparison.OrdinalIgnoreCase))displayName=displayName.Substring(8).TrimStart();
   // v22: some logins (Pandey images 4/9/10) have no Session["user"]; fall back to the signed-in person's name.
   if(displayName.Length==0){int me;if(Int32.TryParse(Convert.ToString(Session["EmployeeId"]),out me))try{using(var c=AnyminuteTimesheetRepair.Open())displayName=Convert.ToString(AnyminuteTimesheetRepair.Query(c,null,"SELECT dbo.FN_DESC('AddEmployee',@e)","@e",me).Rows[0][0]).Trim();}catch(System.Data.SqlClient.SqlException){}}
-  Welcome.Text=HttpUtility.HtmlEncode(displayName);
+  Welcome.Text=HttpUtility.HtmlEncode(AnyminuteDisplayText.Tidy(displayName)); // v27: no double spaces
   // v20 (Pandey images 1/3/4): employee / supervisor role and business under the welcome line.
   string context=AnyminuteRoleDashboard.HeaderContext();
   if(!String.IsNullOrEmpty(context))WelcomeContext.Text="<small class='am-welcome-context' style='display:block;font-size:12px;font-weight:500;color:#5b6778;line-height:1.3'>"+HttpUtility.HtmlEncode(context)+"</small>";

@@ -231,12 +231,12 @@ public partial class MasterPage : System.Web.UI.MasterPage
                 lblemail.Text = dt1.Rows[0]["MainEmail"].ToString();
                 //lbluid.Text = "User Id(" + dtuid.Rows[0]["UID"].ToString() + ")";
                 lbluid.Text = dtuid.Rows[0]["UID"].ToString();
-                lblname.Text = dt1.Rows[0]["FirstName"].ToString() + " " + dt1.Rows[0]["MiddleName"].ToString() + " " + dt1.Rows[0]["LastName"].ToString();
-                lblwelcome.Text = "Welcome! " + dt1.Rows[0]["FirstName"].ToString() + " " + dt1.Rows[0]["MiddleName"].ToString() + " " + dt1.Rows[0]["LastName"].ToString();
+                lblname.Text = AnyminuteDisplayText.Tidy(dt1.Rows[0]["FirstName"].ToString() + " " + dt1.Rows[0]["MiddleName"].ToString() + " " + dt1.Rows[0]["LastName"].ToString()); // v27
+                lblwelcome.Text = "Welcome! " + AnyminuteDisplayText.Tidy(dt1.Rows[0]["FirstName"].ToString() + " " + dt1.Rows[0]["MiddleName"].ToString() + " " + dt1.Rows[0]["LastName"].ToString());
 
                 string username = lblwelcome.Text;
                 Session["user"] = username;
-                Session["NameOfLoggedInUser"] = dt1.Rows[0]["FirstName"].ToString() + " " + dt1.Rows[0]["MiddleName"].ToString() + " " + dt1.Rows[0]["LastName"].ToString();
+                Session["NameOfLoggedInUser"] = AnyminuteDisplayText.Tidy(dt1.Rows[0]["FirstName"].ToString() + " " + dt1.Rows[0]["MiddleName"].ToString() + " " + dt1.Rows[0]["LastName"].ToString());
 
                 if (Session["UserId_acc"] != null)
                 {

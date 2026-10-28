@@ -12,6 +12,12 @@ public partial class Accountant_NewUser_DashBoard : System.Web.UI.Page
 {
     CommanClass comm = new CommanClass();
     GraphClass gp = new GraphClass();
+    // v27 (live: accountant kk3 landed on this old Main.master page - empty charts, clipped sidebar, stale build meta).
+    // Accountant logins (UserTypeId 12) now use the modern Dashboard.aspx with role-aware copy and an explicit empty state.
+    protected void Page_PreInit(object sender, EventArgs e)
+    {
+        if (Session["EmployeeId"] != null) Response.Redirect("Dashboard.aspx", true);
+    }
     protected void Page_Load(object sender, EventArgs e)
     {
         if (Session["EmployeeId"] == null)
@@ -684,4 +690,4 @@ public partial class Accountant_NewUser_DashBoard : System.Web.UI.Page
         }
     }
     #endregion
-}
+}

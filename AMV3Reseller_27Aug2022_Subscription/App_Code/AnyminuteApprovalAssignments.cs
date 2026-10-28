@@ -53,7 +53,7 @@ public static class AnyminuteApprovalAssignments
     //  - the same person (same login in this business) can never be their own approver;
     //  - only users NEWLY added by this save are checked for a loop back to the manager. Loops already in legacy data no
     //    longer block unrelated changes.
-    public const string Build = "v22";
+    public const string Build = "v27"; // v27: tag follows the shipped build (was v22)
     static Dictionary<int,List<int>> Graph(IEnumerable<Tuple<int,int>> edges, DataTable people)
     {
         var managers = new HashSet<int>(people.Select("UserTypeId=2").Select(r => Convert.ToInt32(r["EmployeeID"])));
