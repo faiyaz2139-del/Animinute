@@ -40,6 +40,7 @@ public partial class Login : System.Web.UI.Page
                 if (AnyminuteEmployeeEditor.LoginDisabled(dt.Rows[0]["UserId"].ToString()))
                 {
                     this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('warning!', 'Your login access is disabled. Please contact your administrator.', 'warning');", true);
+                    AnyminuteSupportAdmin.LoginEvent(txtemail.Text, dt.Rows[0]["UserId"].ToString(), false, "Login access is disabled.");
                     return;
                 }
 
@@ -51,6 +52,7 @@ public partial class Login : System.Web.UI.Page
                 Session["EmployeeId"] = dt.Rows[0]["EmployeeId"].ToString();
                 Session["email"] = dt.Rows[0]["Email"].ToString();
                 AnyminuteEmployeeEditor.RecordLogin(dt.Rows[0]["UserId"].ToString()); // v7 last login, never throws
+                AnyminuteSupportAdmin.LoginEvent(txtemail.Text, dt.Rows[0]["UserId"].ToString(), true, "Signed in to AnyMinute."); // v25 Login Activity History, never throws
                 Session["MotherOrgid"] = dt.Rows[0]["MotherOrgid"].ToString();
                 DataTable dataTable = comm.GetAllDataFromTable("AddEmployee with (Nolock)", "MotherOrgid", "EmployeeID=" + strEmployeeID + "", "");
                 if (dataTable.Rows.Count > 0)
@@ -125,6 +127,7 @@ public partial class Login : System.Web.UI.Page
             else
             {
                 this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('warning!', 'Invalid Email or Password', 'warning');", true);
+                AnyminuteSupportAdmin.LoginEvent(txtemail.Text, null, false, "Incorrect password entered.");
             }
         }
         catch (Exception ex)

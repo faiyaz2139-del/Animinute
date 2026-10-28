@@ -235,9 +235,13 @@ public static class AnyminuteUiNavigation
     public static string Render(IEnumerable<MenuViewModel> menu)
     {
         var html = new StringBuilder();
+        // 2026-10-28 v25 (Shamsu Support Admin decks): Support Admin / Super Admin get the deck navigation first
+        // (Support Tickets + Address Verification badges); the legacy links that role already had follow below.
+        bool support = AnyminuteSupportAdmin.IsSupport();
+        if (support) html.Append(AnyminuteSupportAdmin.NavHtml(ReportHref(menu), PermittedHref(menu, "EmailSetting.aspx", "EmailTemplate.aspx")));
         // 2026-10-26 v18 (deck slides 1-3): employees and supervisors get the deck's flat navigation
         // (no My Employees for employee-only users). Owners/admins/accountants keep the grouped menu below.
-        if (AnyminuteRoleDashboard.Applies())
+        if (!support && AnyminuteRoleDashboard.Applies())
         {
             foreach (var link in AnyminuteRoleDashboard.NavLinks(menu))
                 html.Append("<li><a href='").Append(HttpUtility.HtmlAttributeEncode(link.Value)).Append("' data-am-primary='true'><i class='' aria-hidden='true'></i><span>")
@@ -248,6 +252,7 @@ public static class AnyminuteUiNavigation
         {
             var childrenMenu = item.SubMenu.Where(child => CanonicalRoute(UiMenuHref(child)) != CanonicalRoute(UiMenuHref(item))).ToList();
             if (item.Name == "Dashboard") childrenMenu.Clear();
+            if (support && item.Name == "Dashboard") continue;
             bool children = childrenMenu.Count > 0;
             html.Append("<li" + (children ? " class='am-nav-parent'" : "") + "><a href='")
                 .Append(HttpUtility.HtmlAttributeEncode(UiMenuHref(item))).Append("'")
