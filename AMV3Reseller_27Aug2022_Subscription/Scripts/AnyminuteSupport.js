@@ -1,15 +1,18 @@
-/* 2026-10-28 v26: Verify Address also queries the existing address lookup (suggestions).
+/* 2026-10-29 v28: Reports hub - data-sa-noauto (no auto-apply on select change), data-sa-extra (adds e.g. export=pdf)
+   and data-sa-form (a button outside the filter box applies that box).
+   2026-10-28 v26: Verify Address also queries the existing address lookup (suggestions).
    2026-10-28 v25 Support Admin console (Shamsu decks 1-4): filters, row menus, dialogs, counters and the
    client-side Verify Address check (the server re-verifies on Approve & Add to Database). */
 (function () {
   'use strict';
   function $all(sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); }
-  function apply(box) {
+  function apply(box, extra) {
     var q = [];
     $all('input[name],select[name]', box).forEach(function (el) {
       if ((el.type === 'checkbox' || el.type === 'radio') && !el.checked) return;
       if (el.value !== '') q.push(encodeURIComponent(el.name) + '=' + encodeURIComponent(el.value));
     });
+    if (extra) q.push(extra);
     window.location.href = box.getAttribute('data-sa-get') + (q.length ? '?' + q.join('&') : '');
   }
   var rules = {
@@ -28,8 +31,20 @@
   document.addEventListener('DOMContentLoaded', function () {
     $all('[data-sa-get]').forEach(function (box) {
       box.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); apply(box); } });
-      $all('[data-sa-apply]', box).forEach(function (b) { b.addEventListener('click', function () { apply(box); }); });
-      $all('select', box).forEach(function (s) { s.addEventListener('change', function () { apply(box); }); });
+      $all('[data-sa-apply]', box).forEach(function (b) { b.addEventListener('click', function () { apply(box, b.getAttribute('data-sa-extra')); }); });
+      if (!box.hasAttribute('data-sa-noauto')) $all('select', box).forEach(function (s) { s.addEventListener('change', function () { apply(box); }); });
+    });
+    $all('[data-sa-genpw]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var t = document.getElementById(b.getAttribute('data-sa-genpw')); if (!t) return;
+        var sets = ['ABCDEFGHJKLMNPQRSTUVWXYZ', 'abcdefghijkmnpqrstuvwxyz', '23456789', '@#$%!'], all = sets.join(''), r = new Uint32Array(12), out = '';
+        (window.crypto || window.msCrypto).getRandomValues(r);
+        for (var i = 0; i < 12; i++) { var src = i < 4 ? sets[i] : all; out += src.charAt(r[i] % src.length); }
+        t.value = out; t.focus(); t.select();
+      });
+    });
+    $all('[data-sa-form]').forEach(function (b) {
+      b.addEventListener('click', function () { var box = document.getElementById(b.getAttribute('data-sa-form')); if (box) apply(box, b.getAttribute('data-sa-extra')); });
     });
     $all('[data-sa-all]').forEach(function (all) {
       all.addEventListener('change', function () { $all('tbody input[type=checkbox]', all.closest('table')).forEach(function (c) { c.checked = all.checked; }); });

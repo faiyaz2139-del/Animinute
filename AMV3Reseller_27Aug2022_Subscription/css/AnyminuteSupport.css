@@ -120,3 +120,27 @@
 @media (max-width:1100px){.sa-flow{grid-template-columns:1fr 1fr}.sa-flow>li::after{display:none}.sa-split{flex-direction:column}.sa-panel{width:100%;position:static;max-height:none}.sa-kpis{grid-template-columns:1fr 1fr}.sa-grid2,.sa-actions3{grid-template-columns:1fr}}
 .sa-grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.sa-grid3 .sa-card h2{margin:6px 0}@media(max-width:800px){.sa-grid3{grid-template-columns:1fr}}
 .sa-suggest{margin-top:6px;text-align:left;white-space:normal}
+/* 2026-10-29 v28: Reports hub (deck 1 slides 1-2, deck 2 slides 3-4) and Resellers (deck 2 slides 1-2) */
+.sa-rpt{display:flex;gap:18px;align-items:flex-start}
+.sa-rpt-nav{width:250px;flex:none;background:#fff;border:1px solid var(--sa-line);border-radius:12px;padding:12px;position:sticky;top:12px}
+.sa-rpt-nav h4{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--sa-mute);margin:8px 6px 6px}
+.sa-rpt-nav ol{list-style:none;margin:0 0 10px;padding:0;counter-reset:rpt}
+.sa-rpt-nav li{counter-increment:rpt}
+.sa-rpt-nav a{display:block;padding:7px 8px;border-radius:8px;color:var(--sa-ink)!important;text-decoration:none!important;font-weight:500}
+.sa-rpt-nav a::before{content:counter(rpt) ". ";color:var(--sa-mute)}
+.sa-rpt-nav a:hover{background:var(--sa-bg)}.sa-rpt-nav a.on{background:#eaf2ff;color:var(--sa-blue)!important;font-weight:700}
+.sa-rpt-main{flex:1;min-width:0}
+.sa-rpt-export{display:flex;gap:8px;flex-wrap:wrap}
+.sa-rpt-cardhead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:10px}
+.sa-rpt-cardhead h2{margin:0}
+.sa-rpt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:4px 14px}
+.sa-rpt-dates{display:flex;align-items:center;gap:4px;margin-top:4px;font-weight:400}
+.sa-rpt-dates input{padding:5px 6px!important}
+.sa-rpt-opts{display:flex;flex-wrap:wrap;gap:8px 22px;margin-bottom:6px}
+.sa-rpt-go{display:flex;justify-content:flex-end;margin-top:12px}
+.sa-rpt-kpis{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.sa-rpt-empty{padding:28px;text-align:center;color:var(--sa-mute);background:var(--sa-bg);border-radius:10px;margin:0}
+.sa-rsl-perms{display:grid;grid-template-columns:1fr 1fr;gap:8px 20px}
+.sa-rsl-pw{display:flex;gap:8px;align-items:center}
+.sa-nowrap{white-space:nowrap}
+@media (max-width:1100px){.sa-rpt{flex-direction:column}.sa-rpt-nav{width:100%;position:static}.sa-rsl-perms{grid-template-columns:1fr}}

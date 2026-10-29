@@ -216,12 +216,13 @@ public static class AnyminuteSupportAdmin
     {
         var items = new List<string[]> {
             new[] { "Dashboard", "~/SuperAdmin.aspx", "" },
+            new[] { "Resellers", "~/SupportResellers.aspx", "" }, // v28 deck 2
             new[] { "Subscribers", "~/SupportSubscribers.aspx", "" },
             new[] { "Subscription Plans", "~/SupportPlans.aspx", "" },
             new[] { "Usage & Limits", "~/SupportPlans.aspx?view=usage", "" },
             new[] { "Support Tickets", "~/SupportTickets.aspx", OpenTickets().ToString(CultureInfo.InvariantCulture) },
             new[] { "Address Verification", "~/SupportAddresses.aspx", PendingAddresses().ToString(CultureInfo.InvariantCulture) } };
-        if (reportsHref != null) items.Add(new[] { "Reports", reportsHref, "" });
+        items.Add(new[] { "Reports", "~/SupportReports.aspx", "" }); // v28: Support Admin Reports hub (12 support + 8 reseller reports); reportsHref kept for the signature
         if (settingsHref != null) items.Add(new[] { "Settings", settingsHref, "" });
         var html = new StringBuilder();
         foreach (var i in items)
