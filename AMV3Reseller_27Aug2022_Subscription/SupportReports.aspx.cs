@@ -7,6 +7,7 @@ using System.Web;
 using SA = AnyminuteSupportAdmin;
 using SR = AnyminuteSupportReports;
 
+// 2026-10-29 v30: Report Filters card per the Support Ticket mock (range3 = Date Range / From / To cells).
 // 2026-10-29 v28 (Shamsu deck 1 slides 1-2, deck 2 slides 3-4): Support Admin Reports hub.
 // Left list of the 12 Support reports and 8 Reseller reports; each report has the deck layout: title + instruction,
 // Export PDF / Export Excel (top right), Filters card with Clear All, Additional Options, Generate Report, then KPIs + preview.
@@ -25,17 +26,19 @@ public partial class AnyminuteSupportReportsPage : System.Web.UI.Page
         sb.Append("<header class='sa-head'><div><h1>").Append(SA.H(def.Name)).Append(" Report</h1><p>").Append(SA.H(def.Purpose)).Append(" Select filters to generate the report.</p></div>")
           .Append("<div class='sa-rpt-export'><button type='button' class='sa-btn sa-btn-outline' data-sa-apply='1' data-sa-extra='export=pdf' data-sa-form='sa-rpt-form'>&#128196; Export PDF</button>")
           .Append("<button type='button' class='sa-btn sa-btn-outline' data-sa-apply='1' data-sa-extra='export=excel' data-sa-form='sa-rpt-form'>&#128200; Export Excel</button></div></header>");
-        sb.Append("<div class='sa-card' id='sa-rpt-form' data-sa-get='SupportReports.aspx' data-sa-noauto='1'><input type='hidden' name='r' value='").Append(SA.A(def.Key)).Append("' /><input type='hidden' name='gen' value='1' />")
-          .Append("<div class='sa-rpt-cardhead'><h2>Filters</h2><a class='sa-link' href='SupportReports.aspx?r=").Append(HttpUtility.UrlEncode(def.Key)).Append("'>Clear All</a></div><div class='sa-rpt-grid'>");
+        // v30 (Pandey post-v29, Support Ticket mock): "Report Filters" card (funnel icon, Clear All button), 3-column filter grid,
+        // Additional Options band with gear icon and Generate Report bottom-left. Same layout for every report in the hub.
+        sb.Append("<div class='sa-card sa-rpt-card' id='sa-rpt-form' data-sa-get='SupportReports.aspx' data-sa-noauto='1'><input type='hidden' name='r' value='").Append(SA.A(def.Key)).Append("' /><input type='hidden' name='gen' value='1' />")
+          .Append("<div class='sa-rpt-cardhead'><h2><i class='sa-rpt-ico' aria-hidden='true'>&#9660;</i> Report Filters</h2><a class='sa-btn sa-btn-outline sa-btn-sm' href='SupportReports.aspx?r=").Append(HttpUtility.UrlEncode(def.Key)).Append("'>&#8635; Clear All</a></div><div class='sa-rpt-grid'>");
         foreach (var f in def.Filters) sb.Append(Filter(f, gen ? q : new NameValueCollection(), run.Base));
         sb.Append("</div>");
         if (def.Options.Length > 0)
         {
-            sb.Append("<h3>Additional Options</h3><div class='sa-rpt-opts'>");
+            sb.Append("<div class='sa-rpt-optband'><h3><i class='sa-rpt-ico' aria-hidden='true'>&#9881;</i> Additional Options</h3><div class='sa-rpt-opts'>");
             foreach (var o in def.Options) sb.Append("<label class='sa-check'><input type='checkbox' name='o_").Append(o[0]).Append("' value='1'").Append(run.On.Contains(o[0]) ? " checked" : "").Append(" /> ").Append(SA.H(o[1])).Append("</label>");
-            sb.Append("</div>");
+            sb.Append("</div></div>");
         }
-        sb.Append("<div class='sa-rpt-go'><button type='button' class='sa-btn' data-sa-apply='1'>Generate Report</button></div></div>");
+        sb.Append("<div class='sa-rpt-go'><button type='button' class='sa-btn' data-sa-apply='1'>&#128269; Generate Report</button></div></div>");
         if (run.Error != null) sb.Append("<div class='sa-flash sa-warn'>").Append(SA.H(run.Error)).Append("</div>");
         if (!gen) sb.Append("<div class='sa-card sa-rpt-hint'><p class='sa-muted'>Choose filters and click <strong>Generate Report</strong> to preview the results. Exports use the same filters.</p></div>");
         else sb.Append(Result(run));
@@ -57,6 +60,17 @@ public partial class AnyminuteSupportReportsPage : System.Web.UI.Page
     {
         string n = "f_" + f.Key, v = q[n] ?? "";
         var sb = new StringBuilder("<label class='sa-field'><span>").Append(SA.H(f.Label)).Append("</span>");
+        if (f.Type == "range3")
+        {
+            // v30: three grid cells - Date Range * (defaults to Custom Range), From Date *, To Date * (this year to today by default).
+            var t = DateTime.Today; bool fresh = q[n + "_preset"] == null;
+            string p = fresh ? "Custom Range" : q[n + "_preset"], a = fresh ? new DateTime(t.Year, 1, 1).ToString("yyyy-MM-dd") : q[n + "_from"], b = fresh ? t.ToString("yyyy-MM-dd") : q[n + "_to"];
+            sb = new StringBuilder("<label class='sa-field'><span>").Append(SA.H(f.Label)).Append(" <b class='sa-req'>*</b></span><select name='").Append(n).Append("_preset'>");
+            foreach (var r in SR.Ranges) sb.Append("<option").Append(r == p ? " selected" : "").Append(">").Append(r).Append("</option>");
+            sb.Append("</select></label><label class='sa-field'><span>From Date <b class='sa-req'>*</b></span><input type='date' name='").Append(n).Append("_from' value='").Append(SA.A(a)).Append("' /></label>")
+              .Append("<label class='sa-field'><span>To Date <b class='sa-req'>*</b></span><input type='date' name='").Append(n).Append("_to' value='").Append(SA.A(b)).Append("' /><small class='sa-muted'>From / To apply with Custom Range.</small>");
+            return sb.Append("</label>").ToString();
+        }
         if (f.Type == "range")
         {
             string p = q[n + "_preset"] ?? "All Dates";

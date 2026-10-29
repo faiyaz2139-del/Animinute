@@ -38,7 +38,7 @@ public sealed class SrDef
 public static partial class AnyminuteSupportReports
 {
     static readonly CultureInfo Inv = CultureInfo.InvariantCulture;
-    public const string Build = "v28";
+    public const string Build = "v30";
     public const int PreviewRows = 500;
     // ---------- formatting ----------
     static string Day(object o) { if (o == null || o == DBNull.Value) return ""; DateTime d; return DateTime.TryParse(Convert.ToString(o, Inv), Inv, DateTimeStyles.None, out d) ? d.ToString("yyyy-MM-dd", Inv) : SA.S(o); }

@@ -55,7 +55,7 @@ public static partial class AnyminuteSupportReports
         foreach (var f in def.Filters)
         {
             int i = run.Base.Ix(f.Col); if (i < 0 && f.Type != "param") continue;
-            if (f.Type == "range")
+            if (f.Type == "range" || f.Type == "range3")
             {
                 string p = q["f_" + f.Key + "_preset"] ?? ""; DateTime? a, b; RangeBounds(p, q["f_" + f.Key + "_from"], q["f_" + f.Key + "_to"], out a, out b);
                 if (a == null && b == null) continue; int ix = i;

@@ -144,3 +144,24 @@
 .sa-rsl-pw{display:flex;gap:8px;align-items:center}
 .sa-nowrap{white-space:nowrap}
 @media (max-width:1100px){.sa-rpt{flex-direction:column}.sa-rpt-nav{width:100%;position:static}.sa-rsl-perms{grid-template-columns:1fr}}
+/* 2026-10-29 v30 (Pandey post-v29): Support Ticket "Report Filters" card, Resellers list and Add Reseller per the Shamsu mocks */
+.sa-rpt-ico{font-style:normal;color:var(--sa-blue);margin-right:4px}
+.sa-req{color:#d92d2d;font-weight:700}
+.sa-rpt-card .sa-rpt-cardhead{align-items:center;border-bottom:1px solid var(--sa-line);padding-bottom:10px;margin-bottom:12px}
+.sa-rpt-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 16px}
+.sa-rpt-optband{background:var(--sa-bg);border:1px solid var(--sa-line);border-radius:10px;padding:10px 14px;margin-top:12px}
+.sa-rpt-optband h3{font-size:14px;font-weight:700;margin:0 0 8px}
+.sa-rpt-go{justify-content:flex-start}
+.sa-btn-lg{padding:10px 18px;font-size:14px}
+.sa-rsl-bar{padding:12px 16px}.sa-rsl-bar .sa-filters{margin:0}
+.sa-search{position:relative}.sa-search>i{position:absolute;left:10px;bottom:8px;font-style:normal;color:var(--sa-mute)}.sa-search input{padding-left:30px!important}
+.sa-kpi small{display:block;font-size:11px}
+.sa-rsl-pager{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px}
+.sa-rsl-pager .sa-pg-off{display:inline-flex;min-width:30px;height:30px;align-items:center;justify-content:center;color:#b6bfcc;border:1px solid var(--sa-line);border-radius:6px}
+.sa-rsl-size{display:flex;align-items:center;gap:6px;font-weight:400;margin:0}.sa-rsl-size select{width:auto;border:1px solid #cfd6e2;border-radius:6px;padding:4px 6px}
+.sa-head-ico{display:flex;gap:12px;align-items:center}
+.sa-rsl-cols{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px;align-items:start}
+.sa-rsl-perms1{grid-template-columns:1fr}.sa-rsl-gap{height:6px}
+.sa-rsl-pw input{flex:1}
+@media (max-width:1100px){.sa-rpt-grid{grid-template-columns:1fr 1fr}.sa-rsl-cols{grid-template-columns:1fr}}
+@media (max-width:640px){.sa-rpt-grid{grid-template-columns:1fr}}

@@ -218,12 +218,13 @@ public static class AnyminuteSupportAdmin
             new[] { "Dashboard", "~/SuperAdmin.aspx", "" },
             new[] { "Resellers", "~/SupportResellers.aspx", "" }, // v28 deck 2
             new[] { "Subscribers", "~/SupportSubscribers.aspx", "" },
+            new[] { "Businesses", "~/SupportBusinesses.aspx", "" }, // v30 deck 2 nav
             new[] { "Subscription Plans", "~/SupportPlans.aspx", "" },
             new[] { "Usage & Limits", "~/SupportPlans.aspx?view=usage", "" },
             new[] { "Support Tickets", "~/SupportTickets.aspx", OpenTickets().ToString(CultureInfo.InvariantCulture) },
             new[] { "Address Verification", "~/SupportAddresses.aspx", PendingAddresses().ToString(CultureInfo.InvariantCulture) } };
         items.Add(new[] { "Reports", "~/SupportReports.aspx", "" }); // v28: Support Admin Reports hub (12 support + 8 reseller reports); reportsHref kept for the signature
-        if (settingsHref != null) items.Add(new[] { "Settings", settingsHref, "" });
+        items.Add(new[] { "Settings", settingsHref ?? "~/SupportAdminProfile.aspx", "" }); // v30: deck nav always ends with Settings (profile when no email-settings permission)
         var html = new StringBuilder();
         foreach (var i in items)
         {

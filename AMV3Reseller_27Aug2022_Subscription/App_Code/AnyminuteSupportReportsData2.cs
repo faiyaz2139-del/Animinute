@@ -13,12 +13,17 @@ public static partial class AnyminuteSupportReports
 {
     static DataTable Tickets(SqlConnection c)
     {
-        bool meta = SA.Has(c, "AnyminuteTicketMeta");
+        bool meta = SA.Has(c, "AnyminuteTicketMeta"), audit = SA.Has(c, "AnyminuteSupportAudit");
         return SA.Q(c, "SELECT t.TicketId,t.TicketNo,t.Name,t.BusinessName,t.ProblemType,t.Module,t.TicketSeverity,t.StatusType,t.TicketRaiseDate,t.TicketResolveDate,t.Description," +
             (meta ? "m.Subject,m.Category,m.Priority,m.AssignedTo,ISNULL(m.Archived,0) Archived" : "CAST(NULL AS nvarchar(200)) Subject,CAST(NULL AS nvarchar(60)) Category,CAST(NULL AS varchar(10)) Priority,CAST(NULL AS nvarchar(150)) AssignedTo,CAST(0 AS bit) Archived") +
             ",(SELECT MIN(k.CommentsDate) FROM Ticket_Comments k WHERE k.TicketId=t.TicketId) FirstComment,(SELECT MAX(k.CommentsDate) FROM Ticket_Comments k WHERE k.TicketId=t.TicketId) LastComment" +
             ",(SELECT TOP 1 k.Comments FROM Ticket_Comments k WHERE k.TicketId=t.TicketId ORDER BY k.CommentsDate DESC,k.TicketCommentId DESC) LastText" +
-            ",(SELECT COUNT(*) FROM Ticket_Comments k WHERE k.TicketId=t.TicketId) Replies FROM Ticket t" + (meta ? " LEFT JOIN AnyminuteTicketMeta m ON m.TicketId=t.TicketId" : "") + " ORDER BY t.TicketRaiseDate DESC,t.TicketId DESC");
+            ",(SELECT COUNT(*) FROM Ticket_Comments k WHERE k.TicketId=t.TicketId) Replies" +
+            // v30: Created By (the audit "Created" row when Support raised it, else the requester) and the latest internal (audit) note.
+            (audit ? ",(SELECT TOP 1 a.ChangedByName FROM AnyminuteSupportAudit a WHERE a.Entity='Ticket' AND a.EntityKey=CAST(t.TicketId AS nvarchar(50)) AND a.Action='Created' ORDER BY a.AuditID) CreatedBy" +
+                ",(SELECT TOP 1 a.Comments FROM AnyminuteSupportAudit a WHERE a.Entity='Ticket' AND a.EntityKey=CAST(t.TicketId AS nvarchar(50)) AND ISNULL(a.Comments,'')<>'' ORDER BY a.AuditID DESC) InternalNote"
+                : ",CAST(NULL AS nvarchar(150)) CreatedBy,CAST(NULL AS nvarchar(max)) InternalNote") +
+            " FROM Ticket t" + (meta ? " LEFT JOIN AnyminuteTicketMeta m ON m.TicketId=t.TicketId" : "") + " ORDER BY t.TicketRaiseDate DESC,t.TicketId DESC");
     }
     static string Prio(DataRow r) { string p = SA.S(r["Priority"]); if (p.Length > 0) return p; string s = SA.S(r["TicketSeverity"]); return s == "1" ? "High" : s == "3" ? "Low" : "Medium"; }
     static double? Hours(object from, object to) { var a = Dt(from); var b = Dt(to); return a == null || b == null || b < a ? (double?)null : (b.Value - a.Value).TotalHours; }
@@ -32,19 +37,22 @@ public static partial class AnyminuteSupportReports
         if (last != null && (raised == null || last.Value >= raised.Value)) return r["LastComment"];
         return DBNull.Value;
     }
+    public static readonly string[] ResolutionStatuses = { "Resolved within SLA", "Resolved after SLA", "Resolved (time unknown)", "Unresolved" };
     // 6 Support Ticket
     static SrData SupportTicket(SqlConnection c, NameValueCollection q)
     {
-        var d = new SrData("Ticket ID", "Subject", "Subscriber", "Business", "Ticket Type", "Category", "Priority", "Status", "Assigned To", "Created Date", "First Response (hrs)", "Resolution (hrs)", "Resolved Date", "Replies", "Latest Update", "Description", "Archived");
+        var d = new SrData("Ticket ID", "Subject", "Subscriber", "Business", "Ticket Type", "Category", "Priority", "Status", "Assigned To", "Created By", "Created Date", "Resolution Status", "First Response (hrs)", "Resolution (hrs)", "Resolved Date", "Replies", "Latest Update", "Description", "Archived", "Internal Notes");
         foreach (DataRow r in Tickets(c).Rows)
         {
             string st = SA.StatusLabel(r["StatusType"]); string cat = SA.S(r["Category"]); if (cat.Length == 0) cat = SA.LegacyCategory(r["ProblemType"], r["Module"]);
             string subj = SA.S(r["Subject"]); if (subj.Length == 0) subj = TicketType(r["ProblemType"]);
-            d.Add(Ticket(r["TicketNo"], r["TicketId"]), subj, r["Name"], r["BusinessName"], TicketType(r["ProblemType"]), cat, Prio(r), st, SA.S(r["AssignedTo"]).Length == 0 ? "Unassigned" : r["AssignedTo"], Stamp(r["TicketRaiseDate"]),
-                Hrs(Hours(r["TicketRaiseDate"], r["FirstComment"])), st == "Resolved" ? Hrs(Hours(r["TicketRaiseDate"], ResolvedAt(r))) : "",
-                st == "Resolved" ? Stamp(ResolvedAt(r)) : "", r["Replies"], r["LastText"], r["Description"], Convert.ToBoolean(r["Archived"]) ? "Yes" : "No");
+            double? rh = st == "Resolved" ? Hours(r["TicketRaiseDate"], ResolvedAt(r)) : null; string by = SA.S(r["CreatedBy"]); if (by.Length == 0) by = SA.S(r["Name"]);
+            string rs = st != "Resolved" ? "Unresolved" : rh == null ? "Resolved (time unknown)" : rh.Value <= 24 ? "Resolved within SLA" : "Resolved after SLA";
+            d.Add(Ticket(r["TicketNo"], r["TicketId"]), subj, r["Name"], r["BusinessName"], TicketType(r["ProblemType"]), cat, Prio(r), st, SA.S(r["AssignedTo"]).Length == 0 ? "Unassigned" : r["AssignedTo"], by, Stamp(r["TicketRaiseDate"]), rs,
+                Hrs(Hours(r["TicketRaiseDate"], r["FirstComment"])), Hrs(rh),
+                st == "Resolved" ? Stamp(ResolvedAt(r)) : "", r["Replies"], r["LastText"], r["Description"], Convert.ToBoolean(r["Archived"]) ? "Yes" : "No", r["InternalNote"]);
         }
-        d.Opt("details", "Description", "Ticket Type", "Business").Opt("latest", "Latest Update", "Replies").Opt("time", "First Response (hrs)", "Resolution (hrs)").Opt("archived", "Archived");
+        d.Opt("details", "Description", "Ticket Type", "Business", "Archived").Opt("latest", "Latest Update", "Replies").Opt("time", "First Response (hrs)", "Resolution (hrs)").Opt("notes", "Internal Notes");
         d.Note = "First response = first reply in Ticket_Comments; resolution = raised to resolved (legacy resolve dates equal to the raise date are placeholders, so the last reply is used). Closed is not a separate legacy status, so resolved tickets count as closed.";
         return d;
     }

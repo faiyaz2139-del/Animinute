@@ -11,6 +11,7 @@ using System.Web;
 using SA = AnyminuteSupportAdmin;
 using RS = AnyminuteResellers;
 
+// 2026-10-29 v30: list + Add Reseller re-laid out to the deck 2 mocks (Pandey post-v29 notes).
 // 2026-10-29 v28 (Shamsu deck 2 slides 1-2): Support Admin > Resellers. List (KPIs, search, Status / Plan / Sort, Clear Filters,
 // Export, pagination, View + row menu), Add Reseller form (information, permissions, account & access with a generated temporary
 // password that is stored only as a salted SHA-256 hash, optional welcome email, limits, internal notes) and the reseller view
@@ -18,8 +19,9 @@ using RS = AnyminuteResellers;
 public partial class AnyminuteSupportResellersPage : System.Web.UI.Page
 {
     static readonly CultureInfo Inv = CultureInfo.InvariantCulture;
-    static readonly string[] Sorts = { "Newest First", "Oldest First", "Name A-Z", "Name Z-A", "Most Subscribers" };
-    const int PageSize = 10;
+    static readonly string[] Sorts = { "Created Date (Newest)", "Created Date (Oldest)", "Name (A-Z)", "Name (Z-A)", "Most Subscribers" }; // v30 mock labels
+    static readonly int[] Sizes = { 10, 20, 50 };
+    int PageSize = 20;
     protected void Page_Init(object sender, EventArgs e) { SA.Require(); }
     protected void Page_Load(object sender, EventArgs e)
     {
@@ -67,33 +69,40 @@ public partial class AnyminuteSupportResellersPage : System.Web.UI.Page
         if (plan.Length > 0) rows = rows.Where(r => SA.S(r["PlanName"]) == plan);
         switch (sort)
         {
-            case "Oldest First": rows = rows.OrderBy(r => r["CreatedAtUTC"]); break;
-            case "Name A-Z": rows = rows.OrderBy(r => SA.S(r["ResellerName"]), StringComparer.OrdinalIgnoreCase); break;
-            case "Name Z-A": rows = rows.OrderByDescending(r => SA.S(r["ResellerName"]), StringComparer.OrdinalIgnoreCase); break;
+            case "Created Date (Oldest)": case "Oldest First": rows = rows.OrderBy(r => r["CreatedAtUTC"]); break;
+            case "Name (A-Z)": case "Name A-Z": rows = rows.OrderBy(r => SA.S(r["ResellerName"]), StringComparer.OrdinalIgnoreCase); break;
+            case "Name (Z-A)": case "Name Z-A": rows = rows.OrderByDescending(r => SA.S(r["ResellerName"]), StringComparer.OrdinalIgnoreCase); break;
             case "Most Subscribers": rows = rows.OrderByDescending(r => Convert.ToInt32(r["Subscribers"])); break;
         }
         return rows.ToList();
     }
+    // v30 (Pandey post-v29, Shamsu deck 2 Resellers mock): header with + Add Reseller only, KPI cards, filter bar (search with icon,
+    // Status / Plan / Sort By, Clear Filters button), "Reseller List" card with Export, full table chrome even when empty,
+    // "Showing x to y of z resellers", prev / page / next and Show [n] per page.
     string List(List<DataRow> all, List<DataRow> rows, bool ready)
     {
         string q = SA.Get("q"), st = SA.Get("status"), plan = SA.Get("plan"), sort = SA.Get("sort"); int page; if (!Int32.TryParse(SA.Get("page"), out page) || page < 1) page = 1;
-        string qs = "q=" + HttpUtility.UrlEncode(q) + "&status=" + HttpUtility.UrlEncode(st) + "&plan=" + HttpUtility.UrlEncode(plan) + "&sort=" + HttpUtility.UrlEncode(sort);
-        Func<string, string, string, object, string> kpi = (icon, label, tone, n) => "<div class='sa-kpi'><i class='sa-kpi-icon sa-" + tone + "' aria-hidden='true'>" + icon + "</i><div><span>" + label + "</span><strong>" + n + "</strong></div></div>";
-        var sb = new StringBuilder("<header class='sa-head'><div><h1>Resellers</h1><p>Manage resellers, their subscribers and access.</p></div><div class='sa-rpt-export'>")
-            .Append("<a class='sa-btn sa-btn-outline' href='SupportResellers.aspx?").Append(SA.A(qs)).Append("&amp;export=excel'>&#128200; Export</a>")
-            .Append(ready ? "<a class='sa-btn' href='SupportResellers.aspx?add=1'>+ Add Reseller</a>" : "<span class='sa-btn' aria-disabled='true' style='opacity:.5'>+ Add Reseller</span>").Append("</div></header>");
-        sb.Append("<div class='sa-kpis'>").Append(kpi("&#128101;", "Total Resellers", "blue", all.Count)).Append(kpi("&#10004;", "Active Resellers", "green", all.Count(r => St(r) == "Active")))
-          .Append(kpi("&#10006;", "Inactive Resellers", "red", all.Count(r => St(r) == "Inactive"))).Append(kpi("&#128100;", "Total Subscribers", "purple", all.Sum(r => Convert.ToInt32(r["Subscribers"])))).Append("</div>");
+        int size; if (Int32.TryParse(SA.Get("size"), out size) && Sizes.Contains(size)) PageSize = size;
+        int pages = Math.Max(1, (rows.Count + PageSize - 1) / PageSize); if (page > pages) page = pages;
+        string qs = "q=" + HttpUtility.UrlEncode(q) + "&status=" + HttpUtility.UrlEncode(st) + "&plan=" + HttpUtility.UrlEncode(plan) + "&sort=" + HttpUtility.UrlEncode(sort) + "&size=" + PageSize.ToString(Inv);
+        Func<string, string, string, object, string, string> kpi = (icon, label, tone, n, sub) => "<div class='sa-kpi'><i class='sa-kpi-icon sa-" + tone + "' aria-hidden='true'>" + icon + "</i><div><span>" + label + "</span><strong>" + n + "</strong>" + (sub == null ? "" : "<small class='sa-muted'>" + sub + "</small>") + "</div></div>";
+        var sb = new StringBuilder("<header class='sa-head'><div><h1>Resellers</h1><p>Manage reseller accounts. Resellers can create and manage their own subscribers.</p></div>")
+            .Append(ready ? "<a class='sa-btn sa-btn-lg' href='SupportResellers.aspx?add=1'>+ Add Reseller</a>" : "<span class='sa-btn sa-btn-lg' aria-disabled='true' style='opacity:.5'>+ Add Reseller</span>").Append("</header>");
+        sb.Append("<div class='sa-kpis'>").Append(kpi("&#128101;", "Total Resellers", "blue", all.Count, null)).Append(kpi("&#128101;", "Active Resellers", "green", all.Count(r => St(r) == "Active"), null))
+          .Append(kpi("&#128101;", "Inactive Resellers", "red", all.Count(r => St(r) == "Inactive"), null)).Append(kpi("&#128100;", "Total Subscribers", "purple", all.Sum(r => Convert.ToInt32(r["Subscribers"])), "Under All Resellers")).Append("</div>");
         sb.Append(LegacyNote()); // v29
-        sb.Append("<div class='sa-card'><div class='sa-filters' data-sa-get='SupportResellers.aspx'><label class='sa-grow'><span>Search</span><input type='search' name='q' value='").Append(SA.A(q)).Append("' placeholder='Search by reseller name, email or phone...' /></label>")
-          .Append("<label><span>Status</span><select name='status'>").Append(SA.Options(new[] { "Active", "Inactive" }, st, "All Status")).Append("</select></label>")
-          .Append("<label><span>Plan</span><select name='plan'>").Append(SA.Options(RS.Plans, plan, "All Plans")).Append("</select></label>")
-          .Append("<label><span>Sort By</span><select name='sort'>").Append(SA.Options(Sorts, sort.Length == 0 ? Sorts[0] : sort, null)).Append("</select></label>")
-          .Append("<button type='button' class='sa-btn' data-sa-apply='1'>Search</button><a class='sa-link' href='SupportResellers.aspx'>Clear Filters</a></div>");
-        if (rows.Count == 0) sb.Append("<p class='sa-rpt-empty'>").Append(all.Count == 0 ? (ready ? "No resellers yet. Use + Add Reseller to create the first one." : "Reseller tables are not installed yet.") : "No resellers match these filters.").Append("</p>");
+        sb.Append("<div class='sa-card sa-rsl-bar'><div class='sa-filters' data-sa-get='SupportResellers.aspx'><input type='hidden' name='size' value='").Append(PageSize).Append("' />")
+          .Append("<label class='sa-grow sa-search'><span class='sr-only'>Search</span><i aria-hidden='true'>&#128269;</i><input type='search' name='q' value='").Append(SA.A(q)).Append("' placeholder='Search by reseller name, contact, or email...' /></label>")
+          .Append("<label><span>Status</span><select name='status'>").Append(SA.Options(new[] { "Active", "Inactive" }, st, "All")).Append("</select></label>")
+          .Append("<label><span>Plan</span><select name='plan'>").Append(SA.Options(RS.Plans, plan, "All")).Append("</select></label>")
+          .Append("<label><span>Sort By</span><select name='sort'>").Append(SA.Options(Sorts, Sorts.Contains(sort) ? sort : Sorts[0], null)).Append("</select></label>")
+          .Append("<a class='sa-btn sa-btn-outline' href='SupportResellers.aspx'>Clear Filters</a></div></div>");
+        sb.Append("<div class='sa-card'><div class='sa-rpt-cardhead'><h2>Reseller List</h2><a class='sa-btn sa-btn-outline sa-btn-sm' href='SupportResellers.aspx?").Append(SA.A(qs)).Append("&amp;export=excel'>&#8682; Export</a></div>")
+          .Append("<div class='sa-table-wrap'><table class='sa-table'><thead><tr><th>#</th><th>Reseller Name</th><th>Contact Person</th><th>Email</th><th>Phone</th><th>Plan</th><th>Status</th><th>Subscribers</th><th>Businesses</th><th>Created Date</th><th>Actions</th></tr></thead><tbody>");
+        if (rows.Count == 0)
+            sb.Append("<tr><td colspan='11' class='sa-rpt-empty'>").Append(all.Count == 0 ? (ready ? "No resellers yet. Use + Add Reseller to create the first one." : "Reseller tables are not installed yet (run DB_REQUIRED/REQUIRED_09_Resellers.sql).") : "No resellers match these filters.").Append("</td></tr>");
         else
         {
-            sb.Append("<div class='sa-table-wrap'><table class='sa-table'><thead><tr><th>#</th><th>Reseller Name</th><th>Contact Person</th><th>Email</th><th>Phone</th><th>Plan</th><th>Status</th><th>Subscribers</th><th>Businesses</th><th>Created Date</th><th>Actions</th></tr></thead><tbody>");
             int n = (page - 1) * PageSize;
             foreach (var r in rows.Skip((page - 1) * PageSize).Take(PageSize))
             {
@@ -107,8 +116,18 @@ public partial class AnyminuteSupportResellersPage : System.Web.UI.Page
                   .Append("<button type='submit' name='sa_op' value='login' formnovalidate='formnovalidate' class='sa-menu-item' data-sa-set='sa_id=").Append(id).Append("' data-sa-confirm='").Append(off ? "Enable" : "Disable").Append(" login for this reseller?'><i aria-hidden='true'>&#128274;</i><span><b>").Append(off ? "Enable Login" : "Disable Login").Append("</b><small>Control reseller portal access</small></span></button>")
                   .Append("</div></details></td></tr>");
             }
-            sb.Append("</tbody></table></div><input type='hidden' name='sa_id' value='' />").Append(SA.Pager(rows.Count, page, PageSize, qs));
         }
+        sb.Append("</tbody></table></div><input type='hidden' name='sa_id' value='' />");
+        // v30 footer: Showing x to y of z resellers | < 1 2 > | Show [n] per page
+        string bq = "SupportResellers.aspx?q=" + HttpUtility.UrlEncode(q) + "&status=" + HttpUtility.UrlEncode(st) + "&plan=" + HttpUtility.UrlEncode(plan) + "&sort=" + HttpUtility.UrlEncode(sort);
+        Func<int, string> pg = i => SA.A(bq + "&size=" + PageSize.ToString(Inv) + "&page=" + i.ToString(Inv));
+        sb.Append("<div class='sa-pager sa-rsl-pager'><span>Showing ").Append(rows.Count == 0 ? 0 : (page - 1) * PageSize + 1).Append(" to ").Append(Math.Min(rows.Count, page * PageSize)).Append(" of ").Append(rows.Count).Append(" reseller").Append(rows.Count == 1 ? "" : "s").Append("</span><nav aria-label='Pages'>")
+          .Append(page > 1 ? "<a href='" + pg(page - 1) + "' aria-label='Previous page'>&lsaquo;</a>" : "<span class='sa-pg-off' aria-hidden='true'>&lsaquo;</span>");
+        for (int i = Math.Max(1, page - 4); i <= Math.Min(pages, Math.Max(1, page - 4) + 9); i++) sb.Append("<a href='").Append(pg(i)).Append("'").Append(i == page ? " class='on' aria-current='page'" : "").Append(">").Append(i).Append("</a>");
+        sb.Append(page < pages ? "<a href='" + pg(page + 1) + "' aria-label='Next page'>&rsaquo;</a>" : "<span class='sa-pg-off' aria-hidden='true'>&rsaquo;</span>")
+          .Append("</nav><label class='sa-rsl-size'>Show <select onchange=\"location.href='").Append(SA.A(bq)).Append("&size='+this.value\">");
+        foreach (int z in Sizes) sb.Append("<option").Append(z == PageSize ? " selected" : "").Append(">").Append(z).Append("</option>");
+        sb.Append("</select> per page</label></div>");
         return sb.Append("</div>").ToString();
     }
     void Export(List<DataRow> rows)
@@ -130,35 +149,41 @@ public partial class AnyminuteSupportResellersPage : System.Web.UI.Page
     {
         string dis = ready ? "" : " disabled";
         Func<string, string, string, string, string> input = (label, name, type, extra) => "<label class='sa-field'><span>" + label + "</span><input type='" + type + "' name='" + name + "' value='" + SA.A(Val(name, "")) + "'" + extra + dis + " /></label>";
-        var sb = new StringBuilder("<nav class='sa-crumbs'><a href='SupportResellers.aspx'>Resellers</a> &rsaquo; Add Reseller</nav><header class='sa-head'><div><h1>Add Reseller</h1><p>Create a reseller account, set what they can do and their limits.</p></div></header>");
-        sb.Append("<div class='sa-rsl-form'><div class='sa-card'><h2>Reseller Information</h2><div class='sa-grid2'>")
-          .Append(input("Reseller Name *", "rs_name", "text", " required maxlength='150' placeholder='Enter reseller company name'"))
+        // v30 (Pandey post-v29, Shamsu deck 2 Add Reseller mock): two columns - left Reseller Information + Permissions,
+        // right Account & Access (Generate beside the password) + Limits + Notes; Back to Resellers top right; Cancel / Create bottom right.
+        var sb = new StringBuilder("<nav class='sa-crumbs'><a href='SupportResellers.aspx'>Resellers</a> &rsaquo; <strong>Add Reseller</strong></nav><header class='sa-head'><div class='sa-head-ico'><i class='sa-kpi-icon sa-blue' aria-hidden='true'>&#128100;+</i><div><h1>Add Reseller</h1><p>Create a new reseller account. The reseller will be able to create and manage their own subscribers.</p></div></div>")
+            .Append("<a class='sa-btn sa-btn-outline' href='SupportResellers.aspx'>&larr; Back to Resellers</a></header>");
+        sb.Append("<div class='sa-rsl-form sa-rsl-cols'><div class='sa-rsl-col'><div class='sa-card'><h2><i class='sa-rpt-ico' aria-hidden='true'>&#127970;</i> Reseller Information</h2>")
+          .Append(input("Reseller Name *", "rs_name", "text", " required maxlength='150' placeholder='Enter reseller name (e.g. ABC IT Solutions)'"))
+          .Append("<div class='sa-grid2'>")
           .Append(input("Contact Person *", "rs_contact", "text", " required maxlength='150' placeholder='Enter contact person name'"))
-          .Append(input("Email Address *", "rs_email", "email", " required maxlength='200' placeholder='name@company.com'"))
-          .Append(input("Phone Number *", "rs_phone", "tel", " required maxlength='30' placeholder='(555) 123-4567'"))
-          .Append(input("Alternate Phone", "rs_alt", "tel", " maxlength='30' placeholder='Optional'"))
-          .Append("<label class='sa-field'><span>Plan</span><select name='rs_plan'").Append(dis).Append(">").Append(SA.Options(RS.Plans, Val("rs_plan", "Standard"), null)).Append("</select></label>")
-          .Append("</div><label class='sa-field'><span>Address</span><textarea name='rs_address' rows='2' maxlength='400' placeholder='Street, city, province / state, postal code, country'").Append(dis).Append(">").Append(SA.H(Val("rs_address", ""))).Append("</textarea></label></div>");
-        sb.Append("<div class='sa-card'><h2>Permissions</h2><p class='sa-muted'>Choose what this reseller can do.</p><div class='sa-rsl-perms'>");
+          .Append(input("Email *", "rs_email", "email", " required maxlength='200' placeholder='Enter email address'"))
+          .Append(input("Phone *", "rs_phone", "tel", " required maxlength='30' placeholder='Enter phone number'"))
+          .Append(input("Alternate Phone", "rs_alt", "tel", " maxlength='30' placeholder='Enter alternate phone number'"))
+          .Append("</div><label class='sa-field'><span>Address</span><textarea name='rs_address' rows='3' maxlength='400' placeholder='Enter business address'").Append(dis).Append(">").Append(SA.H(Val("rs_address", ""))).Append("</textarea></label></div>");
+        sb.Append("<div class='sa-card'><h2><i class='sa-rpt-ico' aria-hidden='true'>&#9881;</i> Permissions</h2><p class='sa-muted'>Select what the reseller can access and manage.</p><div class='sa-rsl-perms sa-rsl-perms1'>");
         foreach (var p in RS.PermissionList)
         {
             bool on = IsPostBack ? Request.Form.GetValues("rs_perm") != null && Request.Form.GetValues("rs_perm").Contains(p[0]) : p[2] == "1";
+            if (p[0] == "upgrades") sb.Append("<span class='sa-rsl-gap' aria-hidden='true'></span>");
             sb.Append("<label class='sa-check'><input type='checkbox' name='rs_perm' value='").Append(p[0]).Append("'").Append(on ? " checked" : "").Append(dis).Append(" /> ").Append(SA.H(p[1])).Append("</label>");
         }
         string pw = Val("rs_pw", RS.NewTempPassword());
-        sb.Append("</div></div><div class='sa-card'><h2>Account &amp; Access</h2><div class='sa-grid2'>")
-          .Append(input("Login Email *", "rs_login", "email", " required maxlength='200' placeholder='Used to sign in to the reseller portal'"))
+        sb.Append("</div></div></div><div class='sa-rsl-col'><div class='sa-card'><h2><i class='sa-rpt-ico' aria-hidden='true'>&#128274;</i> Account &amp; Access</h2>")
+          .Append(input("Login Email *", "rs_login", "email", " required maxlength='200' placeholder='Enter login email address'"))
           .Append("<label class='sa-field'><span>Temporary Password *</span><span class='sa-rsl-pw'><input type='text' name='rs_pw' id='rs_pw' value='").Append(SA.A(pw)).Append("' required minlength='8' maxlength='64' autocomplete='off'").Append(dis)
-          .Append(" /><button type='button' class='sa-btn sa-btn-outline sa-btn-sm' data-sa-genpw='rs_pw'").Append(dis).Append(">Generate</button></span><small>At least 8 characters. Stored only as a secure hash; shown once after saving.</small></label>")
-          .Append("<label class='sa-check'><input type='checkbox' name='rs_welcome' value='1'").Append(!IsPostBack || SA.Form("rs_welcome") == "1" ? " checked" : "").Append(dis).Append(" /> Send welcome email with login details</label>")
-          .Append("<label class='sa-field'><span>Status</span><select name='rs_status'").Append(dis).Append(">").Append(SA.Options(new[] { "Active", "Inactive" }, Val("rs_status", "Active"), null)).Append("</select></label></div></div>");
-        sb.Append("<div class='sa-card'><h2>Limits</h2><div class='sa-grid2'>")
-          .Append(input("Max Subscribers", "rs_maxsub", "number", " min='0' max='100000' placeholder='Unlimited'").Replace("value=''", "value='" + (IsPostBack ? "" : "50") + "'"))
-          .Append(input("Max Businesses per Subscriber", "rs_maxbiz", "number", " min='0' max='100000' placeholder='Unlimited'").Replace("value=''", "value='" + (IsPostBack ? "" : "10") + "'"))
-          .Append("</div><p class='sa-muted sa-small'>Leave blank for unlimited.</p></div>");
-        sb.Append("<div class='sa-card'><h2>Internal Notes</h2><label class='sa-field'><span class='sr-only'>Internal Notes</span><textarea name='rs_notes' rows='3' maxlength='1000' data-sa-counter='1000' placeholder='Notes visible to Support Admins only'").Append(dis).Append(">")
-          .Append(SA.H(Val("rs_notes", ""))).Append("</textarea><small data-sa-count='1'>0/1000</small></label></div>");
-        sb.Append("<div class='sa-panel-foot'><a class='sa-btn sa-btn-outline' href='SupportResellers.aspx'>Cancel</a><button type='submit' class='sa-btn' name='sa_op' value='create'").Append(dis).Append(">Create Reseller</button></div></div>");
+          .Append(" /><button type='button' class='sa-btn sa-btn-outline' data-sa-genpw='rs_pw'").Append(dis).Append(">&#8635; Generate</button></span><small class='sa-muted'>At least 8 characters. Stored only as a secure hash; shown once after saving.</small></label>")
+          .Append("<label class='sa-check'><input type='checkbox' name='rs_welcome' value='1'").Append(!IsPostBack || SA.Form("rs_welcome") == "1" ? " checked" : "").Append(dis).Append(" /> Send welcome email to reseller</label>")
+          .Append("<p class='sa-muted sa-small'>&#9432; A welcome email with login details will be sent to the reseller.</p><div class='sa-grid2'>")
+          .Append("<label class='sa-field'><span>Status *</span><select name='rs_status'").Append(dis).Append(">").Append(SA.Options(new[] { "Active", "Inactive" }, Val("rs_status", "Active"), null)).Append("</select></label>")
+          .Append("<label class='sa-field'><span>Plan</span><select name='rs_plan'").Append(dis).Append(">").Append(SA.Options(RS.Plans, Val("rs_plan", "Standard"), null)).Append("</select></label></div></div>");
+        sb.Append("<div class='sa-card'><h2><i class='sa-rpt-ico' aria-hidden='true'>&#128202;</i> Limits</h2><p class='sa-muted'>Set limits for the reseller.</p><div class='sa-grid2'>")
+          .Append(input("Maximum Subscribers", "rs_maxsub", "number", " min='0' max='100000' placeholder='Unlimited'").Replace("value=''", "value='" + (IsPostBack ? "" : "50") + "'").Replace("</label>", "<small class='sa-muted'>Leave blank for unlimited.</small></label>"))
+          .Append(input("Maximum Businesses per Subscriber", "rs_maxbiz", "number", " min='0' max='100000' placeholder='Unlimited'").Replace("value=''", "value='" + (IsPostBack ? "" : "10") + "'").Replace("</label>", "<small class='sa-muted'>Leave blank for unlimited.</small></label>"))
+          .Append("</div></div>");
+        sb.Append("<div class='sa-card'><h2><i class='sa-rpt-ico' aria-hidden='true'>&#128221;</i> Notes</h2><p class='sa-muted'>Internal Notes (Support Admin Only)</p><label class='sa-field'><span class='sr-only'>Internal Notes</span><textarea name='rs_notes' rows='3' maxlength='1000' data-sa-counter='1000' placeholder='Enter any additional notes about this reseller...'").Append(dis).Append(">")
+          .Append(SA.H(Val("rs_notes", ""))).Append("</textarea><small data-sa-count='1'>0/1000</small></label></div></div></div>");
+        sb.Append("<div class='sa-panel-foot'><a class='sa-btn sa-btn-outline' href='SupportResellers.aspx'>Cancel</a><button type='submit' class='sa-btn' name='sa_op' value='create'").Append(dis).Append(">Create Reseller</button></div>");
         return sb.ToString();
     }
     static object N(string s) { return String.IsNullOrEmpty(s) ? (object)DBNull.Value : s; }

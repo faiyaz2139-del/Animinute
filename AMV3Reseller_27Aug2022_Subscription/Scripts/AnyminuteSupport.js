@@ -1,3 +1,4 @@
+/* 2026-10-29 v30: Custom Range toggles the From / To date inputs. */
 /* 2026-10-29 v28: Reports hub - data-sa-noauto (no auto-apply on select change), data-sa-extra (adds e.g. export=pdf)
    and data-sa-form (a button outside the filter box applies that box).
    2026-10-28 v26: Verify Address also queries the existing address lookup (suggestions).
@@ -33,6 +34,13 @@
       box.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); apply(box); } });
       $all('[data-sa-apply]', box).forEach(function (b) { b.addEventListener('click', function () { apply(box, b.getAttribute('data-sa-extra')); }); });
       if (!box.hasAttribute('data-sa-noauto')) $all('select', box).forEach(function (s) { s.addEventListener('change', function () { apply(box); }); });
+    });
+    // v30: Report Filters - From / To are only used with Custom Range, so they are disabled for the other presets.
+    $all('select[name$="_preset"]').forEach(function (s) {
+      var base = s.name.replace(/_preset$/, ''), sync = function () {
+        $all('input[name="' + base + '_from"],input[name="' + base + '_to"]').forEach(function (i) { i.disabled = s.value !== 'Custom Range'; });
+      };
+      s.addEventListener('change', sync); sync();
     });
     $all('[data-sa-genpw]').forEach(function (b) {
       b.addEventListener('click', function () {
