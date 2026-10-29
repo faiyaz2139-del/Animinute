@@ -7,6 +7,7 @@ using System.Web;
 using SA = AnyminuteSupportAdmin;
 using SR = AnyminuteSupportReports;
 
+// 2026-10-29 v31: all 20 reports share the Support Ticket filter layout (date filters first as Date Range / From / To cells).
 // 2026-10-29 v30: Report Filters card per the Support Ticket mock (range3 = Date Range / From / To cells).
 // 2026-10-29 v28 (Shamsu deck 1 slides 1-2, deck 2 slides 3-4): Support Admin Reports hub.
 // Left list of the 12 Support reports and 8 Reseller reports; each report has the deck layout: title + instruction,
@@ -28,9 +29,19 @@ public partial class AnyminuteSupportReportsPage : System.Web.UI.Page
           .Append("<button type='button' class='sa-btn sa-btn-outline' data-sa-apply='1' data-sa-extra='export=excel' data-sa-form='sa-rpt-form'>&#128200; Export Excel</button></div></header>");
         // v30 (Pandey post-v29, Support Ticket mock): "Report Filters" card (funnel icon, Clear All button), 3-column filter grid,
         // Additional Options band with gear icon and Generate Report bottom-left. Same layout for every report in the hub.
+        sb.Append(FilterCard(def, gen ? q : new NameValueCollection(), run));
+        if (run.Error != null) sb.Append("<div class='sa-flash sa-warn'>").Append(SA.H(run.Error)).Append("</div>");
+        if (!gen) sb.Append("<div class='sa-card sa-rpt-hint'><p class='sa-muted'>Choose filters and click <strong>Generate Report</strong> to preview the results. Exports use the same filters.</p></div>");
+        else sb.Append(Result(run));
+        Body1.Text = sb.ToString();
+    }
+    // v31: one shared Report Filters card for all 20 reports (also used by the offline layout check).
+    public static string FilterCard(SrDef def, NameValueCollection q, SrRun run)
+    {
+        var sb = new StringBuilder();
         sb.Append("<div class='sa-card sa-rpt-card' id='sa-rpt-form' data-sa-get='SupportReports.aspx' data-sa-noauto='1'><input type='hidden' name='r' value='").Append(SA.A(def.Key)).Append("' /><input type='hidden' name='gen' value='1' />")
           .Append("<div class='sa-rpt-cardhead'><h2><i class='sa-rpt-ico' aria-hidden='true'>&#9660;</i> Report Filters</h2><a class='sa-btn sa-btn-outline sa-btn-sm' href='SupportReports.aspx?r=").Append(HttpUtility.UrlEncode(def.Key)).Append("'>&#8635; Clear All</a></div><div class='sa-rpt-grid'>");
-        foreach (var f in def.Filters) sb.Append(Filter(f, gen ? q : new NameValueCollection(), run.Base));
+        foreach (var f in def.Filters.OrderBy(x => x.Type.StartsWith("range") ? 0 : 1)) sb.Append(Filter(f, q, run.Base));
         sb.Append("</div>");
         if (def.Options.Length > 0)
         {
@@ -39,10 +50,7 @@ public partial class AnyminuteSupportReportsPage : System.Web.UI.Page
             sb.Append("</div></div>");
         }
         sb.Append("<div class='sa-rpt-go'><button type='button' class='sa-btn' data-sa-apply='1'>&#128269; Generate Report</button></div></div>");
-        if (run.Error != null) sb.Append("<div class='sa-flash sa-warn'>").Append(SA.H(run.Error)).Append("</div>");
-        if (!gen) sb.Append("<div class='sa-card sa-rpt-hint'><p class='sa-muted'>Choose filters and click <strong>Generate Report</strong> to preview the results. Exports use the same filters.</p></div>");
-        else sb.Append(Result(run));
-        Body1.Text = sb.ToString();
+        return sb.ToString();
     }
     static string NavList(SrDef cur)
     {
@@ -60,24 +68,19 @@ public partial class AnyminuteSupportReportsPage : System.Web.UI.Page
     {
         string n = "f_" + f.Key, v = q[n] ?? "";
         var sb = new StringBuilder("<label class='sa-field'><span>").Append(SA.H(f.Label)).Append("</span>");
-        if (f.Type == "range3")
+        if (f.Type == "range3" || f.Type == "range")
         {
-            // v30: three grid cells - Date Range * (defaults to Custom Range), From Date *, To Date * (this year to today by default).
-            var t = DateTime.Today; bool fresh = q[n + "_preset"] == null;
-            string p = fresh ? "Custom Range" : q[n + "_preset"], a = fresh ? new DateTime(t.Year, 1, 1).ToString("yyyy-MM-dd") : q[n + "_from"], b = fresh ? t.ToString("yyyy-MM-dd") : q[n + "_to"];
-            sb = new StringBuilder("<label class='sa-field'><span>").Append(SA.H(f.Label)).Append(" <b class='sa-req'>*</b></span><select name='").Append(n).Append("_preset'>");
+            // v31 (Pandey post-v30): every date filter uses the Support Ticket layout - three grid cells (Date Range / From Date / To Date).
+            // range3 (Support Ticket) is required and defaults to Custom Range, this year to today; range (other reports) defaults to All Dates.
+            var t = DateTime.Today; bool req = f.Type == "range3", fresh = q[n + "_preset"] == null;
+            string p = fresh ? (req ? "Custom Range" : "All Dates") : q[n + "_preset"];
+            string a = fresh ? (req ? new DateTime(t.Year, 1, 1).ToString("yyyy-MM-dd") : "") : q[n + "_from"], b = fresh ? (req ? t.ToString("yyyy-MM-dd") : "") : q[n + "_to"];
+            string star = req ? " <b class='sa-req'>*</b>" : "";
+            sb = new StringBuilder("<label class='sa-field'><span>").Append(SA.H(f.Label)).Append(star).Append("</span><select name='").Append(n).Append("_preset'>");
             foreach (var r in SR.Ranges) sb.Append("<option").Append(r == p ? " selected" : "").Append(">").Append(r).Append("</option>");
-            sb.Append("</select></label><label class='sa-field'><span>From Date <b class='sa-req'>*</b></span><input type='date' name='").Append(n).Append("_from' value='").Append(SA.A(a)).Append("' /></label>")
-              .Append("<label class='sa-field'><span>To Date <b class='sa-req'>*</b></span><input type='date' name='").Append(n).Append("_to' value='").Append(SA.A(b)).Append("' /><small class='sa-muted'>From / To apply with Custom Range.</small>");
+            sb.Append("</select></label><label class='sa-field'><span>From Date").Append(star).Append("</span><input type='date' name='").Append(n).Append("_from' value='").Append(SA.A(a)).Append("' /></label>")
+              .Append("<label class='sa-field'><span>To Date").Append(star).Append("</span><input type='date' name='").Append(n).Append("_to' value='").Append(SA.A(b)).Append("' /><small class='sa-muted'>From / To apply with Custom Range.</small>");
             return sb.Append("</label>").ToString();
-        }
-        if (f.Type == "range")
-        {
-            string p = q[n + "_preset"] ?? "All Dates";
-            sb.Append("<select name='").Append(n).Append("_preset'>");
-            foreach (var r in SR.Ranges) sb.Append("<option").Append(r == p ? " selected" : "").Append(">").Append(r).Append("</option>");
-            sb.Append("</select><span class='sa-rpt-dates'><input type='date' name='").Append(n).Append("_from' value='").Append(SA.A(q[n + "_from"])).Append("' aria-label='From' /> to <input type='date' name='")
-              .Append(n).Append("_to' value='").Append(SA.A(q[n + "_to"])).Append("' aria-label='To' /></span><small class='sa-muted'>Dates apply with Custom Range.</small>");
         }
         else if (f.Type == "text") sb.Append("<input type='search' name='").Append(n).Append("' value='").Append(SA.A(v)).Append("' placeholder='Search ").Append(SA.A(f.Label.ToLowerInvariant())).Append("...' />");
         else if (f.Type == "param")
