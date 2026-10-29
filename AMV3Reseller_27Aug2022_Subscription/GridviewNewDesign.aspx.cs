@@ -8,15 +8,20 @@ using System.Web.UI.WebControls;
 public partial class GridviewNewDesign : Page
 {
     private int Business { get { return Int32.Parse(Request.QueryString["BusinessIdFromDefaultPapge"]); } }
+    // v29 (live v28: manager rs3 -> ErrorPages): a missing/unauthorized business now goes to Assign Users to Manager,
+    // which lists only the caller's own businesses and shows an in-page "Access denied" notice when there are none.
+    // endResponse=true: the standard redirect abort stops this page here (it is not routed to ErrorPages).
+    void Leave(bool denied) { Response.Redirect(denied ? "AssgineManager.aspx?denied=1" : "AssgineManager.aspx", true); }
     protected void Page_Init(object sender, EventArgs e)
     {
         if (Session["EmployeeId"]==null) { Response.Redirect("Login.aspx"); return; }
         ViewStateUserKey=Session.SessionID;
-        int business;
-        if (!Int32.TryParse(Request.QueryString["BusinessIdFromDefaultPapge"],out business)) throw new HttpException(400,"Select a valid business.");
+        int business; bool denied=false;
+        if (!Int32.TryParse(Request.QueryString["BusinessIdFromDefaultPapge"],out business)) { Leave(false); return; }
         using(var c=AnyminuteTimesheetRepair.Open())
             try { AnyminuteApprovalAssignments.RequireOwner(c,null,business); }
-            catch(InvalidOperationException) { throw new HttpException(403,"You cannot manage this business."); }
+            catch(InvalidOperationException) { denied=true; }
+        if (denied) Leave(true);
     }
     protected void Page_Load(object sender, EventArgs e) { if(!IsPostBack) GetMangerList(); }
     public void GetMangerList()

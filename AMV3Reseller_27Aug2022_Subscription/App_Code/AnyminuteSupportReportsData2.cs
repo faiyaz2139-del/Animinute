@@ -22,6 +22,16 @@ public static partial class AnyminuteSupportReports
     }
     static string Prio(DataRow r) { string p = SA.S(r["Priority"]); if (p.Length > 0) return p; string s = SA.S(r["TicketSeverity"]); return s == "1" ? "High" : s == "3" ? "Low" : "Medium"; }
     static double? Hours(object from, object to) { var a = Dt(from); var b = Dt(to); return a == null || b == null || b < a ? (double?)null : (b.Value - a.Value).TotalHours; }
+    // v29 (live v28 Staff Performance: Avg Resolution 0.0 h / SLA 100% next to Avg First Response 128 h): the legacy
+    // insert writes TicketResolveDate = TicketRaiseDate (both date-only) when the ticket is raised, so it is not a real
+    // resolution time. Use it only when it is later than the raise date; otherwise the last reply; otherwise unknown.
+    static object ResolvedAt(DataRow r)
+    {
+        var raised = Dt(r["TicketRaiseDate"]); var res = Dt(r["TicketResolveDate"]); var last = Dt(r["LastComment"]);
+        if (res != null && (raised == null || res.Value.Date > raised.Value.Date)) return r["TicketResolveDate"];
+        if (last != null && (raised == null || last.Value >= raised.Value)) return r["LastComment"];
+        return DBNull.Value;
+    }
     // 6 Support Ticket
     static SrData SupportTicket(SqlConnection c, NameValueCollection q)
     {
@@ -31,11 +41,11 @@ public static partial class AnyminuteSupportReports
             string st = SA.StatusLabel(r["StatusType"]); string cat = SA.S(r["Category"]); if (cat.Length == 0) cat = SA.LegacyCategory(r["ProblemType"], r["Module"]);
             string subj = SA.S(r["Subject"]); if (subj.Length == 0) subj = TicketType(r["ProblemType"]);
             d.Add(Ticket(r["TicketNo"], r["TicketId"]), subj, r["Name"], r["BusinessName"], TicketType(r["ProblemType"]), cat, Prio(r), st, SA.S(r["AssignedTo"]).Length == 0 ? "Unassigned" : r["AssignedTo"], Stamp(r["TicketRaiseDate"]),
-                Hrs(Hours(r["TicketRaiseDate"], r["FirstComment"])), st == "Resolved" ? Hrs(Hours(r["TicketRaiseDate"], r["TicketResolveDate"] == DBNull.Value ? r["LastComment"] : r["TicketResolveDate"])) : "",
-                st == "Resolved" ? Stamp(r["TicketResolveDate"]) : "", r["Replies"], r["LastText"], r["Description"], Convert.ToBoolean(r["Archived"]) ? "Yes" : "No");
+                Hrs(Hours(r["TicketRaiseDate"], r["FirstComment"])), st == "Resolved" ? Hrs(Hours(r["TicketRaiseDate"], ResolvedAt(r))) : "",
+                st == "Resolved" ? Stamp(ResolvedAt(r)) : "", r["Replies"], r["LastText"], r["Description"], Convert.ToBoolean(r["Archived"]) ? "Yes" : "No");
         }
         d.Opt("details", "Description", "Ticket Type", "Business").Opt("latest", "Latest Update", "Replies").Opt("time", "First Response (hrs)", "Resolution (hrs)").Opt("archived", "Archived");
-        d.Note = "First response = first reply in Ticket_Comments; resolution = raised to resolved. Closed is not a separate legacy status, so resolved tickets count as closed.";
+        d.Note = "First response = first reply in Ticket_Comments; resolution = raised to resolved (legacy resolve dates equal to the raise date are placeholders, so the last reply is used). Closed is not a separate legacy status, so resolved tickets count as closed.";
         return d;
     }
     // 7 Staff Performance (aggregate of the filtered tickets)
@@ -51,7 +61,7 @@ public static partial class AnyminuteSupportReports
                 fr.Count == 0 ? "" : Math.Round(fr.Average(), 1).ToString("0.0", Inv), rs.Count == 0 ? "" : Math.Round(rs.Average(), 1).ToString("0.0", Inv),
                 rs.Count == 0 ? "" : Math.Round(rs.Count(x => x <= 24) * 100.0 / rs.Count, 1).ToString("0.#", Inv));
         }
-        d.Note = "Grouped by the ticket's current assignee. SLA met = resolved within 24 hours of being raised.";
+        d.Note = "Grouped by the ticket's current assignee. SLA met = resolved within 24 hours of being raised (resolved tickets with a known resolution time only). Legacy tickets store the raise date without a time, so hours are counted from midnight of that day.";
         return d;
     }
     // 8 Ticket Audit

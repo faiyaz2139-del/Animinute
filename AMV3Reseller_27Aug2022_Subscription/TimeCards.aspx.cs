@@ -16,8 +16,16 @@ public partial class AnyminuteTimeCards : System.Web.UI.Page
    string initial=Request.QueryString["status"];
    State.SelectedValue=State.Items.FindByValue(initial ?? "All")!=null ? (initial ?? "All") : "All";
   }
+  if(!IsPostBack&&!ApprovalQueue&&EmployeeOnly()){Heading.Text="My Time Cards";Intro.Text="Your weekly time cards with daily details and approval status.";} // v29 (employee PPT)
+  Page.Title=ApprovalQueue?"Approvals":Heading.Text;
   if (ApprovalQueue) { State.SelectedValue="Submitted";State.Enabled=false; }
   if(!IsPostBack)Bind();
+ }
+ // v29: employee-only = every business role is plain employee (Tier 0: not owner/admin/manager/accountant, supervises nobody).
+ static bool EmployeeOnly()
+ {
+  try{var scope=AnyminuteReports.Scope();return scope.Count>0&&scope.All(b=>b.Tier==0);}
+  catch(Exception ex){log4net.LogManager.GetLogger("Log").Warn("TimeCards role check failed",ex);return false;}
  }
  protected void FilterChanged(object s,EventArgs e){Bind();}
  void Bind()

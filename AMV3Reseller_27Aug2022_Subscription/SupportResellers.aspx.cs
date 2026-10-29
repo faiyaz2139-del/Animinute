@@ -38,6 +38,25 @@ public partial class AnyminuteSupportResellersPage : System.Web.UI.Page
             Body1.Text = List(all, rows, ready);
         }
     }
+    // v29 (live v28: Support landing lists "ABC Cleaning Services" as Type Reseller while this page shows 0): the landing
+    // reads legacy partner sign-ups (Register_Partner via SP_Get_Reseller_List); this module uses AnyminuteReseller.
+    // Show the legacy records here (read-only) so the two pages no longer contradict; nothing is migrated automatically.
+    static string LegacyNote()
+    {
+        try
+        {
+            using (var c = AnyminuteTimesheetRepair.Open())
+            {
+                if (!SA.Has(c, "Register_Partner")) return "";
+                var dt = SA.Q(c, "SELECT LTRIM(RTRIM(ISNULL(FirstName,'')+' '+ISNULL(LastName,''))) Name,EMail_primary Email FROM Register_Partner ORDER BY PartnerID");
+                if (dt.Rows.Count == 0) return "";
+                var names = dt.Rows.Cast<DataRow>().Select(r => { string n = AnyminuteDisplayText.Tidy(SA.S(r["Name"])), m = SA.S(r["Email"]); return SA.H(n.Length > 0 ? n + (m.Length > 0 ? " (" + m + ")" : "") : m); });
+                return "<div class='sa-flash sa-warn' role='status'><strong>" + dt.Rows.Count.ToString(Inv) + " legacy reseller sign-up" + (dt.Rows.Count == 1 ? "" : "s") + "</strong> from the old partner registration appear" + (dt.Rows.Count == 1 ? "s" : "") +
+                    " as Type &ldquo;Reseller&rdquo; on the Support landing list: " + String.Join(", ", names) + ". They are not managed resellers yet; use <em>Add Reseller</em> to set one up here.</div>";
+            }
+        }
+        catch (Exception ex) { log4net.LogManager.GetLogger("Log").Warn("Legacy reseller note failed", ex); return ""; }
+    }
     static string St(DataRow r) { string s = SA.S(r["Status"]); return s.Length == 0 ? "Active" : s; }
     List<DataRow> Filtered(List<DataRow> all)
     {
@@ -65,6 +84,7 @@ public partial class AnyminuteSupportResellersPage : System.Web.UI.Page
             .Append(ready ? "<a class='sa-btn' href='SupportResellers.aspx?add=1'>+ Add Reseller</a>" : "<span class='sa-btn' aria-disabled='true' style='opacity:.5'>+ Add Reseller</span>").Append("</div></header>");
         sb.Append("<div class='sa-kpis'>").Append(kpi("&#128101;", "Total Resellers", "blue", all.Count)).Append(kpi("&#10004;", "Active Resellers", "green", all.Count(r => St(r) == "Active")))
           .Append(kpi("&#10006;", "Inactive Resellers", "red", all.Count(r => St(r) == "Inactive"))).Append(kpi("&#128100;", "Total Subscribers", "purple", all.Sum(r => Convert.ToInt32(r["Subscribers"])))).Append("</div>");
+        sb.Append(LegacyNote()); // v29
         sb.Append("<div class='sa-card'><div class='sa-filters' data-sa-get='SupportResellers.aspx'><label class='sa-grow'><span>Search</span><input type='search' name='q' value='").Append(SA.A(q)).Append("' placeholder='Search by reseller name, email or phone...' /></label>")
           .Append("<label><span>Status</span><select name='status'>").Append(SA.Options(new[] { "Active", "Inactive" }, st, "All Status")).Append("</select></label>")
           .Append("<label><span>Plan</span><select name='plan'>").Append(SA.Options(RS.Plans, plan, "All Plans")).Append("</select></label>")

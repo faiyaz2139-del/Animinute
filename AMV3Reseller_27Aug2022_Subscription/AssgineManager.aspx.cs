@@ -25,6 +25,7 @@ public partial class AssgineManager : System.Web.UI.Page
         }
         catch (Exception ex) { log4net.LogManager.GetLogger("Log").Error("AssgineManager business list failed", ex); }
         if (ddlbusiness.Items.Count == 0) { Editor.Visible = false; Show("Access denied. Only the subscriber or business owner can assign users to managers.", true); return; }
+        if (Request.QueryString["denied"] == "1") Show("Access denied for the business you opened. Only its subscriber or business owner can assign users to managers. Choose one of your businesses below.", true); // v29
         string q = Request.QueryString["BusinessIdFromDefaultPapge"] ?? Request.QueryString["BusinessId"];
         if (q != null && ddlbusiness.Items.FindByValue(q) != null) ddlbusiness.SelectedValue = q;
         LoadManagers();
