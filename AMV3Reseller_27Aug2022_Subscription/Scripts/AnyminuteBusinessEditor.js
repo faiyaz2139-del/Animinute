@@ -107,7 +107,7 @@
    Array.prototype.forEach.call(m.querySelectorAll('[data-req]'),function(f){var bad=!f.value.trim();if(bad)f.setAttribute('aria-invalid','true');else f.removeAttribute('aria-invalid');if(bad)missing.push(f.parentNode.firstChild.textContent.replace('*','').trim());});
    if(missing.length){err.textContent='Enter '+missing.join(', ')+'.';err.hidden=false;m.querySelector('[aria-invalid]').focus();return;}
    var country=m.querySelector('[data-addr=Country]').value,pf=m.querySelector('[data-addr=txtPostalCode]'),pc=pf.value.replace(/[\s-]+/g,'').toUpperCase();
-   if(POSTAL[country]&&!POSTAL[country].test(pc)){pf.setAttribute('aria-invalid','true');err.textContent=country==='United States'?'Enter a valid US ZIP code (e.g. 33185).':'Enter a valid Canadian postal code (e.g. M1B 2W1).';err.hidden=false;pf.focus();return;}
+   if(pc&&POSTAL[country]&&!POSTAL[country].test(pc)){pf.setAttribute('aria-invalid','true');err.textContent=country==='United States'?'Enter a valid US ZIP code (e.g. 33185).':'Enter a valid Canadian postal code (e.g. M1B 2W1).';err.hidden=false;pf.focus();return;}
    Array.prototype.forEach.call(m.querySelectorAll('[data-addr]'),function(f){
     var t=byId(f.getAttribute('data-addr'));if(!t)return;
     var v=f.value.trim();if(t.id==='txtPostalCode'||t.id==='txtProvince'||t.id==='txtCity'||t.id==='txtStreetName')v=v.toUpperCase();

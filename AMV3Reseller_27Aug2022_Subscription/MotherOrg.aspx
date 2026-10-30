@@ -425,11 +425,7 @@
                                                                                 </ItemTemplate>
                                                                         </asp:TemplateField>
 
-                                                                        <asp:TemplateField HeaderText="Password">
-                                                                            <ItemTemplate>
-                                                                                <asp:Label ID="LblPswrd" runat="server" Text='<%#DataBinder.Eval(Container.DataItem, "Password")%>' />
-                                                                                </ItemTemplate>
-                                                                        </asp:TemplateField>
+                                <%-- v32: Password column removed; passwords are never shown in plain text in list UIs. --%>
 
 
 

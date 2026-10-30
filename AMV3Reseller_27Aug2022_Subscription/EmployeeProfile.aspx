@@ -1426,9 +1426,7 @@
                             </div>
                             <div class="col-md-1"></div>
                             <div class="col-md-1">
-                                <a data-toggle="tab" id="PreviousAdd" href="#home" class="buttonhyperlinkprevious">
-                                    <i class="fa fa-angle-left"></i> Previous
-                                </a>
+                                <%-- v32: Previous button removed from Address and Contacts (Save stays). --%>
                             <script>
                                 $("#PreviousAdd").click(function () {
                                     document.cookie = "tabid=#home";

@@ -611,16 +611,19 @@ public partial class Add_Business : System.Web.UI.Page
         // details (company name, contact, email, status ...). The stored address is kept as it is; postal format and
         // address completeness are only enforced for a new business or when a postal code was actually entered.
         bool editing = Request.QueryString["BusinessIDEdit"] != null || ViewState["SavedBusinessId"] != null;
-        bool keepAddress = editing && postal.Length == 0;
+        // 2026-10-30 v32 (t107u): on Update Business Profile the stored address (incl. a legacy/odd postal code) never blocks
+        // Save Changes; new addresses are checked in the address modal. A new business may also be saved with no postal code;
+        // the postal format is only checked when a postal code was entered.
+        bool keepAddress = editing;
         if (!keepAddress)
         {
             if (String.IsNullOrWhiteSpace(txtStreetNo.Text) || String.IsNullOrWhiteSpace(txtStreetName.Text) ||
                 String.IsNullOrWhiteSpace(txtCity.Text) || String.IsNullOrWhiteSpace(txtProvince.Text))
                 return "Enter the street number, address line 1, city and province/state.";
-            if (!Regex.IsMatch(postal, @"^[A-Z0-9-]{5,10}$")) return "Enter a valid postal code.";
             if (String.IsNullOrWhiteSpace(Country.Text) || Country.Text.Trim().Length > 100)
                 return "Enter a country (maximum 100 characters).";
-            if (!PostalValidFor(Country.Text, postal))
+            if (postal.Length > 0 && !Regex.IsMatch(postal, @"^[A-Z0-9-]{5,10}$")) return "Enter a valid postal code.";
+            if (postal.Length > 0 && !PostalValidFor(Country.Text, postal))
                 return String.Equals(Country.Text.Trim(), "United States", StringComparison.OrdinalIgnoreCase)
                     ? "Enter a valid US ZIP code (e.g. 33185)." : "Enter a valid Canadian postal code (e.g. M1B 2W1).";
         }

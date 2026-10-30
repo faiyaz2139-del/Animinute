@@ -365,11 +365,7 @@
                                         <asp:Label ID="Label_Enrolled_Date" runat="server" Text='<%#DataBinder.Eval(Container.DataItem, "EnrollDate1")%>' />
                                     </ItemTemplate>
                                 </asp:TemplateField>
-                                <asp:TemplateField HeaderText="Password">
-                                    <ItemTemplate>
-                                        <asp:Label ID="Label_Password" runat="server" Text='<%#DataBinder.Eval(Container.DataItem, "Password")%>' />
-                                    </ItemTemplate>
-                                </asp:TemplateField>
+                                <%-- v32: Password column removed; passwords are never shown in plain text in list UIs. --%>
                                  
 
 

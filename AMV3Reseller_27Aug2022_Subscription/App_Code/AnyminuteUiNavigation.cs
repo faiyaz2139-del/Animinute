@@ -329,6 +329,8 @@ public static class AnyminuteUiNavigation
     // Uses the role's permitted upgrade page; subscribers/owners whose menu lacks it get Enterprise_Plan_Upgrade.aspx.
     public static string UpgradeHref(IEnumerable<MenuViewModel> permitted)
     {
+        // v32: Support Admin never sees Plan Upgrade (header profile menu or Account group).
+        if(AnyminuteSupportAdmin.IsSupportAdminOnly())return null;
         string href=PermittedHref(permitted,"Enterprise_Plan_Upgrade.aspx","Enterprise_Plan.aspx","Enterprise_Plan_Reseller.aspx");
         if(href!=null)return href;
         var session=HttpContext.Current==null?null:HttpContext.Current.Session;

@@ -2,7 +2,7 @@
 <%@ Register Assembly="AjaxControlToolkit" Namespace="AjaxControlToolkit" TagPrefix="cc1" %>
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
  <link rel="stylesheet" href="css/AnyminuteBusinessEditor.css?v=20261026v19" />
- <script src="Scripts/AnyminuteBusinessEditor.js?v=20261025v16" defer="defer"></script>
+ <script src="Scripts/AnyminuteBusinessEditor.js?v=20261030v32" defer="defer"></script>
  <script src="Scripts/AnyminuteBusinessAutosave.js?v=20261026v19" defer="defer"></script>
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
@@ -188,7 +188,7 @@
     <fieldset class="am-md-sec"><legend>City, State/Province and Country</legend><div class="am-md-grid">
      <label><span>City <b class="am-al-req">*</b></span><input type="text" data-addr="txtCity" data-req="1" maxlength="50" placeholder="e.g. Miami" /></label>
      <label><span>Province / State <b class="am-al-req">*</b></span><select data-addr="txtProvince" data-req="1" data-province-for="amMdCountry"></select></label>
-     <label><span>Postal / ZIP Code <b class="am-al-req">*</b></span><input type="text" data-addr="txtPostalCode" data-req="1" maxlength="10" placeholder="e.g. 33185" /></label>
+     <label><span>Postal / ZIP Code</span><input type="text" data-addr="txtPostalCode" maxlength="10" placeholder="e.g. 33185" /></label>
      <label class="am-al-span2"><span>Country <b class="am-al-req">*</b></span><select id="amMdCountry" data-addr="Country" data-req="1"><option value="Canada">Canada</option><option value="United States">United States</option></select></label>
     </div></fieldset>
    </div>
