@@ -117,8 +117,10 @@ public static class AnyminuteAccountantDashboard
         {
             string status = b.Rejected > 0 ? "Action Required" : b.Pending > 0 ? "Pending Review" : "Up to Date";
             string cls = b.Rejected > 0 ? "red" : b.Pending > 0 ? "amber" : "green";
-            bool open = cls == "green";
-            string href = open ? U("~/TimeCards.aspx?BusinessId=" + b.Id) : U("~/TimeCards.aspx?status=Submitted&BusinessId=" + b.Id);
+            // v34 product guidance: Open = working screen (approve queue for this business) when work is waiting;
+            // View = read-only summary (this dashboard scoped to the business) when payroll is up to date.
+            bool open = cls != "green";
+            string href = open ? U("~/TimeCards.aspx?status=Submitted&BusinessId=" + b.Id) : U("~/Dashboard.aspx?b=" + b.Id);
             s.Append("<tr><td><a class='am-ap-name' href='").Append(A(U("~/Dashboard.aspx?b=" + b.Id))).Append("'>").Append(H(b.Name)).Append("</a></td>")
              .Append("<td><strong>").Append(H(b.Contact)).Append("</strong></td>")
              .Append("<td><span class='am-ap-pill am-ap-").Append(b.Access == "Both" ? "both" : b.Access == "Payroll Admin" ? "pay" : "acc").Append("'>").Append(H(b.Access)).Append("</span></td>")

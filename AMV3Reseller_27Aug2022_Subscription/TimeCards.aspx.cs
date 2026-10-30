@@ -37,9 +37,11 @@ public partial class AnyminuteTimeCards : System.Web.UI.Page
   var result=new DataTable();foreach(string n in new[]{"EmpName","BusinessName","NetDisplay","State"})result.Columns.Add(n);
   foreach(string n in new[]{"EmployeeID","BusinessID"})result.Columns.Add(n,typeof(int));result.Columns.Add("WeekStart",typeof(DateTime));
   string wanted=ApprovalQueue?"Submitted":State.SelectedValue;var notSubmitted=new System.Collections.Generic.List<string>();
+  int onlyBusiness;bool filterBusiness=int.TryParse(Request.QueryString["BusinessId"],out onlyBusiness)&&onlyBusiness>0;
   foreach(DataRow b in AnyminuteModernScope.Businesses().Rows)
   {
    int business=Convert.ToInt32(b["BusinessID"]);
+   if(filterBusiness&&business!=onlyBusiness)continue; // v34: honor ?BusinessId= (still limited to the user's scope + Authorize)
    using(var c=AnyminuteTimesheetRepair.Open())
    {
     int role,actor=AnyminuteModernScope.Actor(c,null,business,out role);
