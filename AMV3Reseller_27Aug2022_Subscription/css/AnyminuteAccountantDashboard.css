@@ -1,0 +1,36 @@
+/* 2026-10-30 v33: Accountant & Payroll Agency Dashboard (Shamsu deck). Scoped to .am-ap. */
+.am-ap{display:flex;flex-direction:column;gap:18px}
+.am-ap-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+.am-ap-head h1{font-size:28px;font-weight:700;margin:0 0 6px;color:#0f1b2d}.am-ap-head p{margin:0;color:#5b6778}
+.am-ap-select{display:flex;align-items:center;gap:12px;padding:12px 16px;margin:0;min-width:260px}.am-ap-select>svg{color:#5b6778}
+.am-ap-select small{display:block;font-size:12px;font-weight:600;color:#0f1b2d;margin-bottom:4px}.am-ap-select select{min-width:200px;height:34px;border:1px solid #d5dbe5;border-radius:8px;padding:0 10px;background:#fff}
+.am-ap-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.am-ap-kpi{display:flex;align-items:center;gap:14px;padding:18px;margin:0;text-decoration:none!important;color:#0f1b2d}
+.am-ap-kpi small{display:block;font-size:13px;color:#334155}.am-ap-kpi strong{display:block;font-size:24px;font-weight:700}
+.am-ap-chev{margin-left:auto;font-size:26px;color:#475569;line-height:1}
+.am-ap-ico{flex:0 0 auto;width:46px;height:46px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center}
+.am-ap-blue .am-ap-ico,.am-ap-ico.am-ap-blue{background:#e3eeff;color:#1f6fe5}.am-ap-kpi.am-ap-blue{background:#f5f9ff}
+.am-ap-green .am-ap-ico,.am-ap-ico.am-ap-green{background:#dff5e8;color:#1f9d55}.am-ap-kpi.am-ap-green{background:#f4fbf6}
+.am-ap-orange .am-ap-ico,.am-ap-ico.am-ap-orange{background:#fff0dc;color:#e08a12}.am-ap-kpi.am-ap-orange{background:#fffaf2}
+.am-ap-purple .am-ap-ico{background:#ece8ff;color:#6b4ee6}.am-ap-kpi.am-ap-purple{background:#f8f6ff}
+.am-ap-sechead{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}
+.am-ap-sechead h2{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:700;margin:0}.am-ap-sechead p{margin:2px 0 0;font-size:13px;color:#5b6778}
+.am-ap-search input{width:200px;height:34px;border:1px solid #d5dbe5;border-radius:8px;padding:0 10px}
+.am-ap-name{color:#1f6fe5;font-weight:600}
+.am-ap-pill,.am-ap-status{display:inline-block;padding:3px 12px;border-radius:999px;font-size:12px;font-weight:600}
+.am-ap-acc{background:#e3eeff;color:#1f5fc4}.am-ap-pay{background:#ece8ff;color:#5a3fd0}.am-ap-both{background:#dff5e8;color:#1b7f45}
+.am-ap-status:before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px;background:currentColor;vertical-align:1px}
+.am-ap-status.am-ap-green{background:#e6f7ec;color:#1b7f45}.am-ap-status.am-ap-amber{background:#fff4e0;color:#b86e00}.am-ap-status.am-ap-red{background:#fde8e8;color:#c62828}
+.am-ap-act{min-width:72px;text-align:center;padding:6px 14px}
+.am-ap-empty{color:#5b6778;text-align:center;padding:16px}
+.am-ap-bottom{display:grid;grid-template-columns:3fr 2fr;gap:18px}
+.am-ap-qgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.am-ap-q{display:flex;align-items:center;gap:12px;padding:14px;border-radius:10px;text-decoration:none!important;color:#0f1b2d}
+.am-ap-q strong{display:block;font-size:14px}.am-ap-q small{display:block;font-size:12px;color:#5b6778}
+.am-ap-q.am-ap-blue{background:#f1f6ff}.am-ap-q.am-ap-green{background:#effaf3}.am-ap-q.am-ap-purple{background:#f5f2ff}.am-ap-q.am-ap-orange{background:#fff7ec}
+.am-ap-activity ul{list-style:none;margin:0;padding:0}.am-ap-activity li{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid #eef1f5}
+.am-ap-activity li:last-child{border-bottom:0}.am-ap-activity li .am-ap-ico{width:34px;height:34px}.am-ap-activity li .am-ap-ico svg{width:18px;height:18px}
+.am-ap-activity li strong{display:block;font-size:13px}.am-ap-activity li small{display:block;font-size:12px;color:#5b6778}.am-ap-activity time{margin-left:auto;font-size:12px;color:#5b6778;white-space:nowrap}
+.am-ap-activity .am-ap-sechead a{font-size:13px;font-weight:600;color:#1f6fe5;white-space:nowrap}
+@media (max-width:1100px){.am-ap-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.am-ap-bottom{grid-template-columns:1fr}}
+@media (max-width:640px){.am-ap-kpis,.am-ap-qgrid{grid-template-columns:1fr}.am-ap-search input{width:100%}}

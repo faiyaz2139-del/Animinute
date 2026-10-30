@@ -241,6 +241,14 @@ public static class AnyminuteUiNavigation
         if (support) html.Append(AnyminuteSupportAdmin.NavHtml(ReportHref(menu), PermittedHref(menu, "EmailSetting.aspx", "EmailTemplate.aspx")));
         // 2026-10-26 v18 (deck slides 1-3): employees and supervisors get the deck's flat navigation
         // (no My Employees for employee-only users). Owners/admins/accountants keep the grouped menu below.
+        // 2026-10-30 v33 (Accountant & Payroll Agency deck): accountants get the deck's flat navigation.
+        if (!support && AnyminuteAccountantDashboard.Applies())
+        {
+            foreach (var link in AnyminuteAccountantDashboard.NavLinks(menu))
+                html.Append("<li><a href='").Append(HttpUtility.HtmlAttributeEncode(link.Value)).Append("' data-am-primary='true'><i class='' aria-hidden='true'></i><span>")
+                    .Append(HttpUtility.HtmlEncode(link.Key)).Append("</span></a></li>");
+            return html.ToString();
+        }
         if (!support && AnyminuteRoleDashboard.Applies())
         {
             foreach (var link in AnyminuteRoleDashboard.NavLinks(menu))

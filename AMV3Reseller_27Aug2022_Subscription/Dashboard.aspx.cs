@@ -19,6 +19,10 @@ public partial class AnyminuteDashboard : System.Web.UI.Page
     var model=AnyminuteRoleDashboard.Load(Request.QueryString["b"],Request.QueryString["mode"],Request.QueryString["w"]);
     RoleDashboard.Text=AnyminuteRoleDashboard.Render(model,null);RoleDashboard.Visible=true;OwnerView.Visible=false;return;
    }
+   // v33 (Shamsu deck "Accountant & Payroll Agency Dashboard"): accountants / payroll agencies get the deck dashboard;
+   // "Assigned Businesses" (?view=businesses) keeps the businesses list below.
+   if(Request.QueryString["view"]!="businesses" && AnyminuteAccountantDashboard.Applies())
+   {RoleDashboard.Text=AnyminuteAccountantDashboard.Render(Request.QueryString["b"]);RoleDashboard.Visible=true;OwnerView.Visible=false;return;}
    Bind();
   }
  }
