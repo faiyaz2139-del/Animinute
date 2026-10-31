@@ -59,7 +59,7 @@ public static class AnyminuteUiNavigation
             if(AnyminuteReports.AnyAvailable())Add(items,"All Reports","Reports.aspx",-218);
             // v20 (Pandey #4): User Access = Login & Access, Accountant & Payroll Access, Report Access. Owners always get all
             // three (no longer dependent on the report-permission probe); administrators get Login & Access.
-            if(owner || AnyminuteReports.AdminSomewhere())Add(items,"Login & Access","LoginAccess.aspx",-220);
+            if(owner || AnyminuteReports.AdminSomewhere())Add(items,"Login & Access","UserLoginAccess.aspx",-220);
             if(owner)Add(items,"Report Access","ReportAccess.aspx",-219);
         }
         return items.OrderBy(item=>item.Seq);
@@ -250,6 +250,8 @@ public static class AnyminuteUiNavigation
             string current = null;
             foreach (var link in AnyminuteAccountantDashboard.NavLinks(menu))
                 if (current == null && IsCurrent(link.Value, here)) current = link.Key;
+            // v38: the read-only business View screen belongs to Assigned Businesses.
+            if (current == null && here.IndexOf("view=business&", StringComparison.OrdinalIgnoreCase) >= 0) current = "Assigned Businesses";
             if (current == null) current = here.IndexOf("Dashboard.aspx", StringComparison.OrdinalIgnoreCase) >= 0 ? "Home" : null;
             foreach (var link in AnyminuteAccountantDashboard.NavLinks(menu))
                 html.Append("<li class='am-ap-nav'><a href='").Append(HttpUtility.HtmlAttributeEncode(link.Value)).Append("' data-am-primary='true'").Append(link.Key == current ? " aria-current='page'" : "").Append(">")
@@ -314,7 +316,7 @@ public static class AnyminuteUiNavigation
         return path.Equals(h, StringComparison.OrdinalIgnoreCase) && !(hasQuery && h.EndsWith("Dashboard.aspx", StringComparison.OrdinalIgnoreCase));
     }
     // Legacy pages replaced for Support Admin by SupportTickets / SupportAddresses / SupportSubscribers / the deck Dashboard link.
-    static readonly string[] SupportSuperseded = { "Ticket_List.aspx", "Raise_Ticket_By_User.aspx", "SearchAddress.aspx", "PostalCode.aspx", "SuperAdmin.aspx", "LoginAccess.aspx" };
+    static readonly string[] SupportSuperseded = { "Ticket_List.aspx", "Raise_Ticket_By_User.aspx", "SearchAddress.aspx", "PostalCode.aspx", "SuperAdmin.aspx", "UserLoginAccess.aspx", "LoginAccess.aspx" };
     public static string PermittedHref(IEnumerable<MenuViewModel> permitted, params string[] pages)
     {
         var leaves=new List<MenuViewModel>();

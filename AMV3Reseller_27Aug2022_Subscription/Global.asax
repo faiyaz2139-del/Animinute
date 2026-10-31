@@ -34,6 +34,30 @@
     //    }
     //}
 
+    // 2026-10-31 v38 (DOCX: subscriber "Login & Access" -> ErrorPages/index.aspx?aspxerrorpath=/LoginAccess.aspx even with
+    // the page's own Page_Error): failures that happen before page code runs (compile / parse / type load) are logged in full
+    // (compiler errors included) and the user gets an in-app notice instead of the generic error page. Login & Access only.
+    void Application_Error(object sender, EventArgs e)
+    {
+        try
+        {
+            HttpContext h = HttpContext.Current; if (h == null) return;
+            string page = System.IO.Path.GetFileName(h.Request.Path ?? "");
+            if (!page.Equals("UserLoginAccess.aspx", StringComparison.OrdinalIgnoreCase) && !page.Equals("LoginAccess.aspx", StringComparison.OrdinalIgnoreCase)) return;
+            Exception ex = Server.GetLastError(); if (ex == null || ex is System.Threading.ThreadAbortException) return;
+            string detail = ex.ToString();
+            HttpCompileException ce = ex as HttpCompileException;
+            if (ce == null && ex.InnerException != null) ce = ex.InnerException as HttpCompileException;
+            if (ce != null && ce.Results != null) foreach (System.CodeDom.Compiler.CompilerError err in ce.Results.Errors) detail += Environment.NewLine + err.ToString();
+            log4net.LogManager.GetLogger("Log").Error("Login & Access request failed before page code: " + detail);
+            Server.ClearError();
+            h.Response.Clear(); h.Response.StatusCode = 200; h.Response.ContentType = "text/html";
+            h.Response.Write("<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>Login &amp; Access</title><link href=\"css/AnyminuteModern.css\" rel=\"stylesheet\" /></head><body class=\"am-modern\" style=\"padding:40px\"><div class=\"am-card\" style=\"max-width:720px;margin:0 auto\"><h1 style=\"font-size:22px;margin:0 0 10px\">Login &amp; Access</h1><div class=\"am-notice am-error\" role=\"alert\">Login &amp; Access could not be opened. The details were logged for support. You can still manage an employee's login from Employees &gt; Employee List &gt; Edit &gt; Login &amp; Access.</div><p><a class=\"am-button\" href=\"Users.aspx\">Employee List</a> <a class=\"am-button secondary\" href=\"Dashboard.aspx\">Back to Dashboard</a></p></div></body></html>");
+            h.ApplicationInstance.CompleteRequest();
+        }
+        catch (Exception) { }
+    }
+
     // 2026-10-28 v26: end sessions revoked by Support Admin "Disable Login Access" (no-op until REQUIRED_08 is run).
     void Application_PostAcquireRequestState(object sender, EventArgs e)
     {

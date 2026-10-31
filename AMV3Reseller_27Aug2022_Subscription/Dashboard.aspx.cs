@@ -24,7 +24,10 @@ public partial class AnyminuteDashboard : System.Web.UI.Page
    // v37 (PPT s1 Access History / View All Activity): full activity list for accountants.
    if(Request.QueryString["view"]=="activity" && AnyminuteAccountantDashboard.Applies())
    {RoleDashboard.Text=AnyminuteAccountantDashboard.RenderActivity();RoleDashboard.Visible=true;OwnerView.Visible=false;return;}
-   if(Request.QueryString["view"]!="businesses" && AnyminuteAccountantDashboard.Applies())
+   // v38 (PPT "Open vs View"): View = read-only business details screen.
+  if(Request.QueryString["view"]=="business" && AnyminuteAccountantDashboard.Applies())
+  {RoleDashboard.Text=AnyminuteAccountantDashboard.RenderBusinessView(Request.QueryString["b"]);RoleDashboard.Visible=true;OwnerView.Visible=false;return;}
+  if(Request.QueryString["view"]!="businesses" && AnyminuteAccountantDashboard.Applies())
    {RoleDashboard.Text=AnyminuteAccountantDashboard.Render(Request.QueryString["b"]);RoleDashboard.Visible=true;OwnerView.Visible=false;return;}
    Bind();
   }

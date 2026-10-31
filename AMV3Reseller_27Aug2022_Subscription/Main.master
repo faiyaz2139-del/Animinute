@@ -5,7 +5,7 @@
 <!DOCTYPE html>
 
 <html>
-<head runat="server"><meta name="anyminute-build" content="v37-20261031" />
+<head runat="server"><meta name="anyminute-build" content="v38-20261031" />
     <title>AnyMinute | Record From Anywhere</title>
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -257,7 +257,7 @@
             </div>
         </div>
     <script src="Scripts/AnyminuteUI2026.js?v=20261024v10"></script>
-    <script src="Scripts/AnyminuteUIUnified.js?v=20261024e1"></script>
+    <script src="Scripts/AnyminuteUIUnified.js?v=20261031v38"></script>
     <script src="Scripts/AnyminuteUiBugFixes.js?v=20261024e1"></script>
 <script src="Scripts/AnyminuteNavigationActions.js?v=20261024e1"></script><script src="Scripts/AnyminuteNavDrawer.js?v=20261031v37"></script></form>
     <!-- Datatables -->

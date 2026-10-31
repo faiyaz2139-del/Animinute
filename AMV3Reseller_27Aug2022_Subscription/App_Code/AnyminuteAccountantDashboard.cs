@@ -126,6 +126,12 @@ public static class AnyminuteAccountantDashboard
 
     public static string Render(string selected)
     {
+        var all = LoadAll();
+        return RenderFrom(all, selected);
+    }
+    // v38: business rows shared by the dashboard (Open/View table) and the read-only View screen.
+    static List<Biz> LoadAll()
+    {
         var rows = Businesses();
         var all = new List<Biz>();
         int me = Convert.ToInt32(HttpContext.Current.Session["UserId"]);
@@ -197,6 +203,10 @@ public static class AnyminuteAccountantDashboard
                 all.Add(b);
             }
         }
+        return all;
+    }
+    static string RenderFrom(List<Biz> all, string selected)
+    {
         if (selected != null && !all.Any(b => b.Id.ToString(Inv) == selected)) selected = null;
         var scope = selected == null ? all : all.Where(b => b.Id.ToString(Inv) == selected).ToList();
         var menu = AnyminuteUiNavigation.Load().ToList();
@@ -229,15 +239,20 @@ public static class AnyminuteAccountantDashboard
             // v36 (PPT s1 + s2, strict): as in the mock, Up to Date rows get Open (full working screen: Payroll Hours for this
             // business) and Pending Review / Action Required rows get View (read-only details: this dashboard scoped to the
             // business, with status and history). The pending approval queue stays on the Pending Payroll Reviews KPI (BusinessId + Week).
+            // v38 (DOCX "What is this Open and View" + PPT guidance slide "Open vs View"): Open = work inside the business
+            // (full working screen: Payroll Hours for this business, edit/approve). View = read-only details screen (summary,
+            // status, payroll history; no editing or processing actions) at Dashboard.aspx?view=business&b=ID.
             bool open = cls == "green";
-            string href = open ? U("~/TimeCards.aspx?BusinessId=" + b.Id + (b.FirstPending.HasValue ? "&Week=" + b.FirstPending.Value.ToString("yyyy-MM-dd", Inv) : "")) : U("~/Dashboard.aspx?b=" + b.Id + (b.FirstPending.HasValue ? "&Week=" + b.FirstPending.Value.ToString("yyyy-MM-dd", Inv) : ""));
+            string href = open ? U("~/TimeCards.aspx?BusinessId=" + b.Id + (b.FirstPending.HasValue ? "&Week=" + b.FirstPending.Value.ToString("yyyy-MM-dd", Inv) : "")) : U("~/Dashboard.aspx?view=business&b=" + b.Id);
             s.Append("<tr><td><a class='am-ap-name' href='").Append(A(U("~/Dashboard.aspx?b=" + b.Id))).Append("'>").Append(H(b.Name)).Append("</a></td>")
              .Append("<td><strong>").Append(H(b.Contact)).Append("</strong>").Append(String.IsNullOrEmpty(b.Email) ? "" : "<span class='am-ap-email'>" + H(b.Email) + "</span>").Append("</td>")
              .Append("<td><span class='am-ap-pill am-ap-").Append(b.Access == "Both" ? "both" : b.Access == "Payroll Admin" ? "pay" : "acc").Append("'>").Append(H(b.Access)).Append("</span></td>")
              .Append("<td>").Append(b.Employees).Append("</td>")
              .Append("<td><span class='am-ap-status am-ap-").Append(cls).Append("'>").Append(status).Append("</span></td>")
              .Append("<td>").Append(b.Last.HasValue ? H(b.Last.Value.ToString("MMM d", Inv) + " \u2013 " + b.Last.Value.AddDays(6).ToString("MMM d, yyyy", Inv)) : "\u2014").Append("</td>")
-             .Append("<td><a class='am-button").Append(open ? "" : " secondary").Append(" am-ap-act' href='").Append(A(href)).Append("'>").Append(open ? "Open" : "View").Append("</a></td></tr>");
+             .Append("<td><a class='am-button").Append(open ? "" : " secondary").Append(" am-ap-act' href='").Append(A(href)).Append("' title='")
+             .Append(open ? "Open: work inside " + A(b.Name) + " (payroll hours: edit, process, approve)" : "View: read-only details for " + A(b.Name) + " (summary, status and history; no changes)")
+             .Append("'>").Append(open ? "Open" : "View").Append("</a></td></tr>");
         }
         if (scope.Count == 0) s.Append("<tr><td colspan='7' class='am-ap-empty'>No businesses have shared accountant access with you yet. Ask the business owner to invite you from Accountant &amp; Payroll Access.</td></tr>");
         s.Append("</tbody></table></div></section>");
@@ -297,6 +312,57 @@ public static class AnyminuteAccountantDashboard
              .Append("</strong><small>").Append(H(a.Text)).Append("</small></div><time>").Append(H(Ago(a.At))).Append("</time></li>");
         if (activity.Count == 0) s.Append("<li class='am-ap-empty'>No activity yet.</li>");
     }
+    // v38 (PPT "Open vs View", View column): read-only details screen for one assigned business. Summary information,
+    // status and payroll history only; no edit, process, assign or approve controls on this screen.
+    public static string RenderBusinessView(string id)
+    {
+        var all = LoadAll();
+        var b = all.FirstOrDefault(x => x.Id.ToString(Inv) == id);
+        var s = new StringBuilder("<div class='am-ap am-ap-view'>");
+        if (b == null)
+        {
+            s.Append("<div class='am-ap-head'><div><h1>Business Details</h1><p>This business is not assigned to you.</p></div></div><p><a class='am-button secondary' href='").Append(A(U("~/Dashboard.aspx"))).Append("'>Back to Dashboard</a></p></div>");
+            return s.ToString();
+        }
+        string status = b.Rejected > 0 ? "Action Required" : b.Pending > 0 ? "Pending Review" : "Up to Date";
+        string cls = b.Rejected > 0 ? "red" : b.Pending > 0 ? "amber" : "green";
+        s.Append("<div class='am-ap-head'><div><h1>").Append(Svg("eye")).Append(H(b.Name)).Append("</h1><p>View &middot; read-only details. Summary information, status and payroll history; nothing can be changed here.</p></div>")
+         .Append("<a class='am-button secondary' href='").Append(A(U("~/Dashboard.aspx"))).Append("'>&larr; Back to Dashboard</a></div>");
+        s.Append("<section class='am-card am-ap-viewsum'><dl>")
+         .Append("<div><dt>Contact</dt><dd><strong>").Append(H(b.Contact)).Append("</strong>").Append(String.IsNullOrEmpty(b.Email) ? "" : "<span class='am-ap-email'>" + H(b.Email) + "</span>").Append("</dd></div>")
+         .Append("<div><dt>Access Type</dt><dd><span class='am-ap-pill am-ap-").Append(b.Access == "Both" ? "both" : b.Access == "Payroll Admin" ? "pay" : "acc").Append("'>").Append(H(b.Access)).Append("</span></dd></div>")
+         .Append("<div><dt>Employees</dt><dd>").Append(b.Employees).Append("</dd></div>")
+         .Append("<div><dt>Payroll Status</dt><dd><span class='am-ap-status am-ap-").Append(cls).Append("'>").Append(status).Append("</span></dd></div>")
+         .Append("<div><dt>Pending Reviews</dt><dd>").Append(b.Pending).Append("</dd></div>")
+         .Append("<div><dt>Last Payroll Period</dt><dd>").Append(b.Last.HasValue ? H(b.Last.Value.ToString("MMM d", Inv) + " \u2013 " + b.Last.Value.AddDays(6).ToString("MMM d, yyyy", Inv)) : "\u2014").Append("</dd></div>")
+         .Append("</dl></section>");
+        s.Append("<section class='am-card am-ap-biz'><div class='am-ap-sechead'><h2>").Append(Svg("clock")).Append("Payroll History</h2></div><div class='am-table-wrap'><table class='am-table'><thead><tr><th>Week</th><th>Employee</th><th>Status</th><th>Last Change</th></tr></thead><tbody>");
+        int n = 0;
+        try
+        {
+            using (var c = AnyminuteTimesheetRepair.Open())
+                if (AnyminuteTimesheetRepair.Query(c, null, "SELECT OBJECT_ID('dbo.AnyminuteWeek','U')").Rows[0][0] != DBNull.Value)
+                    foreach (DataRow r in AnyminuteTimesheetRepair.Query(c, null, @"SELECT TOP(50) w.WeekStart,w.State,w.ChangedAtUTC,dbo.FN_DESC('AddEmployee',w.EmployeeID) Emp FROM dbo.AnyminuteWeek w
+                        WHERE w.BusinessID=@b AND w.State IN('Submitted','Approved','Rejected') ORDER BY w.WeekStart DESC,w.ChangedAtUTC DESC", "@b", b.Id).Rows)
+                    {
+                        DateTime ws = Convert.ToDateTime(r["WeekStart"]); string st = Convert.ToString(r["State"]);
+                        string tone = st == "Approved" ? "green" : st == "Rejected" ? "red" : "amber";
+                        s.Append("<tr><td>").Append(H(ws.ToString("MMM d", Inv) + " \u2013 " + ws.AddDays(6).ToString("MMM d, yyyy", Inv))).Append("</td><td>").Append(H(Convert.ToString(r["Emp"]).Trim()))
+                         .Append("</td><td><span class='am-ap-status am-ap-").Append(tone).Append("'>").Append(H(st == "Submitted" ? "Pending Review" : st)).Append("</span></td><td>")
+                         .Append(r["ChangedAtUTC"] == DBNull.Value ? "\u2014" : H(Ago(Convert.ToDateTime(r["ChangedAtUTC"])))).Append("</td></tr>");
+                        n++;
+                    }
+        }
+        catch (System.Data.SqlClient.SqlException ex) { log4net.LogManager.GetLogger("Log").Warn("Accountant business view history failed for business " + b.Id, ex); }
+        if (n == 0) s.Append("<tr><td colspan='4' class='am-ap-empty'>No submitted payroll weeks yet.</td></tr>");
+        s.Append("</tbody></table></div></section>");
+        s.Append("<section class='am-card am-ap-activity am-ap-history'><div class='am-ap-sechead'><div><h2>").Append(Svg("history")).Append("Recent Activity</h2><p>Latest actions for this business.</p></div></div><ul>");
+        ActivityItems(s, Activity(new Dictionary<int, string> { { b.Id, b.Name } }, 10));
+        s.Append("</ul></section></div>");
+        Log(b.Id, "Business details viewed", "");
+        return s.ToString();
+    }
+
     // Access History (left navigation) / View All Activity: the last 100 actions across the assigned businesses.
     public static string RenderActivity()
     {
@@ -386,6 +452,7 @@ public static class AnyminuteAccountantDashboard
             : n == "reports" ? "M6 20V10M12 20V4M18 20v-7"
             : n == "doc" ? "M7 3h7l5 5v13H7zM14 3v5h5M10 13h6M10 17h6"
             : n == "bolt" ? "M13 2L4 14h7l-1 8 9-12h-7z"
+            : n == "eye" ? "M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12zM12 15a3 3 0 100-6 3 3 0 000 6z"
             : "M3 12a9 9 0 103-6.7L3 8M3 3v5h5M12 7v5l3 2";
         return "<svg viewBox='0 0 24 24' width='22' height='22' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='" + d + "'/></svg>";
     }

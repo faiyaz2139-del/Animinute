@@ -29,6 +29,13 @@ public partial class AnyminuteModernMaster : System.Web.UI.MasterPage
    if(firm.Length>0)Welcome.Text=HttpUtility.HtmlEncode(firm);
    AccountAvatar.Text="<span class='am-ap-avatar' aria-hidden='true'>"+HttpUtility.HtmlEncode(AnyminuteAccountantDashboard.Initials(who))+"</span><span class='am-ap-avatar-name'>"+HttpUtility.HtmlEncode(who)+"</span>";
    accountantHeader=true;
+   // v38 (DOCX "Top header of the Accountant user login is not aligned properly", PPT s1): AnyMinute clock mark + wordmark
+   // in a sidebar-wide brand block with a divider, Welcome block left-aligned after it; on the right only bell, initials,
+   // firm name and chevron (the "?" help button is not in the PPT header, so Help moves into the account menu).
+   LogoDefault.Visible=false;
+   Brand.Text="<span class='am-ap-brand'><svg viewBox='0 0 40 40' width='34' height='34' aria-hidden='true' focusable='false'><circle cx='20' cy='21' r='15' fill='none' stroke='#1f6fe5' stroke-width='4'/><path d='M20 12v9.5l6 3.5' fill='none' stroke='#1f6fe5' stroke-width='3.6' stroke-linecap='round' stroke-linejoin='round'/><path d='M15 3.5h10' stroke='#1f6fe5' stroke-width='3.6' stroke-linecap='round'/></svg><span class='am-ap-brand-text'>AnyMinute</span></span>";
+   HeaderHelp.Text="";
+   AccountHelp.Text="<a href='"+HttpUtility.HtmlAttributeEncode(VirtualPathUtility.ToAbsolute("~/Help.aspx"))+"'><span data-am-icon='help' aria-hidden='true'></span>Help Center</a>";
   }
   if(!String.IsNullOrEmpty(context))WelcomeContext.Text="<small class='am-welcome-context' style='display:block;font-size:12px;font-weight:500;color:#5b6778;line-height:1.3'>"+HttpUtility.HtmlEncode(context)+"</small>";
 

@@ -12,7 +12,7 @@ public partial class BusinessUsers : Page
         using(var c=AnyminuteTimesheetRepair.Open()) AnyminuteApprovalAssignments.RequireOwner(c,null,business);
         // 2026-10-26 v19 (t78u): the intermediate "Edit User" picker is retired. Old links land on User Access > Login & Access
         // for this business, whose rows open the real employee editor (Login & Access tab).
-        Response.Redirect("~/LoginAccess.aspx?BusinessId="+business,false);Context.ApplicationInstance.CompleteRequest();
+        Response.Redirect("~/UserLoginAccess.aspx?BusinessId="+business,false);Context.ApplicationInstance.CompleteRequest();
     }
     protected void Page_Load(object s,EventArgs e)
     {

@@ -10,6 +10,8 @@
         document.querySelectorAll('.am-sidebar nav a,#sidebar-wrapper .sidebar-nav a').forEach(function(a){
             var span=a.querySelector('span'),label=(span?span.textContent:a.textContent).trim().toLowerCase();
             if(permission&&permission.value==='false'&&a.closest('.am-sidebar')&&/^(employees|users|user list|employee list)$/.test(label)){a.hidden=true;return;}
+            // v38 (DOCX: accountant menu showed two icons per item): links that already carry their own SVG (accountant deck nav) keep it.
+            if(a.closest('li.am-ap-nav')||(a.querySelector('svg')&&!a.querySelector('.am-svg-icon')))return;
             var key=/ticket/.test(label)?'ticket':/plan|upgrade/.test(label)?'upgrade':/accountant/.test(label)?'people':/more tools/.test(label)?'settings':/dashboard|home/.test(label)?'dashboard':/employee|user/.test(label)?'people':/business/.test(label)?'business':/project/.test(label)?'folder':/report/.test(label)?'reports':/approv/.test(label)?'check':/setting/.test(label)?'settings':'clock';
             var target=a.querySelector('i');
             if(target){target.innerHTML=icon(key);target.classList.add('am-svg-icon');}

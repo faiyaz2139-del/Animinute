@@ -5,14 +5,18 @@ using System.Linq;
 using System.Text;
 using System.Web;
 
+// 2026-10-31 v38 (DOCX: subscriber "Login & Access" still -> ErrorPages/index.aspx?aspxerrorpath=/LoginAccess.aspx even with v37's
+// Page_Error, i.e. the failure happened before any page code ran: page compile/type load). The page now lives here with
+// unique control IDs (no "Table"/"Head"/"Body"), no static field initializer; LoginAccess.aspx is a code-free redirect.
 // 2026-10-26 v19 (t77u): User Access > Login & Access. Lists login status for every employee of the businesses the
 // signed-in user owns or administers; "Manage" opens the existing EmployeeEditor Login & Access tab (unchanged).
 // v29 (live v28: owner ava + admin stl3 landed on ErrorPages): every step is now guarded. A failing business or
 // query is logged and shown as an in-page notice; the page itself never throws to the custom error page.
-public partial class AnyminuteLoginAccessPage : System.Web.UI.Page
+public partial class AnyminuteUserLoginAccessPage : System.Web.UI.Page
 {
     bool denied, done;
-    static readonly log4net.ILog Log = log4net.LogManager.GetLogger("Log");
+    // v38: no static logger field (a type-initializer failure happens before Page_Error can run).
+    static log4net.ILog Log { get { return log4net.LogManager.GetLogger("Log"); } }
     protected void Page_Init(object sender, EventArgs e)
     {
         try { AnyminuteModernScope.Login(); }
@@ -38,8 +42,8 @@ public partial class AnyminuteLoginAccessPage : System.Web.UI.Page
         catch (Exception ex)
         {
             Log.Error("LoginAccess page load failed", ex);
-            Denied.Visible = false; Allowed.Visible = true;
-            Table.Text = "<div class=\"am-notice am-error\" role=\"alert\">Login &amp; Access could not be loaded right now. The details were logged for support. Try again, or open an employee from Employees &gt; Employee List to manage their login.</div>";
+            DeniedView.Visible = false; AllowedView.Visible = true;
+            LoginGrid.Text = "<div class=\"am-notice am-error\" role=\"alert\">Login &amp; Access could not be loaded right now. The details were logged for support. Try again, or open an employee from Employees &gt; Employee List to manage their login.</div>";
         }
     }
     protected void Page_Error(object sender, EventArgs e)
@@ -49,13 +53,13 @@ public partial class AnyminuteLoginAccessPage : System.Web.UI.Page
         Log.Error("LoginAccess unhandled error", ex);
         Server.ClearError();
         Response.Clear(); Response.StatusCode = 200; Response.ContentType = "text/html";
-        Response.Write("<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>Login &amp; Access</title><link href=\"css/AnyminuteModern.css\" rel=\"stylesheet\" /></head><body class=\"am-modern\" style=\"padding:40px\"><div class=\"am-card\" style=\"max-width:720px;margin:0 auto\"><h1 style=\"font-size:22px;margin:0 0 10px\">Login &amp; Access</h1><div class=\"am-notice am-error\" role=\"alert\">This page could not be displayed. The details were logged for support.</div><p><a class=\"am-button\" href=\"LoginAccess.aspx\">Try again</a> <a class=\"am-button secondary\" href=\"Dashboard.aspx\">Back to Dashboard</a></p></div></body></html>");
+        Response.Write("<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>Login &amp; Access</title><link href=\"css/AnyminuteModern.css\" rel=\"stylesheet\" /></head><body class=\"am-modern\" style=\"padding:40px\"><div class=\"am-card\" style=\"max-width:720px;margin:0 auto\"><h1 style=\"font-size:22px;margin:0 0 10px\">Login &amp; Access</h1><div class=\"am-notice am-error\" role=\"alert\">This page could not be displayed. The details were logged for support.</div><p><a class=\"am-button\" href=\"UserLoginAccess.aspx\">Try again</a> <a class=\"am-button secondary\" href=\"Dashboard.aspx\">Back to Dashboard</a></p></div></body></html>");
         Context.ApplicationInstance.CompleteRequest();
     }
     void LoadPage()
     {
         if (done) return;
-        if (denied) { Denied.Visible = true; Allowed.Visible = false; return; }
+        if (denied) { DeniedView.Visible = true; AllowedView.Visible = false; return; }
         int business; Int32.TryParse(Request.QueryString["BusinessId"], out business);
         var admin = Admin();
         if (business > 0 && !admin.Any(b => b.Id == business)) business = 0; // not one of mine: show all of mine
@@ -66,11 +70,11 @@ public partial class AnyminuteLoginAccessPage : System.Web.UI.Page
         List<string[]> rows; string problem;
         rows = AnyminuteReports.LoginRowsSafe(business, admin, out problem);
         Func<string, string, string> k = (l, v) => "<div><span>" + l + "</span><strong>" + v + "</strong></div>";
-        Kpis.Text = k("Employees", rows.Select(r => r[0]).Distinct().Count().ToString(CultureInfo.InvariantCulture)) + k("Login Enabled", rows.Count(r => r[6] == "Enabled").ToString(CultureInfo.InvariantCulture))
+        LoginKpis.Text = k("Employees", rows.Select(r => r[0]).Distinct().Count().ToString(CultureInfo.InvariantCulture)) + k("Login Enabled", rows.Count(r => r[6] == "Enabled").ToString(CultureInfo.InvariantCulture))
             + k("Invitation Pending", rows.Count(r => r[6] == "Invitation Pending").ToString(CultureInfo.InvariantCulture)) + k("Disabled / No Login", rows.Count(r => r[6] == "Disabled" || r[6] == "No Login").ToString(CultureInfo.InvariantCulture));
         string table;
         try { table = AnyminuteReports.LoginHtml(rows); }
         catch (Exception ex) { Log.Warn("LoginAccess table render failed", ex); table = ""; problem = "The employee list could not be displayed."; }
-        Table.Text = (problem == null ? "" : "<div class=\"am-notice am-error\" role=\"alert\">" + HttpUtility.HtmlEncode(problem) + " The details were logged for support. Try again, or open an employee from Users &rsaquo; Edit.</div>") + table;
+        LoginGrid.Text = (problem == null ? "" : "<div class=\"am-notice am-error\" role=\"alert\">" + HttpUtility.HtmlEncode(problem) + " The details were logged for support. Try again, or open an employee from Users &rsaquo; Edit.</div>") + table;
     }
 }
