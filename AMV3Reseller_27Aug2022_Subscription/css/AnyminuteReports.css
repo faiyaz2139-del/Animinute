@@ -19,7 +19,7 @@
 .am-rp-card-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
 .am-rp-card-head h2{margin:0}
 .am-rp-card-head input[type=search]{padding:7px 10px;border:1px solid #cfd8e6;border-radius:8px;min-width:200px}
-.am-rp-item{display:grid;grid-template-columns:36px minmax(140px,1fr) minmax(150px,1.3fr) auto auto;gap:10px;align-items:center;padding:10px;border:1px solid var(--rp-line);border-radius:10px;margin-bottom:8px}
+.am-rp-item{display:grid;grid-template-columns:36px minmax(140px,1fr) minmax(150px,1.3fr) auto;gap:10px;align-items:center;padding:10px;border:1px solid var(--rp-line);border-radius:10px;margin-bottom:8px}
 .am-rp-item.is-active{border-color:var(--rp-blue);background:#f3f7ff}
 .am-rp-item p{margin:0;font-size:12px;color:#5b6778}
 @media(max-width:760px){.am-rp-item{grid-template-columns:36px 1fr}.am-rp-item p,.am-rp-roles,.am-rp-acts{grid-column:2}}

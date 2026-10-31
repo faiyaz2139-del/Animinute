@@ -55,8 +55,6 @@ public static partial class AnyminuteReports
         if (defs.Count == 0) sb.Append("<p class=\"am-rp-empty\">No reports are enabled for your role in this business. A business owner can change this in Login &amp; Access &rsaquo; Report Access.</p>");
         foreach (var d in defs)
         {
-            var biz = inScope.Where(b => Perm(d, b).Any).ToList();
-            bool pdf = biz.Any(b => Perm(d, b).Pdf), xls = biz.Any(b => Perm(d, b).Excel);
             var m = inScope.Count > 0 ? MatrixFor(inScope[0])[d.Key] : Defaults()[d.Key];
             string pick = Href(q, d.Key, null) + "#rp-preview";
             sb.Append("<article class=\"am-rp-item").Append(d.Key == q.Key ? " is-active" : "").Append("\" data-rp-href=\"").Append(A(pick)).Append("\" tabindex=\"0\" role=\"button\" aria-pressed=\"").Append(d.Key == q.Key ? "true" : "false").Append("\" data-rp-text=\"").Append(A((d.Name + " " + d.Desc).ToLowerInvariant())).Append("\">");
@@ -64,17 +62,13 @@ public static partial class AnyminuteReports
             sb.Append("<a class=\"am-rp-name\" href=\"" + A(pick) + "\">" + E(d.Name) + "</a>"); // v20: export-only reports open their filters too
             sb.Append("<p>").Append(E(d.Desc)).Append("</p><span class=\"am-rp-roles\">");
             for (int i = 0; i < 3; i++) if (m[i].Any) sb.Append("<span class=\"am-rp-badge am-rp-t").Append(i).Append("\">").Append(Tiers[i]).Append("</span>");
-            sb.Append("</span><span class=\"am-rp-acts\">");
-            sb.Append(pdf ? "<a class=\"am-rp-pdf\" href=\"" + A(Href(q, d.Key, "pdf")) + "\">PDF</a>" : "<span class=\"am-rp-pdf is-off\" title=\"PDF export is not enabled for your role\">PDF</span>");
-            sb.Append(xls ? "<a class=\"am-rp-xls\" href=\"" + A(Href(q, d.Key, "excel")) + "\">Excel</a>" : "<span class=\"am-rp-xls is-off\" title=\"Excel export is not enabled for your role\">Excel</span>");
-            sb.Append("</span></article>");
+            sb.Append("</span></article>"); // v40: row PDF/Excel removed; export from Report Filters & Preview only
         }
         var def = defs.FirstOrDefault(x => x.Key == q.Key) ?? defs.FirstOrDefault(x => inScope.Any(b => Perm(x, b).View)) ?? defs.FirstOrDefault();
         sb.Append("</section><section class=\"am-rp-card am-rp-preview\" id=\"rp-preview\" tabindex=\"-1\" aria-live=\"polite\" data-rp-key=\"").Append(def == null ? "" : A(def.Key)).Append("\">");
         if (def == null) sb.Append("<h2>Report Filters &amp; Preview</h2><p class=\"am-rp-empty\">Select a report to preview it.</p>");
         else Preview(sb, def, q, inScope);
         sb.Append("</section></div>");
-        sb.Append("<footer class=\"am-rp-principles\"><div><strong>Single Reports Module</strong><span>One unified place for all your reporting needs.</span></div><div><strong>Reports depend on selected business</strong><span>Only reports for the chosen business are shown.</span></div><div><strong>Reports depend on user role</strong><span>Each user sees only the reports they have permission to access.</span></div><div><strong>One export system for PDF and Excel</strong><span>All reports use the same export system.</span></div><div><strong>Supports multi-business</strong><span>Works across multiple businesses in one system.</span></div></footer>");
         return sb.ToString();
     }
     static void Preview(StringBuilder sb, AmRptDef d, AmRptQuery q, List<AmRptBiz> inScope)
