@@ -47,7 +47,7 @@ public static class AnyminuteAccountantDashboard
         return l;
     }
 
-    sealed class Biz { public int Id, Employees, Pending, Rejected; public string Name, Contact, Phone, Access; public DateTime? Last; }
+    sealed class Biz { public int Id, Employees, Pending, Rejected; public string Name, Contact, Phone, Access; public DateTime? Last, FirstPending; }
 
     public static string Render(string selected)
     {
@@ -67,8 +67,26 @@ public static class AnyminuteAccountantDashboard
                 {
                     var w = AnyminuteTimesheetRepair.Query(c, null, @"SELECT SUM(CASE WHEN State='Submitted' THEN 1 ELSE 0 END),SUM(CASE WHEN State='Rejected' THEN 1 ELSE 0 END),
                         MAX(CASE WHEN State='Approved' THEN WeekStart END) FROM dbo.AnyminuteWeek WHERE BusinessID=@b", "@b", b.Id).Rows[0];
-                    b.Pending = w[0] == DBNull.Value ? 0 : Convert.ToInt32(w[0]); b.Rejected = w[1] == DBNull.Value ? 0 : Convert.ToInt32(w[1]);
+                    b.Rejected = w[1] == DBNull.Value ? 0 : Convert.ToInt32(w[1]);
                     if (w[2] != DBNull.Value) b.Last = Convert.ToDateTime(w[2]);
+                    // v35 (live smoke kk3): Pending Payroll Reviews counted every Submitted week in the business, but the
+                    // Submitted queue (TimeCards.aspx?status=Submitted) lists only employees this user may approve. Count
+                    // only those weeks (same Users(business) + Authorize(..., false) checks as the queue) and remember the
+                    // oldest one so Open lands on a week that actually has rows.
+                    var reviewable = new HashSet<int>();
+                    int sessionEmp = Convert.ToInt32(HttpContext.Current.Session["EmployeeId"]), sessionRole = Convert.ToInt32(HttpContext.Current.Session["UserTypeid"]);
+                    foreach (DataRow u in AnyminuteModernScope.Users(b.Id).Rows)
+                    {
+                        int emp = Convert.ToInt32(u["EmployeeID"]);
+                        try { AnyminuteTimesheetRepair.Authorize(c, null, sessionEmp, sessionRole, b.Id, emp, false); reviewable.Add(emp); }
+                        catch (InvalidOperationException) { }
+                    }
+                    foreach (DataRow p in AnyminuteTimesheetRepair.Query(c, null, "SELECT EmployeeID,WeekStart FROM dbo.AnyminuteWeek WHERE BusinessID=@b AND State='Submitted'", "@b", b.Id).Rows)
+                    {
+                        if (!reviewable.Contains(Convert.ToInt32(p["EmployeeID"]))) continue;
+                        b.Pending++; DateTime ws = Convert.ToDateTime(p["WeekStart"]).Date;
+                        if (!b.FirstPending.HasValue || ws < b.FirstPending.Value) b.FirstPending = ws;
+                    }
                 }
                 if (invites)
                 {
@@ -106,7 +124,8 @@ public static class AnyminuteAccountantDashboard
         s.Append("<div class='am-ap-kpis'>");
         Kpi(s, "blue", "business", "Assigned Businesses", scope.Count.ToString(Inv), U("~/Dashboard.aspx?view=businesses"));
         Kpi(s, "green", "people", "Employees in Access", scope.Sum(b => b.Employees).ToString(Inv), U("~/Users.aspx"));
-        Kpi(s, "orange", "clock", "Pending Payroll Reviews", scope.Sum(b => b.Pending).ToString(Inv), U("~/TimeCards.aspx?status=Submitted"));
+        var firstPending = scope.Where(b => b.FirstPending.HasValue).Select(b => b.FirstPending.Value).DefaultIfEmpty(DateTime.MinValue).Min();
+        Kpi(s, "orange", "clock", "Pending Payroll Reviews", scope.Sum(b => b.Pending).ToString(Inv), U("~/TimeCards.aspx?status=Submitted" + (firstPending > DateTime.MinValue ? "&Week=" + firstPending.ToString("yyyy-MM-dd", Inv) : "")));
         Kpi(s, "purple", "reports", "Available Reports", reports.ToString(Inv), report ?? "#");
         s.Append("</div>");
 
@@ -120,7 +139,7 @@ public static class AnyminuteAccountantDashboard
             // v34 product guidance: Open = working screen (approve queue for this business) when work is waiting;
             // View = read-only summary (this dashboard scoped to the business) when payroll is up to date.
             bool open = cls != "green";
-            string href = open ? U("~/TimeCards.aspx?status=Submitted&BusinessId=" + b.Id) : U("~/Dashboard.aspx?b=" + b.Id);
+            string href = open ? U("~/TimeCards.aspx?status=Submitted&BusinessId=" + b.Id + (b.FirstPending.HasValue ? "&Week=" + b.FirstPending.Value.ToString("yyyy-MM-dd", Inv) : "")) : U("~/Dashboard.aspx?b=" + b.Id);
             s.Append("<tr><td><a class='am-ap-name' href='").Append(A(U("~/Dashboard.aspx?b=" + b.Id))).Append("'>").Append(H(b.Name)).Append("</a></td>")
              .Append("<td><strong>").Append(H(b.Contact)).Append("</strong></td>")
              .Append("<td><span class='am-ap-pill am-ap-").Append(b.Access == "Both" ? "both" : b.Access == "Payroll Admin" ? "pay" : "acc").Append("'>").Append(H(b.Access)).Append("</span></td>")
@@ -136,7 +155,8 @@ public static class AnyminuteAccountantDashboard
         Quick(s, "blue", "clock", "View Payroll Hours", "Review and approve employee hours", U("~/TimeCards.aspx"));
         Quick(s, "green", "reports", "Export Reports", "Generate and download reports", report);
         Quick(s, "purple", "people", "Open Employee List", "View all employees across businesses", U("~/Users.aspx"));
-        Quick(s, "orange", "doc", "Download Documents", "Access and download client documents", docs ?? report);
+        // v35: Download Documents shows only when the role has a Documents page (no fallback to Reports).
+        if (!String.IsNullOrEmpty(docs)) Quick(s, "orange", "doc", "Download Documents", "Access and download client documents", docs);
         s.Append("</div></section>");
 
         s.Append("<section class='am-card am-ap-activity' id='am-ap-activity'><div class='am-ap-sechead'><div><h2>").Append(Svg("history")).Append("Recent Activity</h2><p>Latest actions across your assigned businesses.</p></div><a href='")

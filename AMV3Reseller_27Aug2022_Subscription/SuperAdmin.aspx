@@ -5,11 +5,8 @@
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="Server">
     <script>
-        $(document).ready(function () {
-            $('#GVMother').DataTable({
-                
-            });
-        });
+        // v35 (DOCX image7): DataTables search/pager removed here; the shared list toolbar (Search this list + Status + Clear)
+        // is the only filter, so the grid no longer shows two search boxes.
 	</script>
     <style>
         .GridPager a, .GridPager span {
@@ -218,33 +215,24 @@
     </style>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@9"></script>
     <script src="Assets/assets/js/SweetAlert.js"></script>
+    <link href="css/AnyminuteSupport.css?v=20261031v35" rel="stylesheet" />
+    <style>.am-sa-list .am-grid-wrap{border:0}.am-sa-list .am-sa-grid{margin:0}.am-sa-list .am-sa-grid td a{font-size:12px}.am-sa-list .am-filter{margin-bottom:10px}.am-sa-list .sa-head h1{font-size:24px}</style>
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="Server">
 
-    <div class="panel panel-default" id="divAddAcc" runat="server">
-        <div class="panel-body">
-            <div class="row">
-                <div class="col-md-6">
-                    <h2 style="text-align: left; margin-top: 12px;">Accountant List</h2>
-                </div>
-                <div class="col-md-6">
-                    <asp:HyperLink ID="hyperAdminAddEmp" runat="server" Text="Add Accountant" NavigateUrl="~/MotherOrg.aspx"
-                        class="buttonhyperlink" Style="float: right; margin-top: 12px;"></asp:HyperLink>
-                </div>
-            </div>
-
-        </div>
+    <%-- v35 (DOCX image7): Accountant List uses the Support Admin card/table design (sa-page / sa-head / sa-card / sa-table). --%>
+    <div class="sa-page am-sa-list">
+    <div class="sa-head" id="divAddAcc" runat="server">
+        <div><h1>Accountant List</h1><p>Accountants and payroll agencies, their businesses and login status.</p></div>
+        <asp:HyperLink ID="hyperAdminAddEmp" runat="server" Text="+ Add Accountant" NavigateUrl="~/MotherOrg.aspx" CssClass="sa-btn"></asp:HyperLink>
     </div>
-    <div class="panel panel-default">
-        <div class="panel-body" id="divAddgrid" runat="server">
-            <div class="row">
-                <div class="col-lg-12 col-md-12">
-                    <div style="overflow-x: scroll;">
-                        <asp:GridView ID="GVMother" ClientIDMode="Static" runat="server" CssClass="table nowrap"
+    <div class="sa-card">
+        <div id="divAddgrid" runat="server">
+                    <div class="sa-table-wrap">
+                        <asp:GridView ID="GVMother" ClientIDMode="Static" runat="server" CssClass="table sa-table am-sa-grid"
                             CellPadding="1" ForeColor="#333333" GridLines="None" AllowSorting="true"
                              OnPageIndexChanging="GVMother_PageIndexChanging" AutoGenerateColumns="False"
                             EmptyDataText="No records Found" OnPreRender="GVMother_PreRender" OnRowDataBound="GVMother_RowDataBound" OnRowCommand="GVMother_RowCommand">
-                            <AlternatingRowStyle BackColor="#f5f5f5" />
                             <Columns>
 
                                 <asp:TemplateField HeaderText="Sl. No.">
@@ -305,7 +293,7 @@
                                         <%--<label class="switch">--%>
                                         
                                         <%--<asp:CheckBox ID="togBtnForAdminBussOwner" ClientIDMode="Static" runat="server" />--%>
-                                        <asp:ImageButton ID="btnactive" runat="server" ImageUrl="~/images/active.png" Width="120px" CommandArgument='<%# ((GridViewRow) Container).RowIndex %>' CommandName="status" />
+                                        <asp:ImageButton ID="btnactive" runat="server" ImageUrl="~/images/active.png" Width="96px" CommandArgument='<%# ((GridViewRow) Container).RowIndex %>' CommandName="status" />
      
                                         <%--<div class="slider round"></div>--%>
                                    <%-- </label>--%>
@@ -320,8 +308,8 @@
 
                         </asp:GridView>
                     </div>
-                </div>
-            </div>
         </div>
     </div>
+    </div>
+
 </asp:Content>

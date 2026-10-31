@@ -38,8 +38,9 @@ public partial class AnyminuteEmployeeEditorPage : System.Web.UI.Page
     private void SetupAdd()
     {
         PageTitle.Text = "Add Employee"; PageSubtitle.Text = "Enter the employee details and assign to one or more businesses with roles and pay details.";
-        // v17 (Pandey image1, supersedes v7 Deck D slide 8): Add mode shows Login & Access again and no info banner.
-        NewAssignments.Visible = LookupSection.Visible = NewAccess.Visible = true; AddNotice.Visible = false; SaveEmployee.Text = "Save Employee";
+        // v35 (DOCX image1): Add Employee no longer shows the Login & Access section; login stays enabled by default
+        // and the invitation is sent later from the employee's Login & Access tab.
+        NewAssignments.Visible = LookupSection.Visible = true; NewAccess.Visible = false; AddNotice.Visible = false; SaveEmployee.Text = "Save Employee";
         if (IsPostBack) return;
         HireDate.Text = NewEffective.Text = DateTime.Today.ToString("yyyy-MM-dd", Inv);
         NewBusiness.Items.Add(new ListItem("Select a business", ""));

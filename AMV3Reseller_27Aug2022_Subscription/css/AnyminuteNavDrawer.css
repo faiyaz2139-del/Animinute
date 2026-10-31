@@ -13,3 +13,11 @@ html body.am-drawer-nav [data-toggle-sidebar],html body.am-drawer-nav #menu-togg
 html body.am-drawer-nav [data-toggle-sidebar]:hover,html body.am-drawer-nav #menu-toggle:hover,html body.am-drawer-nav.am-drawer-open [data-toggle-sidebar],html body.am-drawer-nav.am-drawer-open #menu-toggle{background:transparent!important;border:0!important;color:#0f55b8!important}
 html body.am-ui #menu-toggle svg,html body.am-ui [data-toggle-sidebar] svg{width:26px;height:26px}
 html body.am-ui #menu-toggle .fa{color:#1768d6!important;font-size:24px}
+/* v35 (DOCX image6): Support Admin menu. The deck items (Dashboard ... Reports, Settings) wrapped onto two lines and the
+   badges pushed labels around in the 208px drawer. Support Admin drawer is wider, one line per item, badge pinned right,
+   drawer stays fixed under the top bar and scrolls on its own. */
+html body.am-drawer-nav.am-sa-navbody{--am-sidebar:252px}
+html body.am-drawer-nav.am-sa-navbody #sidebar-wrapper,html body.am-drawer-nav.am-sa-navbody #wrapper.active #sidebar-wrapper,html body.am-drawer-nav.am-sa-navbody .am-sidebar{width:252px!important;max-width:86vw;position:fixed!important;overflow-y:auto!important;overflow-x:hidden!important}
+li.am-sa-nav>a{display:flex!important;align-items:center;gap:10px;white-space:nowrap!important;overflow:hidden;min-height:42px}
+li.am-sa-nav>a>span:not(.am-nav-badge){flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+li.am-sa-nav>a>.am-nav-badge{flex:0 0 auto;margin-left:auto}

@@ -592,6 +592,9 @@
     <script src="Assets/assets/js/SweetAlert.js"></script>
 
     <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+    <%-- v35 (DOCX image4/5): only Personal Details remains; Personal Details and the address block always show together
+         (legacy tab scripts that toggle #home/#menu1 classes can no longer hide either one). --%>
+    <style>#home,#menu1{display:block!important;opacity:1!important;visibility:visible!important}</style>
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" Runat="Server">
     <div class="panel panel-default" style="display:none;">
@@ -632,7 +635,7 @@
                 <div class="col-md-12">
                     <ul class="nav nav-tabs">
                         <li id="homemid" class="active"><a data-toggle="tab" id="homemenu" href="#home" class="tab-sm-fs" style="text-transform: uppercase;">Personal Details</a></li>
-                        <li id="addmid"><a data-toggle="tab" href="#menu1" id="menu1menu" class="tab-sm-fs" style="text-transform: uppercase;">Address and Contacts</a></li> 
+                        <%-- v35 (DOCX image5): Address and Contacts tab removed; the address block now sits at the end of Personal Details. --%>
                     </ul>
                     </div>
                 </div>
@@ -1250,7 +1253,7 @@
                 </div>
 
 
-                   <div id="menu1" class="tab-pane fade in" style="margin-top:40px;">
+                   <div id="menu1" class="am-profile-address-under" style="margin-top:24px;">
 
                     <div class="col-md-12">
                         <div class="pull-right">

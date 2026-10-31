@@ -14,6 +14,7 @@
  function init(){
   if(!document.body||!toggles().length)return;
   document.body.classList.add('am-drawer-nav');
+  if(document.querySelector('li.am-sa-nav'))document.body.classList.add('am-sa-navbody'); // v35: Support Admin drawer sizing
   Array.prototype.forEach.call(toggles(),function(t){if(t.dataset.amDrawer)return;t.dataset.amDrawer='1';t.innerHTML=ICON;t.setAttribute('aria-label','Open or close navigation');});
   if(!document.querySelector('.am-drawer-shade')){var s=document.createElement('button');s.type='button';s.className='am-drawer-shade';s.setAttribute('aria-label','Close navigation');s.tabIndex=-1;s.addEventListener('click',function(){set(false);});document.body.appendChild(s);}
   set(document.body.classList.contains('am-drawer-open'));
