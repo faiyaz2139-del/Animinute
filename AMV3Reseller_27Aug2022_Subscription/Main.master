@@ -5,7 +5,7 @@
 <!DOCTYPE html>
 
 <html>
-<head runat="server"><meta name="anyminute-build" content="v38-20261031" />
+<head runat="server"><meta name="anyminute-build" content="v39-20261031" />
     <title>AnyMinute | Record From Anywhere</title>
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -179,6 +179,7 @@
   <summary aria-label="Account menu"><img src="Assets/assets/img/profile2.jpg" runat="server" id="imgProfile" class="am-account-avatar" alt="" /><span class="am-account-chevron" aria-hidden="true"></span><span class="sr-only">Account</span></summary>
   <div class="am-account-popover">
    <asp:LinkButton ID="profile" runat="server" CausesValidation="false" OnClick="profile_Click"><span data-am-icon="profile" aria-hidden="true"></span>My profile</asp:LinkButton>
+   <a href="LoginSecurity.aspx"><span data-am-icon="settings" aria-hidden="true"></span>Login &amp; security</a>
    <asp:LinkButton ID="lnkLogout" runat="server" CausesValidation="false" OnClick="lnkLogout_Click"><span data-am-icon="signout" aria-hidden="true"></span>Sign out</asp:LinkButton>
    <a href="Change%20Password.aspx"><span data-am-icon="settings" aria-hidden="true"></span>Change password</a><asp:Literal ID="AccountUpgrade" runat="server" />
   </div>

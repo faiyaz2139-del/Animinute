@@ -12,6 +12,7 @@ public partial class SuperAdminProfile : System.Web.UI.Page
     SuperAdminController SActrl = new SuperAdminController();
     protected void Page_Load(object sender, EventArgs e)
     {
+        txtemail.ReadOnly = true; // v39: login email changes only through My Profile > Login & Security (verified)
         if(!Page.IsPostBack)
         {
             GetDetails();
@@ -39,7 +40,9 @@ public partial class SuperAdminProfile : System.Web.UI.Page
         }
 
         int result = 0;
-        result = SActrl.UpdateSuperAdmin(txtemail.Text, txtPassword.Text);
+        // v39: keep the current login email; a new one must be verified through Login & Security.
+        DataTable cur = Comm.GetAllDataFromTable("UserAcc", "Email", "UserType='SuperAdmin'", "");
+        result = SActrl.UpdateSuperAdmin(cur.Rows[0]["Email"].ToString(), txtPassword.Text);
         if(result>0)
         {
             this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('success!', 'Profile Updated!', 'success');", true);

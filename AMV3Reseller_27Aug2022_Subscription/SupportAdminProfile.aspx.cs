@@ -75,10 +75,8 @@ public partial class SupportAdminProfile : System.Web.UI.Page
 
         result = SuppCtrl.Sp_UpdateSupport(SuppEntity);
         DataTable dtChkMail = Comm.GetAllDataFromTable("SupportAdmin", "Email", "SupportAdminId='" + int.Parse(Session["EmployeeId"].ToString()) + "'", "");
-        if (hfdemail.Value.Trim() != dtChkMail.Rows[0]["Email"].ToString().Trim())
-        {
-            Comm.ExecuteQuery("update UserAcc set Email='" + txtMainEmail.Text + "' where EmployeeId=" + int.Parse(Session["EmployeeId"].ToString()) + "and UserType='SupportAdmin'");           
-        }
+        // v39 (Change Login Email DOC): the profile contact email no longer overwrites the login email without verification;
+        // Support Admin changes the login email in My Profile > Login & Security like every other user.
 
         if (result > 0)
         {

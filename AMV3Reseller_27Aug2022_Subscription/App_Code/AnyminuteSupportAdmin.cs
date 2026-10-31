@@ -223,6 +223,7 @@ public static class AnyminuteSupportAdmin
             new[] { "Usage & Limits", "~/SupportPlans.aspx?view=usage", "" },
             new[] { "Support Tickets", "~/SupportTickets.aspx", OpenTickets().ToString(CultureInfo.InvariantCulture) },
             new[] { "Address Verification", "~/SupportAddresses.aspx", PendingAddresses().ToString(CultureInfo.InvariantCulture) } };
+        items.Add(new[] { "Account Recovery", "~/SupportAccountRecovery.aspx", "" }); // v39 Change Login Email DOC s8: recovery via verification only
         items.Add(new[] { "Reports", "~/SupportReports.aspx", "" }); // v28: Support Admin Reports hub (12 support + 8 reseller reports); reportsHref kept for the signature
         items.Add(new[] { "Settings", settingsHref ?? "~/SupportAdminProfile.aspx", "" }); // v30: deck nav always ends with Settings (profile when no email-settings permission)
         var html = new StringBuilder();

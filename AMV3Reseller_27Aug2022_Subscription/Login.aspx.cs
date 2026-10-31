@@ -158,6 +158,15 @@ public partial class Login : System.Web.UI.Page
             DataTable _chkAccdemail = comm.GetAllDataFromTable("MotherOrg with (Nolock), UserAcc with (Nolock)", "UserAcc.Email, MotherOrg.Email", "MotherOrg.Email=UserAcc.Email and UserAcc.Email='" + txtLoginEmail_ForgetPasswordReset.Text + "'", "MotherOrg.MotherOrgID desc");
             DataTable _chkSupportdemail = comm.GetAllDataFromTable("SupportAdmin with (Nolock), UserAcc with (Nolock)", "UserAcc.Email, SupportAdmin.Email", "SupportAdmin.Email=UserAcc.Email and UserAcc.Email='" + txtLoginEmail_ForgetPasswordReset.Text + "'", "SupportAdmin.SupportAdminId desc");
 
+            // v39 (Change Login Email): a login email changed through verified self-service no longer matches the business contact
+            // email (EmpAddress/MotherOrg/SupportAdmin are never overwritten), so fall back to the UserAcc login email itself (the mail goes to that same address).
+            if (_chkregisteredemail.Rows.Count == 0 && _chkAccdemail.Rows.Count == 0 && _chkSupportdemail.Rows.Count == 0)
+                try
+                {
+                    using (var c = AnyminuteTimesheetRepair.Open())
+                        _chkregisteredemail = AnyminuteTimesheetRepair.Query(c, null, "SELECT TOP 1 Email AS MainEmail FROM UserAcc WHERE Email=@m", "@m", txtLoginEmail_ForgetPasswordReset.Text.Trim());
+                }
+                catch (System.Data.SqlClient.SqlException) { }
             if (_chkregisteredemail.Rows.Count > 0)
             {
                 //string Host = ConfigurationManager.AppSettings["ResetUrl"];

@@ -40,7 +40,10 @@ public partial class AnyminuteWeekTimeCard : System.Web.UI.Page
   foreach(DataRow r in businesses.Rows)BusinessPick.Items.Add(new ListItem(Convert.ToString(r["CompanyName"]),Convert.ToString(r["BusinessID"])));
   if(BusinessPick.Items.FindByValue(qb.ToString())==null)throw new HttpException(403,"This business is outside your access.");
   BusinessPick.SelectedValue=qb.ToString();BusinessField.Visible=BusinessPick.Items.Count>1;
-  var users=AnyminuteModernScope.Users(Business);Employee.DataSource=users;Employee.DataTextField="EmpName";Employee.DataValueField="EmployeeID";Employee.DataBind();
+  var users=AnyminuteModernScope.Users(Business);
+  // v39: accountants do not enter time - no personal time card, no Accountant-role rows.
+  {int role0,actor0;using(var c0=AnyminuteTimesheetRepair.Open())actor0=AnyminuteModernScope.Actor(c0,null,Business,out role0);users=AnyminuteAccountantDashboard.WithoutAccountantCards(users,actor0);}
+  if(users.Rows.Count==0&&AnyminuteAccountantDashboard.Applies()){Response.Redirect("~/TimeCards.aspx?BusinessId="+Business,false);Context.ApplicationInstance.CompleteRequest();return;}Employee.DataSource=users;Employee.DataTextField="EmpName";Employee.DataValueField="EmployeeID";Employee.DataBind();
   if(Employee.Items.Count==0)throw new HttpException(403,"No accessible timecard in this business.");
   string selected=Request.QueryString["EmployeeId"];if(selected!=null){if(Employee.Items.FindByValue(selected)==null)throw new HttpException(403,"Employee is outside your access.");Employee.SelectedValue=selected;}
   else {using(var c=AnyminuteTimesheetRepair.Open()){int role,a=AnyminuteModernScope.Actor(c,null,Business,out role);if(Employee.Items.FindByValue(a.ToString())!=null)Employee.SelectedValue=a.ToString();}}

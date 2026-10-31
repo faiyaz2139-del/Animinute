@@ -94,6 +94,8 @@
             <div class="row">
                 <div class="col-md-6 col-sm-6 col-xs-6">
                     <h2 style="text-align: left; margin-top: 12px;">My Profile</h2>
+                    <%-- v39: My Profile > Login & Security > Change Login Email --%>
+                    <p style="margin:4px 0 12px"><a href="LoginSecurity.aspx" class="btn btn-primary" style="border-radius:7px">Login &amp; Security &rsaquo; Change Login Email</a></p>
                 </div>
                 <div class="col-md-6 col-sm-6 col-xs-6">
                     <a href="Home_Page.aspx" id="btnback" runat="server" visible="true" class="buttonhyperlink"

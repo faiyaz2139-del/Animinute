@@ -251,6 +251,8 @@ public static class AnyminuteUiNavigation
             foreach (var link in AnyminuteAccountantDashboard.NavLinks(menu))
                 if (current == null && IsCurrent(link.Value, here)) current = link.Key;
             // v38: the read-only business View screen belongs to Assigned Businesses.
+            // v39: Payroll Hours is no longer a tab; the business Open working screen (TimeCards / WeekTimeCard) belongs to Assigned Businesses.
+            if (current == null && (here.IndexOf("TimeCards.aspx", StringComparison.OrdinalIgnoreCase) >= 0 || here.IndexOf("WeekTimeCard.aspx", StringComparison.OrdinalIgnoreCase) >= 0)) current = "Assigned Businesses";
             if (current == null && here.IndexOf("view=business&", StringComparison.OrdinalIgnoreCase) >= 0) current = "Assigned Businesses";
             if (current == null) current = here.IndexOf("Dashboard.aspx", StringComparison.OrdinalIgnoreCase) >= 0 ? "Home" : null;
             foreach (var link in AnyminuteAccountantDashboard.NavLinks(menu))

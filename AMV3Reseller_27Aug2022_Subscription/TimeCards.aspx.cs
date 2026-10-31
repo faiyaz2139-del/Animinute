@@ -45,7 +45,8 @@ public partial class AnyminuteTimeCards : System.Web.UI.Page
    using(var c=AnyminuteTimesheetRepair.Open())
    {
     int role,actor=AnyminuteModernScope.Actor(c,null,business,out role);
-    foreach(DataRow employeeRow in AnyminuteModernScope.Users(business).Rows)
+    // v39: no accountant time cards (Accountant role rows, and an accountant login's own row).
+    foreach(DataRow employeeRow in AnyminuteAccountantDashboard.WithoutAccountantCards(AnyminuteModernScope.Users(business),actor).Rows)
     {
      int employee=Convert.ToInt32(employeeRow["EmployeeID"]);
      try

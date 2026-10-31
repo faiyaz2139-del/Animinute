@@ -107,7 +107,7 @@ public static class AnyminuteAccountantDashboard
     // v37 (PPT s1 Documents / Download Documents): the accountant Documents page (client payroll documents per business).
     static string DocumentsHref(IEnumerable<MenuViewModel> menu) { return U("~/AccountantDocuments.aspx"); }
 
-    // Deck left navigation: Home, Assigned Businesses, Employees, Payroll Hours, Reports, Documents, Access History.
+    // Deck left navigation: Home, Assigned Businesses, Employees, Reports, Documents, Access History (v39: Payroll Hours removed).
     public static List<KeyValuePair<string, string>> NavLinks(IEnumerable<MenuViewModel> menu)
     {
         var l = new List<KeyValuePair<string, string>>();
@@ -115,11 +115,33 @@ public static class AnyminuteAccountantDashboard
         add("Home", U("~/Dashboard.aspx"));
         add("Assigned Businesses", U("~/Dashboard.aspx?view=businesses"));
         add("Employees", U("~/Users.aspx"));
-        add("Payroll Hours", U("~/TimeCards.aspx"));
+        // v39 (screenshot "Please remove this tab"): no Payroll Hours tab for accountants; payroll hours stay reachable from the
+        // business Open action, the Pending Payroll Reviews KPI and the View Payroll Hours quick action.
         add("Reports", ReportHref(menu));
         add("Documents", DocumentsHref(menu)); // v37: real Documents page (AccountantDocuments.aspx)
         add("Access History", U("~/Dashboard.aspx?view=activity")); // v37: full activity / access history page
         return l;
+    }
+
+    // v39 (screenshot "Keith Kim is an accountant and he does not require to enter time"): accountants never get a personal
+    // time card. Rows with the Accountant business role (12) are dropped, and an accountant / payroll-agency login never
+    // sees its own employee row in Team Timesheets or My Time Card. Other roles of the same person are kept.
+    public static DataTable WithoutAccountantCards(DataTable users, int actor)
+    {
+        if (users == null) return users;
+        var h = HttpContext.Current; int self = -1;
+        if (Applies()) Int32.TryParse(Convert.ToString(h.Session["EmployeeId"]), out self);
+        bool me = Applies();
+        var keep = users.Clone();
+        foreach (DataRow r in users.Rows)
+        {
+            int e = Convert.ToInt32(r["EmployeeID"]);
+            int t; Int32.TryParse(users.Columns.Contains("UserTypeId") ? Convert.ToString(r["UserTypeId"]) : "", out t);
+            if (t == 12) continue;
+            if (me && (e == actor || e == self)) continue;
+            keep.ImportRow(r);
+        }
+        return keep;
     }
 
     sealed class Biz { public int Id, Employees, Pending, Rejected; public string Name, Contact, Email, Phone, Access; public DateTime? Last, FirstPending; }

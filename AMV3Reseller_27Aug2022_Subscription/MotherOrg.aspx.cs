@@ -144,11 +144,8 @@ public partial class MotherOrg : System.Web.UI.Page
                 MotherEc.Checked = "N";
             }
             MotherC.UpdateMotherOrg(MotherEc);
-            if(txtEmail.Text.Trim()!=hfdEmail.Value.Trim())
-            {
-                comm.ExecuteQuery("update UserAcc set Email='" + txtEmail.Text.Trim() + "' where MotherOrgid='" + Request.QueryString["MotherOrgId"].ToString() + "' and UserType='Admin'");
-                SendEmail(txtEmail.Text.Trim(), MotherOrgId.ToString());
-            }
+            // v39 (Change Login Email DOC s6): the firm's contact email is business information and no longer overwrites the
+            // firm admin's global login email (UserAcc.Email). The login owner changes it in My Profile > Login & Security.
             
             clear();
             GetMotherOrgList();
