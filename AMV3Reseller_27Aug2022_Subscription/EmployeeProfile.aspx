@@ -46,8 +46,6 @@
             $("#homemenu").click(function () {
                 document.cookie = "tabidp=#home";
                 $("#home").attr("class", "tab-pane fade in active show");
-                $("#menu1").attr("class", "tab-pane fade in");
-                
             });
 
             $("#menu1menu").click(function () {
@@ -70,7 +68,7 @@
                 return null;
             }
 
-            var x = readCookie("tabidp");
+            var x = null; document.cookie = "tabidp=#home"; /* v36: single Personal Details pane; never hide it or the address block */
 
             //<li id="homemid" class="active"><a data-toggle="tab" id="homemenu" href="#home" style="font-size:15px;text-transform:uppercase;">Personal Details</a></li>
             //    <li id="addmid"><a data-toggle="tab" href="#menu1" id="menu1menu" style="font-size:15px;text-transform:uppercase;">Address and Contacts</a></li>
@@ -1080,180 +1078,7 @@
                             </div>
                         </div>
                     </div>
-                    <center>
-                    <div class="row">
-                        <div class="col-md-2"></div>
-                        
-                        <div class="col-md-8">
-                            <div class="row">
-                                <div class="col-md-2"></div>
-                                <div class="col-md-4">
-                                   
-                                    <asp:Button ID="btnSavePersnol" runat="server" CssClass="btn2 btn-primary" Text="Save" OnClick="btnsavePresnol_Click" />
-                                </div>
-                                <div class="col-md-1"></div>
-                                <div class="col-md-2">
-                                   
-                                    <a href="#" id="NextPer" class="buttonhyperlink">Next <i class="fa fa-angle-right ">
-                                    </i></a>
-                                </div>
-                                <div class="col-md-3"></div>
-                            </div>
-
-                             <div class="row">
-                                <div class="col-md-5"></div>
-                               <%-- <div class="col-md-2">
-                                   
-                                    <a href="#" id="NextPer" style="width:100%" class="buttonhyperlink; btn btn-info" >Next <i class="fa fa-angle-right ">
-                                    </i></a>
-                                </div>--%>
-                                <div class="col-md-5"></div>
-                            </div>
-                        </div>
-                        <div class="col-md-2"></div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-2"></div>
-                        <div class="col-md-8">
-                            <div class="row">
-                                <div class="col-md-5"></div>
-                                
-                                <div class="col-md-5"></div>
-                            </div>
-                        </div>
-                        <div class="col-md-2"></div>
-                    </div>
-                    </center>
-                    <script>
-                        $("#NextPer").click(function () {
-                            var isValid = true;
-                            //var Suffixx = $("#txtLegalName option:selected").val();
-                            //if (Suffixx == "") {
-                            //    $("#txtLegalName").focus();
-                            //    //alert("");
-                            //    swal('Warning!', 'Please select suffix', 'warning');
-                            //    //$("#txtFirstName").css("border", "1px solid red");
-                            //    return false;
-                            //}
-                            var FName = $("#txtFirstName").val();
-                            if (FName == "") {
-                                $("#txtFirstName").focus();
-                                //alert("Please enter first name");
-                                swal('Warning!', 'Please enter first name', 'warning');
-                                //$("#txtFirstName").css("border", "1px solid red");
-                                return false;
-                            }
-                            var LName = $("#txtLastName").val();
-                            if (LName == "") {
-                                $("#txtLastName").focus();
-                                //alert("Please enter last name");
-                                swal('Warning!', 'Please enter last name', 'warning');
-                                //$("#txtFirstName").css("border", "1px solid red");
-                                return false;
-                            }
-                            var LName = $("#txtMainPhone").val();
-                            if (LName == "") {
-                                $("#txtMainPhone").focus();
-                                //alert("Please enter last name");
-                                swal('Warning!', 'Please enter contact phone', 'warning');
-                                //$("#txtFirstName").css("border", "1px solid red");
-                                return false;
-                            }
-
-                            //var _txtSocialNumer = $("#txtSocialNumer").val();
-                            //var _txtSocialNumerlength = document.getElementById("txtSocialNumer").value.length;
-                            //if (_txtSocialNumerlength != "9") {
-                            //    $("#txtSocialNumer").focus();
-                            //    swal('Warning!', 'Please enter 9 digit social number', 'warning');
-
-                            //    //$("#txtSocialNumer").css("border", "1px solid red");
-                            //    return false;
-                            //}
-                            //var DOB = $("#txtdob").val();
-                            //if (DOB == "") {
-                            //    $("#txtdob").focus();
-                            //    //alert("Please enter date of birth");
-                            //    swal('Warning!', 'Please enter date of birth', 'warning');
-                            //    //$("#txtFirstName").css("border", "1px solid red");
-                            //    return false;
-                            //}
-                            
-                            var MEmail = $("#txtMainEmail").val();
-                            if (MEmail == "") {
-                                $("#txtMainEmail").focus();
-                                swal('Warning!', 'Please enter login email', 'warning');
-                                // alert("");
-                                //$("#txtFirstName").css("border", "1px solid red");
-                                return false;
-                            }
-                            //var emailExp = /^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([com\co\.\in])+$/; // to validate email id
-                            var emailExp = /^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9\-])+$/; // to validate email id
-                            if (MEmail != '') {
-                                if (!MEmail.match(emailExp)) {
-                                    $("#txtMainEmail").focus();
-                                    swal('Warning!', 'Invalid login email format', 'warning');
-                                    //alert("");
-                                    return false;
-                                }
-                            }
-
-                            var HDate = $("#txtHiredate").val();
-                            if (HDate == "") {
-                                $("#txtHiredate").focus();
-                                //alert("");
-                                swal('Warning!', 'Please enter hire date', 'warning');
-                                //$("#txtFirstName").css("border", "1px solid red");
-                                return false;
-                            }
-                            var BType = $("#ddlBillingType option:selected").val();
-                            if (BType == "") {
-                                $("#ddlBillingType").focus();
-                                //alert("");
-                                swal('Warning!', 'Please select billing type', 'warning');
-                                //$("#txtFirstName").css("border", "1px solid red");
-                                return false;
-                            }
-                            var Brate = $("#txtBillRate").val();
-                            if (Brate == "") {
-                                $("#txtBillRate").focus();
-                                // alert("Please enter billing rate");
-                                swal('Warning!', 'Please enter billing rate', 'warning');
-                                //$("#txtFirstName").css("border", "1px solid red");
-                                return false;
-                            }
-
-                            var EmpStatus = $("#ddlempStatus option:selected").val();
-                            var InActive = $("#txtInActiveDate").val();
-                            if (EmpStatus == "NO" && InActive == "") {
-                                $("#txtInActiveDate").focus();
-                                //alert("");
-                                swal('Warning!', 'Please enter inactive date', 'warning');
-                                //$("#txtFirstName").css("border", "1px solid red");
-                                return false;
-                            }
-
-                            if (isValid == true) {
-                                document.cookie = "tabid=#menu1";
-                                $("#home").attr("class", "tab-pane fade in")
-                                $("#menu1").attr("class", "tab-pane fade in active show")
-                            }
-
-                            document.cookie = "tabid=#menu1";
-                            $("#homemid").attr("class", "");
-                            $("#addmid").attr("class", "active");
-                            $("#rolemid").attr("class", "");
-                            $("#paymeid").attr("class", "");
-                            //var sx = readCookie("tabid");
-                            //if (sx == '#menu1') {
-                            //    $("#addmid").attr("class", "active");
-                            //    $("#homemid").attr("class", "");
-                            //}
-                        });
-                    </script>
-                </div>
-
-
-                   <div id="menu1" class="am-profile-address-under" style="margin-top:24px;">
+                   <div id="menu1" class="am-profile-address-under" style="margin-top:24px;display:block;">
 
                     <div class="col-md-12">
                         <div class="pull-right">
@@ -1425,7 +1250,7 @@
                        <div class="row">
                            <div class="col-md-4"></div>
                            <div class="col-md-2">
-                               <asp:Button ID="btnSaveAddress" runat="server" Text="Save" CssClass="btn2 btn-primary" OnClick="btnSaveAddress_Click" />
+                               <asp:Button ID="btnSaveAddress" runat="server" Visible="false" Text="Save" CssClass="btn2 btn-primary" OnClick="btnSaveAddress_Click" />
                             </div>
                             <div class="col-md-1"></div>
                             <div class="col-md-1">
@@ -1683,6 +1508,13 @@
 
                     
 
+                    <%-- v36 (DOCX image4, strict): address block is the last part of Personal Details; one Save below it (both old Saves ran the same update). Next link removed. --%>
+                    <div class="row am-profile-save" style="margin-top:18px;">
+                        <div class="col-md-12" style="text-align:center;">
+                            <asp:Button ID="btnSavePersnol" runat="server" CssClass="btn2 btn-primary" Text="Save" OnClick="btnsavePresnol_Click" />
+                        </div>
+                    </div>
+                </div>
                 </div>
                 </div>
             </div>

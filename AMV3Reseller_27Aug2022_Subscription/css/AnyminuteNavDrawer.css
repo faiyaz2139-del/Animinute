@@ -21,3 +21,11 @@ html body.am-drawer-nav.am-sa-navbody #sidebar-wrapper,html body.am-drawer-nav.a
 li.am-sa-nav>a{display:flex!important;align-items:center;gap:10px;white-space:nowrap!important;overflow:hidden;min-height:42px}
 li.am-sa-nav>a>span:not(.am-nav-badge){flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 li.am-sa-nav>a>.am-nav-badge{flex:0 0 auto;margin-left:auto}
+
+/* v36 (DOCX image6, strict): Support Admin menu is a pinned sidebar on desktop (>=992px): open by default, page content
+   shifted right, no dark shade over the page. The hamburger collapses/expands it; small screens keep the drawer. */
+@media(min-width:992px){
+html body.am-drawer-nav.am-sa-pinned .am-drawer-shade{display:none!important}
+html body.am-drawer-nav.am-sa-pinned.am-drawer-open .am-sidebar,html body.am-drawer-nav.am-sa-pinned.am-drawer-open #sidebar-wrapper,html body.am-drawer-nav.am-sa-pinned.am-drawer-open #wrapper.active #sidebar-wrapper{box-shadow:none!important;border-right:1px solid #e2e8f0!important}
+html body.am-drawer-nav.am-sa-pinned.am-drawer-open .am-main,html body.am-drawer-nav.am-sa-pinned.am-drawer-open #page-content-wrapper,html body.am-drawer-nav.am-sa-pinned.am-drawer-open #wrapper.active #page-content-wrapper{margin-left:252px!important;width:calc(100% - 252px)!important;max-width:none!important;transition:margin-left .25s ease}
+}

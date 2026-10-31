@@ -51,16 +51,13 @@ public partial class SuperAdmin : System.Web.UI.Page
     {
         if (e.Row.RowType == DataControlRowType.DataRow)
         {
-            ImageButton btnactive = (e.Row.FindControl("btnactive") as ImageButton);
+            // v36 (DOCX image7): status pill (Active / Inactive) instead of the active.png / deactive.png image toggle.
+            LinkButton btnactive = (e.Row.FindControl("btnactive") as LinkButton);
             HiddenField hfdStatusForAdminBussOwner = (e.Row.FindControl("hfdStatusForAdminBussOwner") as HiddenField);
-            if (hfdStatusForAdminBussOwner.Value == "True")
-            {
-                btnactive.ImageUrl = "~/images/active.png";
-            }
-            else
-            {
-                btnactive.ImageUrl = "~/images/deactive.png";
-            }
+            bool active = hfdStatusForAdminBussOwner.Value == "True";
+            btnactive.Text = active ? "Active" : "Inactive";
+            btnactive.CssClass = "sa-pill am-sa-status " + (active ? "sa-green" : "sa-red");
+            btnactive.OnClientClick = "return confirm('" + (active ? "Deactivate this accountant and its businesses?" : "Activate this accountant and its businesses?") + "');";
         }
     }
 

@@ -111,3 +111,7 @@ body .am-rd-roles table.am-table{min-width:0!important;width:100%}
 .am-rd{max-width:none;width:100%}
 @media(min-width:1121px){.am-rd .am-stats{grid-template-columns:repeat(4,minmax(0,1fr))}}
 .am-rd-week>.am-rd-day{min-height:100%}
+
+/* v36 (DOCX image2/3, strict): no width cap anywhere on the dashboard page; the old .am-main 1900px cap left a blank band on big screens. */
+html body .am-main{max-width:none!important}
+html body .am-rd{max-width:none!important;width:100%!important}

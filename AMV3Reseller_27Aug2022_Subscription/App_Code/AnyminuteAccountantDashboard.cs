@@ -42,12 +42,12 @@ public static class AnyminuteAccountantDashboard
         add("Employees", U("~/Users.aspx"));
         add("Payroll Hours", U("~/TimeCards.aspx"));
         add("Reports", ReportHref(menu));
-        add("Documents", DocumentsHref(menu));
+        add("Documents", DocumentsHref(menu) ?? ReportHref(menu)); // v36: always shown (PPT s1); Reports hub when no Documents page
         add("Access History", U("~/Dashboard.aspx#am-ap-activity"));
         return l;
     }
 
-    sealed class Biz { public int Id, Employees, Pending, Rejected; public string Name, Contact, Phone, Access; public DateTime? Last, FirstPending; }
+    sealed class Biz { public int Id, Employees, Pending, Rejected; public string Name, Contact, Email, Phone, Access; public DateTime? Last, FirstPending; }
 
     public static string Render(string selected)
     {
@@ -62,6 +62,9 @@ public static class AnyminuteAccountantDashboard
             foreach (DataRow r in rows.Rows)
             {
                 var b = new Biz { Id = Convert.ToInt32(r["BusinessID"]), Name = Convert.ToString(r["CompanyName"]), Contact = Convert.ToString(r["PrimaryContactName"]), Access = "Accountant" };
+                // v36 (PPT s1): Contact column shows the business contact name with the business primary email under it.
+                try { var em = AnyminuteTimesheetRepair.Query(c, null, "SELECT EMail_primary FROM AddBusiness WHERE BusinessID=@b", "@b", b.Id); if (em.Rows.Count == 1 && em.Rows[0][0] != DBNull.Value) b.Email = Convert.ToString(em.Rows[0][0]).Trim(); }
+                catch (System.Data.SqlClient.SqlException) { b.Email = null; }
                 b.Employees = Convert.ToInt32(AnyminuteTimesheetRepair.Query(c, null, "SELECT COUNT(DISTINCT a.EmployeeID) FROM AssginBussiness a WHERE a.BusinessID=@b AND a.UserTypeId<>12", "@b", b.Id).Rows[0][0]);
                 if (weeks)
                 {
@@ -111,7 +114,7 @@ public static class AnyminuteAccountantDashboard
         if (selected != null && !all.Any(b => b.Id.ToString(Inv) == selected)) selected = null;
         var scope = selected == null ? all : all.Where(b => b.Id.ToString(Inv) == selected).ToList();
         var menu = AnyminuteUiNavigation.Load().ToList();
-        string report = ReportHref(menu), docs = DocumentsHref(menu);
+        string report = ReportHref(menu), docs = DocumentsHref(menu) ?? report;
         int reports = 0; try { reports = AnyminuteReports.Available(selected ?? "all").Count; } catch (HttpException) { } catch (InvalidOperationException) { } catch (System.Data.SqlClient.SqlException) { }
 
         var s = new StringBuilder("<div class='am-ap'>");
@@ -136,12 +139,13 @@ public static class AnyminuteAccountantDashboard
         {
             string status = b.Rejected > 0 ? "Action Required" : b.Pending > 0 ? "Pending Review" : "Up to Date";
             string cls = b.Rejected > 0 ? "red" : b.Pending > 0 ? "amber" : "green";
-            // v34 product guidance: Open = working screen (approve queue for this business) when work is waiting;
-            // View = read-only summary (this dashboard scoped to the business) when payroll is up to date.
-            bool open = cls != "green";
-            string href = open ? U("~/TimeCards.aspx?status=Submitted&BusinessId=" + b.Id + (b.FirstPending.HasValue ? "&Week=" + b.FirstPending.Value.ToString("yyyy-MM-dd", Inv) : "")) : U("~/Dashboard.aspx?b=" + b.Id);
+            // v36 (PPT s1 + s2, strict): as in the mock, Up to Date rows get Open (full working screen: Payroll Hours for this
+            // business) and Pending Review / Action Required rows get View (read-only details: this dashboard scoped to the
+            // business, with status and history). The pending approval queue stays on the Pending Payroll Reviews KPI (BusinessId + Week).
+            bool open = cls == "green";
+            string href = open ? U("~/TimeCards.aspx?BusinessId=" + b.Id + (b.FirstPending.HasValue ? "&Week=" + b.FirstPending.Value.ToString("yyyy-MM-dd", Inv) : "")) : U("~/Dashboard.aspx?b=" + b.Id + (b.FirstPending.HasValue ? "&Week=" + b.FirstPending.Value.ToString("yyyy-MM-dd", Inv) : ""));
             s.Append("<tr><td><a class='am-ap-name' href='").Append(A(U("~/Dashboard.aspx?b=" + b.Id))).Append("'>").Append(H(b.Name)).Append("</a></td>")
-             .Append("<td><strong>").Append(H(b.Contact)).Append("</strong></td>")
+             .Append("<td><strong>").Append(H(b.Contact)).Append("</strong>").Append(String.IsNullOrEmpty(b.Email) ? "" : "<span class='am-ap-email'>" + H(b.Email) + "</span>").Append("</td>")
              .Append("<td><span class='am-ap-pill am-ap-").Append(b.Access == "Both" ? "both" : b.Access == "Payroll Admin" ? "pay" : "acc").Append("'>").Append(H(b.Access)).Append("</span></td>")
              .Append("<td>").Append(b.Employees).Append("</td>")
              .Append("<td><span class='am-ap-status am-ap-").Append(cls).Append("'>").Append(status).Append("</span></td>")
@@ -155,7 +159,8 @@ public static class AnyminuteAccountantDashboard
         Quick(s, "blue", "clock", "View Payroll Hours", "Review and approve employee hours", U("~/TimeCards.aspx"));
         Quick(s, "green", "reports", "Export Reports", "Generate and download reports", report);
         Quick(s, "purple", "people", "Open Employee List", "View all employees across businesses", U("~/Users.aspx"));
-        // v35: Download Documents shows only when the role has a Documents page (no fallback to Reports).
+        // v36 (PPT s1, strict): Download Documents is always shown as in the mock; it opens the role's Documents page, or the
+        // Reports hub (where client reports are generated and downloaded) when the role has no Documents page.
         if (!String.IsNullOrEmpty(docs)) Quick(s, "orange", "doc", "Download Documents", "Access and download client documents", docs);
         s.Append("</div></section>");
 

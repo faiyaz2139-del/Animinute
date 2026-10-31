@@ -1,236 +1,39 @@
-﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Main.master" AutoEventWireup="true"
+<%@ Page Title="Accountant List" Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true"
     CodeFile="SuperAdmin.aspx.cs" Inherits="SuperAdmin" %>
-
-<%@ Register Assembly="AjaxControlToolkit" Namespace="AjaxControlToolkit" TagPrefix="cc1" %>
-
+<%-- v36 (DOCX image7, strict): Accountant List moved to the same Modern shell / Support Admin card design as the other Support Admin
+     pages: one toolbar (Search + Status + Clear), status pills, sortable headers, Previous / page / Next pager, no forced H-scroll. --%>
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="Server">
-    <script>
-        // v35 (DOCX image7): DataTables search/pager removed here; the shared list toolbar (Search this list + Status + Clear)
-        // is the only filter, so the grid no longer shows two search boxes.
-	</script>
+    <link href="css/AnyminuteSupport.css?v=20261031v36" rel="stylesheet" />
     <style>
-        .GridPager a, .GridPager span {
-            display: block;
-            height: 35px;
-            width: 35px;
-            font-weight: bold;
-            text-align: center;
-            text-decoration: none;
-            padding: 10px;
-        }
-
-        .GridPager a {
-            background-color: #fff;
-            color: #969696;
-            border: 1px solid #dedede;
-        }
-
-        .GridPager a:hover {
-            color: #337ab7;
-        }
-
-        .GridPager span {
-            background-color: #337ab7;
-            color: #fff;
-            border: 1px solid #dedede;
-        }
-
-        .buttonhyperlink {
-            /*text-align: center;
-            padding-top: 10px;
-            font-family: sans-serif;
-            font-size: medium;*/
-            border: 1px solid #607DF2;
-            display: block;
-            background-color: #607DF2;
-            border-radius: 30px;
-            color: white;
-            padding: 10px 25px;
-            text-align: center;
-            text-decoration: none;
-            display: block;
-            margin-top: -1px;
-            font-family: sans-serif;
-            font-size: medium;
-        }
-
-        .buttonhyperlink:hover {
-            border: 1px solid #607DF2;
-            display: block;
-            background-color: #607DF2;
-            border-radius: 30px;
-            color: white;
-            padding: 10px 25px;
-            text-align: center;
-            text-decoration: none;
-            display: block;
-            margin-top: -1px;
-            font-family: sans-serif;
-            font-size: medium;
-        }
+        .am-sa-list .sa-head h1{font-size:24px;margin:0}
+        .am-sa-list .sa-table-wrap{overflow-x:visible}
+        .am-sa-list table.am-sa-grid{width:100%;table-layout:auto;margin:0}
+        .am-sa-list table.am-sa-grid td,.am-sa-list table.am-sa-grid th{white-space:normal;word-break:break-word;vertical-align:middle}
+        .am-sa-list table.am-sa-grid th{cursor:pointer;user-select:none}
+        .am-sa-list table.am-sa-grid th[data-sort]::after{content:" \2195";opacity:.35;font-size:11px}
+        .am-sa-list table.am-sa-grid th[data-sort=asc]::after{content:" \2191";opacity:.9}
+        .am-sa-list table.am-sa-grid th[data-sort=desc]::after{content:" \2193";opacity:.9}
+        .am-sa-list table.am-sa-grid td a{font-size:12px}
+        .am-sa-list .am-sa-status{text-decoration:none!important;cursor:pointer}
+        .am-sa-list .sa-pager a.off{opacity:.45;pointer-events:none}
     </style>
-
-    <style>
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 125px;
-            height: 34px;
-        }
-
-        .switch input {
-            display: none;
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            /*background-color: #ca2222;*/
-            background-color: #949494;
-            -webkit-transition: .4s;
-            transition: .4s;
-            border-radius: 34px;
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 26px;
-            width: 26px;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
-            -webkit-transition: .4s;
-            transition: .4s;
-            border-radius: 50%;
-        }
-
-        input:checked + .slider {
-            /*background-color: #2ab934;*/
-            background-color: #607DF2;
-        }
-
-        input:focus + .slider {
-            box-shadow: 0 0 1px #2196F3;
-        }
-
-        input:checked + .slider:before {
-            -webkit-transform: translateX(125px);
-            -ms-transform: translateX(125px);
-            transform: translateX(91px);
-        }
-
-        /*------ ADDED CSS ---------*/
-        .slider:after {
-            content: 'Not Active';
-            color: white;
-            display: block;
-            position: absolute;
-            transform: translate(-50%,-50%);
-            top: 50%;
-            left: 50%;
-            font-size: 10px;
-            font-family: Verdana, sans-serif;
-        }
-
-        input:checked + .slider:after {
-            content: 'Active';
-        }
-
-        .modalBackground {
-            background-color: Black;
-            /*filter: alpha(opacity=60);*/
-            opacity: 0.6;
-        }
-
-        .modalPopup {
-            background-color: white;
-            width: auto;
-            border: 2px solid #0275d8;
-            padding: 0;
-            border-radius: 5px;
-        }
-
-        .modalPopup .header {
-            background-color: #607DF2;
-            height: 50px;
-            color: White;
-            line-height: 50px;
-            text-align: center;
-            font-weight: bold;
-            border-radius: 0;
-            margin-bottom: 10px;
-        }
-
-        .modalPopup .body {
-            min-height: 50px;
-            line-height: 30px;
-            /*font-weight: bold;*/
-            margin-bottom: 5px;
-            color: black !important;
-            padding: 10px;
-            overflow-y: scroll;
-            height: 350px;
-            width: auto;
-        }
-
-        .buttonhyperlink {
-            /*text-align: center;
-            padding-top: 10px;
-            font-family: sans-serif;
-            font-size: medium;*/
-            
-            border: 1px solid #607DF2;
-            display: block;
-            background-color:#607DF2 ;
-            border-radius: 0px;
-            color: white ;
-            padding: 10px 25px;
-            text-align: center;
-            text-decoration: none;
-            display: block;
-            margin-top: -1px;
-            font-family: sans-serif;
-            font-size: medium;
-        }
-
-        .buttonhyperlink:hover {
-            border: 1px solid #607DF2;
-            display: block;
-            background-color:#607DF2 ;
-            border-radius: 0px;
-            color: white ;
-            padding: 10px 25px;
-            text-align: center;
-            text-decoration: none;
-            display: block;
-            margin-top: -1px;
-            font-family: sans-serif;
-            font-size: medium;
-        }
-    </style>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@9"></script>
-    <script src="Assets/assets/js/SweetAlert.js"></script>
-    <link href="css/AnyminuteSupport.css?v=20261031v35" rel="stylesheet" />
-    <style>.am-sa-list .am-grid-wrap{border:0}.am-sa-list .am-sa-grid{margin:0}.am-sa-list .am-sa-grid td a{font-size:12px}.am-sa-list .am-filter{margin-bottom:10px}.am-sa-list .sa-head h1{font-size:24px}</style>
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="Server">
-
-    <%-- v35 (DOCX image7): Accountant List uses the Support Admin card/table design (sa-page / sa-head / sa-card / sa-table). --%>
     <div class="sa-page am-sa-list">
     <div class="sa-head" id="divAddAcc" runat="server">
         <div><h1>Accountant List</h1><p>Accountants and payroll agencies, their businesses and login status.</p></div>
         <asp:HyperLink ID="hyperAdminAddEmp" runat="server" Text="+ Add Accountant" NavigateUrl="~/MotherOrg.aspx" CssClass="sa-btn"></asp:HyperLink>
     </div>
     <div class="sa-card">
+        <div class="sa-filters" id="amAccFilters">
+            <label class="sa-grow"><span>Search this list</span><input type="search" id="amAccQ" placeholder="Search by name or displayed details" /></label>
+            <label><span>Status</span><select id="amAccSt"><option value="">All statuses</option><option>Active</option><option>Inactive</option></select></label>
+            <button type="button" class="sa-btn sa-btn-outline" id="amAccClear">Clear</button>
+        </div>
         <div id="divAddgrid" runat="server">
                     <div class="sa-table-wrap">
-                        <asp:GridView ID="GVMother" ClientIDMode="Static" runat="server" CssClass="table sa-table am-sa-grid"
-                            CellPadding="1" ForeColor="#333333" GridLines="None" AllowSorting="true"
+                        <asp:GridView ID="GVMother" ClientIDMode="Static" runat="server" CssClass="sa-table am-sa-grid"
+                            CellPadding="1" GridLines="None"
                              OnPageIndexChanging="GVMother_PageIndexChanging" AutoGenerateColumns="False"
                             EmptyDataText="No records Found" OnPreRender="GVMother_PreRender" OnRowDataBound="GVMother_RowDataBound" OnRowCommand="GVMother_RowCommand">
                             <Columns>
@@ -290,26 +93,36 @@
 
                                 <asp:TemplateField HeaderText="Status">
                                     <ItemTemplate>
-                                        <%--<label class="switch">--%>
-                                        
-                                        <%--<asp:CheckBox ID="togBtnForAdminBussOwner" ClientIDMode="Static" runat="server" />--%>
-                                        <asp:ImageButton ID="btnactive" runat="server" ImageUrl="~/images/active.png" Width="96px" CommandArgument='<%# ((GridViewRow) Container).RowIndex %>' CommandName="status" />
-     
-                                        <%--<div class="slider round"></div>--%>
-                                   <%-- </label>--%>
+                                        <%-- v36 (DOCX image7): status pill instead of the active.png image toggle; same "status" command. --%>
+                                        <asp:LinkButton ID="btnactive" runat="server" CssClass="sa-pill am-sa-status" CommandArgument='<%# ((GridViewRow) Container).RowIndex %>' CommandName="status" ToolTip="Click to change status" />
                                         <asp:HiddenField ID="hfdStatusForAdminBussOwner" runat="server" Value='<%#DataBinder.Eval(Container.DataItem, "Status")%>' />
                                     </ItemTemplate>
                                 </asp:TemplateField>
-                                
-
                             </Columns>
-                            
-                             <PagerStyle   HorizontalAlign = "Right" CssClass = "GridPager" />
-
                         </asp:GridView>
                     </div>
         </div>
+        <div class="sa-pager" id="amAccPager"><span id="amAccInfo"></span><nav aria-label="Pages"></nav></div>
     </div>
     </div>
-
+    <script>
+    (function(){
+     var t=document.getElementById('GVMother');if(!t||!t.tBodies.length)return;
+     var body=t.tBodies[0],rows=Array.prototype.slice.call(body.rows).filter(function(r){return r.cells.length>1;}),size=10,page=1,shown=rows;
+     var q=document.getElementById('amAccQ'),st=document.getElementById('amAccSt'),info=document.getElementById('amAccInfo'),nav=document.querySelector('#amAccPager nav');
+     var heads=t.tHead?t.tHead.rows[0].cells:[],statusCol=heads.length-1;
+     function txt(r,i){return (r.cells[i]?r.cells[i].textContent:'').replace(/\s+/g,' ').trim();}
+     function link(label,p,on,off){var a=document.createElement('a');a.href='#';a.textContent=label;if(on)a.className='on';if(off)a.className='off';a.addEventListener('click',function(e){e.preventDefault();page=p;draw();});return a;}
+     function draw(){var pages=Math.max(1,Math.ceil(shown.length/size));if(page>pages)page=pages;
+      rows.forEach(function(r){r.style.display='none';});shown.forEach(function(r,i){r.style.display=(i>=(page-1)*size&&i<page*size)?'':'none';});
+      var from=shown.length?(page-1)*size+1:0;info.textContent='Showing '+from+' to '+Math.min(shown.length,page*size)+' of '+shown.length+' accountant'+(shown.length==1?'':'s');
+      nav.innerHTML='';nav.appendChild(link('Previous',page-1,false,page<=1));for(var p=1;p<=pages;p++)nav.appendChild(link(String(p),p,p===page,false));nav.appendChild(link('Next',page+1,false,page>=pages));}
+     function apply(){var s=q.value.trim().toLowerCase(),v=st.value;shown=rows.filter(function(r){return (!s||r.textContent.toLowerCase().indexOf(s)>=0)&&(!v||txt(r,statusCol)===v);});page=1;draw();}
+     Array.prototype.forEach.call(heads,function(th,i){th.setAttribute('data-sort','');th.title='Sort';th.addEventListener('click',function(){var dir=th.getAttribute('data-sort')==='asc'?'desc':'asc';Array.prototype.forEach.call(heads,function(h){h.setAttribute('data-sort','');});th.setAttribute('data-sort',dir);
+      rows.sort(function(a,b){var x=txt(a,i),y=txt(b,i),nx=parseFloat(x),ny=parseFloat(y),c=(!isNaN(nx)&&!isNaN(ny)&&/^[\d.\-]+$/.test(x)&&/^[\d.\-]+$/.test(y))?nx-ny:x.localeCompare(y,undefined,{sensitivity:'base'});return dir==='asc'?c:-c;});
+      rows.forEach(function(r){body.appendChild(r);});apply();});});
+     q.addEventListener('input',apply);st.addEventListener('change',apply);document.getElementById('amAccClear').addEventListener('click',function(){q.value='';st.value='';apply();});
+     apply();
+    })();
+    </script>
 </asp:Content>
