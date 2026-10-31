@@ -11,6 +11,8 @@ public partial class AnyminuteReportsPage : System.Web.UI.Page
         var q = AmRptQuery.Parse(Request.QueryString);
         if (q.Action != "view")
         {
+            // v37 Recent Activity (accountants only, optional table); Documents downloads are logged by AccountantDocuments.aspx.
+            if (Request.QueryString["src"] != "docs") { int lb; Int32.TryParse(q.Business, out lb); var ld = AnyminuteReports.Def(q.Key); if (ld != null) AnyminuteAccountantDashboard.Log(lb, (q.Key.StartsWith("payroll") ? "Payroll report" : "Report") + " downloaded", ld.Name + " (" + (q.Action == "pdf" ? "PDF" : "Excel") + ")"); }
             try { AnyminuteReports.Export(Context, q); return; }
             catch (HttpException ex) { PageError.Visible = true; PageError.Text = HttpUtility.HtmlEncode(ex.Message); q.Action = "view"; }
         }

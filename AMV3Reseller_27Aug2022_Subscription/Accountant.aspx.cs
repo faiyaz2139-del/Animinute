@@ -14,6 +14,7 @@ public partial class Accountant : System.Web.UI.Page
     ActiveDeactiveController ACCtrl = new ActiveDeactiveController();
     protected void Page_Load(object sender, EventArgs e)
     {
+        if (AnyminuteAccountantDashboard.Applies()) { Response.Redirect("Dashboard.aspx", true); return; } // v37: PPT Accountant & Payroll Dashboard
         if (Session["EmployeeId"] == null)
         {
             Response.Redirect("Login.aspx");

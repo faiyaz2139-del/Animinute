@@ -244,9 +244,16 @@ public static class AnyminuteUiNavigation
         // 2026-10-30 v33 (Accountant & Payroll Agency deck): accountants get the deck's flat navigation.
         if (!support && AnyminuteAccountantDashboard.Applies())
         {
+            // v37 (PPT s1, strict): permanent sidebar with the deck icons; the current page is highlighted.
+            var req = HttpContext.Current == null ? null : HttpContext.Current.Request;
+            string here = req == null ? "" : req.Url.PathAndQuery;
+            string current = null;
             foreach (var link in AnyminuteAccountantDashboard.NavLinks(menu))
-                html.Append("<li><a href='").Append(HttpUtility.HtmlAttributeEncode(link.Value)).Append("' data-am-primary='true'><i class='' aria-hidden='true'></i><span>")
-                    .Append(HttpUtility.HtmlEncode(link.Key)).Append("</span></a></li>");
+                if (current == null && IsCurrent(link.Value, here)) current = link.Key;
+            if (current == null) current = here.IndexOf("Dashboard.aspx", StringComparison.OrdinalIgnoreCase) >= 0 ? "Home" : null;
+            foreach (var link in AnyminuteAccountantDashboard.NavLinks(menu))
+                html.Append("<li class='am-ap-nav'><a href='").Append(HttpUtility.HtmlAttributeEncode(link.Value)).Append("' data-am-primary='true'").Append(link.Key == current ? " aria-current='page'" : "").Append(">")
+                    .Append(AnyminuteAccountantDashboard.NavIcon(link.Key)).Append("<span>").Append(HttpUtility.HtmlEncode(link.Key)).Append("</span></a></li>");
             return html.ToString();
         }
         if (!support && AnyminuteRoleDashboard.Applies())
@@ -259,6 +266,9 @@ public static class AnyminuteUiNavigation
         // 2026-10-28 v26 (Support Admin deck, strict): the exact SupportAdmin role no longer sees legacy pages the deck pages
         // replace; the remaining legacy tools are grouped under "More tools". SuperAdmin and all other roles are unchanged.
         bool supportOnly = support && AnyminuteSupportAdmin.IsSupportAdminOnly();
+        // v37 (DOCX images 2/3, "Menu items of support admin is not fixed"): Support Admin gets only the deck menu. The
+        // "More tools" tail (Businesses, Employees, Projects, Time Cards, ... subscriber pages) is no longer appended.
+        if (supportOnly) return html.ToString();
         Func<MenuViewModel, bool> superseded = m =>
         {
             string page = System.IO.Path.GetFileName((m.Href ?? "").Split('?')[0]);
@@ -294,6 +304,15 @@ public static class AnyminuteUiNavigation
         return html.ToString();
     }
 
+    // v37: the accountant nav item that matches the current URL (exact path + query first, then path only for non-query links).
+    static bool IsCurrent(string href, string here)
+    {
+        if (String.IsNullOrEmpty(href) || String.IsNullOrEmpty(here)) return false;
+        string h = href.Split('#')[0];
+        if (h.IndexOf('?') >= 0) return here.StartsWith(h, StringComparison.OrdinalIgnoreCase);
+        string path = here.Split('?')[0]; bool hasQuery = here.IndexOf("?view=", StringComparison.OrdinalIgnoreCase) >= 0;
+        return path.Equals(h, StringComparison.OrdinalIgnoreCase) && !(hasQuery && h.EndsWith("Dashboard.aspx", StringComparison.OrdinalIgnoreCase));
+    }
     // Legacy pages replaced for Support Admin by SupportTickets / SupportAddresses / SupportSubscribers / the deck Dashboard link.
     static readonly string[] SupportSuperseded = { "Ticket_List.aspx", "Raise_Ticket_By_User.aspx", "SearchAddress.aspx", "PostalCode.aspx", "SuperAdmin.aspx", "LoginAccess.aspx" };
     public static string PermittedHref(IEnumerable<MenuViewModel> permitted, params string[] pages)

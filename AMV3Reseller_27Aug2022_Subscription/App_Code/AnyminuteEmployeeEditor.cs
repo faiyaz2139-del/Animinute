@@ -146,8 +146,34 @@ public static class AnyminuteEmployeeEditor
 
     // ---------- create (mirrors Add_EmployeeV2 btnFinalSave_Click order) ----------
     public static int Create(AnyminuteEmployeeProfile p, IList<AnyminuteAssignmentInput> rows, bool loginEnabled, bool sendInvite, out string notice)
+    { return Create(p, rows, loginEnabled, sendInvite, false, out notice); }
+
+    // 2026-10-31 v37 (DOCX images 7-9: invited accountant could not sign in, email had no password). The Accountant & Payroll
+    // Access invitation now creates the accountant login itself (role 12 in every invited business) through the same Create
+    // path as Add Employee. Only name + email are known at invite time, so address / phone / hire date / pay rate are not required.
+    public static int CreateAccountant(string fullName, string email, string phone, IEnumerable<int> businesses, out int user)
     {
-        Validate(p, true); notice = "";
+        var parts = (fullName ?? "").Trim().Split(new[] { ' ' }, 2, StringSplitOptions.RemoveEmptyEntries);
+        var p = new AnyminuteEmployeeProfile
+        {
+            FirstName = parts.Length > 0 ? parts[0] : "", LastName = parts.Length > 1 ? parts[1].Trim() : "", MiddleName = "", Email = (email ?? "").Trim(), Phone = (phone ?? "").Trim(), Mobile = "",
+            DateOfBirth = "", Gender = "", Sin = "", SinExpiry = "", Status = "Active", StreetNo = "", Line1 = "", Line2 = "", SuiteNumber = "", SuiteType = "", City = "", Province = "", PostalCode = "", Country = "",
+            HireDate = DateTime.Today
+        };
+        if (p.FirstName.Length == 0 || p.Email.Length == 0) throw new InvalidOperationException("Full Name and Email Address are required.");
+        var rows = businesses.Distinct().Select(b => new AnyminuteAssignmentInput { BusinessId = b, Roles = new[] { 12 }, EmployeeType = "Regular", PayType = "Hourly", Status = "Active", PayRate = 0m, EffectiveDate = DateTime.Today }).ToList();
+        string notice; int first = Create(p, rows, true, false, true, out notice);
+        using (var c = AnyminuteTimesheetRepair.Open())
+        {
+            var u = Q(c, null, "SELECT TOP 1 USERID FROM MappingTable WHERE EmployeeID=@e AND UserTypeId=12", "@e", first);
+            user = u.Rows.Count == 1 ? Convert.ToInt32(u.Rows[0][0]) : 0;
+        }
+        return first;
+    }
+
+    static int Create(AnyminuteEmployeeProfile p, IList<AnyminuteAssignmentInput> rows, bool loginEnabled, bool sendInvite, bool accountantInvite, out string notice)
+    {
+        if (!accountantInvite) Validate(p, true); notice = "";
         if (rows == null || rows.Count == 0) throw new InvalidOperationException("Add at least one business assignment.");
         if (rows.Select(r => r.BusinessId).Distinct().Count() != rows.Count) throw new InvalidOperationException("Each business can be assigned only once.");
         var comm = new CommanClass(); string email = (p.Email ?? "").Trim();
@@ -155,7 +181,7 @@ public static class AnyminuteEmployeeEditor
         {
             foreach (var r in rows)
             {
-                AnyminuteApprovalAssignments.RequireOwner(c, null, r.BusinessId); ValidateAssignment(c, null, r);
+                AnyminuteApprovalAssignments.RequireOwner(c, null, r.BusinessId); ValidateAssignment(c, null, r, accountantInvite);
                 if (email.Length > 0 && Q(c, null, "SELECT 1 FROM AddEmployee ad JOIN EmpAddress ea ON ad.ADDRESSID=ea.EmpAddressId JOIN AssginBussiness ab ON ab.EmployeeID=ad.EmployeeID WHERE ab.BusinessID=@b AND ea.MainEmail=@m", "@b", r.BusinessId, "@m", email).Rows.Count > 0)
                     throw new InvalidOperationException("This email is already registered in the selected business.");
             }
@@ -193,8 +219,9 @@ public static class AnyminuteEmployeeEditor
             user = Convert.ToInt32(new UserAccController().Sp_InsertUserAccFromAddress(ua));
             using (var c = AnyminuteTimesheetRepair.Open())
             {
-                X(c, null, "IF NOT EXISTS(SELECT 1 FROM CityMaster WHERE CityName=@n) INSERT CityMaster(CityName,Duplicate) VALUES(@n,'False')", "@n", p.City.Trim());
-                X(c, null, "IF NOT EXISTS(SELECT 1 FROM ProvinceMaster WHERE ProvinceName=@n) INSERT ProvinceMaster(ProvinceName,Duplicate) VALUES(@n,'False')", "@n", p.Province.Trim());
+                // v37: an accountant invitation has no address yet; never add blank city / province master rows.
+                if (p.City.Trim().Length > 0) X(c, null, "IF NOT EXISTS(SELECT 1 FROM CityMaster WHERE CityName=@n) INSERT CityMaster(CityName,Duplicate) VALUES(@n,'False')", "@n", p.City.Trim());
+                if (p.Province.Trim().Length > 0) X(c, null, "IF NOT EXISTS(SELECT 1 FROM ProvinceMaster WHERE ProvinceName=@n) INSERT ProvinceMaster(ProvinceName,Duplicate) VALUES(@n,'False')", "@n", p.Province.Trim());
                 var city = Q(c, null, "SELECT TOP 1 CityId FROM CityMaster WHERE CityName=@n", "@n", p.City.Trim());
                 var prov = Q(c, null, "SELECT TOP 1 ProvinceId FROM ProvinceMaster WHERE ProvinceName=@n", "@n", p.Province.Trim());
                 var ad = new EmpAddressEntity
@@ -233,7 +260,7 @@ public static class AnyminuteEmployeeEditor
     }
 
     // ---------- assignments ----------
-    static void ValidateAssignment(SqlConnection c, SqlTransaction tx, AnyminuteAssignmentInput r)
+    static void ValidateAssignment(SqlConnection c, SqlTransaction tx, AnyminuteAssignmentInput r, bool accountantInvite = false)
     {
         if (r.BusinessId <= 0) throw new InvalidOperationException("Select a business.");
         if (r.Roles == null || r.Roles.Length == 0) throw new InvalidOperationException("Select at least one role.");
@@ -242,7 +269,7 @@ public static class AnyminuteEmployeeEditor
                 throw new InvalidOperationException("Select valid roles for this business.");
         if (r.EmployeeType != "Regular" && r.EmployeeType != "Project") throw new InvalidOperationException("Select an employee type.");
         if (!PayTypes.Contains(r.PayType)) throw new InvalidOperationException("Select a pay type.");
-        if (r.PayRate <= 0 || r.PayRate > 1000000) throw new InvalidOperationException("Enter a pay rate greater than zero.");
+        if (!(accountantInvite && r.Roles.All(x => x == 12)) && (r.PayRate <= 0 || r.PayRate > 1000000)) throw new InvalidOperationException("Enter a pay rate greater than zero.");
         if (r.BillingRate.HasValue && (r.BillingRate < 0 || r.BillingRate > 1000000)) throw new InvalidOperationException("Enter a valid billing rate.");
         if (r.EndDate.HasValue && r.EndDate.Value.Date < r.EffectiveDate.Date) throw new InvalidOperationException("End date cannot be before the effective date.");
         if (!StatusValues.Contains(r.Status)) throw new InvalidOperationException("Select an assignment status.");

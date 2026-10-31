@@ -16,7 +16,7 @@ public partial class AccountantDashBoard2 : System.Web.UI.Page
     // Accountant logins (UserTypeId 12) now use the modern Dashboard.aspx with role-aware copy and an explicit empty state.
     protected void Page_PreInit(object sender, EventArgs e)
     {
-        if (Convert.ToString(Session["UserTypeid"]).Trim() == "12") Response.Redirect("Dashboard.aspx", true);
+        if (AnyminuteAccountantDashboard.Applies()) Response.Redirect("Dashboard.aspx", true); // v37: every accountant login (12 and legacy 0/Admin) uses the PPT dashboard
     }
     protected void Page_Load(object sender, EventArgs e)
     {

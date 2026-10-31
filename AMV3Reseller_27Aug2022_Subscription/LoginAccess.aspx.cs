@@ -28,7 +28,31 @@ public partial class AnyminuteLoginAccessPage : System.Web.UI.Page
         try { return AnyminuteReports.Scope().Where(b => b.Tier == 2).ToList(); }
         catch (Exception ex) { Log.Warn("LoginAccess scope check failed", ex); return AnyminuteReports.AdminScopeFallback(); }
     }
+    // v37 (DOCX images 5/6: subscriber "Login & Access" -> ErrorPages/index.aspx?aspxerrorpath=/LoginAccess.aspx).
+    // Any remaining failure (page or master: page-action evidence, navigation, header) is logged with its stack and the
+    // user stays on a Login & Access page with a notice instead of the generic error page.
     protected void Page_Load(object sender, EventArgs e)
+    {
+        try { LoadPage(); }
+        catch (System.Threading.ThreadAbortException) { throw; }
+        catch (Exception ex)
+        {
+            Log.Error("LoginAccess page load failed", ex);
+            Denied.Visible = false; Allowed.Visible = true;
+            Table.Text = "<div class=\"am-notice am-error\" role=\"alert\">Login &amp; Access could not be loaded right now. The details were logged for support. Try again, or open an employee from Employees &gt; Employee List to manage their login.</div>";
+        }
+    }
+    protected void Page_Error(object sender, EventArgs e)
+    {
+        var ex = Server.GetLastError();
+        if (ex is System.Threading.ThreadAbortException) return;
+        Log.Error("LoginAccess unhandled error", ex);
+        Server.ClearError();
+        Response.Clear(); Response.StatusCode = 200; Response.ContentType = "text/html";
+        Response.Write("<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>Login &amp; Access</title><link href=\"css/AnyminuteModern.css\" rel=\"stylesheet\" /></head><body class=\"am-modern\" style=\"padding:40px\"><div class=\"am-card\" style=\"max-width:720px;margin:0 auto\"><h1 style=\"font-size:22px;margin:0 0 10px\">Login &amp; Access</h1><div class=\"am-notice am-error\" role=\"alert\">This page could not be displayed. The details were logged for support.</div><p><a class=\"am-button\" href=\"LoginAccess.aspx\">Try again</a> <a class=\"am-button secondary\" href=\"Dashboard.aspx\">Back to Dashboard</a></p></div></body></html>");
+        Context.ApplicationInstance.CompleteRequest();
+    }
+    void LoadPage()
     {
         if (done) return;
         if (denied) { Denied.Visible = true; Allowed.Visible = false; return; }

@@ -5,9 +5,8 @@
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="Server">
     <script>
         $(document).ready(function () {
-            $('#GridView_New_Registered_BO').DataTable({
-                
-            });
+            // v37 (DOCX image4, strict): the subscriber grid no longer gets a second DataTables search box, double sort arrows
+            // and a horizontal scrollbar. The page toolbar (Search this list + Status + Clear) and the sort/pager below remain.
             $('#gvEmplistPop').DataTable({
 
             });
@@ -162,6 +161,70 @@
         }
     </script>
 
+    <link href="css/AnyminuteSupport.css?v=20261031v37" rel="stylesheet" />
+    <style>
+        /* v37 (DOCX image4): one toolbar, no forced scrollbar, status pill, sortable headers, pager. */
+        .am-sa-subwrap{overflow-x:auto;border:1px solid #e2e8f0;border-radius:10px;background:#fff}
+        #GridView_New_Registered_BO{width:100%;margin:0;border-collapse:collapse;font-size:13px}
+        #GridView_New_Registered_BO th{background:#f7f9fc;color:#475569;font-size:12px;font-weight:650;padding:12px 10px;white-space:nowrap;cursor:pointer;user-select:none;border:0}
+        #GridView_New_Registered_BO th::after{content:"";display:inline-block;margin-left:6px;border:4px solid transparent;border-top-color:#94a3b8;transform:translateY(2px);opacity:.6}
+        #GridView_New_Registered_BO th[aria-sort=ascending]::after{border-top-color:transparent;border-bottom-color:#1f6fe5;transform:translateY(-2px);opacity:1}
+        #GridView_New_Registered_BO th[aria-sort=descending]::after{border-top-color:#1f6fe5;opacity:1}
+        #GridView_New_Registered_BO th.am-nosort{cursor:default}#GridView_New_Registered_BO th.am-nosort::after{display:none}
+        #GridView_New_Registered_BO td{padding:12px 10px;border-top:1px solid #e2e8f0;vertical-align:middle;background:#fff}
+        .am-sa-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:999px;font-size:12px;font-weight:600;text-decoration:none!important;white-space:nowrap}
+        .am-sa-pill::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+        .am-sa-pill.is-active{background:#e4f8eb;color:#168347!important}.am-sa-pill.is-inactive{background:#ffe8e8;color:#c14949!important}
+        .am-sa-pg-hide{display:none!important}
+        .am-sa-pager{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 4px 0;font-size:12px;color:#64748b}
+        .am-sa-pager div{display:flex;gap:6px}.am-sa-pager button{min-width:32px;height:32px;border:1px solid #d5dee8;border-radius:7px;background:#fff;color:#334155;cursor:pointer}
+        .am-sa-pager button[aria-current=page]{background:#1f6fe5;border-color:#1f6fe5;color:#fff}.am-sa-pager button:disabled{opacity:.45;cursor:default}
+    </style>
+    <script>
+        (function () {
+            var SIZE = 10, page = 0, sortCol = -1, dir = 1;
+            function table() { return document.getElementById('GridView_New_Registered_BO'); }
+            function body(t) { return t.tBodies[0]; }
+            function rows(t) { return Array.prototype.filter.call(body(t).rows, function (r) { return !r.querySelector('th'); }); }
+            function shown(r) { return r.style.display !== 'none'; }
+            function key(r, i) { var c = r.cells[i]; var v = c ? c.textContent.trim() : ''; var n = v.replace(/[,\s$]/g, ''); return n !== '' && !isNaN(n) ? parseFloat(n) : (/^\d{4}-\d{2}-\d{2}/.test(v) ? v : v.toLowerCase()); }
+            function paginate() {
+                var t = table(); if (!t) return; var all = rows(t), vis = all.filter(shown), pages = Math.max(1, Math.ceil(vis.length / SIZE));
+                if (page >= pages) page = pages - 1;
+                all.forEach(function (r) { r.classList.remove('am-sa-pg-hide'); });
+                vis.forEach(function (r, i) { if (i < page * SIZE || i >= (page + 1) * SIZE) r.classList.add('am-sa-pg-hide'); });
+                var p = document.getElementById('amSaSubPager'); if (!p) { p = document.createElement('nav'); p.id = 'amSaSubPager'; p.className = 'am-sa-pager'; p.setAttribute('aria-label', 'Subscriber pages'); t.parentNode.parentNode.insertBefore(p, t.parentNode.nextSibling); }
+                var from = vis.length ? page * SIZE + 1 : 0, to = Math.min(vis.length, (page + 1) * SIZE);
+                var h = '<span>Showing ' + from + '-' + to + ' of ' + vis.length + '</span><div><button type="button" data-p="' + (page - 1) + '"' + (page === 0 ? ' disabled' : '') + ' aria-label="Previous page">&lsaquo;</button>';
+                for (var i = 0; i < pages; i++) h += '<button type="button" data-p="' + i + '"' + (i === page ? ' aria-current="page"' : '') + '>' + (i + 1) + '</button>';
+                p.innerHTML = h + '<button type="button" data-p="' + (page + 1) + '"' + (page >= pages - 1 ? ' disabled' : '') + ' aria-label="Next page">&rsaquo;</button></div>';
+            }
+            function init() {
+                var t = table(); if (!t || t.dataset.amSaSort) return; t.dataset.amSaSort = '1';
+                var head = t.tHead ? t.tHead.rows[0] : t.rows[0]; if (!head) return;
+                Array.prototype.forEach.call(head.cells, function (th, i) {
+                    if (/^(status|delete)$/i.test(th.textContent.trim())) { th.className += ' am-nosort'; return; }
+                    th.tabIndex = 0; th.setAttribute('aria-sort', 'none');
+                    function go() {
+                        dir = sortCol === i ? -dir : 1; sortCol = i;
+                        Array.prototype.forEach.call(head.cells, function (c) { if (c.hasAttribute('aria-sort')) c.setAttribute('aria-sort', 'none'); });
+                        th.setAttribute('aria-sort', dir === 1 ? 'ascending' : 'descending');
+                        var list = rows(t); list.sort(function (a, b) { var x = key(a, i), y = key(b, i); return x < y ? -dir : x > y ? dir : 0; });
+                        list.forEach(function (r) { body(t).appendChild(r); }); page = 0; paginate();
+                    }
+                    th.addEventListener('click', go); th.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
+                });
+                document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('#amSaSubPager button[data-p]'); if (b && !b.disabled) { page = +b.getAttribute('data-p'); paginate(); } });
+                // Re-page after the shared "Search this list" / Status filter hides or shows rows.
+                document.addEventListener('input', function (e) { if (e.target.closest && e.target.closest('.am-filter')) setTimeout(function () { page = 0; paginate(); }, 0); }, true);
+                document.addEventListener('change', function (e) { if (e.target.closest && e.target.closest('.am-filter')) setTimeout(function () { page = 0; paginate(); }, 0); }, true);
+                document.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('.am-filter button')) setTimeout(function () { page = 0; paginate(); }, 0); }, true);
+                paginate();
+            }
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+            window.addEventListener('load', function () { var t = table(); if (t && t.dataset.amSaSort) paginate(); else init(); });
+        }());
+    </script>
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="Server">
      <asp:LinkButton ID="lnkDummy" runat="server"></asp:LinkButton>
@@ -346,8 +409,8 @@
             <div class="row">
                 <asp:Panel ID ="Panel1" runat="server">
                 <div class="col-lg-12 col-md-12">
-                    <div style="overflow-x: scroll;">
-                        <asp:GridView ID="GridView_New_Registered_BO" ClientIDMode="Static" runat="server" CssClass="table nowrap"
+                    <div class="am-sa-subwrap">
+                        <asp:GridView ID="GridView_New_Registered_BO" ClientIDMode="Static" runat="server" CssClass="table am-sa-subgrid"
                             CellPadding="1" ForeColor="#333333" GridLines="None"
                               AutoGenerateColumns="False"
                             EmptyDataText="No records Found" OnPreRender="GridView_New_Registered_BO_PreRender"
@@ -435,7 +498,7 @@
 
                                 <asp:TemplateField HeaderText="Status">
                                     <ItemTemplate>
-                                        <asp:ImageButton ID="ImageButton_Active_Deactive" runat="server" OnClientClick="ConfirmStatusChangeBox()" ImageUrl="~/images/deactive.png" Width="120px" CommandArgument='<%# ((GridViewRow) Container).RowIndex %>' CommandName="Activate_Deactivate_New_Account_Business_Owner" />
+                                        <asp:LinkButton ID="ImageButton_Active_Deactive" runat="server" OnClientClick="ConfirmStatusChangeBox()" CssClass="am-sa-pill" CommandArgument='<%# ((GridViewRow) Container).RowIndex %>' CommandName="Activate_Deactivate_New_Account_Business_Owner" ToolTip="Click to change status" />
                                         <asp:HiddenField ID="HiddenField_Business_Owner_IsActive_Status" runat="server" Value='<%#DataBinder.Eval(Container.DataItem, "IsActive")%>' />
                                     </ItemTemplate>
                                 </asp:TemplateField>

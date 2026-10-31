@@ -21,6 +21,9 @@ public partial class AnyminuteDashboard : System.Web.UI.Page
    }
    // v33 (Shamsu deck "Accountant & Payroll Agency Dashboard"): accountants / payroll agencies get the deck dashboard;
    // "Assigned Businesses" (?view=businesses) keeps the businesses list below.
+   // v37 (PPT s1 Access History / View All Activity): full activity list for accountants.
+   if(Request.QueryString["view"]=="activity" && AnyminuteAccountantDashboard.Applies())
+   {RoleDashboard.Text=AnyminuteAccountantDashboard.RenderActivity();RoleDashboard.Visible=true;OwnerView.Visible=false;return;}
    if(Request.QueryString["view"]!="businesses" && AnyminuteAccountantDashboard.Applies())
    {RoleDashboard.Text=AnyminuteAccountantDashboard.Render(Request.QueryString["b"]);RoleDashboard.Visible=true;OwnerView.Visible=false;return;}
    Bind();
@@ -29,7 +32,7 @@ public partial class AnyminuteDashboard : System.Web.UI.Page
  protected void FilterChanged(object s,EventArgs e) {Bind();}
  void Bind()
  {
-  var rows=AnyminuteModernScope.Businesses();rows.Columns.Add("Manage",typeof(bool));rows.Columns.Add("Users",typeof(int));rows.Columns.Add("DisplayStatus");
+  var rows=AnyminuteAccountantDashboard.Applies()?AnyminuteAccountantDashboard.Businesses():AnyminuteModernScope.Businesses();rows.Columns.Add("Manage",typeof(bool));rows.Columns.Add("Users",typeof(int));rows.Columns.Add("DisplayStatus");
   int projects=0;bool owner=false;var people=new System.Collections.Generic.HashSet<int>();foreach(DataRow row in rows.Rows)
   {int b=Convert.ToInt32(row["BusinessID"]);row["Manage"]=AnyminuteModernScope.Owns(b);owner|=Convert.ToBoolean(row["Manage"]);
    row["Users"]=0;

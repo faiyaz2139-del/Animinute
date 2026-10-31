@@ -77,7 +77,7 @@ public partial class Login : System.Web.UI.Page
                 if (dt.Rows[0]["UserTypeid"].ToString() == "0" && dt.Rows[0]["UserType"].ToString() == "Admin")
                 {
                     Session["email_aac1"] = Session["email"];
-                    Response.Redirect("Accountant_Dashboard.aspx", false); //kumar cpmmented Accountant.aspx
+                    Response.Redirect("Dashboard.aspx", false); // v37: PPT Accountant & Payroll Dashboard
                 }
                 //Added this email to approve the newly registered account for business owner only
                 else if (dt.Rows[0]["Email"].ToString() == "support@anyminute.net" && dt.Rows[0]["UserTypeid"].ToString() == "1" && dt.Rows[0]["UserType"].ToString() == "SupportAdmin")
@@ -112,7 +112,7 @@ public partial class Login : System.Web.UI.Page
                 }
                 else if (dtdetails.Rows[0]["UserType"].ToString() == "12")
                 {
-                    Response.Redirect("Accountant_Newuser_Dashboard.aspx", false);
+                    Response.Redirect("Dashboard.aspx", false); // v37: PPT Accountant & Payroll Dashboard
                 }
                 else
                 {

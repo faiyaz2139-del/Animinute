@@ -4,6 +4,19 @@
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="Server">
     <link href="css/bootstrap.min.css" rel="stylesheet" />
     <link href="css/AnyminuteAddressLookup.css?v=20261026v17" rel="stylesheet" />
+    <%-- v37 (DOCX image1, strict): Personal / Payment Details use the same full-width 3-column grid as Address Lookup and
+         Employee Address below (they were a centred half-width column). Control IDs unchanged. --%>
+    <style>
+    @media(min-width:768px){
+    .am-profile-wide{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));column-gap:24px;float:none!important;width:auto!important;margin:0 16px!important;padding:0!important}
+    .am-profile-wide .row{display:contents!important}
+    .am-profile-wide .row::before,.am-profile-wide .row::after{display:none!important;content:none!important}
+    .am-profile-wide [class*="col-"]{width:auto!important;max-width:none!important;flex:none!important;float:none!important;padding:0!important}
+    .am-profile-wide>h4{grid-column:1/-1}
+    .am-profile-wide .col-md-12{display:contents!important}
+    }
+    .am-profile-wide>h4{margin-left:0!important}
+    </style>
 
     <%--for making the label control font size less in small screens--%>
     <script src="js/label_control_font_small.js"></script>
@@ -653,8 +666,7 @@
                     </div>
 
                     <div class="row">
-                        <div class="col-md-3"></div>
-                        <div class="col-md-6">
+                        <div class="col-md-12 am-profile-wide">
                             <h4 style="text-decoration: none; margin-bottom:20px;">Personal Details</h4>
                             <div class="row">
                                 <div class="col-md-6" style="display:none;">
@@ -933,14 +945,12 @@
 
 
                     <div class="row">
-                        <div class="col-md-3"></div>
-                        <div class="col-md-6">
+                        <div class="col-md-12 am-profile-wide">
                             <h4 style="text-decoration: none;">Payment Details</h4>
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-md-3"></div>
-                        <div class="col-md-6">
+                        <div class="col-md-12 am-profile-wide">
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">

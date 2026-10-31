@@ -465,7 +465,7 @@ public partial class SuperAdmin_Approve_Subscriber : System.Web.UI.Page
     {
         if (e.Row.RowType == DataControlRowType.DataRow)
         {
-            ImageButton ImageButton_Active_Deactive = (e.Row.FindControl("ImageButton_Active_Deactive") as ImageButton);
+            LinkButton ImageButton_Active_Deactive = (e.Row.FindControl("ImageButton_Active_Deactive") as LinkButton); // v37 (DOCX image4): status pill
             HiddenField HiddenField_Business_Owner_IsActive_Status = (e.Row.FindControl("HiddenField_Business_Owner_IsActive_Status") as HiddenField);
             HiddenField HiddenField_Employee_Id = (e.Row.FindControl("HiddenField_Employee_Id") as HiddenField);
             LinkButton lnkBusinessList = (e.Row.FindControl("lnkBusinessList") as LinkButton);
@@ -496,11 +496,13 @@ public partial class SuperAdmin_Approve_Subscriber : System.Web.UI.Page
 
             if (HiddenField_Business_Owner_IsActive_Status.Value.ToString().Trim() == "YES")
             {
-                ImageButton_Active_Deactive.ImageUrl = "~/images/active.png";
+                ImageButton_Active_Deactive.Text = "Active";
+                ImageButton_Active_Deactive.CssClass = "am-sa-pill is-active";
             }
             else
             {
-                ImageButton_Active_Deactive.ImageUrl = "~/images/deactive.png";
+                ImageButton_Active_Deactive.Text = "Inactive";
+                ImageButton_Active_Deactive.CssClass = "am-sa-pill is-inactive";
             }
 
             Label Label_Enrolled_Date_ = (e.Row.FindControl("Label_Enrolled_Date") as Label);

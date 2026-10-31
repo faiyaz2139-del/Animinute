@@ -56,7 +56,7 @@ public partial class MasterPage : System.Web.UI.MasterPage
                                 //logo.HRef = "Accountant.aspx";
                                 //profile.HRef = "AccountantProfile.aspx";
                                 profile.PostBackUrl = "~/AccountantProfile.aspx";
-                                A1.HRef = "Accountant_Dashboard.aspx";
+                                A1.HRef = "Dashboard.aspx"; // v37
                                 //BtnBackToAcc.Visible = true;
                                 AllTickets.Visible = true;
                             }
@@ -126,7 +126,7 @@ public partial class MasterPage : System.Web.UI.MasterPage
                 else if (string.Equals(currentUserType, "BUSINESS OWNER", StringComparison.OrdinalIgnoreCase))
                     A1.HRef = "Business_Owner_Dashboard.aspx";
                 else if (string.Equals(currentUserType, "Accountant", StringComparison.OrdinalIgnoreCase))
-                    A1.HRef = "Accountant_Newuser_Dashboard.aspx";
+                    A1.HRef = "Dashboard.aspx"; // v37
                 else
                     A1.HRef = "Employee_Dashboard.aspx";
 

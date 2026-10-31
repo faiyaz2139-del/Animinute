@@ -234,7 +234,76 @@ public static class AnyminuteAccessService
             using (var c = AnyminuteTimesheetRepair.Open()) X(c, null, "UPDATE AnyminuteAccessInvite SET Status='Active',UserID=@u,ActivatedAtUTC=SYSUTCDATETIME() WHERE InviteID=@i", "@u", match, "@i", id);
             return "Access granted to " + email + " (existing accountant login)." + (failed.Count > 0 ? " Some businesses were skipped: " + String.Join(" ", failed.Distinct()) : "");
         }
-        return "Invitation recorded for " + email + ". " + SendEmail(id) + " Access turns Active automatically once an Accountant login with this email exists (create it in Add Employee with the Accountant role).";
+        // v37 (DOCX images 7-9): no accountant login with this email yet - create it now and email the sign-in details.
+        return Provision(id);
+    }
+
+    // v37: creates the accountant login (role 12) for a pending invitation in every invited business you manage, marks the
+    // invitation Active and emails the sign-in page, User ID and temporary password. Used by Invite and by Resend.
+    static string Provision(int invite)
+    {
+        var owned = Owned().Select(o => o.Key).ToList();
+        string name, email, phone; List<int> businesses; bool existing;
+        using (var c = AnyminuteTimesheetRepair.Open())
+        {
+            var r = Q(c, null, "SELECT FullName,Email,Phone FROM AnyminuteAccessInvite WHERE InviteID=@i AND Status='Invited'", "@i", invite);
+            if (r.Rows.Count == 0) throw new InvalidOperationException("Only pending invitations can be re-sent.");
+            name = S(r.Rows[0]["FullName"]); email = S(r.Rows[0]["Email"]); phone = S(r.Rows[0]["Phone"]);
+            businesses = Q(c, null, "SELECT BusinessID FROM AnyminuteAccessInviteBusiness WHERE InviteID=@i", "@i", invite).Rows.Cast<DataRow>().Select(x => Convert.ToInt32(x[0])).Where(owned.Contains).Distinct().ToList();
+            existing = Q(c, null, "SELECT 1 FROM UserAcc WHERE Email=@m", "@m", email).Rows.Count > 0;
+        }
+        if (businesses.Count == 0) throw new InvalidOperationException("Select businesses you manage.");
+        int user, employee;
+        var match = MatchLogin(email);
+        if (match > 0)
+        {
+            user = match; foreach (int b in businesses) { try { AnyminuteAccountantAssignments.Save(b, user, false); } catch (InvalidOperationException) { } }
+            using (var c = AnyminuteTimesheetRepair.Open()) employee = Convert.ToInt32(Q(c, null, "SELECT TOP 1 EmployeeID FROM MappingTable WHERE USERID=@u AND UserTypeId=12 ORDER BY EmployeeID", "@u", user).Rows[0][0]);
+        }
+        else
+        {
+            try { employee = AnyminuteEmployeeEditor.CreateAccountant(name, email, phone, businesses, out user); }
+            catch (InvalidOperationException e) { return "Invitation recorded for " + email + ", but the accountant login could not be created: " + e.Message; }
+            if (user <= 0) return "Invitation recorded for " + email + ", but the accountant login could not be created.";
+        }
+        using (var c = AnyminuteTimesheetRepair.Open())
+            X(c, null, "UPDATE AnyminuteAccessInvite SET Status='Active',UserID=@u,ActivatedAtUTC=COALESCE(ActivatedAtUTC,SYSUTCDATETIME()),UpdatedAtUTC=SYSUTCDATETIME() WHERE InviteID=@i", "@u", user, "@i", invite);
+        return "Accountant login created for " + email + " and access is Active. " + SendCredentials(invite, user, employee, existing);
+    }
+
+    // v37: invitation email with the sign-in details (sign-in page, User ID / email, temporary password, set-password link).
+    static string SendCredentials(int invite, int user, int employee, bool existingLogin)
+    {
+        string to, name, type, businesses, from, uid, password;
+        using (var c = AnyminuteTimesheetRepair.Open())
+        {
+            var r = Q(c, null, "SELECT FullName,Email,IsAccountant,IsPayrollAdmin FROM AnyminuteAccessInvite WHERE InviteID=@i", "@i", invite);
+            to = S(r.Rows[0]["Email"]); name = S(r.Rows[0]["FullName"]);
+            type = Convert.ToBoolean(r.Rows[0]["IsAccountant"]) && Convert.ToBoolean(r.Rows[0]["IsPayrollAdmin"]) ? "Accountant and Payroll Administrator" : Convert.ToBoolean(r.Rows[0]["IsAccountant"]) ? "Accountant" : "Payroll Administrator";
+            businesses = String.Join(", ", Q(c, null, "SELECT dbo.FN_DESC('AddBusiness',BusinessID) FROM AnyminuteAccessInviteBusiness WHERE InviteID=@i", "@i", invite).Rows.Cast<DataRow>().Select(x => S(x[0])));
+            from = S(Q(c, null, "SELECT dbo.FN_DESC('AddEmployee',@e)", "@e", Actor()).Rows[0][0]);
+            var acc = Q(c, null, "SELECT uid,convert(nvarchar(max),DecryptByPassPhrase('MD2',convert(varbinary(200),Password,2),2)) Password FROM UserAcc WHERE UserId=@u", "@u", user);
+            uid = acc.Rows.Count == 1 ? S(acc.Rows[0]["uid"]) : ""; password = acc.Rows.Count == 1 ? S(acc.Rows[0]["Password"]) : "";
+        }
+        bool send; Boolean.TryParse(ConfigurationManager.AppSettings["IsSendMail"], out send);
+        if (!send) return "Email sending is turned off for this site (IsSendMail), so the sign-in details were not emailed: the accountant signs in with " + to + (existingLogin ? " and their existing password." : " and the temporary password " + password + ".");
+        var h = HttpContext.Current; string site = h == null ? "" : h.Request.Url.GetLeftPart(UriPartial.Authority) + VirtualPathUtility.ToAbsolute("~/Login.aspx");
+        string reset = ConfigurationManager.AppSettings["ResetUrl"];
+        Func<string, string> E = HttpUtility.HtmlEncode;
+        var body = new StringBuilder();
+        body.Append("<p>Hello ").Append(E(name)).Append(",</p>");
+        body.Append("<p>").Append(E(from.Length > 0 ? from : "A business owner")).Append(" has invited you to AnyMinute as <b>").Append(E(type)).Append("</b> for: ").Append(E(businesses)).Append(".</p>");
+        body.Append("<p><b>Your sign-in details</b></p><table cellpadding='4' style='border-collapse:collapse'>");
+        if (site.Length > 0) body.Append("<tr><td>Sign-in page</td><td><a href='").Append(HttpUtility.HtmlAttributeEncode(site)).Append("'>").Append(E(site)).Append("</a></td></tr>");
+        body.Append("<tr><td>Email (User ID)</td><td><b>").Append(E(to)).Append("</b>").Append(uid.Length > 0 ? " &nbsp;(User Id " + E(uid) + ")" : "").Append("</td></tr>");
+        if (existingLogin) body.Append("<tr><td>Password</td><td>Use your existing AnyMinute password.</td></tr>");
+        else body.Append("<tr><td>Temporary password</td><td><b>").Append(E(password)).Append("</b></td></tr>");
+        body.Append("</table>");
+        if (!existingLogin && !String.IsNullOrEmpty(reset)) body.Append("<p>Please change this temporary password after you sign in, or set your own password now: <a href='").Append(HttpUtility.HtmlAttributeEncode(reset + employee)).Append("'>Set my password</a>.</p>");
+        body.Append("<p>After signing in you will see the Accountant &amp; Payroll Dashboard for the businesses above.</p>");
+        try { new EmailSettingController().SendHtmlFormattedEmail(to, "AnyMinute invitation: " + type + " access - your sign-in details", body.ToString()); }
+        catch (Exception e) { log4net.LogManager.GetLogger("Log").Error("Access invitation email failed", e); return "The sign-in email could not be sent."; }
+        return "Sign-in details (User ID and temporary password) were emailed to " + to + ".";
     }
     // An accountant login (UserTypeId 12) with this email in a business the owner manages.
     static int MatchLogin(string email)
@@ -249,6 +318,12 @@ public static class AnyminuteAccessService
         }
     }
     public static string SendEmail(int invite)
+    {
+        // v37: re-sending a pending invitation creates the missing accountant login and emails the sign-in details.
+        if (Installed()) return Provision(invite);
+        return SendNotice(invite);
+    }
+    static string SendNotice(int invite)
     {
         bool send; Boolean.TryParse(ConfigurationManager.AppSettings["IsSendMail"], out send);
         if (!send) return "Email sending is turned off for this site (IsSendMail), so no email was sent.";

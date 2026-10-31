@@ -22,6 +22,7 @@ public partial class AnyminuteEmployeesDirectory : System.Web.UI.Page
     {
         if(!IsPostBack)
         {
+            {int lb;Int32.TryParse(Request.QueryString["BusinessId"],out lb);AnyminuteAccountantDashboard.Log(lb,"Employee list viewed","");} // v37 Recent Activity (accountants only, optional table)
             Business.Items.Add(new ListItem("All businesses","0"));Role.Items.Add(new ListItem("All roles","0"));
             var cards=AnyminuteEmployeesView.Load();
             foreach(DataRow business in AnyminuteDirectoryScope.Businesses().Rows)Business.Items.Add(new ListItem(Convert.ToString(business["CompanyName"]),Convert.ToString(business["BusinessID"])));
