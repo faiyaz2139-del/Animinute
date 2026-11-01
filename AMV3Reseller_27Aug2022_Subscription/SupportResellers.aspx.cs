@@ -179,8 +179,8 @@ public partial class AnyminuteSupportResellersPage : System.Web.UI.Page
         }
         string pw = Val("rs_pw", RS.NewTempPassword());
         sb.Append("</div></div></div><div class='sa-rsl-col'><div class='sa-card'><h2><i class='sa-rpt-ico' aria-hidden='true'>&#128274;</i> Account &amp; Access</h2>")
-          .Append(input("Login Email *", "rs_login", "email", " required maxlength='200' placeholder='Enter login email address'"))
-          .Append("<label class='sa-field'><span>Temporary Password *</span><span class='sa-rsl-pw'><input type='text' name='rs_pw' id='rs_pw' value='").Append(SA.A(pw)).Append("' required minlength='8' maxlength='64' autocomplete='off'").Append(dis)
+          .Append(input("Login Email *", "rs_login", "email", " required maxlength='50' placeholder='Enter login email address'"))
+          .Append("<label class='sa-field'><span>Temporary Password *</span><span class='sa-rsl-pw'><input type='text' name='rs_pw' id='rs_pw' value='").Append(SA.A(pw)).Append("' required minlength='8' maxlength='50' autocomplete='off'").Append(dis)
           .Append(" /><button type='button' class='sa-btn sa-btn-outline' data-sa-genpw='rs_pw'").Append(dis).Append(">&#8635; Generate</button></span><small class='sa-muted'>At least 8 characters. Stored only as a secure hash; shown once after saving.</small></label>")
           .Append("<label class='sa-check'><input type='checkbox' name='rs_welcome' value='1'").Append(!IsPostBack || SA.Form("rs_welcome") == "1" ? " checked" : "").Append(dis).Append(" /> Send welcome email to reseller</label>")
           .Append("<p class='sa-muted sa-small'>&#9432; A welcome email with login details will be sent to the reseller.</p><div class='sa-grid2'>")
@@ -239,6 +239,10 @@ public partial class AnyminuteSupportResellersPage : System.Web.UI.Page
         if (ms.Length > 0) { if (Int32.TryParse(ms, out x) && x >= 0) maxSub = x; else errs.Add("Max subscribers must be a whole number."); }
         if (mb.Length > 0) { if (Int32.TryParse(mb, out x) && x >= 0) maxBiz = x; else errs.Add("Max businesses per subscriber must be a whole number."); }
         if (errs.Count == 0 && SA.Q(c, "SELECT 1 FROM AnyminuteReseller WHERE LoginEmail=@l", "@l", login).Rows.Count > 0) errs.Add("Another reseller already uses this login email.");
+        // v44: the login must fit SP_LOGIN (nvarchar(50)) and must not belong to another AnyMinute login.
+        if (login.Length > RS.MaxLoginEmail) errs.Add("Login email must be " + RS.MaxLoginEmail + " characters or fewer.");
+        if (pw.Length > RS.MaxPassword) errs.Add("Temporary password must be " + RS.MaxPassword + " characters or fewer.");
+        if (errs.Count == 0 && RS.LoginTaken(c, login)) errs.Add("This login email is already registered to another AnyMinute account.");
         if (errs.Count > 0) { Flash.Text = "<div class='sa-flash sa-warn'>Please fix the following:<ul>" + String.Join("", errs.Select(m => "<li>" + SA.H(m) + "</li>").ToArray()) + "</ul></div>"; Body1.Text = AddForm(true); return; }
         var perms = Request.Form.GetValues("rs_perm") ?? new string[0];
         string csv = String.Join(",", RS.PermissionList.Select(p => p[0]).Where(perms.Contains).ToArray()), salt = RS.Salt();
@@ -253,6 +257,9 @@ public partial class AnyminuteSupportResellersPage : System.Web.UI.Page
             tx.Commit();
         }
         string msg = "Reseller " + name + " (" + RS.Rsl(id) + ") created. Temporary password: " + pw + " (shown once; share it securely).";
+        // v44: create the sign-in (UserAcc) with this exact password so the welcome email credentials work on Login.aspx.
+        string loginErr; try { loginErr = RS.EnsureLogin(c, SA.Q(c, "SELECT * FROM AnyminuteReseller WHERE ResellerID=@i", "@i", id).Rows[0], pw); } catch (Exception ex) { loginErr = ex.Message; }
+        if (loginErr != null) { SA.Audit(c, null, "Reseller", id.ToString(Inv), "Login Setup Failed", null, null, null, login, loginErr); SA.Flash(msg + " Sign-in was NOT set up: " + loginErr + " No welcome email was sent; fix this and use Send Password Reset."); Go("?view=" + id); return; }
         if (SA.Form("rs_welcome") == "1")
         {
             bool send; Boolean.TryParse(ConfigurationManager.AppSettings["IsSendMail"], out send);
@@ -363,12 +370,14 @@ public partial class AnyminuteSupportResellersPage : System.Web.UI.Page
                 string ns = st == "Active" ? "Inactive" : "Active";
                 SA.X(c, null, "UPDATE AnyminuteReseller SET Status=@s,UpdatedAtUTC=SYSUTCDATETIME(),UpdatedBy=@b WHERE ResellerID=@i", "@s", ns, "@b", SA.ActorName(), "@i", id);
                 SA.Audit(c, null, "Reseller", key, ns == "Active" ? "Reseller Activated" : "Reseller Deactivated", st, ns, null, null, null);
+                try { RS.SyncAccess(c, SA.Q(c, "SELECT * FROM AnyminuteReseller WHERE ResellerID=@i", "@i", id).Rows[0], 0); } catch (SqlException) { }
                 SA.Flash(name + " is now " + ns + "."); Go(""); return;
             }
             if (op == "login")
             {
                 SA.X(c, null, "UPDATE AnyminuteReseller SET LoginDisabled=@d,UpdatedAtUTC=SYSUTCDATETIME(),UpdatedBy=@b WHERE ResellerID=@i", "@d", !off, "@b", SA.ActorName(), "@i", id);
                 SA.Audit(c, null, "Reseller", key, off ? "Login Enabled" : "Login Disabled", null, null, off ? "Disabled" : "Enabled", off ? "Enabled" : "Disabled", null);
+                try { RS.SyncAccess(c, SA.Q(c, "SELECT * FROM AnyminuteReseller WHERE ResellerID=@i", "@i", id).Rows[0], 0); } catch (SqlException) { }
                 SA.Flash("Login " + (off ? "enabled" : "disabled") + " for " + name + "."); Go(""); return;
             }
             if (op == "update") { Update(c, id, r.Rows[0]); return; }
@@ -378,6 +387,9 @@ public partial class AnyminuteSupportResellersPage : System.Web.UI.Page
                 // password is issued (salted hash only) and emailed when IsSendMail is on; shown once otherwise.
                 string pw = RS.NewTempPassword(), salt = RS.Salt(), mail = SA.S(r.Rows[0]["Email"]);
                 SA.X(c, null, "UPDATE AnyminuteReseller SET TempPasswordHash=@h,TempPasswordSalt=@s,UpdatedAtUTC=SYSUTCDATETIME(),UpdatedBy=@b WHERE ResellerID=@i", "@h", RS.Hash(salt, pw), "@s", salt, "@b", SA.ActorName(), "@i", id);
+                // v44: the new password is also written to the reseller's sign-in (created here for resellers added before v44).
+                string loginErr; try { loginErr = RS.EnsureLogin(c, r.Rows[0], pw); } catch (Exception ex) { loginErr = ex.Message; }
+                if (loginErr != null) { SA.Flash("Password not reset: " + loginErr); Go(""); return; }
                 SA.Audit(c, null, "Reseller", key, "Password Reset", null, null, null, mail, "New temporary password issued by Support Admin.");
                 string msg = "New temporary password for " + name + ": " + pw + " (shown once; share it securely).";
                 bool send; Boolean.TryParse(ConfigurationManager.AppSettings["IsSendMail"], out send);

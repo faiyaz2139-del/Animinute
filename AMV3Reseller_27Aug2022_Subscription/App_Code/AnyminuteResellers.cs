@@ -54,6 +54,58 @@ public static class AnyminuteResellers
         sb.Append(dg[b[10] % dg.Length]).Append(dg[b[11] % dg.Length]);
         return sb.ToString();
     }
+    // v44 reseller sign-in fix. Login.aspx signs in only through SP_LOGIN, which reads UserAcc and compares
+    // DecryptByPassPhrase('MD2', UserAcc.Password). The reseller row (AnyminuteReseller) only held a SHA-256 hash, so the
+    // emailed email + password could never sign in. A reseller now gets the same login a legacy approved reseller gets
+    // (SuperAdmin_Approve_Reseller: Sp_InsertMotherOrg -> MotherOrg + UserAcc UserTypeid 0 'Admin'), and the temporary
+    // password is written to UserAcc.Password in the SP_LOGIN format. Sign-in lands on Dashboard.aspx like other MotherOrg logins.
+    public const int MaxLoginEmail = 50, MaxPassword = 50; // SP_LOGIN / Sp_InsertMotherOrg take nvarchar(50)
+    public static int LoginUser(SqlConnection c, string login)
+    {
+        var t = SA.Q(c, "SELECT TOP 1 u.UserId FROM UserAcc u JOIN MotherOrg m ON m.MotherOrgID=u.MotherOrgid AND LTRIM(RTRIM(m.Email))=LTRIM(RTRIM(u.Email)) WHERE LTRIM(RTRIM(u.Email))=@l AND u.UserTypeid=0 AND u.UserType='Admin' ORDER BY u.UserId", "@l", (login ?? "").Trim());
+        return t.Rows.Count == 1 ? Convert.ToInt32(t.Rows[0][0]) : 0;
+    }
+    // True when the login email already belongs to a different AnyMinute login (not this reseller's own).
+    public static bool LoginTaken(SqlConnection c, string login)
+    {
+        return LoginUser(c, login) == 0 && SA.Q(c, "SELECT 1 FROM UserAcc WHERE LTRIM(RTRIM(Email))=@l", "@l", (login ?? "").Trim()).Rows.Count > 0;
+    }
+    // Creates the reseller's UserAcc login when missing and sets its password (null password = keep it, only sync access).
+    // Returns null on success, otherwise why the sign-in could not be set up.
+    public static string EnsureLogin(SqlConnection c, DataRow r, string password)
+    {
+        string login = SA.S(r["LoginEmail"]).Trim();
+        if (login.Length == 0 || login.Length > MaxLoginEmail) return "The login email must be 1 to " + MaxLoginEmail + " characters to sign in.";
+        if (password != null && (password.Length < 8 || password.Length > MaxPassword)) return "The temporary password must be 8 to " + MaxPassword + " characters.";
+        int user = LoginUser(c, login);
+        if (user == 0)
+        {
+            if (LoginTaken(c, login)) return "This login email is already registered to another AnyMinute account.";
+            if (password == null) return "This reseller has no sign-in yet. Use Send Password Reset to create it.";
+            string name = SA.S(r["ResellerName"]) + "-" + Rsl(r["ResellerID"]);
+            new MotherOrgControllerClass().InsertMotherOrg(new MotherOrgEntityClass
+            {
+                MotherOrgName = name.Length > 100 ? name.Substring(0, 100) : name, StreetNumber = "profile.jpg", StreetName = "", Apartment = "", City = "", Province = "", PostalCode = "",
+                EnrollDate = DateTime.Today, Status = true, Email = login, ContactName = Cut(SA.S(r["ContactPerson"]), 50), ContactNumber = Cut(SA.S(r["Phone"]), 50), Checked = "N"
+            });
+            user = LoginUser(c, login);
+            if (user == 0) return "The reseller sign-in could not be created.";
+        }
+        if (password != null)
+            SA.X(c, null, "UPDATE UserAcc SET Password=CONVERT(nvarchar(max),EncryptByPassPhrase('MD2',CAST(@p AS nvarchar(50))),2),Is_First_Time_Login=0 WHERE UserId=@u", "@p", password, "@u", user);
+        SyncAccess(c, r, user);
+        return null;
+    }
+    // Inactive reseller or Login Disabled = cannot sign in (Login.aspx checks AnyminuteLoginSecurity.LoginDisabled).
+    public static void SyncAccess(SqlConnection c, DataRow r, int user)
+    {
+        if (user <= 0) user = LoginUser(c, SA.S(r["LoginEmail"]));
+        if (user <= 0 || !SA.Has(c, "AnyminuteLoginSecurity")) return;
+        bool off = Convert.ToBoolean(r["LoginDisabled"]) || SA.S(r["Status"]) != "Active";
+        SA.X(c, null, @"IF NOT EXISTS(SELECT 1 FROM AnyminuteLoginSecurity WHERE UserId=@u) INSERT AnyminuteLoginSecurity(UserId,LoginDisabled,RequirePasswordChange,TwoFactorEnabled,UpdatedAtUTC,UpdatedBy) VALUES(@u,@d,0,0,SYSUTCDATETIME(),@a)
+            ELSE UPDATE AnyminuteLoginSecurity SET LoginDisabled=@d,UpdatedAtUTC=SYSUTCDATETIME(),UpdatedBy=@a WHERE UserId=@u", "@u", user, "@d", off, "@a", SA.ActorId());
+    }
+    static string Cut(string s, int n) { return s.Length > n ? s.Substring(0, n) : s; }
     public static string Salt() { var b = new byte[16]; using (var rng = RandomNumberGenerator.Create()) rng.GetBytes(b); return BitConverter.ToString(b).Replace("-", "").ToLowerInvariant(); }
     public static string Hash(string salt, string password)
     {
