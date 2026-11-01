@@ -28,6 +28,13 @@
   <p class="am-muted am-ls-small">The link is sent to the new address, expires in 24 hours and can be used once. We will let your current email know once the change is complete. Business owners and other subscribers cannot change your login email.</p>
   <p class="am-muted am-ls-small">Can&rsquo;t access your account or your current email? Contact AnyMinute Support for secure Account Recovery.</p>
  </section>
+ <%-- v41: Google / Microsoft sign-in accounts linked to this User ID (own login only). --%>
+ <section class="am-card">
+  <h2>Google &amp; Microsoft Sign-in</h2>
+  <p class="am-muted">Use &ldquo;Continue with Google&rdquo; or &ldquo;Continue with Microsoft&rdquo; on the sign-in screen. The first time, the account&rsquo;s verified email must match your login email; it is then connected to this same AnyMinute login. Your password keeps working.</p>
+  <asp:Literal ID="SocialRows" runat="server" />
+  <div class="am-actions am-ls-actions"><asp:Button ID="DisconnectGoogle" runat="server" Text="Disconnect Google" OnClick="DisconnectGoogle_Click" CausesValidation="false" formnovalidate="formnovalidate" CssClass="am-button secondary" Visible="false" /><asp:Button ID="DisconnectMicrosoft" runat="server" Text="Disconnect Microsoft" OnClick="DisconnectMicrosoft_Click" CausesValidation="false" formnovalidate="formnovalidate" CssClass="am-button secondary" Visible="false" /></div>
+ </section>
  <asp:PlaceHolder ID="HistoryView" runat="server" Visible="false"><section class="am-card"><h2>Security Activity</h2><div class="am-table-wrap"><table class="am-table"><thead><tr><th>Date (UTC)</th><th>From</th><th>To</th><th>Method</th><th>Result</th></tr></thead><tbody><asp:Literal ID="HistoryRows" runat="server" /></tbody></table></div></section></asp:PlaceHolder>
 </section>
 </asp:Content>

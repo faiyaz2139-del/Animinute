@@ -14,8 +14,30 @@ public partial class Login : System.Web.UI.Page
     object loginfo;
     protected void Page_Load(object sender, EventArgs e)
     {
+        // v41: Google / Microsoft buttons for everyone on the main sign-in screen (shown once the provider is configured).
+        GoogleLogin.Visible = AnyminuteExternalLogin.Configured(AnyminuteExternalLogin.Google);
+        MicrosoftLogin.Visible = AnyminuteExternalLogin.Configured(AnyminuteExternalLogin.Microsoft);
+        SocialLogin.Visible = GoogleLogin.Visible || MicrosoftLogin.Visible;
         if (!IsPostBack)
         {
+            string extError = Session[AnyminuteExternalLogin.ErrorKey] as string;
+            if (extError != null)
+            {
+                Session.Remove(AnyminuteExternalLogin.ErrorKey);
+                this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('Sign in', '" + System.Web.HttpUtility.JavaScriptStringEncode(extError) + "', 'warning');", true);
+            }
+            string ticket = Session[AnyminuteExternalLogin.TicketKey] as string;
+            if (ticket != null)
+            {
+                Session.Remove(AnyminuteExternalLogin.TicketKey);
+                var parts = ticket.Split('|');
+                int extUser;
+                if (parts.Length == 2 && Int32.TryParse(parts[0], out extUser))
+                {
+                    dt = AnyminuteExternalLogin.LoginRow(extUser);
+                    if (dt.Rows.Count == 1) { SignIn(dt, dt.Rows[0]["Email"].ToString(), "Signed in with " + parts[1] + "."); return; }
+                }
+            }
             // v26: sent here by AnyminuteSessionGuard after Support disabled login access / revoked the session.
             if (Request.QueryString["revoked"] == "1")
                 this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('Signed out', 'Your session was ended by an administrator. Please sign in again or contact your administrator.', 'warning');", true);
@@ -30,102 +52,7 @@ public partial class Login : System.Web.UI.Page
 
             if (dt.Rows.Count > 0)
             {
-                //To check if the user is logging first time. If he is logging first time, we will not allow to login.
-                if (dt.Rows[0]["Is_First_Time_Login"].ToString() == "True")
-                {
-                    this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('warning!', 'Please Reset Password From Link Sent in Mail.<br/>Then Login Here.', 'warning');", true);
-                    return;
-                }
-
-
-                // 2026-10-24 v2: an owner can switch off login access from Edit Employee > Login & Access.
-                if (AnyminuteEmployeeEditor.LoginDisabled(dt.Rows[0]["UserId"].ToString()))
-                {
-                    this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('warning!', 'Your login access is disabled. Please contact your administrator.', 'warning');", true);
-                    AnyminuteSupportAdmin.LoginEvent(txtemail.Text, dt.Rows[0]["UserId"].ToString(), false, "Login access is disabled.");
-                    return;
-                }
-
-                string strEmployeeID = dt.Rows[0]["EmployeeId"].ToString();
-                DataTable dtdetails = new DataTable();
-                Session["password"] = dt.Rows[0]["Password"].ToString();
-                Session["UID"] = dt.Rows[0]["UID"].ToString();
-                Session["UserId"] = dt.Rows[0]["UserId"].ToString();
-                Session["EmployeeId"] = dt.Rows[0]["EmployeeId"].ToString();
-                Session["email"] = dt.Rows[0]["Email"].ToString();
-                AnyminuteEmployeeEditor.RecordLogin(dt.Rows[0]["UserId"].ToString()); // v7 last login, never throws
-                AnyminuteSupportAdmin.LoginEvent(txtemail.Text, dt.Rows[0]["UserId"].ToString(), true, "Signed in to AnyMinute."); // v25 Login Activity History, never throws
-                AnyminuteSessionGuard.SignedIn(dt.Rows[0]["UserId"].ToString()); // v26 active session (Disable Login Access revokes it), never throws
-                Session["MotherOrgid"] = dt.Rows[0]["MotherOrgid"].ToString();
-                DataTable dataTable = comm.GetAllDataFromTable("AddEmployee with (Nolock)", "MotherOrgid", "EmployeeID=" + strEmployeeID + "", "");
-                if (dataTable.Rows.Count > 0)
-                {
-                    Session["MotherOrgid"] = dataTable.Rows[0]["MotherOrgid"].ToString();
-                }
-                else if (dt.Rows.Count>0)
-                {
-                    if (dt.Rows[0]["MotherOrgid"]!=null)
-                    Session["MotherOrgid"] = dt.Rows[0]["MotherOrgid"].ToString();
-                }
-                if (dt.Rows.Count >0 && dt.Rows[0]["UserType"].ToString() != "SupportAdmin")
-                {
-                    dtdetails = comm.GetAllDataFromTable("AddEmployee with (Nolock)", "UserType", "EmployeeID=" + Session["EmployeeId"].ToString() + "", "");
-                }
-
-                if (dtdetails.Rows.Count > 0)
-                {
-                    Session["UserTypeid"] = dtdetails.Rows[0]["UserType"].ToString();
-                    Session["UserType"] = comm.GetNameFromId("UserType", int.Parse(Session["UserTypeid"].ToString()));
-                }
-                else
-                {
-                    Session["UserTypeid"] = dt.Rows[0]["UserTypeid"].ToString();
-                    Session["UserType"] = dt.Rows[0]["UserType"].ToString();
-                }
-
-                if (dt.Rows[0]["UserTypeid"].ToString() == "0" && dt.Rows[0]["UserType"].ToString() == "Admin")
-                {
-                    Session["email_aac1"] = Session["email"];
-                    Response.Redirect("Dashboard.aspx", false); // v37: accountant / payroll-agency logins land on the PPT Accountant & Payroll Dashboard (was legacy Accountant_Dashboard.aspx)
-                }
-                //Added this email to approve the newly registered account for business owner only
-                else if (dt.Rows[0]["Email"].ToString() == "support@anyminute.net" && dt.Rows[0]["UserTypeid"].ToString() == "1" && dt.Rows[0]["UserType"].ToString() == "SupportAdmin")
-                {
-                    Response.Redirect("SuperAdmin_Approve_Subscriber.aspx", false);
-                }
-                else if (dt.Rows[0]["UserTypeid"].ToString() == "0" && dt.Rows[0]["UserType"].ToString() == "SuperAdmin")
-                {
-                    Response.Redirect("SuperAdmin.aspx", false);
-                }
-                else if (dt.Rows[0]["UserTypeid"].ToString() == "1" && dt.Rows[0]["UserType"].ToString() == "SupportAdmin")
-                {
-                    Response.Redirect("SuperAdmin.aspx", false);
-                }
-                //kumar added for new login
-                else if (dtdetails.Rows[0]["UserType"].ToString() == "1")
-                {
-                    Response.Redirect("Dashboard.aspx", false); // v21 (Pandey #5): new role dashboard
-                }
-                else if (dtdetails.Rows[0]["UserType"].ToString() == "2")
-                {
-                    Response.Redirect("Dashboard.aspx", false); // v21 (Pandey #5): new role dashboard
-                }
-                else if ((dtdetails.Rows[0]["UserType"].ToString() == "4") || (dtdetails.Rows[0]["UserType"].ToString() == "2"))
-                {
-                    Response.Redirect("Dashboard.aspx", false); // v21 (Pandey #5): new role dashboard
-                }
-                else if (dtdetails.Rows[0]["UserType"].ToString() == "5")
-                {
-                    Response.Redirect("Dashboard.aspx", false); // v21 (Pandey #5): new role dashboard
-                }
-                else if (dtdetails.Rows[0]["UserType"].ToString() == "12")
-                {
-                    Response.Redirect("Dashboard.aspx", false); // v27: accountants use the modern dashboard (was old Accountant_Newuser_Dashboard)
-                }
-                else
-                {
-                    Response.Redirect("Dashboard.aspx", false); // v21 (Pandey #5): new role dashboard
-                }
+                SignIn(dt, txtemail.Text, "Signed in to AnyMinute.");
             }
             else
             {
@@ -136,6 +63,108 @@ public partial class Login : System.Web.UI.Page
         catch (Exception ex)
         {
             throw ex;
+        }
+    }
+
+    // v41: shared by password sign-in and Google / Microsoft sign-in (ExternalLogin.aspx), so both run the same
+    // first-time-login and disabled-login checks, session setup and role routing for every role.
+    void SignIn(DataTable dt, string loginName, string signedInNote)
+    {
+        //To check if the user is logging first time. If he is logging first time, we will not allow to login.
+        if (dt.Rows[0]["Is_First_Time_Login"].ToString() == "True")
+        {
+            this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('warning!', 'Please Reset Password From Link Sent in Mail.<br/>Then Login Here.', 'warning');", true);
+            return;
+        }
+
+
+        // 2026-10-24 v2: an owner can switch off login access from Edit Employee > Login & Access.
+        if (AnyminuteEmployeeEditor.LoginDisabled(dt.Rows[0]["UserId"].ToString()))
+        {
+            this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('warning!', 'Your login access is disabled. Please contact your administrator.', 'warning');", true);
+            AnyminuteSupportAdmin.LoginEvent(loginName, dt.Rows[0]["UserId"].ToString(), false, "Login access is disabled.");
+            return;
+        }
+
+        string strEmployeeID = dt.Rows[0]["EmployeeId"].ToString();
+        DataTable dtdetails = new DataTable();
+        Session["password"] = dt.Rows[0]["Password"].ToString();
+        Session["UID"] = dt.Rows[0]["UID"].ToString();
+        Session["UserId"] = dt.Rows[0]["UserId"].ToString();
+        Session["EmployeeId"] = dt.Rows[0]["EmployeeId"].ToString();
+        Session["email"] = dt.Rows[0]["Email"].ToString();
+        AnyminuteEmployeeEditor.RecordLogin(dt.Rows[0]["UserId"].ToString()); // v7 last login, never throws
+        AnyminuteSupportAdmin.LoginEvent(loginName, dt.Rows[0]["UserId"].ToString(), true, signedInNote); // v25 Login Activity History, never throws
+        AnyminuteSessionGuard.SignedIn(dt.Rows[0]["UserId"].ToString()); // v26 active session (Disable Login Access revokes it), never throws
+        Session["MotherOrgid"] = dt.Rows[0]["MotherOrgid"].ToString();
+        DataTable dataTable = comm.GetAllDataFromTable("AddEmployee with (Nolock)", "MotherOrgid", "EmployeeID=" + strEmployeeID + "", "");
+        if (dataTable.Rows.Count > 0)
+        {
+            Session["MotherOrgid"] = dataTable.Rows[0]["MotherOrgid"].ToString();
+        }
+        else if (dt.Rows.Count>0)
+        {
+            if (dt.Rows[0]["MotherOrgid"]!=null)
+            Session["MotherOrgid"] = dt.Rows[0]["MotherOrgid"].ToString();
+        }
+        if (dt.Rows.Count >0 && dt.Rows[0]["UserType"].ToString() != "SupportAdmin")
+        {
+            dtdetails = comm.GetAllDataFromTable("AddEmployee with (Nolock)", "UserType", "EmployeeID=" + Session["EmployeeId"].ToString() + "", "");
+        }
+
+        if (dtdetails.Rows.Count > 0)
+        {
+            Session["UserTypeid"] = dtdetails.Rows[0]["UserType"].ToString();
+            Session["UserType"] = comm.GetNameFromId("UserType", int.Parse(Session["UserTypeid"].ToString()));
+        }
+        else
+        {
+            Session["UserTypeid"] = dt.Rows[0]["UserTypeid"].ToString();
+            Session["UserType"] = dt.Rows[0]["UserType"].ToString();
+        }
+
+        if (dt.Rows[0]["UserTypeid"].ToString() == "0" && dt.Rows[0]["UserType"].ToString() == "Admin")
+        {
+            Session["email_aac1"] = Session["email"];
+            Response.Redirect("Dashboard.aspx", false); // v37: accountant / payroll-agency logins land on the PPT Accountant & Payroll Dashboard (was legacy Accountant_Dashboard.aspx)
+        }
+        //Added this email to approve the newly registered account for business owner only
+        else if (dt.Rows[0]["Email"].ToString() == "support@anyminute.net" && dt.Rows[0]["UserTypeid"].ToString() == "1" && dt.Rows[0]["UserType"].ToString() == "SupportAdmin")
+        {
+            Response.Redirect("SuperAdmin_Approve_Subscriber.aspx", false);
+        }
+        else if (dt.Rows[0]["UserTypeid"].ToString() == "0" && dt.Rows[0]["UserType"].ToString() == "SuperAdmin")
+        {
+            Response.Redirect("SuperAdmin.aspx", false);
+        }
+        else if (dt.Rows[0]["UserTypeid"].ToString() == "1" && dt.Rows[0]["UserType"].ToString() == "SupportAdmin")
+        {
+            Response.Redirect("SuperAdmin.aspx", false);
+        }
+        //kumar added for new login
+        else if (dtdetails.Rows[0]["UserType"].ToString() == "1")
+        {
+            Response.Redirect("Dashboard.aspx", false); // v21 (Pandey #5): new role dashboard
+        }
+        else if (dtdetails.Rows[0]["UserType"].ToString() == "2")
+        {
+            Response.Redirect("Dashboard.aspx", false); // v21 (Pandey #5): new role dashboard
+        }
+        else if ((dtdetails.Rows[0]["UserType"].ToString() == "4") || (dtdetails.Rows[0]["UserType"].ToString() == "2"))
+        {
+            Response.Redirect("Dashboard.aspx", false); // v21 (Pandey #5): new role dashboard
+        }
+        else if (dtdetails.Rows[0]["UserType"].ToString() == "5")
+        {
+            Response.Redirect("Dashboard.aspx", false); // v21 (Pandey #5): new role dashboard
+        }
+        else if (dtdetails.Rows[0]["UserType"].ToString() == "12")
+        {
+            Response.Redirect("Dashboard.aspx", false); // v27: accountants use the modern dashboard (was old Accountant_Newuser_Dashboard)
+        }
+        else
+        {
+            Response.Redirect("Dashboard.aspx", false); // v21 (Pandey #5): new role dashboard
         }
     }
 

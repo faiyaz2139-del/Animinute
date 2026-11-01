@@ -1,0 +1,9 @@
+<!-- Paste inside <appSettings> of the SERVER Web.config. Fill real values on the server only. -->
+<add key="Google:ClientId" value="xxxxxxxx.apps.googleusercontent.com"/>
+<add key="Google:ClientSecret" value="GOCSPX-..."/>
+<add key="Google:RedirectUri" value="https://anyminute.net/ExternalLogin.aspx"/>
+<add key="Microsoft:ClientId" value="00000000-0000-0000-0000-000000000000"/>
+<add key="Microsoft:ClientSecret" value="..."/>
+<add key="Microsoft:Tenant" value="common"/>
+<add key="Microsoft:RedirectUri" value="https://anyminute.net/ExternalLogin.aspx"/>
+<add key="Microsoft:TrustedTenantIds" value=""/>

@@ -146,6 +146,12 @@
             }
         }
     </script>
+    <style>
+        /* v41 social sign-in */
+        .am-social-or{display:flex;align-items:center;gap:10px;color:#8a94a3;font-size:12px;margin:16px 0 12px}.am-social-or:before,.am-social-or:after{content:"";flex:1;height:1px;background:#e2e8f0}
+        .am-social-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;margin-bottom:10px;padding:9px 12px;border:1px solid #d0d7e2;border-radius:6px;background:#fff;color:#1f2937!important;font-weight:600;text-decoration:none!important}
+        .am-social-btn:hover{background:#f5f8fc;border-color:#b8c3d3}
+    </style>
 </head>
 <body>
     <div class="container">
@@ -192,6 +198,14 @@
                                 <asp:HiddenField ID="hdnemployeetype" runat="server" />
                             </div>
                         </div>
+                        <%-- v41: Google / Microsoft sign-in for every role (links to the existing User ID by verified login email). --%>
+                        <asp:PlaceHolder ID="SocialLogin" runat="server">
+                        <div class="row"><div class="col-md-12 col-sm-12 col-xs-12">
+                            <div class="am-social-or"><span>or</span></div>
+                            <asp:HyperLink ID="GoogleLogin" runat="server" NavigateUrl="~/ExternalLogin.aspx?p=google" CssClass="am-social-btn"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.9 6.1C12.5 13.6 17.8 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.7 6c4.5-4.2 6.9-10.3 6.9-17.7z"/><path fill="#FBBC05" d="M10.6 28.6c-.5-1.4-.8-3-.8-4.6s.3-3.2.8-4.6l-7.9-6.1C1 16.6 0 20.2 0 24s1 7.4 2.7 10.7l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.7-6c-2.2 1.5-5 2.3-8.2 2.3-6.2 0-11.5-4.1-13.4-9.9l-7.9 6.1C6.6 42.6 14.6 48 24 48z"/></svg><span>Continue with Google</span></asp:HyperLink>
+                            <asp:HyperLink ID="MicrosoftLogin" runat="server" NavigateUrl="~/ExternalLogin.aspx?p=microsoft" CssClass="am-social-btn"><svg width="18" height="18" viewBox="0 0 21 21" aria-hidden="true"><rect x="1" y="1" width="9" height="9" fill="#F25022"/><rect x="11" y="1" width="9" height="9" fill="#7FBA00"/><rect x="1" y="11" width="9" height="9" fill="#00A4EF"/><rect x="11" y="11" width="9" height="9" fill="#FFB900"/></svg><span>Continue with Microsoft</span></asp:HyperLink>
+                        </div></div>
+                        </asp:PlaceHolder>
                         <div class="row">
                             <div class="col-md-12 col-sm-12 col-xs-12 text-center" style="margin-top: 20px;">
                                 <asp:LinkButton ID="btnForgetPasssword" OnClick="btnForgetPasssword_Click" runat="server" Text="Forgot Password?"/>
