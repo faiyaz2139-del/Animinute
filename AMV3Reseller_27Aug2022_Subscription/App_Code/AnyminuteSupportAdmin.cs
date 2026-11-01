@@ -215,7 +215,7 @@ public static class AnyminuteSupportAdmin
     public static string NavHtml(string reportsHref, string settingsHref)
     {
         var items = new List<string[]> {
-            new[] { "Dashboard", "~/SuperAdmin.aspx", "" },
+            new[] { "Dashboard", IsSupportAdminOnly() ? "~/SupportSubscribers.aspx" : "~/SuperAdmin.aspx", "" }, // v42 PPT 03 s1: Accountant List removed for Support Admin
             new[] { "Resellers", "~/SupportResellers.aspx", "" }, // v28 deck 2
             new[] { "Subscribers", "~/SupportSubscribers.aspx", "" },
             new[] { "Businesses", "~/SupportBusinesses.aspx", "" }, // v30 deck 2 nav
@@ -225,7 +225,7 @@ public static class AnyminuteSupportAdmin
             new[] { "Address Verification", "~/SupportAddresses.aspx", PendingAddresses().ToString(CultureInfo.InvariantCulture) } };
         items.Add(new[] { "Account Recovery", "~/SupportAccountRecovery.aspx", "" }); // v39 Change Login Email DOC s8: recovery via verification only
         items.Add(new[] { "Reports", "~/SupportReports.aspx", "" }); // v28: Support Admin Reports hub (12 support + 8 reseller reports); reportsHref kept for the signature
-        items.Add(new[] { "Settings", settingsHref ?? "~/SupportAdminProfile.aspx", "" }); // v30: deck nav always ends with Settings (profile when no email-settings permission)
+        // v42 PPT 03 s3 "Remove the Setting Button": Settings is no longer in the Support Admin nav (settingsHref kept for the signature).
         var html = new StringBuilder();
         foreach (var i in items)
         {
@@ -241,10 +241,12 @@ public static class AnyminuteSupportAdmin
     public static string CompactPostal(string p) { return (p ?? "").ToUpperInvariant().Replace(" ", "").Replace("-", "").Trim(); }
     static string Norm(string v) { return Regex.Replace((v ?? "").ToUpperInvariant(), @"[^A-Z0-9]", ""); }
     // Known addresses for a postal code: verified AddressMaster rows (city/province ids resolved to names) and employee addresses.
-    public static DataTable KnownAddresses(SqlConnection c, string postal, int excludeId)
+    public static DataTable KnownAddresses(SqlConnection c, string postal, int excludeId) { return KnownAddresses(c, null, postal, excludeId); }
+    // v42: transaction-aware (Approve runs inside a serializable transaction).
+    public static DataTable KnownAddresses(SqlConnection c, SqlTransaction tx, string postal, int excludeId)
     {
         string p = CompactPostal(postal);
-        return Q(c, @"SELECT DISTINCT TOP 12 Street, City, Province, PostalCode, Source FROM (
+        return AnyminuteTimesheetRepair.Query(c, tx, @"SELECT DISTINCT TOP 12 Street, City, Province, PostalCode, Source FROM (
             SELECT UPPER(LTRIM(RTRIM(a.Street_Name))) Street, UPPER(LTRIM(RTRIM(COALESCE(ci.CityName,a.City)))) City, UPPER(LTRIM(RTRIM(COALESCE(pr.ProvinceName,a.Province)))) Province, UPPER(LTRIM(RTRIM(a.PostalCode))) PostalCode, 'Verified address' Source
               FROM AddressMaster a LEFT JOIN CityMaster ci ON CAST(ci.CityId AS nvarchar(50))=CAST(a.City AS nvarchar(50)) LEFT JOIN ProvinceMaster pr ON CAST(pr.ProvinceId AS nvarchar(50))=CAST(a.Province AS nvarchar(50))
              WHERE a.Verifed=1 AND a.AddressMasterId<>@id AND REPLACE(REPLACE(UPPER(a.PostalCode),' ',''),'-','')=@p
@@ -254,11 +256,13 @@ public static class AnyminuteSupportAdmin
     }
     // level: "error" (format), "match" (same address already known), "partial" (postal known, address differs), "new" (valid format, postal not known yet).
     public static string LookupVerify(SqlConnection c, int id, string street, string city, string province, string country, string postal, out string level, out DataTable known)
+    { return LookupVerify(c, null, id, street, city, province, country, postal, out level, out known); }
+    public static string LookupVerify(SqlConnection c, SqlTransaction tx, int id, string street, string city, string province, string country, string postal, out string level, out DataTable known)
     {
         known = null;
         string err = VerifyAddress(street ?? "", city ?? "", province ?? "", country ?? "", postal ?? "");
         if (err != null) { level = "error"; return err; }
-        known = KnownAddresses(c, postal, id);
+        known = KnownAddresses(c, tx, postal, id);
         foreach (DataRow r in known.Rows)
             if (Norm(S(r["Street"])) == Norm(street) && Norm(S(r["City"])) == Norm(city) && (Norm(S(r["Province"])) == Norm(province) || Norm(S(r["Province"])).StartsWith(Norm(province)) || Norm(province).StartsWith(Norm(S(r["Province"])))))
             { level = "match"; return "Matches a known " + S(r["Source"]).ToLowerInvariant() + " for this postal code."; }

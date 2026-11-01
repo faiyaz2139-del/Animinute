@@ -139,7 +139,7 @@ public partial class Login : System.Web.UI.Page
         }
         else if (dt.Rows[0]["UserTypeid"].ToString() == "1" && dt.Rows[0]["UserType"].ToString() == "SupportAdmin")
         {
-            Response.Redirect("SuperAdmin.aspx", false);
+            Response.Redirect("SupportSubscribers.aspx", false); // v42 PPT 03 s1: Accountant List removed; Subscriber Management is the landing
         }
         //kumar added for new login
         else if (dtdetails.Rows[0]["UserType"].ToString() == "1")

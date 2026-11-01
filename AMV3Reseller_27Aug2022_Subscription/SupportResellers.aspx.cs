@@ -11,6 +11,10 @@ using System.Web;
 using SA = AnyminuteSupportAdmin;
 using RS = AnyminuteResellers;
 
+// 2026-11-01 v42 (PPT 02 20261028B s1-s2, PPT 04 s1-s2): list without the legacy banner / RSL sub-line, date-only Created Date,
+// the deck's Reseller Actions menu (View Details, Edit, View Subscribers, View Businesses, Login & Access, Password Reset,
+// Permissions & Limits, Activity History, Deactivate). The view page keeps only Reseller Information + Account & Limits;
+// subscribers / businesses / activity history open as their own screens from the menu.
 // 2026-10-29 v30: list + Add Reseller re-laid out to the deck 2 mocks (Pandey post-v29 notes).
 // 2026-10-29 v28 (Shamsu deck 2 slides 1-2): Support Admin > Resellers. List (KPIs, search, Status / Plan / Sort, Clear Filters,
 // Export, pagination, View + row menu), Add Reseller form (information, permissions, account & access with a generated temporary
@@ -33,31 +37,13 @@ public partial class AnyminuteSupportResellersPage : System.Web.UI.Page
             if (!ready) Flash.Text += "<div class='sa-flash sa-warn'>" + SA.H(RS.Missing) + "</div>";
             int id;
             if (SA.Get("add") == "1") { Title = "Add Reseller"; Body1.Text = AddForm(ready); return; }
-            if (ready && Int32.TryParse(SA.Get("view"), out id)) { Body1.Text = View(c, id); return; }
+            if (ready && Int32.TryParse(SA.Get("edit"), out id)) { var e0 = Row(c, id); Title = "Edit Reseller"; Body1.Text = e0 == null ? NotFound : AddForm(true, e0); return; }
+            if (ready && Int32.TryParse(SA.Get("view"), out id)) { string tab = SA.Get("tab"); Body1.Text = tab == "subscribers" || tab == "businesses" || tab == "history" ? Sub(c, id, tab) : View(c, id); return; }
             var all = ready ? RS.List(c).Rows.Cast<DataRow>().ToList() : new List<DataRow>();
             var rows = Filtered(all);
             if (SA.Get("export") == "excel") { Export(rows); return; }
             Body1.Text = List(all, rows, ready);
         }
-    }
-    // v29 (live v28: Support landing lists "ABC Cleaning Services" as Type Reseller while this page shows 0): the landing
-    // reads legacy partner sign-ups (Register_Partner via SP_Get_Reseller_List); this module uses AnyminuteReseller.
-    // Show the legacy records here (read-only) so the two pages no longer contradict; nothing is migrated automatically.
-    static string LegacyNote()
-    {
-        try
-        {
-            using (var c = AnyminuteTimesheetRepair.Open())
-            {
-                if (!SA.Has(c, "Register_Partner")) return "";
-                var dt = SA.Q(c, "SELECT LTRIM(RTRIM(ISNULL(FirstName,'')+' '+ISNULL(LastName,''))) Name,EMail_primary Email FROM Register_Partner ORDER BY PartnerID");
-                if (dt.Rows.Count == 0) return "";
-                var names = dt.Rows.Cast<DataRow>().Select(r => { string n = AnyminuteDisplayText.Tidy(SA.S(r["Name"])), m = SA.S(r["Email"]); return SA.H(n.Length > 0 ? n + (m.Length > 0 ? " (" + m + ")" : "") : m); });
-                return "<div class='sa-flash sa-warn' role='status'><strong>" + dt.Rows.Count.ToString(Inv) + " legacy reseller sign-up" + (dt.Rows.Count == 1 ? "" : "s") + "</strong> from the old partner registration appear" + (dt.Rows.Count == 1 ? "s" : "") +
-                    " as Type &ldquo;Reseller&rdquo; on the Support landing list: " + String.Join(", ", names) + ". They are not managed resellers yet; use <em>Add Reseller</em> to set one up here.</div>";
-            }
-        }
-        catch (Exception ex) { log4net.LogManager.GetLogger("Log").Warn("Legacy reseller note failed", ex); return ""; }
     }
     static string St(DataRow r) { string s = SA.S(r["Status"]); return s.Length == 0 ? "Active" : s; }
     List<DataRow> Filtered(List<DataRow> all)
@@ -90,7 +76,6 @@ public partial class AnyminuteSupportResellersPage : System.Web.UI.Page
             .Append(ready ? "<a class='sa-btn sa-btn-lg' href='SupportResellers.aspx?add=1'>+ Add Reseller</a>" : "<span class='sa-btn sa-btn-lg' aria-disabled='true' style='opacity:.5'>+ Add Reseller</span>").Append("</header>");
         sb.Append("<div class='sa-kpis'>").Append(kpi("&#128101;", "Total Resellers", "blue", all.Count, null)).Append(kpi("&#128101;", "Active Resellers", "green", all.Count(r => St(r) == "Active"), null))
           .Append(kpi("&#128101;", "Inactive Resellers", "red", all.Count(r => St(r) == "Inactive"), null)).Append(kpi("&#128100;", "Total Subscribers", "purple", all.Sum(r => Convert.ToInt32(r["Subscribers"])), "Under All Resellers")).Append("</div>");
-        sb.Append(LegacyNote()); // v29
         sb.Append("<div class='sa-card sa-rsl-bar'><div class='sa-filters' data-sa-get='SupportResellers.aspx'><input type='hidden' name='size' value='").Append(PageSize).Append("' />")
           .Append("<label class='sa-grow sa-search'><span class='sr-only'>Search</span><i aria-hidden='true'>&#128269;</i><input type='search' name='q' value='").Append(SA.A(q)).Append("' placeholder='Search by reseller name, contact, or email...' /></label>")
           .Append("<label><span>Status</span><select name='status'>").Append(SA.Options(new[] { "Active", "Inactive" }, st, "All")).Append("</select></label>")
@@ -107,13 +92,11 @@ public partial class AnyminuteSupportResellersPage : System.Web.UI.Page
             foreach (var r in rows.Skip((page - 1) * PageSize).Take(PageSize))
             {
                 int id = Convert.ToInt32(r["ResellerID"]); string s = St(r); bool off = Convert.ToBoolean(r["LoginDisabled"]);
-                sb.Append("<tr><td>").Append(++n).Append("</td><td><strong>").Append(SA.H(r["ResellerName"])).Append("</strong><br /><small class='sa-muted'>").Append(RS.Rsl(id)).Append("</small></td><td>").Append(SA.H(r["ContactPerson"]))
+                sb.Append("<tr><td>").Append(++n).Append("</td><td><strong>").Append(SA.H(r["ResellerName"])).Append("</strong></td><td>").Append(SA.H(r["ContactPerson"]))
                   .Append("</td><td>").Append(SA.H(r["Email"])).Append("</td><td>").Append(SA.H(r["Phone"])).Append("</td><td>").Append(SA.H(r["PlanName"])).Append("</td><td>").Append(SA.Pill(s, s == "Active" ? "green" : "red"))
-                  .Append("</td><td>").Append(r["Subscribers"]).Append("</td><td>").Append(r["Businesses"]).Append("</td><td>").Append(SA.When(r["CreatedAtUTC"])).Append("</td><td class='sa-nowrap'><a class='sa-btn sa-btn-sm sa-btn-outline' href='SupportResellers.aspx?view=").Append(id).Append("'>View</a> ")
+                  .Append("</td><td>").Append(r["Subscribers"]).Append("</td><td>").Append(r["Businesses"]).Append("</td><td>").Append(CDay(r["CreatedAtUTC"])).Append("</td><td class='sa-nowrap'><a class='sa-btn sa-btn-sm sa-btn-outline' href='SupportResellers.aspx?view=").Append(id).Append("'>View</a> ")
                   .Append("<details class='sa-menu'><summary aria-label='Reseller actions'>&#8942;</summary><div class='sa-menu-pop'><h4>Reseller Actions</h4><small>").Append(SA.H(r["ResellerName"])).Append(" &middot; ").Append(s).Append("</small>")
-                  .Append("<a class='sa-menu-item' href='SupportResellers.aspx?view=").Append(id).Append("'><i aria-hidden='true'>&#128065;</i><span><b>View Details</b><small>Profile, permissions and subscribers</small></span></a>")
-                  .Append("<button type='submit' name='sa_op' value='status' formnovalidate='formnovalidate' class='sa-menu-item' data-sa-set='sa_id=").Append(id).Append("' data-sa-confirm='").Append(s == "Active" ? "Deactivate" : "Activate").Append(" this reseller?'><i aria-hidden='true'>&#9211;</i><span><b>").Append(s == "Active" ? "Deactivate Reseller" : "Activate Reseller").Append("</b><small>Change the reseller account status</small></span></button>")
-                  .Append("<button type='submit' name='sa_op' value='login' formnovalidate='formnovalidate' class='sa-menu-item' data-sa-set='sa_id=").Append(id).Append("' data-sa-confirm='").Append(off ? "Enable" : "Disable").Append(" login for this reseller?'><i aria-hidden='true'>&#128274;</i><span><b>").Append(off ? "Enable Login" : "Disable Login").Append("</b><small>Control reseller portal access</small></span></button>")
+                  .Append(Menu(id, s, off))
                   .Append("</div></details></td></tr>");
             }
         }
@@ -130,6 +113,27 @@ public partial class AnyminuteSupportResellersPage : System.Web.UI.Page
         sb.Append("</select> per page</label></div>");
         return sb.Append("</div>").ToString();
     }
+    static string CDay(object utc) { return utc == null || utc == DBNull.Value ? "&mdash;" : SA.Day(DateTime.SpecifyKind(Convert.ToDateTime(utc), DateTimeKind.Utc).ToLocalTime()); }
+    const string NotFound = "<div class='sa-card'><p>That reseller was not found. <a class='sa-link' href='SupportResellers.aspx'>Back to Resellers</a></p></div>";
+    static DataRow Row(SqlConnection c, int id) { return RS.List(c).Rows.Cast<DataRow>().FirstOrDefault(r => Convert.ToInt32(r["ResellerID"]) == id); }
+    // v42 PPT 02 s2 "Recommended Three-Dot Menu" (labels and descriptions as on the slide).
+    static string Menu(int id, string s, bool off)
+    {
+        string v = "SupportResellers.aspx?view=" + id;
+        Func<string, string, string, string, string> a = (href, ico, b, sm) => "<a class='sa-menu-item' href='" + href + "'><i aria-hidden='true'>" + ico + "</i><span><b>" + b + "</b><small>" + sm + "</small></span></a>";
+        Func<string, string, string, string, string, string, string> p = (op, conf, ico, b, sm, cls) => "<button type='submit' name='sa_op' value='" + op + "' formnovalidate='formnovalidate' class='sa-menu-item" + cls + "' data-sa-set='sa_id=" + id + "' data-sa-confirm='" + conf + "'><i aria-hidden='true'>" + ico + "</i><span><b>" + b + "</b><small>" + sm + "</small></span></button>";
+        return a(v, "&#128065;", "View Reseller Details", "View profile, subscription limits and information")
+            + a("SupportResellers.aspx?edit=" + id, "&#9998;", "Edit Reseller", "Update reseller contact and account details")
+            + a(v + "&amp;tab=subscribers", "&#128101;", "View Subscribers", "See subscribers created by this reseller")
+            + a(v + "&amp;tab=businesses", "&#127970;", "View Businesses", "See businesses belonging to reseller subscribers")
+            + p("login", (off ? "Enable" : "Disable") + " login for this reseller?", "&#128274;", "Manage Login &amp; Access", "Enable or disable reseller login access", "")
+            + p("resetpw", "Send a new temporary password to this reseller?", "&#9993;", "Send Password Reset", "Send a secure reset link to the reseller", "")
+            + a("SupportResellers.aspx?edit=" + id + "#permissions", "&#9776;", "Manage Permissions &amp; Limits", "Modify authorized permissions and limits")
+            + a(v + "&amp;tab=history", "&#8634;", "View Activity History", "Review actions and account changes")
+            + "<hr class='sa-menu-sep' />"
+            + (s == "Active" ? p("status", "Deactivate this reseller?", "&#10006;", "Deactivate Reseller", "Deactivate account after confirmation", " sa-menu-danger")
+                             : p("status", "Activate this reseller?", "&#10004;", "Activate Reseller", "Activate account after confirmation", ""));
+    }
     void Export(List<DataRow> rows)
     {
         var s = new AmRptSection { Title = "Resellers", Cols = new[] { "#", "Reseller ID", "Reseller Name", "Contact Person", "Email", "Phone", "Plan", "Status", "Subscribers", "Businesses", "Created Date" } };
@@ -145,10 +149,15 @@ public partial class AnyminuteSupportResellersPage : System.Web.UI.Page
     }
     // ---------- Add Reseller ----------
     string Val(string k, string d) { return IsPostBack ? SA.Form(k) : d; }
-    string AddForm(bool ready)
+    static readonly Dictionary<string, string> Cols = new Dictionary<string, string> { { "rs_name", "ResellerName" }, { "rs_contact", "ContactPerson" }, { "rs_email", "Email" }, { "rs_phone", "Phone" }, { "rs_alt", "AltPhone" },
+        { "rs_address", "Address" }, { "rs_login", "LoginEmail" }, { "rs_status", "Status" }, { "rs_plan", "PlanName" }, { "rs_maxsub", "MaxSubscribers" }, { "rs_maxbiz", "MaxBusinessesPerSubscriber" }, { "rs_notes", "Notes" } };
+    // v42: e != null = Edit Reseller (PPT 02 s2 "Edit Reseller" / "Manage Permissions & Limits"); same layout as Add Reseller.
+    string AddForm(bool ready, DataRow e = null)
     {
         string dis = ready ? "" : " disabled";
-        Func<string, string, string, string, string> input = (label, name, type, extra) => "<label class='sa-field'><span>" + label + "</span><input type='" + type + "' name='" + name + "' value='" + SA.A(Val(name, "")) + "'" + extra + dis + " /></label>";
+        Func<string, string> D = k => e == null ? "" : SA.S(e[Cols[k]]);
+        Func<string, string, string, string, string> input = (label, name, type, extra) => "<label class='sa-field'><span>" + label + "</span><input type='" + type + "' name='" + name + "' value='" + SA.A(Val(name, D(name))) + "'" + extra + (e != null && name == "rs_login" ? " readonly" : "") + dis + " /></label>";
+        if (e != null) return EditForm(e, dis, D, input);
         // v30 (Pandey post-v29, Shamsu deck 2 Add Reseller mock): two columns - left Reseller Information + Permissions,
         // right Account & Access (Generate beside the password) + Limits + Notes; Back to Resellers top right; Cancel / Create bottom right.
         var sb = new StringBuilder("<nav class='sa-crumbs'><a href='SupportResellers.aspx'>Resellers</a> &rsaquo; <strong>Add Reseller</strong></nav><header class='sa-head'><div class='sa-head-ico'><i class='sa-kpi-icon sa-blue' aria-hidden='true'>&#128100;+</i><div><h1>Add Reseller</h1><p>Create a new reseller account. The reseller will be able to create and manage their own subscribers.</p></div></div>")
@@ -184,6 +193,34 @@ public partial class AnyminuteSupportResellersPage : System.Web.UI.Page
         sb.Append("<div class='sa-card'><h2><i class='sa-rpt-ico' aria-hidden='true'>&#128221;</i> Notes</h2><p class='sa-muted'>Internal Notes (Support Admin Only)</p><label class='sa-field'><span class='sr-only'>Internal Notes</span><textarea name='rs_notes' rows='3' maxlength='1000' data-sa-counter='1000' placeholder='Enter any additional notes about this reseller...'").Append(dis).Append(">")
           .Append(SA.H(Val("rs_notes", ""))).Append("</textarea><small data-sa-count='1'>0/1000</small></label></div></div></div>");
         sb.Append("<div class='sa-panel-foot'><a class='sa-btn sa-btn-outline' href='SupportResellers.aspx'>Cancel</a><button type='submit' class='sa-btn' name='sa_op' value='create'").Append(dis).Append(">Create Reseller</button></div>");
+        return sb.ToString();
+    }
+    string EditForm(DataRow e, string dis, Func<string, string> D, Func<string, string, string, string, string> input)
+    {
+        int id = Convert.ToInt32(e["ResellerID"]); string csv = IsPostBack ? String.Join(",", Request.Form.GetValues("rs_perm") ?? new string[0]) : SA.S(e["Permissions"]);
+        var on = new HashSet<string>(csv.Split(','));
+        var sb = new StringBuilder("<nav class='sa-crumbs'><a href='SupportResellers.aspx'>Resellers</a> &rsaquo; <a href='SupportResellers.aspx?view=").Append(id).Append("'>").Append(SA.H(e["ResellerName"])).Append("</a> &rsaquo; <strong>Edit Reseller</strong></nav>")
+            .Append("<header class='sa-head'><div class='sa-head-ico'><i class='sa-kpi-icon sa-blue' aria-hidden='true'>&#9998;</i><div><h1>Edit Reseller</h1><p>Update reseller contact and account details.</p></div></div><a class='sa-btn sa-btn-outline' href='SupportResellers.aspx?view=").Append(id).Append("'>&larr; Back to Reseller</a></header>")
+            .Append("<input type='hidden' name='sa_id' value='").Append(id).Append("' /><div class='sa-rsl-form sa-rsl-cols'><div class='sa-rsl-col'><div class='sa-card'><h2><i class='sa-rpt-ico' aria-hidden='true'>&#127970;</i> Reseller Information</h2>")
+            .Append(input("Reseller Name *", "rs_name", "text", " required maxlength='150'")).Append("<div class='sa-grid2'>").Append(input("Contact Person *", "rs_contact", "text", " required maxlength='150'"))
+            .Append(input("Email *", "rs_email", "email", " required maxlength='200'")).Append(input("Phone *", "rs_phone", "tel", " required maxlength='30'")).Append(input("Alternate Phone", "rs_alt", "tel", " maxlength='30'"))
+            .Append("</div><label class='sa-field'><span>Address</span><textarea name='rs_address' rows='3' maxlength='400'").Append(dis).Append(">").Append(SA.H(Val("rs_address", D("rs_address")))).Append("</textarea></label></div>")
+            .Append("<div class='sa-card' id='permissions'><h2><i class='sa-rpt-ico' aria-hidden='true'>&#9881;</i> Permissions</h2><p class='sa-muted'>Select what the reseller can access and manage.</p><div class='sa-rsl-perms sa-rsl-perms1'>");
+        foreach (var p in RS.PermissionList)
+        {
+            if (p[0] == "upgrades") sb.Append("<span class='sa-rsl-gap' aria-hidden='true'></span>");
+            sb.Append("<label class='sa-check'><input type='checkbox' name='rs_perm' value='").Append(p[0]).Append("'").Append(on.Contains(p[0]) ? " checked" : "").Append(dis).Append(" /> ").Append(SA.H(p[1])).Append("</label>");
+        }
+        sb.Append("</div></div></div><div class='sa-rsl-col'><div class='sa-card'><h2><i class='sa-rpt-ico' aria-hidden='true'>&#128274;</i> Account &amp; Access</h2>")
+          .Append(input("Login Email", "rs_login", "email", "")).Append("<p class='sa-muted sa-small'>&#9432; Use Send Password Reset from the Reseller Actions menu to issue a new temporary password.</p><div class='sa-grid2'>")
+          .Append("<label class='sa-field'><span>Status *</span><select name='rs_status'").Append(dis).Append(">").Append(SA.Options(new[] { "Active", "Inactive" }, Val("rs_status", D("rs_status").Length == 0 ? "Active" : D("rs_status")), null)).Append("</select></label>")
+          .Append("<label class='sa-field'><span>Plan</span><select name='rs_plan'").Append(dis).Append(">").Append(SA.Options(RS.Plans, Val("rs_plan", D("rs_plan")), null)).Append("</select></label></div></div>")
+          .Append("<div class='sa-card'><h2><i class='sa-rpt-ico' aria-hidden='true'>&#128202;</i> Limits</h2><p class='sa-muted'>Set limits for the reseller.</p><div class='sa-grid2'>")
+          .Append(input("Maximum Subscribers", "rs_maxsub", "number", " min='0' max='100000' placeholder='Unlimited'").Replace("</label>", "<small class='sa-muted'>Leave blank for unlimited.</small></label>"))
+          .Append(input("Maximum Businesses per Subscriber", "rs_maxbiz", "number", " min='0' max='100000' placeholder='Unlimited'").Replace("</label>", "<small class='sa-muted'>Leave blank for unlimited.</small></label>")).Append("</div></div>")
+          .Append("<div class='sa-card'><h2><i class='sa-rpt-ico' aria-hidden='true'>&#128221;</i> Notes</h2><p class='sa-muted'>Internal Notes (Support Admin Only)</p><label class='sa-field'><span class='sr-only'>Internal Notes</span><textarea name='rs_notes' rows='3' maxlength='1000' data-sa-counter='1000'").Append(dis).Append(">")
+          .Append(SA.H(Val("rs_notes", D("rs_notes")))).Append("</textarea><small data-sa-count='1'>0/1000</small></label></div></div></div>")
+          .Append("<div class='sa-panel-foot'><a class='sa-btn sa-btn-outline' href='SupportResellers.aspx?view=").Append(id).Append("'>Cancel</a><button type='submit' class='sa-btn' name='sa_op' value='update'").Append(dis).Append(">Save Changes</button></div>");
         return sb.ToString();
     }
     static object N(string s) { return String.IsNullOrEmpty(s) ? (object)DBNull.Value : s; }
@@ -236,11 +273,39 @@ public partial class AnyminuteSupportResellersPage : System.Web.UI.Page
         }
         SA.Flash(msg); Go("?view=" + id);
     }
+    void Update(SqlConnection c, int id, DataRow old)
+    {
+        string name = SA.Form("rs_name"), contact = SA.Form("rs_contact"), email = SA.Form("rs_email"), phone = SA.Form("rs_phone"), alt = SA.Form("rs_alt"), addr = SA.Form("rs_address"), plan = SA.Form("rs_plan"),
+            status = SA.Form("rs_status") == "Inactive" ? "Inactive" : "Active", notes = SA.Form("rs_notes"), ms = SA.Form("rs_maxsub"), mb = SA.Form("rs_maxbiz");
+        var errs = new List<string>();
+        if (name.Length == 0) errs.Add("Reseller name is required."); if (contact.Length == 0) errs.Add("Contact person is required.");
+        if (!Mail.IsMatch(email)) errs.Add("Enter a valid email address."); if (!Regex.IsMatch(phone, @"^[0-9+()\-.\s]{7,30}$")) errs.Add("Enter a valid phone number.");
+        if (alt.Length > 0 && !Regex.IsMatch(alt, @"^[0-9+()\-.\s]{7,30}$")) errs.Add("Alternate phone is not valid.");
+        if (!RS.Plans.Contains(plan)) plan = SA.S(old["PlanName"]);
+        int x; int? maxSub = null, maxBiz = null;
+        if (ms.Length > 0) { if (Int32.TryParse(ms, out x) && x >= 0) maxSub = x; else errs.Add("Max subscribers must be a whole number."); }
+        if (mb.Length > 0) { if (Int32.TryParse(mb, out x) && x >= 0) maxBiz = x; else errs.Add("Max businesses per subscriber must be a whole number."); }
+        if (errs.Count > 0) { Flash.Text = "<div class='sa-flash sa-warn'>Please fix the following:<ul>" + String.Join("", errs.Select(m => "<li>" + SA.H(m) + "</li>").ToArray()) + "</ul></div>"; Body1.Text = AddForm(true, Row(c, id)); return; }
+        var perms = Request.Form.GetValues("rs_perm") ?? new string[0];
+        string csv = String.Join(",", RS.PermissionList.Select(p => p[0]).Where(perms.Contains).ToArray());
+        Func<object, string> lim = o => o == null || o == DBNull.Value ? "unlimited" : Convert.ToString(o, Inv);
+        string before = SA.S(old["ResellerName"]) + " | " + SA.S(old["Email"]) + " | " + SA.S(old["PlanName"]) + " | " + St(old) + " | limits " + lim(old["MaxSubscribers"]) + "/" + lim(old["MaxBusinessesPerSubscriber"]),
+            after = name + " | " + email + " | " + plan + " | " + status + " | limits " + lim(maxSub) + "/" + lim(maxBiz);
+        using (var tx = c.BeginTransaction())
+        {
+            AnyminuteTimesheetRepair.Execute(c, tx, @"UPDATE AnyminuteReseller SET ResellerName=@n,ContactPerson=@c,Email=@e,Phone=@p,AltPhone=@a,Address=@ad,PlanName=@pl,Status=@st,Permissions=@pm,MaxSubscribers=@ms,MaxBusinessesPerSubscriber=@mb,Notes=@no,UpdatedAtUTC=SYSUTCDATETIME(),UpdatedBy=@by WHERE ResellerID=@i",
+                "@n", name, "@c", contact, "@e", email, "@p", phone, "@a", N(alt), "@ad", N(addr), "@pl", plan, "@st", status, "@pm", csv,
+                "@ms", maxSub.HasValue ? (object)maxSub.Value : DBNull.Value, "@mb", maxBiz.HasValue ? (object)maxBiz.Value : DBNull.Value, "@no", N(notes), "@by", SA.ActorName(), "@i", id);
+            SA.Audit(c, tx, "Reseller", id.ToString(Inv), "Reseller Updated", null, null, before, after, "Permissions: " + RS.PermissionText(csv));
+            tx.Commit();
+        }
+        SA.Flash("Reseller " + name + " updated."); Go("?view=" + id);
+    }
     // ---------- View ----------
     string View(SqlConnection c, int id)
     {
-        var t = RS.List(c).Rows.Cast<DataRow>().FirstOrDefault(r => Convert.ToInt32(r["ResellerID"]) == id);
-        if (t == null) return "<div class='sa-card'><p>That reseller was not found. <a class='sa-link' href='SupportResellers.aspx'>Back to Resellers</a></p></div>";
+        var t = Row(c, id);
+        if (t == null) return NotFound;
         Title = SA.S(t["ResellerName"]);
         Func<string, object, string> kv = (k, v) => "<div><dt>" + k + "</dt><dd>" + (SA.S(v).Length == 0 ? "&mdash;" : SA.H(v)) + "</dd></div>";
         Func<object, string> lim = o => o == DBNull.Value ? "Unlimited" : SA.S(o);
@@ -250,21 +315,35 @@ public partial class AnyminuteSupportResellersPage : System.Web.UI.Page
           .Append(kv("Address", t["Address"])).Append(kv("Plan", t["PlanName"])).Append(kv("Created", SA.S(t["CreatedBy"]))).Append("</dl></div><div class='sa-card'><h2>Account &amp; Limits</h2><dl class='sa-kv'>").Append(kv("Login Email", t["LoginEmail"]))
           .Append(kv("Invitation", t["InvitationStatus"])).Append(kv("Max Subscribers", lim(t["MaxSubscribers"]))).Append(kv("Max Businesses / Subscriber", lim(t["MaxBusinessesPerSubscriber"]))).Append(kv("Subscribers", t["Subscribers"])).Append(kv("Businesses", t["Businesses"]))
           .Append(kv("Permissions", RS.PermissionText(SA.S(t["Permissions"])))).Append(kv("Internal Notes", t["Notes"])).Append("</dl></div></div>");
-        var subs = RS.Subscribers(c, 0).Rows.Cast<DataRow>().ToList(); var mine = subs.Where(s => s["ResellerID"] != DBNull.Value && Convert.ToInt32(s["ResellerID"]) == id).ToList();
-        sb.Append("<div class='sa-card'><div class='sa-rpt-cardhead'><h2>Subscribers (").Append(mine.Count).Append(")</h2></div>");
-        if (mine.Count == 0) sb.Append("<p class='sa-rpt-empty'>No subscribers assigned to this reseller yet.</p>");
-        else
-        {
-            sb.Append("<div class='sa-table-wrap'><table class='sa-table'><thead><tr><th>Subscriber ID</th><th>Name</th><th>Email</th><th>Plan</th><th>Businesses</th><th>Assigned</th></tr></thead><tbody>");
-            foreach (var s in mine) sb.Append("<tr><td>").Append(RS.Sub(s["UserId"])).Append("</td><td>").Append(SA.H(s["Name"])).Append("</td><td>").Append(SA.H(s["Email"])).Append("</td><td>").Append(SA.H(s["PlanName"])).Append("</td><td>").Append(s["Businesses"]).Append("</td><td>").Append(SA.When(s["AssignedAtUTC"])).Append("</td></tr>");
-            sb.Append("</tbody></table></div>");
-        }
-        var free = subs.Where(s => s["ResellerID"] == DBNull.Value).ToList();
-        sb.Append("<h3>Assign Subscriber</h3><div class='sa-filters'><input type='hidden' name='sa_id' value='").Append(id).Append("' /><label class='sa-grow'><span>Unassigned subscribers</span><select name='rs_user'><option value=''>Select subscriber</option>");
-        foreach (var s in free) sb.Append("<option value='").Append(s["UserId"]).Append("'>").Append(SA.H(RS.Sub(s["UserId"]) + " - " + (SA.S(s["Name"]).Length > 0 ? SA.S(s["Name"]) : SA.S(s["Email"])) + " (" + SA.S(s["Email"]) + ")")).Append("</option>");
-        sb.Append("</select></label><button type='submit' class='sa-btn' name='sa_op' value='assign' formnovalidate='formnovalidate'>Assign to Reseller</button></div><p class='sa-muted sa-small'>Each subscriber belongs to one reseller. The max subscriber limit is enforced.</p></div>");
-        sb.Append("<div class='sa-card'><h2>Activity History</h2>").Append(SA.HistoryTable(SA.History(c, "Reseller", id.ToString(Inv)), "No activity recorded for this reseller yet.")).Append("</div>");
         return sb.ToString();
+    }
+    // v42 PPT 02 s2 menu targets (moved off the view page per PPT 04 s2): View Subscribers (with Assign), View Businesses, View Activity History.
+    string Sub(SqlConnection c, int id, string tab)
+    {
+        var t = Row(c, id); if (t == null) return NotFound;
+        string label = tab == "subscribers" ? "Subscribers" : tab == "businesses" ? "Businesses" : "Activity History";
+        Title = SA.S(t["ResellerName"]) + " - " + label;
+        var sb = new StringBuilder("<nav class='sa-crumbs'><a href='SupportResellers.aspx'>Resellers</a> &rsaquo; <a href='SupportResellers.aspx?view=").Append(id).Append("'>").Append(SA.H(t["ResellerName"])).Append("</a> &rsaquo; <strong>").Append(label).Append("</strong></nav>")
+            .Append("<header class='sa-head'><div><h1>").Append(label).Append("</h1><p>").Append(SA.H(t["ResellerName"])).Append("</p></div><a class='sa-btn sa-btn-outline' href='SupportResellers.aspx?view=").Append(id).Append("'>Back</a></header><div class='sa-card'>");
+        if (tab == "history") return sb.Append(SA.HistoryTable(SA.History(c, "Reseller", id.ToString(Inv)), "No activity recorded for this reseller yet.")).Append("</div>").ToString();
+        if (tab == "businesses")
+        {
+            var b = SA.Q(c, @"SELECT DISTINCT b.BusinessID,b.CompanyName,LTRIM(RTRIM(ISNULL(ae.FirstName,'')+' '+ISNULL(ae.LastName,''))) Owner,u.Email,u.UserId FROM AnyminuteResellerSubscriber s JOIN UserAcc u ON u.UserId=s.UserId
+                LEFT JOIN AddEmployee ae ON ae.EmployeeID=u.EmployeeId JOIN AssginBussiness a ON a.EmployeeID=u.EmployeeId AND a.UserTypeId=1 JOIN AddBusiness b ON b.BusinessID=a.BusinessID AND ISNULL(b.Status,'')<>'2' WHERE s.ResellerID=@i ORDER BY b.CompanyName", "@i", id);
+            sb.Append("<div class='sa-table-wrap'><table class='sa-table'><thead><tr><th>#</th><th>Business Name</th><th>Subscriber</th><th>Email</th></tr></thead><tbody>"); int n = 0;
+            foreach (DataRow r in b.Rows) sb.Append("<tr><td>").Append(++n).Append("</td><td><strong>").Append(SA.H(r["CompanyName"])).Append("</strong></td><td><a class='sa-link' href='SupportSubscribers.aspx?user=").Append(r["UserId"]).Append("'>").Append(SA.H(r["Owner"])).Append("</a></td><td>").Append(SA.H(r["Email"])).Append("</td></tr>");
+            if (n == 0) sb.Append("<tr><td colspan='4' class='sa-rpt-empty'>No businesses under this reseller's subscribers yet.</td></tr>");
+            return sb.Append("</tbody></table></div></div>").ToString();
+        }
+        var subs = RS.Subscribers(c, 0).Rows.Cast<DataRow>().ToList(); var mine = subs.Where(x => x["ResellerID"] != DBNull.Value && Convert.ToInt32(x["ResellerID"]) == id).ToList();
+        sb.Append("<div class='sa-table-wrap'><table class='sa-table'><thead><tr><th>Subscriber ID</th><th>Name</th><th>Email</th><th>Plan</th><th>Businesses</th><th>Assigned</th></tr></thead><tbody>");
+        foreach (var x in mine) sb.Append("<tr><td>").Append(RS.Sub(x["UserId"])).Append("</td><td><a class='sa-link' href='SupportSubscribers.aspx?user=").Append(x["UserId"]).Append("'>").Append(SA.H(x["Name"])).Append("</a></td><td>").Append(SA.H(x["Email"])).Append("</td><td>").Append(SA.H(x["PlanName"])).Append("</td><td>").Append(x["Businesses"]).Append("</td><td>").Append(SA.When(x["AssignedAtUTC"])).Append("</td></tr>");
+        if (mine.Count == 0) sb.Append("<tr><td colspan='6' class='sa-rpt-empty'>No subscribers assigned to this reseller yet.</td></tr>");
+        sb.Append("</tbody></table></div>");
+        var free = subs.Where(x => x["ResellerID"] == DBNull.Value).ToList();
+        sb.Append("<h3>Assign Subscriber</h3><div class='sa-filters'><input type='hidden' name='sa_id' value='").Append(id).Append("' /><label class='sa-grow'><span>Unassigned subscribers</span><select name='rs_user'><option value=''>Select subscriber</option>");
+        foreach (var x in free) sb.Append("<option value='").Append(x["UserId"]).Append("'>").Append(SA.H(RS.Sub(x["UserId"]) + " - " + (SA.S(x["Name"]).Length > 0 ? SA.S(x["Name"]) : SA.S(x["Email"])) + " (" + SA.S(x["Email"]) + ")")).Append("</option>");
+        return sb.Append("</select></label><button type='submit' class='sa-btn' name='sa_op' value='assign' formnovalidate='formnovalidate'>Assign to Reseller</button></div><p class='sa-muted sa-small'>Each subscriber belongs to one reseller. The max subscriber limit is enforced.</p></div>").ToString();
     }
     // ---------- POST actions ----------
     void Go(string query) { Response.Redirect("SupportResellers.aspx" + query, false); Context.ApplicationInstance.CompleteRequest(); }
@@ -292,16 +371,35 @@ public partial class AnyminuteSupportResellersPage : System.Web.UI.Page
                 SA.Audit(c, null, "Reseller", key, off ? "Login Enabled" : "Login Disabled", null, null, off ? "Disabled" : "Enabled", off ? "Enabled" : "Disabled", null);
                 SA.Flash("Login " + (off ? "enabled" : "disabled") + " for " + name + "."); Go(""); return;
             }
+            if (op == "update") { Update(c, id, r.Rows[0]); return; }
+            if (op == "resetpw")
+            {
+                // v42 PPT 02 s2 "Send Password Reset": there is no reseller portal sign-in page to link to yet, so a new temporary
+                // password is issued (salted hash only) and emailed when IsSendMail is on; shown once otherwise.
+                string pw = RS.NewTempPassword(), salt = RS.Salt(), mail = SA.S(r.Rows[0]["Email"]);
+                SA.X(c, null, "UPDATE AnyminuteReseller SET TempPasswordHash=@h,TempPasswordSalt=@s,UpdatedAtUTC=SYSUTCDATETIME(),UpdatedBy=@b WHERE ResellerID=@i", "@h", RS.Hash(salt, pw), "@s", salt, "@b", SA.ActorName(), "@i", id);
+                SA.Audit(c, null, "Reseller", key, "Password Reset", null, null, null, mail, "New temporary password issued by Support Admin.");
+                string msg = "New temporary password for " + name + ": " + pw + " (shown once; share it securely).";
+                bool send; Boolean.TryParse(ConfigurationManager.AppSettings["IsSendMail"], out send);
+                if (send && Mail.IsMatch(mail))
+                    try
+                    {
+                        new EmailSettingController().SendHtmlFormattedEmail(mail, "Your AnyMinute reseller password was reset", "<p>Hello " + HttpUtility.HtmlEncode(SA.S(r.Rows[0]["ContactPerson"])) + ",</p><p>A new temporary password was issued for your AnyMinute reseller account.</p><p>Login email: <strong>" + HttpUtility.HtmlEncode(SA.S(r.Rows[0]["LoginEmail"])) + "</strong><br />Temporary password: <strong>" + HttpUtility.HtmlEncode(pw) + "</strong></p><p>Please change this password the next time you sign in.</p><p>Thank you,<br />The AnyMinute Team</p>");
+                        msg = "Password reset email sent to " + mail + ".";
+                    }
+                    catch (Exception ex) { msg += " Email could not be sent: " + ex.Message; }
+                SA.Flash(msg); Go(""); return;
+            }
             if (op == "assign")
             {
-                int u; if (!Int32.TryParse(SA.Form("rs_user"), out u)) { SA.Flash("Choose a subscriber to assign."); Go("?view=" + id); return; }
+                int u; if (!Int32.TryParse(SA.Form("rs_user"), out u)) { SA.Flash("Choose a subscriber to assign."); Go("?view=" + id + "&tab=subscribers"); return; }
                 object max = r.Rows[0]["MaxSubscribers"];
                 int count = Convert.ToInt32(SA.Q(c, "SELECT COUNT(*) FROM AnyminuteResellerSubscriber WHERE ResellerID=@i", "@i", id).Rows[0][0]);
-                if (max != DBNull.Value && count >= Convert.ToInt32(max)) { SA.Flash(name + " has reached its limit of " + max + " subscribers."); Go("?view=" + id); return; }
-                if (SA.Q(c, "SELECT 1 FROM AnyminuteResellerSubscriber WHERE UserId=@u", "@u", u).Rows.Count > 0) { SA.Flash("That subscriber already belongs to a reseller."); Go("?view=" + id); return; }
+                if (max != DBNull.Value && count >= Convert.ToInt32(max)) { SA.Flash(name + " has reached its limit of " + max + " subscribers."); Go("?view=" + id + "&tab=subscribers"); return; }
+                if (SA.Q(c, "SELECT 1 FROM AnyminuteResellerSubscriber WHERE UserId=@u", "@u", u).Rows.Count > 0) { SA.Flash("That subscriber already belongs to a reseller."); Go("?view=" + id + "&tab=subscribers"); return; }
                 SA.X(c, null, "INSERT AnyminuteResellerSubscriber(UserId,ResellerID,AssignedBy) VALUES(@u,@i,@b)", "@u", u, "@i", id, "@b", SA.ActorName());
                 SA.Audit(c, null, "Reseller", key, "Subscriber Assigned", null, null, null, RS.Sub(u), null);
-                SA.Flash(RS.Sub(u) + " assigned to " + name + "."); Go("?view=" + id); return;
+                SA.Flash(RS.Sub(u) + " assigned to " + name + "."); Go("?view=" + id + "&tab=subscribers"); return;
             }
             Go("");
         }

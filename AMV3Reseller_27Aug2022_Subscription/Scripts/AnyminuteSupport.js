@@ -117,7 +117,9 @@
         xhr.send();
       };
       if (btn) btn.addEventListener('click', run);
-      if (window.location.hash === '#sa-reject') { var n = box.querySelector('[name="sa_notes"]'); if (n) n.focus(); }
+      if (window.location.hash === '#sa-reject' || /[?&]reject=1/.test(window.location.search)) { var n = box.querySelector('[name="sa_notes"]'); if (n) n.focus(); }
     });
+    // v42 PPT 01 s1: Subscriber list select-all checkbox.
+    $all('[data-sa-all]').forEach(function (m) { m.addEventListener('change', function () { $all('input[name="' + m.getAttribute('data-sa-all') + '"]').forEach(function (x) { x.checked = m.checked; }); }); });
   });
 })();

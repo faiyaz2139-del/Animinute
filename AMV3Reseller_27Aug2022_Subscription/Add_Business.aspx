@@ -1,7 +1,7 @@
 ﻿<%@ Page Title="Business" Language="C#" MasterPageFile="~/Main.master" AutoEventWireup="true" CodeFile="Add_Business.aspx.cs" Inherits="Add_Business" %>
 <%@ Register Assembly="AjaxControlToolkit" Namespace="AjaxControlToolkit" TagPrefix="cc1" %>
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
- <link rel="stylesheet" href="css/AnyminuteBusinessEditor.css?v=20261026v19" />
+ <link rel="stylesheet" href="css/AnyminuteBusinessEditor.css?v=20261101v42" />
  <script src="Scripts/AnyminuteBusinessEditor.js?v=20261030v32" defer="defer"></script>
  <script src="Scripts/AnyminuteBusinessAutosave.js?v=20261026v19" defer="defer"></script>
 </asp:Content>
@@ -78,7 +78,7 @@
   </section>
  </div>
  <asp:UpdatePanel ID="UpdatePanel1" runat="server" UpdateMode="Conditional"><ContentTemplate>
-  <div class="am-al-layout">
+  <div class="am-al-layout am-al-single">
   <section class="am-al-main" aria-labelledby="address-lookup-heading">
    <h2 id="address-lookup-heading">Address Lookup</h2>
    <p class="am-al-sub">Search for an address using a postal or ZIP code, select a result, or enter the address manually.</p>
@@ -113,27 +113,7 @@
     <div class="am-al-actions"><button type="button" class="am-al-btn am-al-outline am-al-wide" data-al-cancel="1">Cancel</button><button type="button" class="am-al-btn am-al-primary am-al-wide" data-al-save="1">Save Changes</button></div>
    </div>
   </section>
-  <aside class="am-al-help" aria-labelledby="am-al-help-title">
-   <div class="am-al-help-head"><h2 id="am-al-help-title">How Postal Code Search Works</h2><p>The postal/ZIP code search helps you find and fill the address automatically.</p></div>
-   <ol class="am-al-steps">
-    <li><span class="am-al-num">1</span><span class="am-al-sico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h1M10 10h1M14 10h1M18 10h0M7 14h10"/></svg></span><div><strong>Enter Postal / ZIP Code</strong><p>Select the country (Canada or United States), enter the postal or ZIP code, and click Search Address.</p></div></li>
-    <li><span class="am-al-num">2</span><span class="am-al-sico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg></span><div><strong>View Search Results</strong><p>Matching addresses will appear in the dropdown list. A postal code may return multiple addresses or only street-level information.</p></div></li>
-    <li><span class="am-al-num">3</span><span class="am-al-sico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" class="am-al-fill"/><path d="M8 12.5l2.7 2.7L16.5 9" class="am-al-white"/></svg></span><div><strong>Select an Address</strong><p>Choose the correct address from the list. The address fields will be filled automatically.</p></div></li>
-    <li><span class="am-al-num">4</span><span class="am-al-sico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z" class="am-al-fill"/></svg></span><div><strong>Review and Edit</strong><p>You can edit any field or add unit/suite details if needed.</p></div></li>
-    <li><span class="am-al-num">5</span><span class="am-al-sico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h11l3 3v15H5z" class="am-al-fill"/><rect x="8" y="4" width="7" height="5" class="am-al-white-f"/><rect x="8" y="13" width="8" height="6" class="am-al-white-f"/></svg></span><div><strong>Save Changes</strong><p>Click Save Changes to store the address in the database.</p></div></li>
-   </ol>
-   <div class="am-al-tip am-al-green"><span class="am-al-tipico" aria-hidden="true">&#10003;</span><div><strong>You Can Also Enter the Address Manually</strong><p>If the address is not found in the search results, click <b>Enter Address Manually</b> and complete the address fields.</p></div></div>
-   <div class="am-al-tip am-al-orange"><span class="am-al-tipico" aria-hidden="true">!</span><div><strong>If No Address is Found</strong><p>A message will be displayed: <b>"No matching address found. Please verify the postal/ZIP code or select Enter Address Manually."</b> You can still enter the address manually and save it.</p></div></div>
-   <div class="am-al-notes"><span class="am-al-noteico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 2h8l5 5v15H6z" class="am-al-fill"/><path d="M9 12h7M9 15h7M9 18h5" class="am-al-white"/></svg></span><div><strong>Important Notes</strong><ul>
-    <li>Postal code search is not mandatory.</li>
-    <li>Both lookup and manual entry will save the same address fields.</li>
-    <li>Country and Province/State are dependent (e.g. Florida = United States).</li>
-    <li>Validate postal/ZIP code based on the selected country.</li>
-    <li>All required fields (marked with *) must be completed.</li>
-    <li>The address is saved to the database only when you click Save Changes.</li>
-    <li>Click Cancel to discard changes and keep the existing saved address.</li>
-   </ul></div></div>
-  </aside>
+  <%-- v42 (PPT 05 s1, "Remove this box"): How Postal Code Search Works help panel removed. --%>
   </div>
   <datalist id="am-provinces"><option value="ALBERTA"></option><option value="BRITISH COLUMBIA"></option><option value="MANITOBA"></option><option value="NEW BRUNSWICK"></option><option value="NEWFOUNDLAND AND LABRADOR"></option><option value="NORTHWEST TERRITORIES"></option><option value="NOVA SCOTIA"></option><option value="NUNAVUT"></option><option value="ONTARIO"></option><option value="PRINCE EDWARD ISLAND"></option><option value="QUEBEC"></option><option value="SASKATCHEWAN"></option><option value="YUKON"></option></datalist><datalist id="am-countries"><option value="Canada"></option><option value="United States"></option></datalist>
   <div class="am-business-compat" hidden="hidden" aria-hidden="true">

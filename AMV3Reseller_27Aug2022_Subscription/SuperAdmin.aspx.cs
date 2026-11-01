@@ -13,6 +13,8 @@ public partial class SuperAdmin : System.Web.UI.Page
     EmailSettingController Esctrl = new EmailSettingController();
     protected void Page_Load(object sender, EventArgs e)
     {
+        // v42 PPT 03 s1 "Remove this screen - it's not required": Support Admin goes to Subscriber Management instead.
+        if (AnyminuteSupportAdmin.IsSupportAdminOnly()) { Response.Redirect("SupportSubscribers.aspx", false); Context.ApplicationInstance.CompleteRequest(); return; }
         if (!Page.IsPostBack)
         {
             GetMotherOrgList();

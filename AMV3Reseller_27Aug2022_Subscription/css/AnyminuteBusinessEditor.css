@@ -303,3 +303,4 @@ html body .am-business-editor .am-al-details-head .am-v16-cardedit{float:none;ma
 .am-autosave-ok{background:#e8f6ee;color:#17693d;border-color:#bfe3cd}
 .am-autosave-error{background:#fdeeee;color:#8f1d1d;border-color:#efb4b4}
 .am-autosave-busy,.am-autosave-pending{background:#fff7e6;color:#8a5a00;border-color:#f3d9a4}
+html body .am-business-editor .am-al-layout.am-al-single{grid-template-columns:minmax(0,1fr)} /* v42 PPT 05 s1: help panel removed */

@@ -74,7 +74,7 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
                   .Append("</td><td>").Append(SA.H(r["Province"])).Append("</td><td>").Append(SA.H(ctry)).Append("</td><td>").Append(SA.H(r["PostalCode"])).Append("</td><td>")
                   .Append(who != null ? SA.H(who) : "<span class='sa-muted' title='No employee or subscriber address uses this address'>Not linked</span>").Append("</td><td>").Append(r["SubmittedAtUTC"] != DBNull.Value ? SA.Day(r["SubmittedAtUTC"]) : "<span class='sa-muted' title='Added before submission dates were recorded'>&mdash;</span>").Append("</td><td class='sa-actions'>")
                   .Append("<a class='sa-btn sa-btn-sm sa-btn-outline' href='SupportAddresses.aspx?").Append(SA.A(baseQ)).Append("&amp;page=").Append(page).Append("&amp;id=").Append(rid).Append("'>").Append(tab == "pending" ? "Edit" : "View").Append("</a>");
-                if (tab == "pending") sb.Append(" <a class='sa-btn sa-btn-sm sa-btn-danger' href='SupportAddresses.aspx?").Append(SA.A(baseQ)).Append("&amp;page=").Append(page).Append("&amp;id=").Append(rid).Append("#sa-reject'>Reject</a>");
+                if (tab == "pending") sb.Append(" <a class='sa-btn sa-btn-sm sa-btn-danger' href='SupportAddresses.aspx?").Append(SA.A(baseQ)).Append("&amp;page=").Append(page).Append("&amp;id=").Append(rid).Append("&amp;reject=1#sa-edit'>Reject</a>");
                 sb.Append("</td></tr>");
             }
             if (rows.Count == 0) sb.Append("<tr><td colspan='9' class='sa-empty'>No addresses in this list.</td></tr>");
@@ -88,17 +88,21 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
     const string Names = "COALESCE(ci.CityName,a.City) City,COALESCE(pr.ProvinceName,a.Province) Province,a.City CityRaw,a.Province ProvRaw";
     const string NameJoins = " LEFT JOIN CityMaster ci ON CAST(ci.CityId AS nvarchar(50))=CAST(a.City AS nvarchar(50)) LEFT JOIN ProvinceMaster pr ON CAST(pr.ProvinceId AS nvarchar(50))=CAST(a.Province AS nvarchar(50))";
     // Recorded submitter, else the subscriber / employee whose own address is this address (same postal code and street).
-    static string Submitter(SqlConnection c, DataRow r)
+    static string Submitter(SqlConnection c, DataRow r) { return Submitter(c, null, r); }
+    // v42 (PPT 05 s2-3, "When I try to approve I got below message"): Approve / Reject run inside a transaction, so every
+    // lookup on that connection must enlist in it (a non-enlisted command threw InvalidOperationException -> error page).
+    static string Submitter(SqlConnection c, SqlTransaction tx, DataRow r)
     {
         if (SA.S(r["SubmittedBy"]).Length > 0) return SA.S(r["SubmittedBy"]);
         try
         {
-            var t = SA.Q(c, @"SELECT TOP 1 LTRIM(RTRIM(ISNULL(ae.FirstName,'')+' '+ISNULL(ae.LastName,''))) Name,ae.UserType FROM EmpAddress e JOIN AddEmployee ae ON ae.ADDRESSID=e.EmpAddressId
+            var t = AnyminuteTimesheetRepair.Query(c, tx, @"SELECT TOP 1 LTRIM(RTRIM(ISNULL(ae.FirstName,'')+' '+ISNULL(ae.LastName,''))) Name,ae.UserType FROM EmpAddress e JOIN AddEmployee ae ON ae.ADDRESSID=e.EmpAddressId
                 WHERE REPLACE(REPLACE(UPPER(e.Postalcode),' ',''),'-','')=@p AND UPPER(LTRIM(RTRIM(e.StreetName)))=UPPER(LTRIM(RTRIM(@s))) ORDER BY CASE WHEN ae.UserType=1 THEN 0 ELSE 1 END,ae.EmployeeID",
                 "@p", SA.CompactPostal(SA.S(r["PostalCode"])), "@s", SA.S(r["Street_Name"]));
             if (t.Rows.Count == 1 && SA.S(t.Rows[0]["Name"]).Length > 0) return SA.S(t.Rows[0]["Name"]) + (SA.S(t.Rows[0]["UserType"]) == "1" ? " (Subscriber)" : " (Employee)");
         }
         catch (SqlException) { }
+        catch (InvalidOperationException) { }
         return null;
     }
     // GET SupportAddresses.aspx?verify=1&id=&street=&city=&prov=&country=&postal= -> {level,message,suggestions[]} for the Verify Address button.
@@ -147,16 +151,24 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
           .Append("<div class='sa-row2 sa-verify-row'><label class='sa-field'><span>Postal / ZIP / PIN Code *</span><input name='sa_postal' maxlength='20' value='").Append(SA.A(r["PostalCode"])).Append("'").Append(dis).Append(" /></label>")
           .Append("<button type='button' class='sa-btn sa-btn-outline' data-sa-verify='1'").Append(dis).Append(">&#9679; Verify Address</button></div>")
           .Append("<p class='sa-verify-result' data-sa-verify-result='1' role='status'></p>")
-          .Append("<label class='sa-field'><span>Support Notes (correction reason)</span><textarea name='sa_notes' maxlength='500' rows='3' data-sa-counter='500'").Append(dis).Append(">").Append(review != null ? SA.H(review["Notes"]) : "").Append("</textarea><small data-sa-count='1'>0/500</small></label>");
-        if (pending)
-            sb.Append("<div class='sa-panel-foot'><a class='sa-btn sa-btn-outline' href='SupportAddresses.aspx?").Append(SA.A(back)).Append("'>Cancel</a>")
-              .Append("<button type='submit' id='sa-reject' class='sa-btn sa-btn-danger' name='sa_op' value='reject' data-sa-need-notes='Enter the reason for rejecting this address in Support Notes.'").Append(dis).Append(">&#10005; Reject</button>")
-              .Append("<button type='submit' class='sa-btn sa-btn-success' name='sa_op' value='approve' data-sa-approve='1' disabled>&#10003; Approve &amp; Add to Database</button></div><p class='sa-muted sa-small'>Verify the address first: it checks the format and the existing address lookup for this postal code. Approve &amp; Add to Database stays off until the current values pass Verify Address.</p>");
+          ;
+        // v42 (PPT 05 s4, strict): no Reject in the edit panel; "Approve & Add to Database" and "Cancel" on one line above the
+        // notes box, which is now labelled "Note"; the helper text and the panel Activity History are removed. The row
+        // "Reject" action opens the panel in reject mode (reject=1) so rejecting with a reason still works.
+        bool rejectMode = pending && SA.Get("reject") == "1";
+        if (pending && rejectMode)
+            sb.Append("<div class='sa-panel-foot sa-one-line'><button type='submit' id='sa-reject' class='sa-btn sa-btn-danger' name='sa_op' value='reject' data-sa-need-notes='Enter the reason for rejecting this address in Note.'").Append(dis).Append(">&#10005; Reject</button>")
+              .Append("<a class='sa-btn sa-btn-outline' href='SupportAddresses.aspx?").Append(SA.A(back)).Append("'>Cancel</a></div>");
+        else if (pending)
+            sb.Append("<div class='sa-panel-foot sa-one-line'><button type='submit' class='sa-btn sa-btn-success' name='sa_op' value='approve' data-sa-approve='1' disabled>&#10003; Approve &amp; Add to Database</button>")
+              .Append("<a class='sa-btn sa-btn-outline' href='SupportAddresses.aspx?").Append(SA.A(back)).Append("'>Cancel</a></div>");
+        sb.Append("<label class='sa-field'><span>Note</span><textarea name='sa_notes' maxlength='500' rows='3' data-sa-counter='500'").Append(dis).Append(">").Append(review != null ? SA.H(review["Notes"]) : "").Append("</textarea><small data-sa-count='1'>0/500</small></label>");
+        if (pending) { }
         else if (review != null)
             sb.Append("<p class='sa-muted'>").Append(SA.H(SA.S(r["St"]) + " by " + SA.S(review["ReviewedByName"]))).Append(" &middot; ").Append(SA.When(review["ReviewedAtUTC"]).Replace("<br />", " ")).Append("</p>");
         sb.Append("</div><datalist id='sa-prov-list'>");
         foreach (var p in new[] { "ON", "QC", "BC", "AB", "MB", "SK", "NS", "NB", "NL", "PE", "NT", "NU", "YT", "NY", "CA", "TX", "FL", "IL", "WA", "MA", "NJ", "England", "Scotland", "Wales" }) sb.Append("<option value='").Append(p).Append("'></option>");
-        sb.Append("</datalist><h3>Activity History</h3>").Append(SA.HistoryTable(ready ? SA.History(c, "Address", id.ToString(CultureInfo.InvariantCulture)) : null, "No review actions yet."));
+        sb.Append("</datalist>");
         return sb.Append("</aside>").ToString();
     }
     void Act()
@@ -178,13 +190,13 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
                 AnyminuteTimesheetRepair.Execute(c, tx, @"IF NOT EXISTS(SELECT 1 FROM AnyminuteAddressReview WHERE AddressMasterId=@i)
                     INSERT AnyminuteAddressReview(AddressMasterId,OrigStreet,OrigCity,OrigProvince,OrigCountry,OrigPostal,Status) VALUES(@i,@s,@c,@p,@co,@pc,'Pending')",
                     "@i", id, "@s", SA.S(a["Street_Name"]), "@c", SA.S(a["City"]), "@p", SA.S(a["Province"]), "@co", SA.GuessCountry(SA.S(a["PostalCode"])), "@pc", SA.S(a["PostalCode"]));
-                string who = Submitter(c, a);
+                string who = Submitter(c, tx, a);
                 if (who != null && SA.S(a["SubmittedBy"]).Length == 0)
                     AnyminuteTimesheetRepair.Execute(c, tx, "UPDATE AnyminuteAddressReview SET SubmittedBy=@w WHERE AddressMasterId=@i AND SubmittedBy IS NULL", "@w", who.Length > 150 ? who.Substring(0, 150) : who, "@i", id);
                 if (op == "approve")
                 {
                     string level; DataTable known;
-                    string verdict = SA.LookupVerify(c, id, street, city, prov, country, postal, out level, out known);
+                    string verdict = SA.LookupVerify(c, tx, id, street, city, prov, country, postal, out level, out known);
                     if (level == "error") { tx.Rollback(); SA.Flash("Not approved: " + verdict); Back(id); return; }
                     postal = SA.NormalizePostal(country, postal);
                     string cityValue = MasterValue(c, tx, SA.S(a["CityRaw"]), "CityMaster", "CityName", "CityId", city), provValue = MasterValue(c, tx, SA.S(a["ProvRaw"]), "ProvinceMaster", "ProvinceName", "ProvinceId", prov);
@@ -198,7 +210,7 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
                 }
                 else if (op == "reject")
                 {
-                    if (notes.Length == 0) { tx.Rollback(); SA.Flash("Enter the reason for rejecting this address in Support Notes."); Back(id); return; }
+                    if (notes.Length == 0) { tx.Rollback(); SA.Flash("Enter the reason for rejecting this address in Note."); Back(id); return; }
                     AnyminuteTimesheetRepair.Execute(c, tx, "UPDATE AnyminuteAddressReview SET Status='Rejected',Notes=@n,ReviewedBy=@b,ReviewedByName=@bn,ReviewedAtUTC=SYSUTCDATETIME() WHERE AddressMasterId=@i",
                         "@n", notes, "@b", SA.ActorId(), "@bn", SA.ActorName(), "@i", id);
                     SA.Audit(c, tx, "Address", id.ToString(CultureInfo.InvariantCulture), "Rejected", "Pending", "Rejected", before, null, notes);
