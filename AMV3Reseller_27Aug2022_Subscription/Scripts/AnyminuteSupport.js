@@ -121,5 +121,49 @@
     });
     // v42 PPT 01 s1: Subscriber list select-all checkbox.
     $all('[data-sa-all]').forEach(function (m) { m.addEventListener('change', function () { $all('input[name="' + m.getAttribute('data-sa-all') + '"]').forEach(function (x) { x.checked = m.checked; }); }); });
+    // v43 PPT 01 s5/s6: plan select fills the plan limits (empty catalogue limit = Custom, editable); Manage Custom Limits; Change Plan.
+    $all('[data-sa-plan]').forEach(function (sel) {
+      var box = sel.closest('.sa-card') || document;
+      var fill = function () {
+        var o = sel.options[sel.selectedIndex]; if (!o) return;
+        [['b', 'data-b'], ['e', 'data-e']].forEach(function (k) {
+          var inp = box.querySelector('[data-sa-lim="' + k[0] + '"]'); if (!inp || !o.hasAttribute(k[1])) return;
+          var v = o.getAttribute(k[1]); if (v !== '') { inp.value = v; inp.readOnly = true; } else { inp.readOnly = false; }
+        });
+        var p = document.getElementById(sel.getAttribute('data-sa-proj')); if (p && o.hasAttribute('data-p')) p.value = o.getAttribute('data-p') || 'Custom';
+      };
+      sel.addEventListener('change', fill);
+    });
+    $all('[data-sa-unlock]').forEach(function (b) { b.addEventListener('click', function () { var box = b.closest('.sa-card') || document; $all('[data-sa-lim]').forEach(function (x) { if (box.contains(x)) x.readOnly = false; }); var f = box.querySelector('[data-sa-lim]'); if (f) f.focus(); }); });
+    $all('[data-sa-reveal]').forEach(function (b) { b.addEventListener('click', function () { var el = document.getElementById(b.getAttribute('data-sa-reveal')); if (el) { el.hidden = false; var s = el.querySelector('select'); if (s) s.focus(); } }); });
+    // v43 PPT 01 s5: Search Address (postal code lookup) or enter manually.
+    $all('[data-sa-addr]').forEach(function (b) {
+      var sec = b.closest('section') || document, out = sec.querySelector('[data-sa-addr-hits]');
+      var q = function (a) { return sec.querySelector('[' + a + ']'); };
+      b.addEventListener('click', function () {
+        var pc = q('data-sa-postal'); if (!pc || !pc.value.trim()) { if (pc) pc.focus(); return; }
+        out.hidden = false; out.textContent = 'Searching...';
+        var xhr = new XMLHttpRequest(); xhr.open('GET', b.getAttribute('data-sa-addr') + encodeURIComponent(pc.value.trim()));
+        xhr.onload = function () {
+          var list = []; try { list = JSON.parse(xhr.responseText); } catch (e) { }
+          out.textContent = list.length ? 'Select an address:' : 'No address found for this postal code. Enter the address manually.';
+          list.forEach(function (a) {
+            var x = document.createElement('button'); x.type = 'button'; x.className = 'sa-btn sa-btn-outline sa-btn-sm'; x.textContent = a.street + ', ' + a.city + ', ' + a.province;
+            x.addEventListener('click', function () {
+              q('data-sa-street').value = a.street; q('data-sa-city').value = a.city;
+              var pv = q('data-sa-prov'), hit = false;
+              for (var i = 0; i < pv.options.length; i++) if (pv.options[i].value.toLowerCase() === a.province.toLowerCase()) { pv.selectedIndex = i; hit = true; }
+              if (!hit) { var o = document.createElement('option'); o.value = o.textContent = a.province; pv.appendChild(o); pv.value = a.province; }
+              out.hidden = true;
+            });
+            out.appendChild(document.createElement('br')); out.appendChild(x);
+          });
+        };
+        xhr.onerror = function () { out.textContent = 'The address lookup could not be reached. Enter the address manually.'; };
+        xhr.send();
+      });
+    });
+    // v43 PPT 01 s5: "Creating Subscriber Account" overlay while the account is created.
+    $all('[data-sa-busy]').forEach(function (b) { b.addEventListener('click', function () { var o = document.querySelector('[data-sa-busy-box]'); setTimeout(function () { if (o) o.hidden = false; b.disabled = true; }, 0); }); });
   });
 })();

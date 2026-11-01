@@ -24,7 +24,7 @@ public partial class AnyminuteSupportReportsPage : System.Web.UI.Page
         Nav.Text = NavList(def);
         bool gen = q["gen"] == "1"; var run = SR.Execute(def, gen ? q : new NameValueCollection { { "r", def.Key } });
         var sb = new StringBuilder();
-        sb.Append("<header class='sa-head'><div><h1>").Append(SA.H(def.Name)).Append(" Report</h1><p>").Append(SA.H(def.Purpose)).Append(" Select filters to generate the report.</p></div>")
+        sb.Append("<header class='sa-head'><div><h1>").Append(SA.H(def.Name)).Append(" Report</h1><p>").Append(SA.H(def.Purpose.TrimEnd('.') + ".")).Append(" Select filters to generate the report.</p></div>")
           .Append("<div class='sa-rpt-export'><button type='button' class='sa-btn sa-btn-outline' data-sa-apply='1' data-sa-extra='export=pdf' data-sa-form='sa-rpt-form'>&#128196; Export PDF</button>")
           .Append("<button type='button' class='sa-btn sa-btn-outline' data-sa-apply='1' data-sa-extra='export=excel' data-sa-form='sa-rpt-form'>&#128200; Export Excel</button></div></header>");
         // v30 (Pandey post-v29, Support Ticket mock): "Report Filters" card (funnel icon, Clear All button), 3-column filter grid,
