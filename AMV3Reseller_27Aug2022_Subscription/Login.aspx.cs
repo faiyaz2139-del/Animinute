@@ -52,6 +52,8 @@ public partial class Login : System.Web.UI.Page
 
             if (dt.Rows.Count > 0)
             {
+                // v45: a Support-created Pending subscriber signing in with the emailed temporary password is activated here (password sign-in only).
+                AnyminuteSubscriberCreate.ActivateOnTempPassword(dt);
                 SignIn(dt, txtemail.Text, "Signed in to AnyMinute.");
             }
             else

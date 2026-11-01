@@ -20,6 +20,7 @@ public static class AnyminuteSubscriberCreate
     {
         public string First, Middle, Last, Email, Phone, Mobile, PlanName, Status, Street, City, Province, Postal, Country;
         public int Businesses, Employees; public DateTime Start, NextBilling; public bool Invite;
+        public string TempPassword; // v45: set by Create (shown once on screen, sent in the welcome email; never stored in clear)
     }
     public static bool EmailTaken(SqlConnection c, string email)
     {
@@ -64,7 +65,11 @@ public static class AnyminuteSubscriberCreate
             SA.X(c, null, @"INSERT INTO PlanHistory(PlanId,PriceId,PlanName,StartDate,EndDate,AmountPaid,TransId,EmpId,EmailId,No_Of_Users,Business,IsActive)
                 VALUES(@pid,@pr,@pn,@sd,@ed,'0','SUPPORT',@e,@m,@u,@b,'1')", "@pid", code, "@pr", code + "_priceid", "@pn", x.PlanName.ToUpperInvariant(),
                 "@sd", x.Start, "@ed", x.NextBilling, "@e", empId, "@m", x.Email, "@u", x.Employees.ToString(CultureInfo.InvariantCulture), "@b", x.Businesses.ToString(CultureInfo.InvariantCulture));
-            if (x.Status == "Active") SA.X(c, null, "UPDATE UserAcc SET Status=1,Is_First_Time_Login=0 WHERE UserId=@u", "@u", user);
+            // v45: the legacy SP gives every new login the fixed password '12345678' and the welcome email had no password at all.
+            // Each Support-created subscriber now gets its own temporary password (same generator as the v44 reseller fix).
+            x.TempPassword = SetTempPassword(c, user, "Temporary password issued with the new subscriber account.");
+            bool audit = SA.Has(c, "AnyminuteSupportAudit");
+            if (x.Status == "Active" || (x.Status == "Pending" && !audit)) SA.X(c, null, "UPDATE UserAcc SET Status=1,Is_First_Time_Login=0 WHERE UserId=@u", "@u", user);
             else if (x.Status == "Inactive") SA.X(c, null, "UPDATE UserAcc SET Status=0 WHERE UserId=@u", "@u", user);
             else SA.X(c, null, "UPDATE UserAcc SET Status=1,Is_First_Time_Login=1 WHERE UserId=@u", "@u", user);
             if (x.Status == "Suspended" && SA.Has(c, "AnyminuteLoginSecurity"))
@@ -76,8 +81,39 @@ public static class AnyminuteSubscriberCreate
             return user;
         }
     }
+    // v45: writes a new temporary password to UserAcc.Password in the SP_LOGIN format (EncryptByPassPhrase 'MD2') and returns it.
+    // The audit row ("Temporary Password Issued", no password in it) is what lets that password activate a Pending account at sign-in.
+    public static string SetTempPassword(SqlConnection c, int user, string note)
+    {
+        string pw = AnyminuteResellers.NewTempPassword();
+        SA.X(c, null, "UPDATE UserAcc SET Password=CONVERT(nvarchar(max),EncryptByPassPhrase('MD2',CAST(@p AS nvarchar(50))),2) WHERE UserId=@u", "@p", pw, "@u", user);
+        if (SA.Has(c, "AnyminuteSupportAudit")) SA.Audit(c, null, "Login", user.ToString(CultureInfo.InvariantCulture), "Temporary Password Issued", null, null, null, null, note);
+        return pw;
+    }
+    // v45 (Login.aspx password sign-in only): a Pending Activation subscriber who signs in with the temporary password Support emailed
+    // is activated (Is_First_Time_Login cleared) instead of being sent back to the reset link. Only accounts with a
+    // "Temporary Password Issued" audit row qualify. Never throws; false = leave the legacy first-time check as it was.
+    public static bool ActivateOnTempPassword(DataTable dt)
+    {
+        try
+        {
+            if (dt == null || dt.Rows.Count == 0 || dt.Rows[0]["Is_First_Time_Login"].ToString() != "True") return false;
+            int user; if (!Int32.TryParse(dt.Rows[0]["UserId"].ToString(), out user) || user <= 0) return false;
+            using (var c = SA.Open())
+            {
+                if (!SA.Has(c, "AnyminuteSupportAudit")) return false;
+                if (SA.Q(c, "SELECT COUNT(*) FROM AnyminuteSupportAudit WHERE Entity='Login' AND EntityKey=@k AND Action='Temporary Password Issued'", "@k", user.ToString(CultureInfo.InvariantCulture)).Rows[0][0].ToString() == "0") return false;
+                SA.X(c, null, "UPDATE UserAcc SET Is_First_Time_Login=0 WHERE UserId=@u", "@u", user);
+                SA.Audit(c, null, "Login", user.ToString(CultureInfo.InvariantCulture), "Account Activated", "Pending", "Active", null, null, "First sign-in with the emailed temporary password.");
+            }
+            var col = dt.Columns["Is_First_Time_Login"]; dt.Rows[0]["Is_First_Time_Login"] = col.DataType == typeof(bool) ? (object)false : "False";
+            return true;
+        }
+        catch (Exception ex) { log4net.LogManager.GetLogger("Log").Error("Temporary password activation failed", ex); return false; }
+    }
     // Activation invitation (existing TemplateMaster mail). Returns null when sent, otherwise the reason it was not sent.
-    public static string SendInvitation(SqlConnection c, int user)
+    // v45: password = the temporary password to put in the template's {OldPassword} line (the email used to send "" there).
+    public static string SendInvitation(SqlConnection c, int user, string password)
     {
         var r = SA.Q(c, "SELECT u.Email,u.uid,u.EmployeeId,ae.FirstName FROM UserAcc u LEFT JOIN AddEmployee ae ON ae.EmployeeID=u.EmployeeId WHERE u.UserId=@u", "@u", user);
         if (r.Rows.Count != 1) return "Subscriber not found.";
@@ -89,9 +125,12 @@ public static class AnyminuteSubscriberCreate
         if (tpl.Rows.Count == 0 || String.IsNullOrEmpty(host)) { tpl = SA.Q(c, "SELECT TOP 1 * FROM TemplateMaster WHERE TempType=1"); host = ConfigurationManager.AppSettings["ResetUrl"]; }
         if (tpl.Rows.Count == 0) return "The invitation email template (TemplateMaster) is missing, so no invitation was sent.";
         var mail = new EmailSettingController();
-        string body = mail.PopulateBodyWithUrl(HttpUtility.HtmlEncode(SA.S(r.Rows[0]["FirstName"])), "Welcome", host + SA.S(r.Rows[0]["EmployeeId"]), SA.S(tpl.Rows[0]["description"]), SA.S(tpl.Rows[0]["TempName"]), email + " <br />User Id - " + SA.S(r.Rows[0]["uid"]), "");
+        string body = mail.PopulateBodyWithUrl(HttpUtility.HtmlEncode(SA.S(r.Rows[0]["FirstName"])), "Welcome", host + SA.S(r.Rows[0]["EmployeeId"]), SA.S(tpl.Rows[0]["description"]), SA.S(tpl.Rows[0]["TempName"]), email + " <br />User Id - " + SA.S(r.Rows[0]["uid"]),
+            String.IsNullOrEmpty(password) ? "(your current password; use Forgot Password on the sign-in page if needed)" : HttpUtility.HtmlEncode(password));
+        if (!String.IsNullOrEmpty(password) && body.IndexOf(HttpUtility.HtmlEncode(password), StringComparison.Ordinal) < 0)
+            body += "<p>Your AnyMinute sign-in details:<br />Email: " + HttpUtility.HtmlEncode(email) + "<br />Temporary password: <b>" + HttpUtility.HtmlEncode(password) + "</b></p><p>Sign in at <a href=\"https://anyminute.net/Login.aspx\">anyminute.net</a> and change your password after you sign in.</p>";
         mail.SendHtmlFormattedEmail(email, SA.S(tpl.Rows[0]["Subject"]), body);
-        if (SA.Has(c, "AnyminuteSupportAudit")) SA.Audit(c, null, "Login", user.ToString(CultureInfo.InvariantCulture), "Activation Email", null, null, null, email, "Activation invitation sent.");
+        if (SA.Has(c, "AnyminuteSupportAudit")) SA.Audit(c, null, "Login", user.ToString(CultureInfo.InvariantCulture), "Activation Email", null, null, null, email, String.IsNullOrEmpty(password) ? "Activation invitation sent." : "Activation invitation sent with the temporary password.");
         return null;
     }
 }
