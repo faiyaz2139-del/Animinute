@@ -1,4 +1,5 @@
-/* 2026-10-29 v30: Custom Range toggles the From / To date inputs. */
+/* 2026-11-01 v46: row menus are fixed pop-overs (never clipped by the table).
+   2026-10-29 v30: Custom Range toggles the From / To date inputs. */
 /* 2026-10-29 v28: Reports hub - data-sa-noauto (no auto-apply on select change), data-sa-extra (adds e.g. export=pdf)
    and data-sa-form (a button outside the filter box applies that box).
    2026-10-28 v26: Verify Address also queries the existing address lookup (suggestions).
@@ -62,9 +63,31 @@
       var upd = function () { if (out) out.textContent = t.value.length + '/' + max; };
       t.addEventListener('input', upd); upd();
     });
+    // v46 (t148u/t150u): row menus open as a fixed pop-over next to the kebab, so the full menu is visible even inside a
+    // scrolling table (.sa-table-wrap no longer clips it). Opens downward, or upward when there is more room above; long
+    // menus scroll inside the pop-over. Closes on page scroll / resize.
+    var place = function (d) {
+      var pop = d.querySelector('.sa-menu-pop'), sum = d.querySelector('summary'); if (!pop || !sum) return;
+      pop.classList.add('sa-pop-fixed'); pop.style.maxHeight = ''; pop.style.top = '0px'; pop.style.left = '0px';
+      var r = sum.getBoundingClientRect(), w = pop.offsetWidth, h = pop.scrollHeight, vw = document.documentElement.clientWidth, vh = window.innerHeight;
+      var left = Math.max(8, Math.min(r.right - w, vw - w - 8)), below = vh - r.bottom - 12, above = r.top - 12;
+      var up = h > below && above > below, room = Math.max(160, up ? above : below);
+      pop.style.left = left + 'px';
+      pop.style.maxHeight = room + 'px';
+      pop.style.top = (up ? Math.max(8, r.top - 6 - Math.min(h, room)) : r.bottom + 6) + 'px';
+    };
+    var unplace = function (d) { var pop = d.querySelector('.sa-menu-pop'); if (pop) { pop.classList.remove('sa-pop-fixed'); pop.style.top = pop.style.left = pop.style.maxHeight = ''; } };
     $all('details.sa-menu').forEach(function (d) {
-      d.addEventListener('toggle', function () { if (d.open) $all('details.sa-menu[open]').forEach(function (o) { if (o !== d) o.open = false; }); });
+      d.addEventListener('toggle', function () {
+        if (d.open) { $all('details.sa-menu[open]').forEach(function (o) { if (o !== d) o.open = false; }); place(d); }
+        else unplace(d);
+      });
     });
+    window.addEventListener('scroll', function (e) {
+      if (e.target && e.target.closest && e.target.closest('.sa-menu-pop')) return;
+      $all('details.sa-menu[open]').forEach(function (o) { o.open = false; });
+    }, true);
+    window.addEventListener('resize', function () { $all('details.sa-menu[open]').forEach(function (o) { o.open = false; }); });
     document.addEventListener('click', function (e) {
       if (!e.target.closest('details.sa-menu')) $all('details.sa-menu[open]').forEach(function (o) { o.open = false; });
       var close = e.target.closest('[data-sa-close]');
@@ -137,6 +160,73 @@
     $all('[data-sa-unlock]').forEach(function (b) { b.addEventListener('click', function () { var box = b.closest('.sa-card') || document; $all('[data-sa-lim]').forEach(function (x) { if (box.contains(x)) x.readOnly = false; }); var f = box.querySelector('[data-sa-lim]'); if (f) f.focus(); }); });
     $all('[data-sa-reveal]').forEach(function (b) { b.addEventListener('click', function () { var el = document.getElementById(b.getAttribute('data-sa-reveal')); if (el) { el.hidden = false; var s = el.querySelector('select'); if (s) s.focus(); } }); });
     // v43 PPT 01 s5: Search Address (postal code lookup) or enter manually.
+    // v46 (Address deck s1/s2, Paused deck s1): Business-style Address Lookup module on Add / Edit Reseller and Add Subscriber.
+    var REG = {
+      'Canada': ['Alberta','British Columbia','Manitoba','New Brunswick','Newfoundland and Labrador','Northwest Territories','Nova Scotia','Nunavut','Ontario','Prince Edward Island','Quebec','Saskatchewan','Yukon'],
+      'United States': ['Alabama','Alaska','Arizona','Arkansas','California','Colorado','Connecticut','Delaware','District of Columbia','Florida','Georgia','Hawaii','Idaho','Illinois','Indiana','Iowa','Kansas','Kentucky','Louisiana','Maine','Maryland','Massachusetts','Michigan','Minnesota','Mississippi','Missouri','Montana','Nebraska','Nevada','New Hampshire','New Jersey','New Mexico','New York','North Carolina','North Dakota','Ohio','Oklahoma','Oregon','Pennsylvania','Rhode Island','South Carolina','South Dakota','Tennessee','Texas','Utah','Vermont','Virginia','Washington','West Virginia','Wisconsin','Wyoming']
+    };
+    $all('[data-sa-addrmod]').forEach(function (box) {
+      var pre = box.getAttribute('data-sa-addr-prefix'), url = box.getAttribute('data-sa-addrmod');
+      var q = function (s) { return box.querySelector(s); }, f = function (k) { return document.getElementById(pre + k); };
+      var lc = q('[data-al-lcountry]'), lp = q('[data-al-lpostal]'), flag = q('[data-al-flag]'), hint = q('[data-al-lhint]'), hintText = q('[data-al-lhinttext]'),
+          nf = q('[data-al-lnf]'), nfCode = q('[data-al-lnfcode]'), hits = q('[data-al-lhits]'), mode = q('[data-al-lmode]'), dc = f('_country'), prov = f('_prov');
+      var us = function () { return lc.value === 'United States'; };
+      var fillProv = function (country, keep) {
+        var list = REG[country] || REG.Canada, v = keep || '', html = '<option value="">' + (country === 'United States' ? 'Select state' : 'Select province') + '</option>', hit = false;
+        list.forEach(function (n) { var on = n.toLowerCase() === v.toLowerCase(); hit = hit || on; html += '<option' + (on ? ' selected' : '') + '>' + n + '</option>'; });
+        if (v && !hit) html += '<option selected>' + v.replace(/</g, '&lt;') + '</option>';
+        prov.innerHTML = html;
+      };
+      var sync = function () {
+        var u = us(); if (flag) flag.classList.toggle('is-us', u);
+        lp.placeholder = u ? 'e.g. 33185' : 'e.g. M1B 2W1';
+        if (hintText) hintText.textContent = u ? 'Enter a valid US ZIP code (e.g. 33185) or Canadian postal code (e.g. M1B 2W1).' : 'Enter a valid Canadian postal code (e.g. M1B 2W1) or US ZIP code (e.g. 33185).';
+      };
+      var reset = function () { nf.hidden = true; hint.hidden = false; };
+      var fmt = function (v) { var c = v.replace(/[\s-]/g, '').toUpperCase(); return /^[A-Z]\d[A-Z]\d[A-Z]\d$/.test(c) ? c.slice(0, 3) + ' ' + c.slice(3) : v.trim().toUpperCase(); };
+      var setCountry = function (c) { if (dc.value !== c) { dc.value = c; fillProv(c, prov.value); } };
+      lc.addEventListener('change', function () { sync(); reset(); setCountry(lc.value); });
+      dc.addEventListener('change', function () { fillProv(dc.value, ''); });
+      q('[data-al-lclear]').addEventListener('click', function () { lp.value = ''; reset(); hits.innerHTML = '<option value="">Select an address from the list below</option>'; hits.disabled = true; lp.focus(); });
+      var search = function () {
+        var v = lp.value.trim(), c = v.replace(/[\s-]/g, '').toUpperCase();
+        var ok = /^[A-Z]\d[A-Z]\d[A-Z]\d$/.test(c) || /^\d{5}(\d{4})?$/.test(c);
+        if (!ok) { reset(); lp.setAttribute('aria-invalid', 'true'); lp.focus(); return; }
+        lp.removeAttribute('aria-invalid');
+        if (/^\d/.test(c) && !us()) { lc.value = 'United States'; sync(); setCountry('United States'); }
+        else if (/^[A-Z]/.test(c) && us()) { lc.value = 'Canada'; sync(); setCountry('Canada'); }
+        var xhr = new XMLHttpRequest(); xhr.open('GET', url + encodeURIComponent(v));
+        xhr.onload = function () {
+          var list = []; try { list = JSON.parse(xhr.responseText) || []; } catch (e) { list = []; }
+          hits.innerHTML = '<option value="">Select an address from the list below</option>';
+          if (!list.length) {
+            // Paused deck s1: only the "Address Not Found" card (the blue hint and the plain text line are hidden).
+            nfCode.textContent = fmt(v); nf.hidden = false; hint.hidden = true; hits.disabled = true; return;
+          }
+          reset();
+          list.forEach(function (a, i) { var o = document.createElement('option'); o.value = String(i); o.textContent = [a.street, a.city, a.province].filter(Boolean).join(', '); o._a = a; hits.appendChild(o); });
+          hits.disabled = false; hits._list = list; hits.focus();
+        };
+        xhr.send();
+      };
+      q('[data-al-lsearch]').addEventListener('click', search);
+      lp.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); search(); } });
+      lp.addEventListener('input', function () { if (!nf.hidden) reset(); });
+      hits.addEventListener('change', function () {
+        var a = hits._list && hits._list[+hits.value]; if (!a) return;
+        f('_line1').value = a.street || ''; f('_city').value = a.city || '';
+        setCountry(lc.value); fillProv(lc.value, a.province || '');
+        f('_postal').value = fmt(lp.value);
+        if (mode) mode.textContent = 'Selected Address';
+        f('_no').focus();
+      });
+      q('[data-al-lmanual]').addEventListener('click', function () {
+        reset(); if (mode) mode.textContent = 'Manual Entry';
+        setCountry(lc.value); if (!f('_postal').value && lp.value.trim()) f('_postal').value = fmt(lp.value);
+        f('_no').focus(); f('_no').scrollIntoView({ block: 'center', behavior: 'smooth' });
+      });
+      sync();
+    });
     $all('[data-sa-addr]').forEach(function (b) {
       var sec = b.closest('section') || document, out = sec.querySelector('[data-sa-addr-hits]');
       var q = function (a) { return sec.querySelector('[' + a + ']'); };

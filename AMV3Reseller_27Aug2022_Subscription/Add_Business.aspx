@@ -1,7 +1,7 @@
 ﻿<%@ Page Title="Business" Language="C#" MasterPageFile="~/Main.master" AutoEventWireup="true" CodeFile="Add_Business.aspx.cs" Inherits="Add_Business" %>
 <%@ Register Assembly="AjaxControlToolkit" Namespace="AjaxControlToolkit" TagPrefix="cc1" %>
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
- <link rel="stylesheet" href="css/AnyminuteBusinessEditor.css?v=20261101v42" />
+ <link rel="stylesheet" href="css/AnyminuteBusinessEditor.css?v=20261101v46" />
  <script src="Scripts/AnyminuteBusinessEditor.js?v=20261030v32" defer="defer"></script>
  <script src="Scripts/AnyminuteBusinessAutosave.js?v=20261026v19" defer="defer"></script>
 </asp:Content>
@@ -88,8 +88,8 @@
     <asp:LinkButton ID="lnkSearch" runat="server" OnClick="lnkSearch_Click" CausesValidation="false" CssClass="am-al-btn am-al-primary"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg><span>Search Address</span></asp:LinkButton>
     <asp:LinkButton ID="AddNewAddress" runat="server" OnClick="AddNewAddress_Click" OnClientClick="if(window.AnyminuteBusinessAddress){AnyminuteBusinessAddress.openNew();return false;}" CausesValidation="false" CssClass="am-al-btn am-al-outline"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path fill="currentColor" d="M3 17.25V21h3.75L17.8 9.94l-3.75-3.75L3 17.25zM20.7 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg><span>Enter Address Manually</span></asp:LinkButton>
    </asp:Panel>
-   <div class="am-al-info"><span class="am-al-i" aria-hidden="true">i</span><span id="amLookupHint">Enter a valid Canadian postal code (e.g. M1B 2W1) or US ZIP code (e.g. 33185).</span></div>
-   <asp:Label ID="AddressMessage" ClientIDMode="Static" runat="server" Visible="false" CssClass="am-business-error" role="alert" tabindex="-1" />
+   <div id="LookupInfo" runat="server" ClientIDMode="Static" class="am-al-info"><span class="am-al-i" aria-hidden="true">i</span><span id="amLookupHint">Enter a valid Canadian postal code (e.g. M1B 2W1) or US ZIP code (e.g. 33185).</span></div>
+   <asp:Label ID="AddressMessage" ClientIDMode="Static" runat="server" Visible="false" CssClass="am-business-error" role="alert" tabindex="-1" /><asp:Literal ID="AddressNotFound" runat="server" Visible="false" />
    <div id="resultdiv" runat="server" class="am-al-results">
     <label for="AddressChoices">Select Address from Search Results</label>
     <asp:DropDownList ID="AddressChoices" runat="server" ClientIDMode="Static" AutoPostBack="true" OnSelectedIndexChanged="AddressChoices_SelectedIndexChanged" />

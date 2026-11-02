@@ -10,7 +10,9 @@ using System.Text.RegularExpressions;
 using System.Web;
 using SA = AnyminuteSupportAdmin;
 using RS = AnyminuteResellers;
+using AD = AnyminuteSupportAddress;
 
+// 2026-11-01 v46 (t148u/t149u): list = Subscribers / Businesses table pattern, 10 per page, kebab-only Actions; Add / Edit use the Address module.
 // 2026-11-01 v42 (PPT 02 20261028B s1-s2, PPT 04 s1-s2): list without the legacy banner / RSL sub-line, date-only Created Date,
 // the deck's Reseller Actions menu (View Details, Edit, View Subscribers, View Businesses, Login & Access, Password Reset,
 // Permissions & Limits, Activity History, Deactivate). The view page keeps only Reseller Information + Account & Limits;
@@ -25,10 +27,12 @@ public partial class AnyminuteSupportResellersPage : System.Web.UI.Page
     static readonly CultureInfo Inv = CultureInfo.InvariantCulture;
     static readonly string[] Sorts = { "Created Date (Newest)", "Created Date (Oldest)", "Name (A-Z)", "Name (Z-A)", "Most Subscribers" }; // v30 mock labels
     static readonly int[] Sizes = { 10, 20, 50 };
-    int PageSize = 20;
+    int PageSize = 10; // v46 (t148u): at least 10 rows at a time by default, like Subscribers / Businesses
     protected void Page_Init(object sender, EventArgs e) { SA.Require(); }
     protected void Page_Load(object sender, EventArgs e)
     {
+        // v46: JSON postal lookup for the Address module (Add / Edit Reseller).
+        if (SA.Get("lookup") == "1") { Response.Clear(); Response.ContentType = "application/json"; Response.Write(AD.LookupJson(SA.Get("postal"))); Response.Flush(); Response.SuppressContent = true; Context.ApplicationInstance.CompleteRequest(); return; }
         Flash.Text = SA.TakeFlash();
         if (IsPostBack && SA.Form("sa_op").Length > 0) { Act(); return; }
         using (var c = SA.Open())
@@ -83,34 +87,39 @@ public partial class AnyminuteSupportResellersPage : System.Web.UI.Page
           .Append("<label><span>Sort By</span><select name='sort'>").Append(SA.Options(Sorts, Sorts.Contains(sort) ? sort : Sorts[0], null)).Append("</select></label>")
           .Append("<a class='sa-btn sa-btn-outline' href='SupportResellers.aspx'>Clear Filters</a></div></div>");
         sb.Append("<div class='sa-card'><div class='sa-rpt-cardhead'><h2>Reseller List</h2><a class='sa-btn sa-btn-outline sa-btn-sm' href='SupportResellers.aspx?").Append(SA.A(qs)).Append("&amp;export=excel'>&#8682; Export</a></div>")
-          .Append("<div class='sa-table-wrap'><table class='sa-table'><thead><tr><th>#</th><th>Reseller Name</th><th>Contact Person</th><th>Email</th><th>Phone</th><th>Plan</th><th>Status</th><th>Subscribers</th><th>Businesses</th><th>Created Date</th><th>Actions</th></tr></thead><tbody>");
+          // v46 (t148u/t149u): same table pattern as Subscribers / Businesses - fits the card (no sideways scroll), name link,
+          // status pill, kebab-only Actions (View Details is the first menu item), full menu shown as a fixed pop-over.
+          .Append("<div class='sa-table-wrap'><table class='sa-table sa-list46'><thead><tr><th>Sl. No.</th><th>Reseller Name</th><th>Contact Person</th><th>Email ID</th><th>Plan Name</th><th class='sa-c'>Subscribers</th><th class='sa-c'>Businesses</th><th>Created Date</th><th>Status</th><th class='sa-c'>Actions</th></tr></thead><tbody>");
         if (rows.Count == 0)
-            sb.Append("<tr><td colspan='11' class='sa-rpt-empty'>").Append(all.Count == 0 ? (ready ? "No resellers yet. Use + Add Reseller to create the first one." : "Reseller tables are not installed yet (run DB_REQUIRED/REQUIRED_09_Resellers.sql).") : "No resellers match these filters.").Append("</td></tr>");
+            sb.Append("<tr><td colspan='10' class='sa-rpt-empty'>").Append(all.Count == 0 ? (ready ? "No resellers yet. Use + Add Reseller to create the first one." : "Reseller tables are not installed yet (run DB_REQUIRED/REQUIRED_09_Resellers.sql).") : "No resellers match these filters.").Append("</td></tr>");
         else
         {
             int n = (page - 1) * PageSize;
             foreach (var r in rows.Skip((page - 1) * PageSize).Take(PageSize))
             {
                 int id = Convert.ToInt32(r["ResellerID"]); string s = St(r); bool off = Convert.ToBoolean(r["LoginDisabled"]);
-                sb.Append("<tr><td>").Append(++n).Append("</td><td><strong>").Append(SA.H(r["ResellerName"])).Append("</strong></td><td>").Append(SA.H(r["ContactPerson"]))
-                  .Append("</td><td>").Append(SA.H(r["Email"])).Append("</td><td>").Append(SA.H(r["Phone"])).Append("</td><td>").Append(SA.H(r["PlanName"])).Append("</td><td>").Append(SA.Pill(s, s == "Active" ? "green" : "red"))
-                  .Append("</td><td>").Append(r["Subscribers"]).Append("</td><td>").Append(r["Businesses"]).Append("</td><td>").Append(CDay(r["CreatedAtUTC"])).Append("</td><td class='sa-nowrap'><a class='sa-btn sa-btn-sm sa-btn-outline' href='SupportResellers.aspx?view=").Append(id).Append("'>View</a> ")
-                  .Append("<details class='sa-menu'><summary aria-label='Reseller actions'>&#8942;</summary><div class='sa-menu-pop'><h4>Reseller Actions</h4><small>").Append(SA.H(r["ResellerName"])).Append(" &middot; ").Append(s).Append("</small>")
+                sb.Append("<tr><td>").Append(++n).Append("</td><td class='sa-wrap'><a class='sa-link' href='SupportResellers.aspx?view=").Append(id).Append("'>").Append(SA.H(r["ResellerName"])).Append("</a><small class='sa-muted'>").Append(SA.H(RS.Rsl(r["ResellerID"]))).Append("</small></td><td class='sa-wrap'>").Append(SA.H(r["ContactPerson"]))
+                  .Append(SA.S(r["Phone"]).Length > 0 ? "<small class='sa-muted'>" + SA.H(r["Phone"]) + "</small>" : "").Append("</td><td class='sa-wrap'>").Append(SA.H(r["Email"])).Append("</td><td>").Append(SA.S(r["PlanName"]).Length > 0 ? SA.H(r["PlanName"]) : "&mdash;")
+                  .Append("</td><td class='sa-c'>").Append(r["Subscribers"]).Append("</td><td class='sa-c'>").Append(r["Businesses"]).Append("</td><td class='sa-nowrap'>").Append(CDay(r["CreatedAtUTC"])).Append("</td><td>").Append(SA.Pill(s, s == "Active" ? "green" : "red"))
+                  .Append("</td><td class='sa-c'><details class='sa-menu'><summary class='sa-kebab' aria-label='Reseller actions'>&#8942;</summary><div class='sa-menu-pop'><h4>Reseller Actions</h4><small>").Append(SA.H(r["ResellerName"])).Append(" &middot; ").Append(s).Append("</small>")
                   .Append(Menu(id, s, off))
                   .Append("</div></details></td></tr>");
             }
         }
         sb.Append("</tbody></table></div><input type='hidden' name='sa_id' value='' />");
-        // v30 footer: Showing x to y of z resellers | < 1 2 > | Show [n] per page
+        // v46 footer (Subscribers pattern): Showing x to y of z resellers | [10 per page] | < 1 2 3 ... >
         string bq = "SupportResellers.aspx?q=" + HttpUtility.UrlEncode(q) + "&status=" + HttpUtility.UrlEncode(st) + "&plan=" + HttpUtility.UrlEncode(plan) + "&sort=" + HttpUtility.UrlEncode(sort);
         Func<int, string> pg = i => SA.A(bq + "&size=" + PageSize.ToString(Inv) + "&page=" + i.ToString(Inv));
-        sb.Append("<div class='sa-pager sa-rsl-pager'><span>Showing ").Append(rows.Count == 0 ? 0 : (page - 1) * PageSize + 1).Append(" to ").Append(Math.Min(rows.Count, page * PageSize)).Append(" of ").Append(rows.Count).Append(" reseller").Append(rows.Count == 1 ? "" : "s").Append("</span><nav aria-label='Pages'>")
-          .Append(page > 1 ? "<a href='" + pg(page - 1) + "' aria-label='Previous page'>&lsaquo;</a>" : "<span class='sa-pg-off' aria-hidden='true'>&lsaquo;</span>");
-        for (int i = Math.Max(1, page - 4); i <= Math.Min(pages, Math.Max(1, page - 4) + 9); i++) sb.Append("<a href='").Append(pg(i)).Append("'").Append(i == page ? " class='on' aria-current='page'" : "").Append(">").Append(i).Append("</a>");
-        sb.Append(page < pages ? "<a href='" + pg(page + 1) + "' aria-label='Next page'>&rsaquo;</a>" : "<span class='sa-pg-off' aria-hidden='true'>&rsaquo;</span>")
-          .Append("</nav><label class='sa-rsl-size'>Show <select onchange=\"location.href='").Append(SA.A(bq)).Append("&size='+this.value\">");
-        foreach (int z in Sizes) sb.Append("<option").Append(z == PageSize ? " selected" : "").Append(">").Append(z).Append("</option>");
-        sb.Append("</select> per page</label></div>");
+        sb.Append("<div class='sa-pager sa-rsl-pager'><span>Showing ").Append(rows.Count == 0 ? 0 : (page - 1) * PageSize + 1).Append(" to ").Append(Math.Min(rows.Count, page * PageSize)).Append(" of ").Append(rows.Count).Append(" reseller").Append(rows.Count == 1 ? "" : "s").Append("</span>")
+          .Append("<label class='sa-rsl-size'><select aria-label='Rows per page' onchange=\"location.href='").Append(SA.A(bq)).Append("&size='+this.value\">");
+        foreach (int z in Sizes) sb.Append("<option value='").Append(z).Append("'").Append(z == PageSize ? " selected" : "").Append(">").Append(z).Append(" per page</option>");
+        sb.Append("</select></label><nav aria-label='Pages'>").Append(page > 1 ? "<a href='" + pg(page - 1) + "' aria-label='Previous page'>&lsaquo;</a>" : "<span class='sa-pg-off' aria-hidden='true'>&lsaquo;</span>");
+        int p0 = Math.Max(1, Math.Min(page - 2, pages - 4)), p1 = Math.Min(pages, p0 + 4);
+        Func<int, string> pa = i => "<a href='" + pg(i) + "'" + (i == page ? " class='on' aria-current='page'" : "") + ">" + i + "</a>";
+        if (p0 > 1) sb.Append(pa(1)).Append(p0 > 2 ? "<span class='sa-pg-gap' aria-hidden='true'>&hellip;</span>" : "");
+        for (int i = p0; i <= p1; i++) sb.Append(pa(i));
+        if (p1 < pages) sb.Append(p1 < pages - 1 ? "<span class='sa-pg-gap' aria-hidden='true'>&hellip;</span>" : "").Append(pa(pages));
+        sb.Append(page < pages ? "<a href='" + pg(page + 1) + "' aria-label='Next page'>&rsaquo;</a>" : "<span class='sa-pg-off' aria-hidden='true'>&rsaquo;</span>").Append("</nav></div>");
         return sb.Append("</div>").ToString();
     }
     static string CDay(object utc) { return utc == null || utc == DBNull.Value ? "&mdash;" : SA.Day(DateTime.SpecifyKind(Convert.ToDateTime(utc), DateTimeKind.Utc).ToLocalTime()); }
@@ -169,7 +178,7 @@ public partial class AnyminuteSupportResellersPage : System.Web.UI.Page
           .Append(input("Email *", "rs_email", "email", " required maxlength='200' placeholder='Enter email address'"))
           .Append(input("Phone *", "rs_phone", "tel", " required maxlength='30' placeholder='Enter phone number'"))
           .Append(input("Alternate Phone", "rs_alt", "tel", " maxlength='30' placeholder='Enter alternate phone number'"))
-          .Append("</div><label class='sa-field'><span>Address</span><textarea name='rs_address' rows='3' maxlength='400' placeholder='Enter business address'").Append(dis).Append(">").Append(SA.H(Val("rs_address", ""))).Append("</textarea></label></div>");
+          .Append("</div></div>"); // v46: the Address textarea is replaced by the required Address module below
         sb.Append("<div class='sa-card'><h2><i class='sa-rpt-ico' aria-hidden='true'>&#9881;</i> Permissions</h2><p class='sa-muted'>Select what the reseller can access and manage.</p><div class='sa-rsl-perms sa-rsl-perms1'>");
         foreach (var p in RS.PermissionList)
         {
@@ -192,8 +201,14 @@ public partial class AnyminuteSupportResellersPage : System.Web.UI.Page
           .Append("</div></div>");
         sb.Append("<div class='sa-card'><h2><i class='sa-rpt-ico' aria-hidden='true'>&#128221;</i> Notes</h2><p class='sa-muted'>Internal Notes (Support Admin Only)</p><label class='sa-field'><span class='sr-only'>Internal Notes</span><textarea name='rs_notes' rows='3' maxlength='1000' data-sa-counter='1000' placeholder='Enter any additional notes about this reseller...'").Append(dis).Append(">")
           .Append(SA.H(Val("rs_notes", ""))).Append("</textarea><small data-sa-count='1'>0/1000</small></label></div></div></div>");
+        sb.Append(AddressCard(IsPostBack ? AD.FromForm("rs_addr") : new AD.Addr()));
         sb.Append("<div class='sa-panel-foot'><a class='sa-btn sa-btn-outline' href='SupportResellers.aspx'>Cancel</a><button type='submit' class='sa-btn' name='sa_op' value='create'").Append(dis).Append(">Create Reseller</button></div>");
         return sb.ToString();
+    }
+    // v46 (Address deck s1 "Require Address Module"): Business-style Address Lookup + Address Details, required for resellers.
+    static string AddressCard(AD.Addr a)
+    {
+        return "<div class='sa-rsl-addr' id='address'>" + AD.Render("rs_addr", a, true, "SupportResellers.aspx?lookup=1&postal=", "Reseller address (required). Search using a postal or ZIP code, select a result, or enter the address manually.") + "</div>";
     }
     string EditForm(DataRow e, string dis, Func<string, string> D, Func<string, string, string, string, string> input)
     {
@@ -204,7 +219,7 @@ public partial class AnyminuteSupportResellersPage : System.Web.UI.Page
             .Append("<input type='hidden' name='sa_id' value='").Append(id).Append("' /><div class='sa-rsl-form sa-rsl-cols'><div class='sa-rsl-col'><div class='sa-card'><h2><i class='sa-rpt-ico' aria-hidden='true'>&#127970;</i> Reseller Information</h2>")
             .Append(input("Reseller Name *", "rs_name", "text", " required maxlength='150'")).Append("<div class='sa-grid2'>").Append(input("Contact Person *", "rs_contact", "text", " required maxlength='150'"))
             .Append(input("Email *", "rs_email", "email", " required maxlength='200'")).Append(input("Phone *", "rs_phone", "tel", " required maxlength='30'")).Append(input("Alternate Phone", "rs_alt", "tel", " maxlength='30'"))
-            .Append("</div><label class='sa-field'><span>Address</span><textarea name='rs_address' rows='3' maxlength='400'").Append(dis).Append(">").Append(SA.H(Val("rs_address", D("rs_address")))).Append("</textarea></label></div>")
+            .Append("</div></div>")
             .Append("<div class='sa-card' id='permissions'><h2><i class='sa-rpt-ico' aria-hidden='true'>&#9881;</i> Permissions</h2><p class='sa-muted'>Select what the reseller can access and manage.</p><div class='sa-rsl-perms sa-rsl-perms1'>");
         foreach (var p in RS.PermissionList)
         {
@@ -220,6 +235,7 @@ public partial class AnyminuteSupportResellersPage : System.Web.UI.Page
           .Append(input("Maximum Businesses per Subscriber", "rs_maxbiz", "number", " min='0' max='100000' placeholder='Unlimited'").Replace("</label>", "<small class='sa-muted'>Leave blank for unlimited.</small></label>")).Append("</div></div>")
           .Append("<div class='sa-card'><h2><i class='sa-rpt-ico' aria-hidden='true'>&#128221;</i> Notes</h2><p class='sa-muted'>Internal Notes (Support Admin Only)</p><label class='sa-field'><span class='sr-only'>Internal Notes</span><textarea name='rs_notes' rows='3' maxlength='1000' data-sa-counter='1000'").Append(dis).Append(">")
           .Append(SA.H(Val("rs_notes", D("rs_notes")))).Append("</textarea><small data-sa-count='1'>0/1000</small></label></div></div></div>")
+          .Append(AddressCard(IsPostBack ? AD.FromForm("rs_addr") : AD.Parse(D("rs_address"))))
           .Append("<div class='sa-panel-foot'><a class='sa-btn sa-btn-outline' href='SupportResellers.aspx?view=").Append(id).Append("'>Cancel</a><button type='submit' class='sa-btn' name='sa_op' value='update'").Append(dis).Append(">Save Changes</button></div>");
         return sb.ToString();
     }
@@ -227,9 +243,11 @@ public partial class AnyminuteSupportResellersPage : System.Web.UI.Page
     static readonly Regex Mail = new Regex(@"^[^@\s]+@[^@\s]+\.[^@\s]+$");
     void Create(SqlConnection c)
     {
-        string name = SA.Form("rs_name"), contact = SA.Form("rs_contact"), email = SA.Form("rs_email"), phone = SA.Form("rs_phone"), alt = SA.Form("rs_alt"), addr = SA.Form("rs_address"), plan = SA.Form("rs_plan"),
+        string name = SA.Form("rs_name"), contact = SA.Form("rs_contact"), email = SA.Form("rs_email"), phone = SA.Form("rs_phone"), alt = SA.Form("rs_alt"), addr = "", plan = SA.Form("rs_plan"),
             login = SA.Form("rs_login"), pw = SA.Form("rs_pw"), status = SA.Form("rs_status") == "Inactive" ? "Inactive" : "Active", notes = SA.Form("rs_notes"), ms = SA.Form("rs_maxsub"), mb = SA.Form("rs_maxbiz");
         var errs = new List<string>();
+        // v46 (Address deck s1): required structured address from the Address module, stored as one composed line in Address.
+        var ad = AD.FromForm("rs_addr"); errs.AddRange(AD.Validate(ad, true)); addr = AD.Compose(ad);
         if (name.Length == 0) errs.Add("Reseller name is required."); if (contact.Length == 0) errs.Add("Contact person is required.");
         if (!Mail.IsMatch(email)) errs.Add("Enter a valid email address."); if (!Regex.IsMatch(phone, @"^[0-9+()\-.\s]{7,30}$")) errs.Add("Enter a valid phone number.");
         if (alt.Length > 0 && !Regex.IsMatch(alt, @"^[0-9+()\-.\s]{7,30}$")) errs.Add("Alternate phone is not valid.");
@@ -282,9 +300,11 @@ public partial class AnyminuteSupportResellersPage : System.Web.UI.Page
     }
     void Update(SqlConnection c, int id, DataRow old)
     {
-        string name = SA.Form("rs_name"), contact = SA.Form("rs_contact"), email = SA.Form("rs_email"), phone = SA.Form("rs_phone"), alt = SA.Form("rs_alt"), addr = SA.Form("rs_address"), plan = SA.Form("rs_plan"),
+        string name = SA.Form("rs_name"), contact = SA.Form("rs_contact"), email = SA.Form("rs_email"), phone = SA.Form("rs_phone"), alt = SA.Form("rs_alt"), addr = "", plan = SA.Form("rs_plan"),
             status = SA.Form("rs_status") == "Inactive" ? "Inactive" : "Active", notes = SA.Form("rs_notes"), ms = SA.Form("rs_maxsub"), mb = SA.Form("rs_maxbiz");
         var errs = new List<string>();
+        // v46 (Address deck s1): required structured address from the Address module, stored as one composed line in Address.
+        var ad = AD.FromForm("rs_addr"); errs.AddRange(AD.Validate(ad, true)); addr = AD.Compose(ad);
         if (name.Length == 0) errs.Add("Reseller name is required."); if (contact.Length == 0) errs.Add("Contact person is required.");
         if (!Mail.IsMatch(email)) errs.Add("Enter a valid email address."); if (!Regex.IsMatch(phone, @"^[0-9+()\-.\s]{7,30}$")) errs.Add("Enter a valid phone number.");
         if (alt.Length > 0 && !Regex.IsMatch(alt, @"^[0-9+()\-.\s]{7,30}$")) errs.Add("Alternate phone is not valid.");
@@ -296,8 +316,8 @@ public partial class AnyminuteSupportResellersPage : System.Web.UI.Page
         var perms = Request.Form.GetValues("rs_perm") ?? new string[0];
         string csv = String.Join(",", RS.PermissionList.Select(p => p[0]).Where(perms.Contains).ToArray());
         Func<object, string> lim = o => o == null || o == DBNull.Value ? "unlimited" : Convert.ToString(o, Inv);
-        string before = SA.S(old["ResellerName"]) + " | " + SA.S(old["Email"]) + " | " + SA.S(old["PlanName"]) + " | " + St(old) + " | limits " + lim(old["MaxSubscribers"]) + "/" + lim(old["MaxBusinessesPerSubscriber"]),
-            after = name + " | " + email + " | " + plan + " | " + status + " | limits " + lim(maxSub) + "/" + lim(maxBiz);
+        string before = SA.S(old["ResellerName"]) + " | " + SA.S(old["Email"]) + " | " + SA.S(old["PlanName"]) + " | " + St(old) + " | limits " + lim(old["MaxSubscribers"]) + "/" + lim(old["MaxBusinessesPerSubscriber"]) + " | " + SA.S(old["Address"]),
+            after = name + " | " + email + " | " + plan + " | " + status + " | limits " + lim(maxSub) + "/" + lim(maxBiz) + " | " + addr;
         using (var tx = c.BeginTransaction())
         {
             AnyminuteTimesheetRepair.Execute(c, tx, @"UPDATE AnyminuteReseller SET ResellerName=@n,ContactPerson=@c,Email=@e,Phone=@p,AltPhone=@a,Address=@ad,PlanName=@pl,Status=@st,Permissions=@pm,MaxSubscribers=@ms,MaxBusinessesPerSubscriber=@mb,Notes=@no,UpdatedAtUTC=SYSUTCDATETIME(),UpdatedBy=@by WHERE ResellerID=@i",

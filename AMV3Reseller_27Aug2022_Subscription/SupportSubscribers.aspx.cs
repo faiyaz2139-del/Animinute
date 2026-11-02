@@ -78,7 +78,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
         bool sec = SA.Has(c, "AnyminuteLoginSecurity"), last = sec && AnyminuteEmployeeEditor.HasColumn(c, null, "AnyminuteLoginSecurity", "LastLoginDate");
         return SA.Q(c, @"SELECT u.UserId,u.EmployeeId,u.Email,u.Status,u.Is_First_Time_Login,LTRIM(RTRIM(ISNULL(ae.FirstName,'')+' '+ISNULL(ae.MiddleName,'')+' '+ISNULL(ae.LastName,''))) Name,ae.MobilePhone,
             pl.PlanName,pl.Id PlanRowId,pl.StartDate PlanStart,pl.EndDate NextBilling,pl.Business PlanBiz,pl.No_Of_Users PlanUsers,ae.FirstName,ae.MiddleName,ae.LastName,ea.MainPhone,
-            LTRIM(RTRIM(ISNULL(ea.NumberSuffix,'')+' '+ISNULL(ea.StreetName,'')+' '+ISNULL(ea.StreetType,''))) Street,COALESCE(ci.CityName,ea.City) City,COALESCE(pr.ProvinceName,ea.Province) Province,ea.Postalcode,
+            LTRIM(RTRIM(ISNULL(ea.StreetNo,'')+' '+ISNULL(ea.NumberSuffix,'')+' '+ISNULL(ea.StreetName,'')+' '+ISNULL(ea.StreetType,''))) Street,COALESCE(ci.CityName,ea.City) City,COALESCE(pr.ProvinceName,ea.Province) Province,ea.Postalcode,
             " + AnyminuteResellers.OwnedBiz + @" Businesses,(SELECT COUNT(DISTINCT a2.EmployeeID) FROM AssginBussiness a2 WHERE a2.EmployeeID<>u.EmployeeId AND a2.BusinessID IN (SELECT a.BusinessID FROM AssginBussiness a WHERE a.EmployeeID=u.EmployeeId AND a.UserTypeId=1)) Users,
             (SELECT MIN(p.StartDate) FROM PlanHistory p WHERE p.EmailId=u.Email) Since," +
             (sec ? "ISNULL(s.LoginDisabled,0) LoginDisabled," : "CAST(0 AS bit) LoginDisabled,") + (last ? "s.LastLoginDate" : "CAST(NULL AS datetime2) LastLoginDate") +
@@ -176,7 +176,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
             int u = Convert.ToInt32(r["UserId"]); string b = "SupportSubscribers.aspx?user=" + u, sts = StatusOf(r), phone = SA.S(r["MainPhone"]).Length > 0 ? SA.S(r["MainPhone"]) : SA.S(r["MobilePhone"]);
             sb.Append("<tr><td><input type='checkbox' name='sa_sel' value='").Append(u).Append("' aria-label='Select' /></td><td>").Append(++n).Append("</td><td><a class='sa-link' href='").Append(b).Append("'>").Append(SA.H(Name(r))).Append("</a></td><td>")
               .Append(SA.S(r["PlanName"]).Length > 0 ? SA.H(r["PlanName"]) : "&mdash;").Append("</td><td class='sa-c'>").Append(Used(r["Businesses"], r["PlanBiz"])).Append("</td><td class='sa-c'>").Append(Used(r["Users"], r["PlanUsers"]))
-              .Append("</td><td>").Append(phone.Length > 0 ? SA.H(phone) : "&mdash;").Append("</td><td>").Append(SA.H(r["Email"])).Append("</td><td>").Append(r["Since"] == DBNull.Value ? "&mdash;" : D(r["Since"])).Append("</td><td class='sa-nowrap'><a class='sa-switch").Append(sts == "Inactive" ? "" : " on").Append("' href='").Append(b).Append("&amp;view=access' title='Manage Login &amp; Access' aria-label='Status: ").Append(sts).Append("'><i></i></a> ").Append(SA.Pill(sts, Tone(sts)))
+              .Append("</td><td>").Append(phone.Length > 0 ? SA.H(phone) : "&mdash;").Append("</td><td>").Append(SA.H(r["Email"])).Append("</td><td>").Append(r["Since"] == DBNull.Value ? "&mdash;" : D(r["Since"])).Append("</td><td class='sa-nowrap'>").Append(SA.Pill(sts, Tone(sts))) // v46 (t150u): status toggle removed - status pill only, as on Resellers / Businesses
               .Append("</td><td><details class='sa-menu'><summary class='sa-kebab' aria-label='Subscriber actions'>" + Ic("vmore") + "</summary><div class='sa-menu-pop'><h4>Subscriber Actions</h4><small>").Append(SA.H(Name(r))).Append(" &middot; ").Append(sts).Append("</small>").Append(Menu(u)).Append("</div></details></td></tr>");
         }
         if (rows.Count == 0) sb.Append("<tr><td colspan='11' class='sa-empty'>No subscribers found.</td></tr>");
@@ -589,7 +589,14 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
         Back(u, null);
     }
     // v43 PPT 01 s5 Add Subscriber: form -> Confirm and Send Activation Invitation -> busy overlay -> Subscriber Created Successfully!
-    static readonly string[] AF = { "ad_first", "ad_middle", "ad_last", "ad_email", "ad_phone", "ad_mobile", "ad_plan", "ad_biz", "ad_users", "ad_status", "ad_invite", "ad_start", "ad_end", "ad_street", "ad_city", "ad_prov", "ad_postal", "ad_country" };
+    static readonly string[] AF = { "ad_first", "ad_middle", "ad_last", "ad_email", "ad_phone", "ad_mobile", "ad_plan", "ad_biz", "ad_users", "ad_status", "ad_invite", "ad_start", "ad_end",
+        // v46 (Address deck s2): Address module fields (13-21) replace the old bottom Street / City / Province / Postal / Country block.
+        "ad_addr_no", "ad_addr_line1", "ad_addr_line2", "ad_addr_suitetype", "ad_addr_suiteno", "ad_addr_city", "ad_addr_prov", "ad_addr_postal", "ad_addr_country" };
+    static AnyminuteSupportAddress.Addr AddrOf(string[] v)
+    {
+        var a = new AnyminuteSupportAddress.Addr { StreetNo = v[13], Line1 = v[14], Line2 = v[15], SuiteType = AnyminuteSupportAddress.SuiteTypes.Contains(v[16]) ? v[16] : "", SuiteNo = v[17], City = v[18], Province = v[19], Country = v[21] == "United States" ? "United States" : "Canada" };
+        a.Postal = AnyminuteSupportAddress.NormalPostal(v[20], a.Country); return a;
+    }
     static readonly string[] AStatus = { "Pending Activation", "Active", "Suspended", "Inactive" };
     static readonly string[] Provinces = { "Alberta", "British Columbia", "Manitoba", "New Brunswick", "Newfoundland and Labrador", "Northwest Territories", "Nova Scotia", "Nunavut", "Ontario", "Prince Edward Island", "Quebec", "Saskatchewan", "Yukon" };
     void AddHead()
@@ -600,7 +607,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
     void AddView(SqlConnection c, string[] v)
     {
         AddHead();
-        if (v == null) { v = new string[AF.Length]; for (int i = 0; i < v.Length; i++) v[i] = ""; v[9] = AStatus[0]; v[10] = "1"; v[11] = DateTime.Today.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture); v[12] = DateTime.Today.AddYears(1).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture); v[17] = "Canada"; }
+        if (v == null) { v = new string[AF.Length]; for (int i = 0; i < v.Length; i++) v[i] = ""; v[9] = AStatus[0]; v[10] = "1"; v[11] = DateTime.Today.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture); v[12] = DateTime.Today.AddYears(1).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture); v[21] = "Canada"; }
         var plans = Plans(c); var pr = PlanRow(plans, v[6]); string pb = Lim(pr, "MaxBusinesses"), pe = Lim(pr, "MaxEmployees"), pp = Lim(pr, "MaxProjects"); bool custom = pr != null && (pb.Length == 0 || pe.Length == 0);
         Func<string, int, string, string, bool, string> f = (label, i, type, extra, req) => "<label class='sa-field'><span>" + label + (req ? " *" : "") + "</span><input type='" + type + "' name='" + AF[i] + "' value='" + SA.A(v[i]) + "'" + extra + (req ? " required" : "") + " /></label>";
         var sb = new StringBuilder("<div class='sa-card sa-add'>");
@@ -615,10 +622,9 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
         foreach (var o in AStatus) sb.Append("<label class='sa-radio'><input type='radio' name='ad_status' value='").Append(o).Append("'").Append(v[9] == o ? " checked" : "").Append(" /> ").Append(o).Append("</label> ");
         sb.Append("</div></div><label class='sa-check sa-check-box'><input type='checkbox' name='ad_invite' value='1'").Append(v[10] == "1" ? " checked" : "").Append(" /> <span><b>Send Activation Invitation</b><small>An invitation email will be sent to the subscriber to set their password.</small></span></label></div></section>")
           .Append("<section><h2>Subscription Dates</h2><div class='sa-grid2'>").Append(f("Start Date", 11, "date", "", true)).Append(f("Next Billing Date", 12, "date", "", true)).Append("</div></section>");
-        sb.Append("<section><h2>Address (Optional)</h2><div class='sa-addr-search'><label class='sa-field'><span>Postal Code</span><input name='ad_postal' maxlength='10' value='").Append(SA.A(v[16])).Append("' placeholder='e.g. M5V 2T6' data-sa-postal='1' /></label><button type='button' class='sa-btn sa-btn-outline' data-sa-addr='SupportSubscribers.aspx?lookup=1&amp;postal='>&#128269; Search Address</button><span class='sa-muted'>or enter manually</span></div>")
-          .Append("<div class='sa-addr-hits' data-sa-addr-hits='1' hidden></div><div class='sa-grid3'>").Append(f("Street Address", 13, "text", " maxlength='100' placeholder='Enter street address' data-sa-street='1'", false)).Append(f("City", 14, "text", " maxlength='50' placeholder='Enter city' data-sa-city='1'", false))
-          .Append("<label class='sa-field'><span>Province/State</span><select name='ad_prov' data-sa-prov='1'>").Append(SA.Options(Provinces.Concat(v[15].Length > 0 && !Provinces.Contains(v[15], StringComparer.OrdinalIgnoreCase) ? new[] { v[15] } : new string[0]), v[15], "Select province")).Append("</select></label>")
-          .Append("<label class='sa-field'><span>Country</span><select name='ad_country'>").Append(SA.Options(SA.Countries, v[17], null)).Append("</select></label></div></section>");
+        // v46 (Address deck s2 "Address module in Subscriber - Remove the bottom"): the Business Address Lookup module replaces
+        // the old Address (Optional) block. Optional; once started, the required fields must be completed.
+        sb.Append("<section class='sa-sub-addr'><h2>Address <span class='sa-muted sa-small'>(Optional)</span></h2>").Append(AnyminuteSupportAddress.Render("ad_addr", AddrOf(v), false, "SupportSubscribers.aspx?lookup=1&postal=", "Search for the subscriber address using a postal or ZIP code, select a result, or enter the address manually.")).Append("</section>");
         sb.Append("<div class='sa-panel-foot'><a class='sa-btn sa-btn-outline' href='SupportSubscribers.aspx'>Cancel</a><button type='submit' class='sa-btn' name='sa_op' value='add'>&#128190; Save Subscriber</button></div></div>");
         Content.Text = sb.ToString();
     }
@@ -642,8 +648,10 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
             else if (!Int32.TryParse(v[7], out nb) || nb < 0 || !Int32.TryParse(v[8], out ne) || ne < 0) errs.Add("Enter the business and employee limits for this plan.");
             bool h1 = DateTime.TryParseExact(v[11], "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out d1), h2 = DateTime.TryParseExact(v[12], "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out d2);
             if (!h1 || !h2) errs.Add("Enter valid subscription dates."); else if (d2 <= d1) errs.Add("Next Billing Date must be after the Start Date.");
+            errs.AddRange(AnyminuteSupportAddress.Validate(AddrOf(v), false));
             if (errs.Count > 0) { Flash.Text = "<div class='sa-flash sa-warn'>Please fix the following:<ul>" + String.Join("", errs.Select(m => "<li>" + SA.H(m) + "</li>").ToArray()) + "</ul></div>"; AddView(c, v); return; }
-            string addr = String.Join(", ", new[] { v[13], v[14], (v[15] + " " + v[16]).Trim(), v[13].Length + v[14].Length + v[16].Length > 0 ? v[17] : "" }.Where(x => x.Length > 0).ToArray());
+            var adr = AddrOf(v); v[20] = adr.Postal;
+            string addr = AnyminuteSupportAddress.Compose(adr);
             if (op != "addsave")
             {
                 AddHead();
@@ -664,7 +672,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
             var input = new AnyminuteSubscriberCreate.Input
             {
                 First = v[0], Middle = v[1], Last = v[2], Email = v[3], Phone = v[4], Mobile = v[5], PlanName = v[6], Businesses = nb, Employees = ne, Start = d1, NextBilling = d2, Invite = v[10] == "1",
-                Status = v[9] == AStatus[0] ? "Pending" : v[9], Street = v[13], City = v[14], Province = v[15], Postal = v[16], Country = v[17]
+                Status = v[9] == AStatus[0] ? "Pending" : v[9], StreetNo = adr.StreetNo, Street = adr.Line1, Line2 = adr.Line2, SuiteType = adr.SuiteType, SuiteNo = adr.SuiteNo, City = adr.City, Province = adr.Province, Postal = adr.Postal, Country = adr.Any ? adr.Country : ""
             };
             int user;
             try { user = AnyminuteSubscriberCreate.Create(input); }
@@ -683,16 +691,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
     // ?lookup=1&postal=: address search for the Add Subscriber form (same lookup as the address pages).
     void Lookup()
     {
-        var sb = new StringBuilder("[");
-        try
-        {
-            var t = AnyminuteAddressLookup.Search(SA.Get("postal"));
-            if (t != null) foreach (DataRow r in t.Rows.Cast<DataRow>().Take(20))
-                sb.Append(sb.Length > 1 ? "," : "").Append("{\"street\":\"").Append(HttpUtility.JavaScriptStringEncode(SA.S(r["StreetName"]))).Append("\",\"city\":\"").Append(HttpUtility.JavaScriptStringEncode(SA.S(r["City"])))
-                  .Append("\",\"province\":\"").Append(HttpUtility.JavaScriptStringEncode(SA.S(r["Province"]))).Append("\"}");
-        }
-        catch (Exception ex) { log4net.LogManager.GetLogger("Log").Error("Support address lookup failed", ex); }
-        Response.Clear(); Response.ContentType = "application/json"; Response.Write(sb.Append("]").ToString()); Response.Flush(); Response.SuppressContent = true; Context.ApplicationInstance.CompleteRequest();
+        Response.Clear(); Response.ContentType = "application/json"; Response.Write(AnyminuteSupportAddress.LookupJson(SA.Get("postal"))); Response.Flush(); Response.SuppressContent = true; Context.ApplicationInstance.CompleteRequest();
     }
     // v42: null = Login & Access (its own view now), "" = Subscriber Details.
     void Back(int user, string view) { if (view == null) view = "access"; Response.Redirect("SupportSubscribers.aspx" + (user > 0 ? "?user=" + user + (view.Length > 0 ? "&view=" + view : "") : ""), false); Context.ApplicationInstance.CompleteRequest(); }

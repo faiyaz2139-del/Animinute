@@ -34,6 +34,12 @@ public static partial class AnyminuteReports
     }
 
     // ---------- Reports hub ----------
+    // v46 (Reports deck "same across all module"): the hub uses the shared AnyminuteReportLayout - breadcrumb + icon title,
+    // left "Search reports..." list in collapsible groups, Report Filters card with Advanced Filters & Options,
+    // Clear Filters / Generate Report, and a Report Preview card (Export PDF / Excel, "No report generated" until generated).
+    static readonly string[][] HubGroups = {
+        new[] { "Time & Payroll Reports", "time-card", "work-schedule", "payroll-hours", "approval-audit", "project-cost" },
+        new[] { "People & Access Reports", "employee-master", "business-assignment", "pay-rate", "user-access", "accountant-access" } };
     public static string Hub(AmRptQuery q)
     {
         var scope = Scope(); var sb = new StringBuilder();
@@ -43,38 +49,33 @@ public static partial class AnyminuteReports
         var inScope = scope.Where(b => q.Business == "all" || b.Id.ToString(Inv) == q.Business).ToList();
         var defs = Available(q.Business);
         var tiers = inScope.Select(b => b.Tier).Distinct().OrderByDescending(t => t).Select(t => Tiers[t]).ToList();
-        // Header: title, Selected Business, Role Context (slide 1).
-        sb.Append("<header class=\"am-rp-head\"><div><h1>Reports</h1><p>View, filter, preview and export reports based on your access.</p></div><div data-rp-form=\"1\" class=\"am-rp-context\" data-action=\"").Append(A(VirtualPathUtility.ToAbsolute("~/Reports.aspx"))).Append("\">");
-        if (q.Key != "") sb.Append("<input type=\"hidden\" name=\"r\" value=\"").Append(A(q.Key)).Append("\" />");
-        sb.Append("<label><span>Selected Business</span><select name=\"b\" data-rp-autosubmit=\"1\">");
-        if (scope.Count > 1) sb.Append("<option value=\"all\"").Append(q.Business == "all" ? " selected" : "").Append(">All my businesses</option>");
-        foreach (var b in scope) sb.Append("<option value=\"").Append(b.Id).Append("\"").Append(q.Business == b.Id.ToString(Inv) ? " selected" : "").Append(">").Append(E(b.Name)).Append("</option>");
-        sb.Append("</select></label><label><span>Role Context</span><span class=\"am-rp-role\">").Append(E(String.Join(" / ", tiers))).Append("</span></label></div></header>");
-        sb.Append("<div class=\"am-rp-banner\" role=\"note\"><strong>i</strong><div>The reports shown below update automatically based on the selected business and your user role permissions.<br/><small>Switch business to see the reports available to you there.</small></div></div>");
-        sb.Append("<div class=\"am-rp-grid\"><section class=\"am-rp-card am-rp-list\"><div class=\"am-rp-card-head\"><h2>Available Reports (").Append(defs.Count).Append(")</h2><input type=\"search\" placeholder=\"Search reports...\" data-rp-search=\"1\" aria-label=\"Search reports\" /></div>");
-        if (defs.Count == 0) sb.Append("<p class=\"am-rp-empty\">No reports are enabled for your role in this business. A business owner can change this in Login &amp; Access &rsaquo; Report Access.</p>");
-        foreach (var d in defs)
-        {
-            var m = inScope.Count > 0 ? MatrixFor(inScope[0])[d.Key] : Defaults()[d.Key];
-            string pick = Href(q, d.Key, null) + "#rp-preview";
-            sb.Append("<article class=\"am-rp-item").Append(d.Key == q.Key ? " is-active" : "").Append("\" data-rp-href=\"").Append(A(pick)).Append("\" tabindex=\"0\" role=\"button\" aria-pressed=\"").Append(d.Key == q.Key ? "true" : "false").Append("\" data-rp-text=\"").Append(A((d.Name + " " + d.Desc).ToLowerInvariant())).Append("\">");
-            sb.Append("<span class=\"am-rp-ic am-rp-ic-").Append(d.Icon).Append("\">").Append(Icon(d.Icon)).Append("</span>");
-            sb.Append("<a class=\"am-rp-name\" href=\"" + A(pick) + "\">" + E(d.Name) + "</a>"); // v20: export-only reports open their filters too
-            sb.Append("<p>").Append(E(d.Desc)).Append("</p><span class=\"am-rp-roles\">");
-            for (int i = 0; i < 3; i++) if (m[i].Any) sb.Append("<span class=\"am-rp-badge am-rp-t").Append(i).Append("\">").Append(Tiers[i]).Append("</span>");
-            sb.Append("</span></article>"); // v40: row PDF/Excel removed; export from Report Filters & Preview only
-        }
         var def = defs.FirstOrDefault(x => x.Key == q.Key) ?? defs.FirstOrDefault(x => inScope.Any(b => Perm(x, b).View)) ?? defs.FirstOrDefault();
-        sb.Append("</section><section class=\"am-rp-card am-rp-preview\" id=\"rp-preview\" tabindex=\"-1\" aria-live=\"polite\" data-rp-key=\"").Append(def == null ? "" : A(def.Key)).Append("\">");
-        if (def == null) sb.Append("<h2>Report Filters &amp; Preview</h2><p class=\"am-rp-empty\">Select a report to preview it.</p>");
+        string home = VirtualPathUtility.ToAbsolute("~/Reports.aspx");
+        sb.Append("<div class=\"am-rl\">");
+        sb.Append(AnyminuteReportLayout.Head("Reports", home, def == null ? "Reports" : def.Name, def == null ? "View, filter, preview and export reports based on your access." : def.Desc.TrimEnd('.') + ". Filter the report to view and export the results.",
+            "<span class=\"am-rl-role\" title=\"Reports shown follow the selected business and your role permissions\">" + E(String.Join(" / ", tiers)) + "</span>"));
+        var groups = new List<AnyminuteReportLayout.Group>();
+        foreach (var g in HubGroups)
+        {
+            var grp = new AnyminuteReportLayout.Group { Title = g[0] };
+            foreach (var d in defs.Where(x => Array.IndexOf(g, x.Key, 1) > 0)) grp.Items.Add(new AnyminuteReportLayout.Item { Name = d.Name, Href = Href(q, d.Key, null), On = def != null && d.Key == def.Key });
+            if (grp.Items.Count > 0) groups.Add(grp);
+        }
+        var rest = new AnyminuteReportLayout.Group { Title = "Other Reports" };
+        foreach (var d in defs.Where(x => !HubGroups.Any(g => Array.IndexOf(g, x.Key, 1) > 0))) rest.Items.Add(new AnyminuteReportLayout.Item { Name = d.Name, Href = Href(q, d.Key, null), On = def != null && d.Key == def.Key });
+        if (rest.Items.Count > 0) groups.Add(rest);
+        sb.Append("<div class=\"am-rl-body\">").Append(AnyminuteReportLayout.Nav(groups));
+        sb.Append("<div class=\"am-rl-main\" data-rp-form=\"1\" data-action=\"").Append(A(home)).Append("\">");
+        if (def == null) sb.Append(AnyminuteReportLayout.Empty("No reports available", "No reports are enabled for your role in this business. A business owner can change this in Login & Access > Report Access."));
         else Preview(sb, def, q, inScope);
-        sb.Append("</section></div>");
+        sb.Append("</div></div></div>");
         return sb.ToString();
     }
     static void Preview(StringBuilder sb, AmRptDef d, AmRptQuery q, List<AmRptBiz> inScope)
     {
         if (q.Key != d.Key) { q.Key = d.Key; q.Choice.Clear(); }
         q.Action = "view"; AmRptResult r = null; string failure = null;
+        bool gen = HttpContext.Current != null && HttpContext.Current.Request.QueryString["gen"] == "1";
         // v20 (Pandey #5): a report whose preview cannot run (export-only role, data error) still shows its
         // Filters + Export panel; the reason is shown where the preview would be.
         bool canView = inScope.Any(b => Perm(d, b).View);
@@ -86,79 +87,85 @@ public static partial class AnyminuteReports
             catch (InvalidOperationException ex) { failure = ex.Message; }
             catch (System.Data.SqlClient.SqlException) { failure = "The report could not be loaded from the database. Try again or narrow the filters."; }
         }
-        if (r == null && d.DateMode == "range")
+        if (d.DateMode == "range")
         {
             DateTime t = Today(); if (!q.From.HasValue) q.From = new DateTime(t.Year, t.Month, 1); if (!q.To.HasValue) q.To = q.From.Value.AddMonths(1).AddDays(-1);
         }
         bool pdf = inScope.Any(b => Perm(d, b).Pdf), xls = inScope.Any(b => Perm(d, b).Excel);
-        sb.Append("<div class=\"am-rp-card-head\"><h2>Report Filters &amp; Preview</h2><span class=\"am-rp-chip\">").Append(E(d.Name)).Append("</span></div>");
-        sb.Append("<p class=\"am-rp-desc\">").Append(E(d.Desc)).Append("</p>"); // v21: which report these filters belong to
-        sb.Append("<div data-rp-form=\"1\" class=\"am-rp-filters\" data-action=\"").Append(A(VirtualPathUtility.ToAbsolute("~/Reports.aspx"))).Append("\"><input type=\"hidden\" name=\"r\" value=\"").Append(A(d.Key)).Append("\" />");
-        // v20 (image 8): every report panel starts with its Business filter.
+        var main = new StringBuilder(); var adv = new StringBuilder(); var opts = new StringBuilder();
+        string hidden = "<input type=\"hidden\" name=\"r\" value=\"" + A(d.Key) + "\" /><input type=\"hidden\" name=\"gen\" value=\"1\" />";
+        string star = d.DateMode == "range" ? " <b class=\"am-rl-req\">*</b>" : "";
+        if (d.DateMode != "none")
+        {
+            main.Append("<label><span>").Append(E(d.DateLabel)).Append(star).Append("</span><select data-rp-preset=\"1\"><option value=\"\">Custom Range</option><option value=\"this-month\">This Month</option><option value=\"last-month\">Last Month</option><option value=\"this-week\">This Week</option><option value=\"last-week\">Last Week</option><option value=\"ytd\">Year to Date</option>").Append(d.DateMode == "optional" ? "<option value=\"any\">Any date</option>" : "").Append("</select></label>");
+            main.Append("<label><span>From Date").Append(star).Append("</span><input type=\"date\" name=\"from\" value=\"").Append(q.From.HasValue ? q.From.Value.ToString("yyyy-MM-dd", Inv) : "").Append("\"").Append(d.DateMode == "range" ? " required" : "").Append(" /></label>");
+            main.Append("<label><span>To Date").Append(star).Append("</span><input type=\"date\" name=\"to\" value=\"").Append(q.To.HasValue ? q.To.Value.ToString("yyyy-MM-dd", Inv) : "").Append("\"").Append(d.DateMode == "range" ? " required" : "").Append(" /></label>");
+        }
+        // v20 (image 8): every report panel has its Business filter.
         var all = Scope();
         if (all.Count > 1)
         {
-            sb.Append("<label><span>Business</span><select name=\"b\"><option value=\"all\"").Append(q.Business == "all" ? " selected" : "").Append(">All Businesses</option>");
-            foreach (var b in all) sb.Append("<option value=\"").Append(b.Id).Append("\"").Append(q.Business == b.Id.ToString(Inv) ? " selected" : "").Append(">").Append(E(b.Name)).Append("</option>");
-            sb.Append("</select></label>");
+            main.Append("<label><span>Business</span><select name=\"b\"><option value=\"all\"").Append(q.Business == "all" ? " selected" : "").Append(">All Businesses</option>");
+            foreach (var b in all) main.Append("<option value=\"").Append(b.Id).Append("\"").Append(q.Business == b.Id.ToString(Inv) ? " selected" : "").Append(">").Append(E(b.Name)).Append("</option>");
+            main.Append("</select></label>");
         }
-        else sb.Append("<input type=\"hidden\" name=\"b\" value=\"").Append(A(q.Business)).Append("\" />");
-        if (d.DateMode != "none")
-        {
-            sb.Append("<label><span>").Append(E(d.DateLabel)).Append(" from</span><input type=\"date\" name=\"from\" value=\"").Append(q.From.HasValue ? q.From.Value.ToString("yyyy-MM-dd", Inv) : "").Append("\"").Append(d.DateMode == "range" ? " required" : "").Append(" /></label>");
-            sb.Append("<label><span>to</span><input type=\"date\" name=\"to\" value=\"").Append(q.To.HasValue ? q.To.Value.ToString("yyyy-MM-dd", Inv) : "").Append("\"").Append(d.DateMode == "range" ? " required" : "").Append(" /></label>");
-            sb.Append("<label><span>Reporting Period</span><select data-rp-preset=\"1\"><option value=\"\">Custom</option><option value=\"this-month\">This Month</option><option value=\"last-month\">Last Month</option><option value=\"this-week\">This Week</option><option value=\"last-week\">Last Week</option><option value=\"ytd\">Year to Date</option>").Append(d.DateMode == "optional" ? "<option value=\"any\">Any date</option>" : "").Append("</select></label>");
-        }
+        else hidden += "<input type=\"hidden\" name=\"b\" value=\"" + A(q.Business) + "\" />";
         if (d.Emp)
         {
             var people = new SortedDictionary<string, int>(StringComparer.OrdinalIgnoreCase);
             using (var c = AnyminuteTimesheetRepair.Open()) foreach (var b in inScope) foreach (DataRow p in People(c, b).Rows) { int id = I(p["EmployeeID"]); if (Sees(b, id)) people[S(p["Name"]) + " (#" + id + ")"] = id; }
-            sb.Append("<label><span>Employee</span><select name=\"emp\"><option value=\"\">All Employees</option>");
-            foreach (var p in people) sb.Append("<option value=\"").Append(p.Value).Append("\"").Append(q.Emp == p.Value ? " selected" : "").Append(">").Append(E(p.Key)).Append("</option>");
-            sb.Append("</select></label>");
+            main.Append("<label><span>Employee</span><select name=\"emp\"><option value=\"\">All Employees</option>");
+            foreach (var p in people) main.Append("<option value=\"").Append(p.Value).Append("\"").Append(q.Emp == p.Value ? " selected" : "").Append(">").Append(E(p.Key)).Append("</option>");
+            main.Append("</select></label>");
         }
         if (d.Proj)
         {
-            sb.Append("<label><span>Project</span><select name=\"proj\"><option value=\"\">All Projects</option>");
+            main.Append("<label><span>Project</span><select name=\"proj\"><option value=\"\">All Projects</option>");
             using (var c = AnyminuteTimesheetRepair.Open()) foreach (var b in inScope)
                     foreach (DataRow p in Q(c, "SELECT ProjectID,ProjectName FROM AddProject WHERE BusinessID=@b AND ISNULL(Status,'')<>'D' ORDER BY ProjectName", "@b", b.Id).Rows)
-                        sb.Append("<option value=\"").Append(I(p["ProjectID"])).Append("\"").Append(q.Proj == I(p["ProjectID"]) ? " selected" : "").Append(">").Append(E(S(p["ProjectName"]) + (inScope.Count > 1 ? " \u2014 " + b.Name : ""))).Append("</option>");
-            sb.Append("</select></label>");
+                        main.Append("<option value=\"").Append(I(p["ProjectID"])).Append("\"").Append(q.Proj == I(p["ProjectID"]) ? " selected" : "").Append(">").Append(E(S(p["ProjectName"]) + (inScope.Count > 1 ? " \u2014 " + b.Name : ""))).Append("</option>");
+            main.Append("</select></label>");
         }
         foreach (var ch in d.Choices)
         {
-            List<string> opts = null; if (r != null) r.Options.TryGetValue(ch[0], out opts); opts = opts ?? new List<string>(); string cur; q.Choice.TryGetValue(ch[0], out cur);
-            if (cur != null && !opts.Contains(cur)) opts.Add(cur);
-            sb.Append("<label><span>").Append(E(ch[1])).Append("</span><select name=\"c_").Append(A(ch[0])).Append("\"><option value=\"\">All</option>");
-            foreach (var o in opts) sb.Append("<option").Append(o == cur ? " selected" : "").Append(">").Append(E(o)).Append("</option>");
-            sb.Append("</select></label>");
+            List<string> o = null; if (r != null) r.Options.TryGetValue(ch[0], out o); o = o ?? new List<string>(); string cur; q.Choice.TryGetValue(ch[0], out cur);
+            if (cur != null && !o.Contains(cur)) o.Add(cur);
+            adv.Append("<label><span>").Append(E(ch[1])).Append("</span><select name=\"c_").Append(A(ch[0])).Append("\"><option value=\"\">All</option>");
+            foreach (var x in o) adv.Append("<option").Append(x == cur ? " selected" : "").Append(">").Append(E(x)).Append("</option>");
+            adv.Append("</select></label>");
         }
-        if (d.Inactive) sb.Append("<label class=\"am-rp-check\"><input type=\"checkbox\" name=\"inactive\" value=\"1\"").Append(q.Inactive ? " checked" : "").Append(" /> Include inactive employees</label>");
-        sb.Append("<div class=\"am-rp-buttons\"><button type=\"button\" data-rp-go=\"1\" class=\"am-rp-btn am-rp-primary\">Preview Report</button>");
-        if (pdf) sb.Append("<button type=\"button\" data-rp-go=\"1\" data-rp-export=\"pdf\" class=\"am-rp-btn am-rp-btn-pdf\">Export PDF</button>");
-        if (xls) sb.Append("<button type=\"button\" data-rp-go=\"1\" data-rp-export=\"excel\" class=\"am-rp-btn am-rp-btn-xls\">Export Excel</button>");
-        sb.Append("</div></div>");
-        sb.Append("<div class=\"am-rp-card-head am-rp-preview-head\"><h3>Report Preview</h3><small>Live data for the filters above</small></div>");
-        if (r == null) { sb.Append("<p class=\"am-rp-empty\">").Append(E(failure)).Append("</p>"); return; }
-        sb.Append("<p class=\"am-rp-sub\">").Append(E(r.Subtitle)).Append("</p><div class=\"am-rp-kpis\">");
-        foreach (var k in r.Kpis) sb.Append("<div><span>").Append(E(k.Key)).Append("</span><strong>").Append(E(k.Value)).Append("</strong></div>");
-        sb.Append("</div>");
-        foreach (var s in r.Sections)
+        if (d.Inactive) opts.Append("<label><input type=\"checkbox\" name=\"inactive\" value=\"1\"").Append(q.Inactive ? " checked" : "").Append(" /> Include inactive employees</label>");
+        string clear = Href(new AmRptQuery { Key = d.Key, Business = q.Business }, d.Key, null);
+        sb.Append(AnyminuteReportLayout.Filters("", hidden, main.ToString(), adv.ToString(), opts.ToString(), clear, "data-rp-go=\"1\""));
+        var body = new StringBuilder();
+        if (gen)
         {
-            sb.Append("<h3>").Append(E(s.Title)).Append(" <small>").Append(s.Rows.Count).Append(s.Rows.Count == 1 ? " row" : " rows").Append(s.Rows.Count > PreviewRows ? " \u2014 first " + PreviewRows + " shown; export for all" : "").Append("</small></h3>");
-            if (s.Rows.Count == 0) { sb.Append("<p class=\"am-rp-empty\">No records match these filters.</p>"); continue; }
-            sb.Append("<div class=\"am-rp-table-wrap\"><table class=\"am-rp-table\"><thead><tr>");
-            foreach (var h in s.Cols) sb.Append("<th>").Append(E(h)).Append("</th>");
-            sb.Append("</tr></thead><tbody>");
-            foreach (var row in s.Rows.Take(PreviewRows))
+            if (r == null) body.Append("<p class=\"am-rl-msg\">").Append(E(failure)).Append("</p>");
+            else
             {
-                sb.Append("<tr>");
-                for (int i = 0; i < row.Length; i++) { string v = row[i] ?? ""; string cls = Pill(s.Cols[i], v); sb.Append("<td>").Append(cls == null ? E(v) : "<span class=\"am-rp-pill " + cls + "\">" + E(v) + "</span>").Append("</td>"); }
-                sb.Append("</tr>");
+                body.Append("<div class=\"am-rl-kpis\">");
+                foreach (var k in r.Kpis) body.Append("<div><span>").Append(E(k.Key)).Append("</span><strong>").Append(E(k.Value)).Append("</strong></div>");
+                body.Append("</div>");
+                foreach (var s in r.Sections)
+                {
+                    body.Append("<h3>").Append(E(s.Title)).Append(" <small>").Append(s.Rows.Count).Append(s.Rows.Count == 1 ? " row" : " rows").Append(s.Rows.Count > PreviewRows ? " \u2014 first " + PreviewRows + " shown; export for all" : "").Append("</small></h3>");
+                    if (s.Rows.Count == 0) { body.Append(AnyminuteReportLayout.Empty("No records found", "No records match these filters.")); continue; }
+                    body.Append("<div class=\"am-rl-twrap\"><table class=\"am-rl-table am-rp-table\"><thead><tr>");
+                    foreach (var h in s.Cols) body.Append("<th>").Append(E(h)).Append("</th>");
+                    body.Append("</tr></thead><tbody>");
+                    foreach (var row in s.Rows.Take(PreviewRows))
+                    {
+                        body.Append("<tr>");
+                        for (int i = 0; i < row.Length; i++) { string v = row[i] ?? ""; string cls = Pill(s.Cols[i], v); body.Append("<td>").Append(cls == null ? E(v) : "<span class=\"am-rp-pill " + cls + "\">" + E(v) + "</span>").Append("</td>"); }
+                        body.Append("</tr>");
+                    }
+                    body.Append("</tbody></table></div>");
+                }
+                if (!String.IsNullOrEmpty(r.Note)) body.Append("<p class=\"am-rl-note\">").Append(E(r.Note)).Append("</p>");
             }
-            sb.Append("</tbody></table></div>");
         }
-        if (!String.IsNullOrEmpty(r.Note)) sb.Append("<p class=\"am-rp-note\">").Append(E(r.Note)).Append("</p>");
+        sb.Append(AnyminuteReportLayout.Preview(pdf ? "data-rp-go=\"1\" data-rp-export=\"pdf\"" : null, xls ? "data-rp-go=\"1\" data-rp-export=\"excel\"" : null, gen,
+            r != null ? E(r.Subtitle) : E(d.Desc), body.ToString()));
     }
     static string Pill(string col, string v)
     {

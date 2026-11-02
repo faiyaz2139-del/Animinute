@@ -706,7 +706,7 @@ public partial class Add_Business : System.Web.UI.Page
 
     protected void lnkSearch_Click(object sender, EventArgs e)
     {
-        AddressMessage.Visible = false;
+        AddressMessage.Visible = false; AddressNotFound.Visible = false; LookupInfo.Visible = true;
         ResetAddressChoices(AddressPlaceholder);
         gvAddressList.DataSource = null; gvAddressList.DataBind();
         string postal = AnyminuteBusinessAddressInput.Postal(txtSearchPostalCode.Text);
@@ -736,7 +736,9 @@ public partial class Add_Business : System.Web.UI.Page
         AddressChoices.Enabled = AddressChoices.Items.Count > 1;
         if (AddressChoices.Items.Count == 1)
         {
-            AddressFeedback(NoAddressFound);
+            // v46 (paused deck s1): no hint, no plain-text message - only the "Address Not Found" card.
+            LookupInfo.Visible = false; resultdiv.Visible = false;
+            AddressNotFound.Text = AnyminuteAddressLookup.NotFoundHtml(postal); AddressNotFound.Visible = true;
         }
         else
         {
@@ -756,7 +758,7 @@ public partial class Add_Business : System.Web.UI.Page
     protected void AddressChoices_SelectedIndexChanged(object sender, EventArgs e)
     {
         // v11 Deck H step 3: choosing a result fills the address fields automatically (nothing is saved yet).
-        AddressMessage.Visible = false;
+        AddressMessage.Visible = false; AddressNotFound.Visible = false; LookupInfo.Visible = true;
         if (AddressChoices.SelectedValue != "") ApplySelectedAddress();
     }
 

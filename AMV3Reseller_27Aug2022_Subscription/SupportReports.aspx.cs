@@ -6,7 +6,9 @@ using System.Text;
 using System.Web;
 using SA = AnyminuteSupportAdmin;
 using SR = AnyminuteSupportReports;
+using RL = AnyminuteReportLayout;
 
+// 2026-11-01 v46: Reports deck - shared AnyminuteReportLayout (breadcrumb, searchable nav, Advanced Filters & Options, Report Preview card with exports).
 // 2026-10-29 v31: all 20 reports share the Support Ticket filter layout (date filters first as Date Range / From / To cells).
 // 2026-10-29 v30: Report Filters card per the Support Ticket mock (range3 = Date Range / From / To cells).
 // 2026-10-29 v28 (Shamsu deck 1 slides 1-2, deck 2 slides 3-4): Support Admin Reports hub.
@@ -21,48 +23,46 @@ public partial class AnyminuteSupportReportsPage : System.Web.UI.Page
         var q = Request.QueryString; var def = SR.Def(q["r"]);
         if (q["export"] == "pdf" || q["export"] == "excel") { SR.Export(Context, SR.Execute(def, q), q["export"] == "pdf"); return; }
         Title = def.Name + " Report";
+        // v46 (Reports deck): shared report layout (AnyminuteReportLayout) - same design as Reports.aspx in the other modules.
+        Head1.Text = RL.Head(def.Group == "Reseller" ? "Reseller Reports" : "Support Admin Reports", "SupportReports.aspx", def.Name, def.Purpose.TrimEnd('.') + ". Filter the report to view and export the results.", null);
         Nav.Text = NavList(def);
         bool gen = q["gen"] == "1"; var run = SR.Execute(def, gen ? q : new NameValueCollection { { "r", def.Key } });
         var sb = new StringBuilder();
-        sb.Append("<header class='sa-head'><div><h1>").Append(SA.H(def.Name)).Append(" Report</h1><p>").Append(SA.H(def.Purpose.TrimEnd('.') + ".")).Append(" Select filters to generate the report.</p></div>")
-          .Append("<div class='sa-rpt-export'><button type='button' class='sa-btn sa-btn-outline' data-sa-apply='1' data-sa-extra='export=pdf' data-sa-form='sa-rpt-form'>&#128196; Export PDF</button>")
-          .Append("<button type='button' class='sa-btn sa-btn-outline' data-sa-apply='1' data-sa-extra='export=excel' data-sa-form='sa-rpt-form'>&#128200; Export Excel</button></div></header>");
-        // v30 (Pandey post-v29, Support Ticket mock): "Report Filters" card (funnel icon, Clear All button), 3-column filter grid,
-        // Additional Options band with gear icon and Generate Report bottom-left. Same layout for every report in the hub.
         sb.Append(FilterCard(def, gen ? q : new NameValueCollection(), run));
-        if (run.Error != null) sb.Append("<div class='sa-flash sa-warn'>").Append(SA.H(run.Error)).Append("</div>");
-        if (!gen) sb.Append("<div class='sa-card sa-rpt-hint'><p class='sa-muted'>Choose filters and click <strong>Generate Report</strong> to preview the results. Exports use the same filters.</p></div>");
-        else sb.Append(Result(run));
+        if (run.Error != null) sb.Append("<div class='am-rl-msg'>").Append(SA.H(run.Error)).Append("</div>");
+        sb.Append(RL.Preview("data-sa-form='sa-rpt-form' data-sa-extra='export=pdf'", "data-sa-form='sa-rpt-form' data-sa-extra='export=excel'", gen, gen ? Summary(run) : null, gen ? Result(run) : null));
         Body1.Text = sb.ToString();
     }
-    // v31: one shared Report Filters card for all 20 reports (also used by the offline layout check).
+    // v46: Report Filters card - date range + the first filters on the card, the rest with the options under
+    // "Advanced Filters & Options" (Support Ticket mock). Also used by the offline layout check.
     public static string FilterCard(SrDef def, NameValueCollection q, SrRun run)
     {
-        var sb = new StringBuilder();
-        sb.Append("<div class='sa-card sa-rpt-card' id='sa-rpt-form' data-sa-get='SupportReports.aspx' data-sa-noauto='1'><input type='hidden' name='r' value='").Append(SA.A(def.Key)).Append("' /><input type='hidden' name='gen' value='1' />")
-          .Append("<div class='sa-rpt-cardhead'><h2><i class='sa-rpt-ico' aria-hidden='true'>&#9660;</i> Report Filters</h2><a class='sa-btn sa-btn-outline sa-btn-sm' href='SupportReports.aspx?r=").Append(HttpUtility.UrlEncode(def.Key)).Append("'>&#8635; Clear All</a></div><div class='sa-rpt-grid'>");
-        foreach (var f in def.Filters.OrderBy(x => x.Type.StartsWith("range") ? 0 : 1)) sb.Append(Filter(f, q, run.Base));
-        sb.Append("</div>");
-        if (def.Options.Length > 0)
+        var main = new StringBuilder(); var adv = new StringBuilder(); int n = 0;
+        foreach (var f in def.Filters.OrderBy(x => x.Type.StartsWith("range") ? 0 : 1))
         {
-            sb.Append("<div class='sa-rpt-optband'><h3><i class='sa-rpt-ico' aria-hidden='true'>&#9881;</i> Additional Options</h3><div class='sa-rpt-opts'>");
-            foreach (var o in def.Options) sb.Append("<label class='sa-check'><input type='checkbox' name='o_").Append(o[0]).Append("' value='1'").Append(run.On.Contains(o[0]) ? " checked" : "").Append(" /> ").Append(SA.H(o[1])).Append("</label>");
-            sb.Append("</div></div>");
+            bool range = f.Type.StartsWith("range");
+            if (range || n++ < 4) main.Append(Filter(f, q, run.Base)); else adv.Append(Filter(f, q, run.Base));
         }
-        sb.Append("<div class='sa-rpt-go'><button type='button' class='sa-btn' data-sa-apply='1'>&#128269; Generate Report</button></div></div>");
-        return sb.ToString();
+        var opts = new StringBuilder();
+        foreach (var o in def.Options) opts.Append("<label><input type='checkbox' name='o_").Append(o[0]).Append("' value='1'").Append(run.On.Contains(o[0]) ? " checked" : "").Append(" /> ").Append(SA.H(o[1])).Append("</label>");
+        return RL.Filters("id='sa-rpt-form' data-sa-get='SupportReports.aspx' data-sa-noauto='1'",
+            "<input type='hidden' name='r' value='" + SA.A(def.Key) + "' /><input type='hidden' name='gen' value='1' />",
+            main.ToString(), adv.ToString(), opts.ToString(), "SupportReports.aspx?r=" + HttpUtility.UrlEncode(def.Key), "data-sa-apply='1'");
     }
     static string NavList(SrDef cur)
     {
-        var sb = new StringBuilder("<aside class='sa-rpt-nav'><nav aria-label='Reports'>");
+        var groups = new List<RL.Group>();
         foreach (var g in new[] { new[] { "Support", "Support Admin Reports" }, new[] { "Reseller", "Reseller Reports" } })
         {
-            sb.Append("<h4>").Append(g[1]).Append("</h4><ol>");
-            foreach (var d in SR.Defs.Where(x => x.Group == g[0]))
-                sb.Append("<li><a href='SupportReports.aspx?r=").Append(d.Key).Append("'").Append(d == cur ? " class='on' aria-current='page'" : "").Append(">").Append(SA.H(d.Name)).Append("</a></li>");
-            sb.Append("</ol>");
+            var grp = new RL.Group { Title = g[1] };
+            foreach (var d in SR.Defs.Where(x => x.Group == g[0])) grp.Items.Add(new RL.Item { Name = d.Name, Href = "SupportReports.aspx?r=" + d.Key, On = d == cur });
+            groups.Add(grp);
         }
-        return sb.Append("</nav></aside>").ToString();
+        return RL.Nav(groups);
+    }
+    static string Summary(SrRun run)
+    {
+        return run.Data.Rows.Count + " record(s)" + (run.Applied.Count == 0 ? " &middot; no filters" : " &middot; " + SA.H(String.Join("; ", run.Applied.ToArray())));
     }
     static string Filter(SrFilter f, NameValueCollection q, SrData all)
     {
@@ -79,7 +79,7 @@ public partial class AnyminuteSupportReportsPage : System.Web.UI.Page
             sb = new StringBuilder("<label class='sa-field'><span>").Append(SA.H(f.Label)).Append(star).Append("</span><select name='").Append(n).Append("_preset'>");
             foreach (var r in SR.Ranges) sb.Append("<option").Append(r == p ? " selected" : "").Append(">").Append(r).Append("</option>");
             sb.Append("</select></label><label class='sa-field'><span>From Date").Append(star).Append("</span><input type='date' name='").Append(n).Append("_from' value='").Append(SA.A(a)).Append("' /></label>")
-              .Append("<label class='sa-field'><span>To Date").Append(star).Append("</span><input type='date' name='").Append(n).Append("_to' value='").Append(SA.A(b)).Append("' /><small class='sa-muted'>From / To apply with Custom Range.</small>");
+              .Append("<label class='sa-field'><span>To Date").Append(star).Append("</span><input type='date' name='").Append(n).Append("_to' value='").Append(SA.A(b)).Append("' />");
             return sb.Append("</label>").ToString();
         }
         else if (f.Type == "text") sb.Append("<input type='search' name='").Append(n).Append("' value='").Append(SA.A(v)).Append("' placeholder='Search ").Append(SA.A(f.Label.ToLowerInvariant())).Append("...' />");
@@ -104,21 +104,19 @@ public partial class AnyminuteSupportReportsPage : System.Web.UI.Page
         var sb = new StringBuilder();
         if (run.Kpis.Count > 0)
         {
-            sb.Append("<div class='sa-kpis sa-rpt-kpis'>");
-            foreach (var k in run.Kpis) sb.Append("<div class='sa-kpi'><div><span>").Append(SA.H(k.Key)).Append("</span><strong>").Append(SA.H(k.Value)).Append("</strong></div></div>");
+            sb.Append("<div class='am-rl-kpis'>");
+            foreach (var k in run.Kpis) sb.Append("<div><span>").Append(SA.H(k.Key)).Append("</span><strong>").Append(SA.H(k.Value)).Append("</strong></div>");
             sb.Append("</div>");
         }
         var vis = run.Visible(); var d = run.Data;
-        sb.Append("<div class='sa-card'><div class='sa-rpt-cardhead'><h2>Report Preview</h2><span class='sa-muted'>").Append(d.Rows.Count).Append(" record(s)")
-          .Append(run.Applied.Count == 0 ? " &middot; no filters" : " &middot; " + SA.H(String.Join("; ", run.Applied.ToArray()))).Append("</span></div>");
-        if (!String.IsNullOrEmpty(d.Note)) sb.Append("<p class='sa-muted sa-small'>").Append(SA.H(d.Note)).Append("</p>");
-        if (d.Rows.Count == 0) return sb.Append("<p class='sa-rpt-empty'>No records match these filters.</p></div>").ToString();
-        sb.Append("<div class='sa-table-wrap'><table class='sa-table'><thead><tr>");
+        if (!String.IsNullOrEmpty(d.Note)) sb.Append("<p class='am-rl-small'>").Append(SA.H(d.Note)).Append("</p>");
+        if (d.Rows.Count == 0) return sb.Append(RL.Empty("No records found", "No records match these filters. Change the filters and click Generate Report again.")).ToString();
+        sb.Append("<div class='am-rl-twrap'><table class='am-rl-table'><thead><tr>");
         foreach (int i in vis) sb.Append("<th>").Append(SA.H(d.Cols[i])).Append("</th>");
         sb.Append("</tr></thead><tbody>");
         foreach (var r in d.Rows.Take(SR.PreviewRows)) { sb.Append("<tr>"); foreach (int i in vis) sb.Append("<td>").Append(SA.H(r[i])).Append("</td>"); sb.Append("</tr>"); }
         sb.Append("</tbody></table></div>");
-        if (d.Rows.Count > SR.PreviewRows) sb.Append("<p class='sa-muted sa-small'>Showing the first ").Append(SR.PreviewRows).Append(" rows. Export PDF or Excel for all ").Append(d.Rows.Count).Append(".</p>");
-        return sb.Append("</div>").ToString();
+        if (d.Rows.Count > SR.PreviewRows) sb.Append("<p class='am-rl-small'>Showing the first ").Append(SR.PreviewRows).Append(" rows. Export PDF or Excel for all ").Append(d.Rows.Count).Append(".</p>");
+        return sb.ToString();
     }
 }

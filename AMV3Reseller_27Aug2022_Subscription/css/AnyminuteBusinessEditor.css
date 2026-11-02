@@ -304,3 +304,10 @@ html body .am-business-editor .am-al-details-head .am-v16-cardedit{float:none;ma
 .am-autosave-error{background:#fdeeee;color:#8f1d1d;border-color:#efb4b4}
 .am-autosave-busy,.am-autosave-pending{background:#fff7e6;color:#8a5a00;border-color:#f3d9a4}
 html body .am-business-editor .am-al-layout.am-al-single{grid-template-columns:minmax(0,1fr)} /* v42 PPT 05 s1: help panel removed */
+/* v46 (Paused deck s1): no-result state = only the "Address Not Found" card (no blue hint, no plain text line). */
+html body .am-al-nf{display:block;background:#fff;border:1px solid #dfe4ec;border-radius:10px;padding:12px 16px;margin:14px 0;color:#334155;font-size:13px;line-height:1.5;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+html body .am-al-nf[hidden]{display:none}
+html body .am-al-nf-head{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+html body .am-al-nf-head strong{font-size:14px;font-weight:700;color:#1e293b}
+html body .am-al-nf-i{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border:1.5px solid #475569;border-radius:50%;font:700 10px/1 Georgia,serif;color:#475569;font-style:normal;flex:none}
+html body .am-al-nf p{margin:0;padding-left:24px;color:#475569}

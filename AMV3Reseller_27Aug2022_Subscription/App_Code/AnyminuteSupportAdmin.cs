@@ -86,6 +86,26 @@ public static class AnyminuteSupportAdmin
         return sb.Append("</nav></div>").ToString();
     }
 
+    // v46 (t148u/t149u): the Subscribers list footer as a shared helper - "Showing x to y of z <noun>s", "[10] per page" and
+    // a pager "< 1 2 3 4 5 ... 13 >". bq = page URL with the filters (no size / page).
+    public static readonly int[] PageSizes = { 10, 20, 50 };
+    public static int PageSizeArg(int dflt) { int z; return Int32.TryParse(Get("size"), out z) && Array.IndexOf(PageSizes, z) >= 0 ? z : dflt; }
+    public static string Pager46(int total, int page, int size, string bq, string noun)
+    {
+        int pages = Math.Max(1, (total + size - 1) / size); if (page > pages) page = pages;
+        Func<int, string> pg = i => A(bq + "&size=" + size + "&page=" + i);
+        var sb = new StringBuilder("<div class='sa-pager sa-rsl-pager'><span>Showing ").Append(total == 0 ? 0 : (page - 1) * size + 1).Append(" to ").Append(Math.Min(total, page * size)).Append(" of ").Append(total).Append(" ").Append(noun).Append(total == 1 ? "" : noun.EndsWith("s") ? "es" : "s").Append("</span>")
+            .Append("<label class='sa-rsl-size'><select aria-label='Rows per page' onchange=\"location.href='").Append(A(bq)).Append("&size='+this.value\">");
+        foreach (int z in PageSizes) sb.Append("<option value='").Append(z).Append("'").Append(z == size ? " selected" : "").Append(">").Append(z).Append(" per page</option>");
+        sb.Append("</select></label><nav aria-label='Pages'>").Append(page > 1 ? "<a href='" + pg(page - 1) + "' aria-label='Previous page'>&lsaquo;</a>" : "<span class='sa-pg-off' aria-hidden='true'>&lsaquo;</span>");
+        int p0 = Math.Max(1, Math.Min(page - 2, pages - 4)), p1 = Math.Min(pages, p0 + 4);
+        Func<int, string> pa = i => "<a href='" + pg(i) + "'" + (i == page ? " class='on' aria-current='page'" : "") + ">" + i + "</a>";
+        if (p0 > 1) sb.Append(pa(1)).Append(p0 > 2 ? "<span class='sa-pg-gap' aria-hidden='true'>&hellip;</span>" : "");
+        for (int i = p0; i <= p1; i++) sb.Append(pa(i));
+        if (p1 < pages) sb.Append(p1 < pages - 1 ? "<span class='sa-pg-gap' aria-hidden='true'>&hellip;</span>" : "").Append(pa(pages));
+        return sb.Append(page < pages ? "<a href='" + pg(page + 1) + "' aria-label='Next page'>&rsaquo;</a>" : "<span class='sa-pg-off' aria-hidden='true'>&rsaquo;</span>").Append("</nav></div>").ToString();
+    }
+
     // ---- Activity history (AnyminuteSupportAudit) ----
     public static void Audit(SqlConnection c, SqlTransaction tx, string entity, string key, string action, string prevStatus, string newStatus, string prevValue, string newValue, string comments)
     {

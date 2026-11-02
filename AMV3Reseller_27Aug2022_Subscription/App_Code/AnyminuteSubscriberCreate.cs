@@ -19,6 +19,7 @@ public static class AnyminuteSubscriberCreate
     public sealed class Input
     {
         public string First, Middle, Last, Email, Phone, Mobile, PlanName, Status, Street, City, Province, Postal, Country;
+        public string StreetNo, Line2, SuiteType, SuiteNo; // v46 Address module (Street Number, Address Line 2, Suite Type / Number)
         public int Businesses, Employees; public DateTime Start, NextBilling; public bool Invite;
         public string TempPassword; // v45: set by Create (shown once on screen, sent in the welcome email; never stored in clear)
     }
@@ -49,9 +50,9 @@ public static class AnyminuteSubscriberCreate
             SA.X(c, null, "UPDATE AddEmployee SET EMPLOYEETYPE='NEW_AC_BO',UserType=1 WHERE EmployeeID=@e", "@e", empId);
             var addr = new EmpAddressEntity
             {
-                Postalcode = x.Postal ?? "", NumberSuffix = "", StreetName = x.Street ?? "", StreetType = "", StreetDirection = "", SuitType = "", SuiteNumber = "", SuitSuffix = "",
+                Postalcode = x.Postal ?? "", NumberSuffix = "", StreetName = x.Street ?? "", StreetType = x.Line2 ?? "", StreetDirection = "", SuitType = x.SuiteType ?? "", SuiteNumber = x.SuiteNo ?? "", SuitSuffix = "",
                 City = x.City ?? "", Province = x.Province ?? "", MainPhone = x.Phone, WorkPhone = "", Mobile = x.Mobile ?? "", Fax = "", MainEmail = x.Email, CCEmail = "",
-                Website = "", Other1 = "", StreetNo = "", MotherOrgId = MotherOrg
+                Website = "", Other1 = "", StreetNo = x.StreetNo ?? "", MotherOrgId = MotherOrg
             };
             if (new EmpAddressController().InsertEmpAddress(addr, empId) <= 0) throw new InvalidOperationException("The subscriber contact details could not be saved (employee " + empId + ").");
             if (!String.IsNullOrEmpty(x.Country) && AnyminuteEmployeeEditor.HasColumn(c, null, "EmpAddress", "Country"))

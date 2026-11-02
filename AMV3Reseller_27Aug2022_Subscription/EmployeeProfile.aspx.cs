@@ -150,69 +150,21 @@ public partial class EmployeeProfile : System.Web.UI.Page
 
     protected void lnkSearch_Click(object sender, EventArgs e)
     {
-        if (txtSearchPostalCode.Text == "")
-        {
-            ScriptManager.RegisterClientScriptBlock(this.Page, this.GetType(), "SweetAlert", "swal('Error!', 'Please enter 6 digit postal code to search', 'error');", true);
-            return;
-        }
-        string _serachpostcode = txtSearchPostalCode.Text.Replace(" ", string.Empty).Trim();
-        if (_serachpostcode.Length.ToString() != "6")
-        {
-            ScriptManager.RegisterClientScriptBlock(this.Page, this.GetType(), "SweetAlert", "swal('Error!', 'Please enter 6 digit postal code to search', 'error');", true);
-            txtSearchPostalCode.Focus();
-            return;
-        }
+        // v46 (paused deck s1/s3/s4): Business lookup behaviour - Canadian or US code, the shared search (AddressMaster +
+        // saved employee and business addresses), results in "Select Address from Search Results", and on no result only
+        // the "Address Not Found" card (the "Address not recorded previously" warning is gone).
+        string postal = AnyminuteBusinessAddressInput.Postal(txtSearchPostalCode.Text);
+        AddressNotFound.Visible = false; LookupInfo.Visible = true; LookupResults.Visible = true; resultdiv.Visible = false;
+        if (!System.Text.RegularExpressions.Regex.IsMatch(postal, @"^([A-Z]\d[A-Z]\d[A-Z]\d|\d{5}(-?\d{4})?)$"))
+        { txtSearchPostalCode.Attributes["aria-invalid"] = "true"; txtSearchPostalCode.Focus(); return; }
+        txtSearchPostalCode.Attributes.Remove("aria-invalid");
         ClearAddress();
-        if (txtSearchPostalCode.Text.Length.ToString() != "") //== "7")
+        DataTable matches = AnyminuteAddressLookup.Search(postal);
+        BindAddressChoices(matches);
+        if (ddlAddressChoices.Items.Count <= 2)
         {
-            string strsearch = txtSearchPostalCode.Text;
-            strsearch = strsearch.Replace(" ", String.Empty);
-
-            resultdiv.Visible = true;
-            DataTable dtSearchAddress = new DataTable();
-            rdobtnlist.Visible = true;
-            //dtSearchAddress = comm.GetAllDataFromTable("EmpAddress", "EmpAddressId,StreetName+', '+ StreetType+', '+StreetDirection+', '+City+', '+Province as SEARCHADDRESS", "Postalcode='" + txtSearchPostalCode.Text + "'", "EmpAddressId");
-            //dtSearchAddress = comm.GetSearchAddress(txtSearchPostalCode.Text.Trim());
-            dtSearchAddress = comm.GetSearchAddress(strsearch);
-            BindAddressChoices(dtSearchAddress); // v17: new "Select Address from List or Add New" dropdown
-            DataRow row1 = dtSearchAddress.NewRow();
-            row1["id"] = 0;
-            row1["SEARCHADDRESS"] = " ADD NEW ADDRESS"; //"None of the Above";
-            dtSearchAddress.Rows.Add(row1);
-            gvAddressList.DataSource = dtSearchAddress;
-            gvAddressList.DataBind();
-            DataRow row = dtSearchAddress.NewRow();
-            if (dtSearchAddress.Rows.Count == 0)
-            {
-                //rdobtnlist.ClearSelection();
-                row["id"] = 0;
-                row["SEARCHADDRESS"] = " Add New Address"; //"None of the Above";
-                dtSearchAddress.Rows.Add(row);
-                rdobtnlist.DataBind();
-                rdobtnlist.DataSource = dtSearchAddress;
-                rdobtnlist.DataTextField = "SEARCHADDRESS";
-                rdobtnlist.DataValueField = "SEARCHADDRESS";
-                rdobtnlist.DataBind();
-                this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('Warning!', 'Address not recorded previously', 'warning');", true);
-                return;
-            }
-            row["id"] = 0;
-            row["SEARCHADDRESS"] = " Add New Address";
-            dtSearchAddress.Rows.Add(row);
-            rdobtnlist.DataSource = dtSearchAddress;
-            rdobtnlist.DataTextField = "SEARCHADDRESS";
-            rdobtnlist.DataValueField = "SEARCHADDRESS";
-            foreach (ListItem itm in rdobtnlist.Items)
-            {
-                for (int i = 0; i < dtSearchAddress.Rows.Count; i++)
-                {
-                    itm.Attributes["title"] = dtSearchAddress.Rows[i]["tab"].ToString();
-                    itm.Text = dtSearchAddress.Rows[i]["SEARCHADDRESS"].ToString();
-                    itm.Value = dtSearchAddress.Rows[i]["id"].ToString();
-                }
-
-            }
-            rdobtnlist.DataBind();
+            LookupInfo.Visible = false; LookupResults.Visible = false;
+            AddressNotFound.Text = AnyminuteAddressLookup.NotFoundHtml(postal); AddressNotFound.Visible = true;
         }
     }
 
@@ -223,18 +175,19 @@ public partial class EmployeeProfile : System.Web.UI.Page
         DataTable copy = matches.Copy(); if (String.IsNullOrEmpty(copy.TableName)) copy.TableName = "ProfileMatches";
         ViewState["ProfileMatches"] = copy;
         ddlAddressChoices.Items.Clear();
-        ddlAddressChoices.Items.Add(new ListItem(copy.Rows.Count > 0 ? "Select an address" : "No matching addresses found", ""));
+        ddlAddressChoices.Items.Add(new ListItem("Select an address from the list below", ""));
         for (int i = 0; i < copy.Rows.Count; i++)
         {
             string label = Convert.ToString(copy.Rows[i]["SEARCHADDRESS"]).Trim();
             if (label.Length > 0 && !String.Equals(label, "ADD NEW ADDRESS", StringComparison.OrdinalIgnoreCase)) ddlAddressChoices.Items.Add(new ListItem(label, i.ToString()));
         }
-        ddlAddressChoices.Items.Add(new ListItem("+ Add New Address", "new"));
+        ddlAddressChoices.Items.Add(new ListItem("+ Enter Address Manually", "new"));
     }
 
     protected void ddlAddressChoices_Changed(object sender, EventArgs e)
     {
         string postal = txtSearchPostalCode.Text.Trim().ToUpper();
+        AddressNotFound.Visible = false;
         txtStreetNo.ReadOnly = txtStreetName.ReadOnly = txtStreetType.ReadOnly = txtCity.ReadOnly = txtProvince.ReadOnly = txtPostalCode.ReadOnly = false;
         if (ddlAddressChoices.SelectedValue == "new")
         {

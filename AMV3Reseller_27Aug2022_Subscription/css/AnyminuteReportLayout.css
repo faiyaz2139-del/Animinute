@@ -1,0 +1,80 @@
+/* 2026-11-01 v46 (Reports deck, Support Ticket mock): one report layout for every module.
+   Used by SupportReports.aspx (Support Admin / Reseller reports) and Reports.aspx (Business Owner, Manager,
+   Employee and Accountant reports). Scoped to .am-rl. */
+.am-rl{--rl-blue:#1a5fd6;--rl-ink:#0f2a5c;--rl-mute:#5b6778;--rl-line:#dfe6f1;--rl-band:#eef4fd;color:var(--rl-ink);font-size:13px;padding:6px 2px 28px}
+.am-rl *{box-sizing:border-box}
+.am-rl-head{display:flex;align-items:center;gap:14px;margin:0 0 16px}
+.am-rl-tile{flex:none;width:52px;height:52px;border-radius:12px;background:var(--rl-blue);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(26,95,214,.25)}
+.am-rl-tile svg{width:28px;height:28px}
+.am-rl-titles{flex:1;min-width:0}
+.am-rl-crumb{display:flex;gap:6px;font-size:12px;color:var(--rl-mute);margin:0 0 2px}
+.am-rl-crumb a{color:var(--rl-mute)!important;text-decoration:none!important}.am-rl-crumb a:hover{color:var(--rl-blue)!important}
+.am-rl-crumb span:last-child{color:var(--rl-ink);font-weight:600}
+.am-rl h1{font-size:26px;font-weight:800;margin:0;color:var(--rl-ink);line-height:1.15}
+.am-rl-titles>p{margin:3px 0 0;color:var(--rl-mute)}
+.am-rl-headx{flex:none;display:flex;gap:10px;align-items:flex-end}
+.am-rl-headx label{display:flex;flex-direction:column;gap:3px;font-size:11px;font-weight:600;margin:0}
+.am-rl-headx select{border:1px solid #cfd6e2;border-radius:8px;padding:6px 10px;font-size:13px;min-width:200px;background:#fff}
+.am-rl-role{display:inline-block;background:#eef4fd;border:1px solid #c9dcf7;color:#1a4f9c;border-radius:999px;padding:5px 12px;font-size:12px;font-weight:600}
+.am-rl-body{display:flex;gap:16px;align-items:flex-start;background:#fff;border:1px solid var(--rl-line);border-radius:14px;padding:14px;box-shadow:0 1px 3px rgba(15,42,92,.05)}
+.am-rl-nav{width:250px;flex:none;border:1px solid var(--rl-line);border-radius:12px;padding:10px;position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto;background:#fff}
+.am-rl-search{position:relative;display:block;margin:0 0 8px}
+.am-rl-search svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--rl-mute)}
+.am-rl-search input{width:100%;border:1px solid #cfd6e2;border-radius:8px;padding:7px 10px 7px 32px;font-size:12.5px;background:#fff;color:var(--rl-ink)}
+.am-rl-group{border-top:1px solid var(--rl-line);padding:4px 0}.am-rl-group:first-of-type{border-top:0}
+.am-rl-group>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:8px 6px;font-weight:700;font-size:13.5px;color:var(--rl-ink)}
+.am-rl-group>summary::-webkit-details-marker,.am-rl-adv>summary::-webkit-details-marker{display:none}
+.am-rl-chev{width:16px;height:16px;transition:transform .15s;color:var(--rl-ink);flex:none}
+.am-rl details:not([open])>summary .am-rl-chev{transform:rotate(180deg)}
+.am-rl-group ul{list-style:none;margin:0;padding:0 0 4px}
+.am-rl-group a{display:flex;align-items:center;gap:8px;padding:6px 8px 6px 14px;border-radius:7px;color:#24365c!important;text-decoration:none!important;font-size:12.5px;line-height:1.3}
+.am-rl-group a svg{width:15px;height:15px;flex:none;color:#4a6fa5}
+.am-rl-group a:hover{background:#f3f7fd}.am-rl-group a.on{background:#e3eefc;color:var(--rl-blue)!important;font-weight:700}.am-rl-group a.on svg{color:var(--rl-blue)}
+.am-rl-nohit{color:var(--rl-mute);font-size:12px;padding:6px}
+.am-rl-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:16px}
+.am-rl-card{background:#fff;border:1px solid var(--rl-line);border-radius:12px;padding:0 16px 16px;box-shadow:0 1px 3px rgba(15,42,92,.04)}
+.am-rl-band{margin:0 -16px 12px;padding:11px 16px;background:var(--rl-band);border-bottom:1px solid var(--rl-line);border-radius:12px 12px 0 0}
+.am-rl-band h2,.am-rl-prevhead h2{display:flex;align-items:center;gap:8px;margin:0;font-size:16px;font-weight:700;color:var(--rl-ink)}
+.am-rl-band h2 svg{width:16px;height:16px;color:var(--rl-blue)}
+.am-rl-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px 18px}
+.am-rl-grid label{display:flex;flex-direction:column;gap:4px;margin:0;font-size:12px;font-weight:700;color:var(--rl-ink)}
+.am-rl-grid label>span{display:block;font-weight:700;font-size:12px;margin:0}
+.am-rl-grid label small{font-weight:400;color:var(--rl-mute)}
+.am-rl-grid input,.am-rl-grid select{width:100%;height:34px;border:1px solid #cfd6e2;border-radius:6px;padding:0 10px;font-size:12.5px;font-weight:400;background:#fff;color:var(--rl-ink);margin:0}
+.am-rl .sa-req,.am-rl .am-rl-req{color:#dc2626}
+.am-rl-adv{border:1px solid var(--rl-line);border-radius:10px;margin:14px 0 0;background:#fbfcfe}
+.am-rl-adv>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:10px 14px;background:var(--rl-band);border-radius:10px;font-weight:700;font-size:14px}
+.am-rl-adv[open]>summary{border-bottom:1px solid var(--rl-line);border-radius:10px 10px 0 0}
+.am-rl-adv>summary span{display:flex;align-items:center;gap:8px}.am-rl-adv>summary svg{width:16px;height:16px;color:var(--rl-blue)}
+.am-rl-advbody{padding:12px 14px}
+.am-rl-opts{display:flex;flex-wrap:wrap;gap:8px 26px;border-top:1px solid var(--rl-line);margin-top:12px;padding-top:12px}
+.am-rl-advbody>.am-rl-opts:first-child{border-top:0;margin-top:0;padding-top:0}
+.am-rl-opts label{display:inline-flex;align-items:center;gap:7px;font-weight:500;margin:0;font-size:12.5px}
+.am-rl-opts input{width:15px;height:15px;margin:0}
+.am-rl-go{display:flex;gap:10px;margin-top:14px}
+.am-rl-btn{display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 16px;border-radius:7px;font-weight:600;font-size:13px;cursor:pointer;text-decoration:none!important;white-space:nowrap;border:1px solid var(--rl-blue)}
+.am-rl-btn svg{width:15px;height:15px}
+.am-rl-primary{background:var(--rl-blue);color:#fff!important}.am-rl-primary:hover{background:#154fb5}
+.am-rl-outline{background:#fff;color:var(--rl-blue)!important}.am-rl-outline:hover{background:#f1f6ff}
+.am-rl-ghost{background:#f4f6f9;border-color:#d5dbe5;color:#3d4b63!important}.am-rl-ghost:hover{background:#eaf0f8}
+.am-rl-btn:disabled{opacity:.55;cursor:not-allowed}
+.am-rl-preview{padding-top:14px}
+.am-rl-prevhead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px}
+.am-rl-prevhead h2 svg{width:18px;height:18px;color:var(--rl-blue)}
+.am-rl-prevhead p{margin:3px 0 0;color:var(--rl-mute);font-size:12.5px}
+.am-rl-exports{display:flex;gap:8px;flex-wrap:wrap}
+.am-rl-empty{display:flex;align-items:center;justify-content:center;gap:18px;border:1px solid var(--rl-line);border-radius:10px;padding:26px 16px;text-align:left}
+.am-rl-emptyart svg{width:76px;height:76px}
+.am-rl-empty strong{display:block;font-size:16px;color:var(--rl-ink)}.am-rl-empty p{margin:4px 0 0;color:var(--rl-mute)}
+.am-rl-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:0 0 14px}
+.am-rl-kpis>div{border:1px solid var(--rl-line);border-radius:10px;padding:10px 12px;background:#fbfcfe}
+.am-rl-kpis span{display:block;font-size:11.5px;color:var(--rl-mute)}.am-rl-kpis strong{font-size:18px;color:var(--rl-ink)}
+.am-rl-twrap{overflow:auto;border:1px solid var(--rl-line);border-radius:10px;margin:0 0 12px}
+.am-rl-table{width:100%;border-collapse:collapse;font-size:12.5px}
+.am-rl-table th{background:#f3f6fb;text-align:left;font-weight:700;padding:9px 10px;border-bottom:1px solid var(--rl-line);white-space:nowrap}
+.am-rl-table td{padding:9px 10px;border-bottom:1px solid var(--rl-line)}.am-rl-table tr:last-child td{border-bottom:0}
+.am-rl h3{font-size:14px;margin:14px 0 8px}.am-rl h3 small{color:var(--rl-mute);font-weight:400}
+.am-rl-note,.am-rl-small{color:var(--rl-mute);font-size:12px}
+.am-rl-msg{border:1px solid #f6d38b;background:#fff7e6;border-radius:8px;padding:10px 12px;margin:0}
+@media (max-width:1100px){.am-rl-body{flex-direction:column}.am-rl-nav{width:100%;position:static;max-height:none}.am-rl-grid{grid-template-columns:1fr 1fr}.am-rl-head{flex-wrap:wrap}}
+@media (max-width:640px){.am-rl-grid{grid-template-columns:1fr}.am-rl-prevhead{flex-direction:column}}

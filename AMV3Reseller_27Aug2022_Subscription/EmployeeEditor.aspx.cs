@@ -87,14 +87,16 @@ public partial class AnyminuteEmployeeEditorPage : System.Web.UI.Page
     // ---------- Address lookup (same postal-code search as Add Business) ----------
     protected void SearchPostal_Click(object sender, EventArgs e)
     {
+        // v46 (paused deck s1/s3): same search as Add Business (AddressMaster + saved employee and business addresses);
+        // no result shows only the "Address Not Found" card (no hint, no error banner).
         string postal = AnyminuteBusinessAddressInput.Postal(LookupPostal.Text);
-        LookupChoices.Items.Clear();
-        if (!System.Text.RegularExpressions.Regex.IsMatch(postal, @"^[A-Z0-9-]{5,10}$")) { LookupChoices.Items.Add(new ListItem("Search a postal code first", "")); ShowError("Enter a postal code of 5 to 10 letters or digits."); return; }
-        DataTable matches = new CommanClass().GetSearchAddress(postal); ViewState["EmpMatches"] = matches; ViewState["EmpPostal"] = postal;
-        LookupChoices.Items.Add(new ListItem("Select an address", ""));
+        LookupChoices.Items.Clear(); AddressNotFound.Visible = false; LookupInfo.Visible = true; LookupResults.Visible = true;
+        if (!System.Text.RegularExpressions.Regex.IsMatch(postal, @"^([A-Z]\d[A-Z]\d[A-Z]\d|\d{5}(-?\d{4})?)$")) { LookupChoices.Items.Add(new ListItem("Select an address from the list below", "")); ShowError("Enter a valid Canadian postal code (e.g. M1B 2W1) or US ZIP code (e.g. 33185)."); return; }
+        DataTable matches = AnyminuteAddressLookup.Search(postal); ViewState["EmpMatches"] = matches; ViewState["EmpPostal"] = postal;
+        LookupChoices.Items.Add(new ListItem("Select an address from the list below", ""));
         for (int i = 0; i < matches.Rows.Count; i++) { string label = Convert.ToString(matches.Rows[i]["SEARCHADDRESS"]).Trim(); if (label.Length > 0 && !String.Equals(label, "ADD NEW ADDRESS", StringComparison.OrdinalIgnoreCase)) LookupChoices.Items.Add(new ListItem(label, i.ToString(Inv))); }
-        if (LookupChoices.Items.Count == 1) { LookupChoices.Items[0].Text = "No matching addresses found"; ShowError("No matching addresses found. Check the postal code or use Add New Address to enter it manually."); }
-        LookupChoices.Items.Add(new ListItem("+ Add New Address", "new")); // v17: "Select Address from List or Add New"
+        if (LookupChoices.Items.Count == 1) { LookupInfo.Visible = false; LookupResults.Visible = false; AddressNotFound.Text = AnyminuteAddressLookup.NotFoundHtml(postal); AddressNotFound.Visible = true; }
+        LookupChoices.Items.Add(new ListItem("+ Enter Address Manually", "new"));
     }
     protected void LookupChoice_Changed(object sender, EventArgs e)
     {

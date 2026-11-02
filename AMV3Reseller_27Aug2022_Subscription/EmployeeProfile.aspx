@@ -3,7 +3,7 @@
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="Server">
     <link href="css/bootstrap.min.css" rel="stylesheet" />
-    <link href="css/AnyminuteAddressLookup.css?v=20261026v17" rel="stylesheet" />
+    <link href="css/AnyminuteAddressLookup.css?v=20261101v46" rel="stylesheet" />
     <%-- v37 (DOCX image1, strict): Personal / Payment Details use the same full-width 3-column grid as Address Lookup and
          Employee Address below (they were a centred half-width column). Control IDs unchanged. --%>
     <style>
@@ -171,18 +171,11 @@
         }
 
         function validatefields() {
-            var FSPin = $("#txtSearchPostalCode").val();
-            if (FSPin == "") {
-                swal('Warning!', 'Please enter 6 digit postal code to search', 'warning');
-                return false;
-            }
-            var FSPinlength = document.getElementById("txtSearchPostalCode").value.length;
-            if (FSPinlength != "7") {
-                swal('Warning!', 'Please enter 6 digit postal code to search', 'warning');
-
-                return false;
-            }
-            return true;
+            // v46: Canadian postal code (A1A 1A1) or US ZIP code (12345 / 12345-6789); no warning pop-ups.
+            var v = ($("#txtSearchPostalCode").val() || "").replace(/\s/g, "").toUpperCase();
+            var ok = /^[A-Z]\d[A-Z]\d[A-Z]\d$/.test(v) || /^\d{5}(-?\d{4})?$/.test(v);
+            var box = document.getElementById("txtSearchPostalCode"); if (box) { if (ok) box.removeAttribute("aria-invalid"); else { box.setAttribute("aria-invalid", "true"); box.focus(); } }
+            return ok;
         }
     </script>
 
@@ -1098,27 +1091,32 @@
 
                     <asp:UpdatePanel ID="UpdatePanel1" runat="server" UpdateMode="Conditional">
                                     <ContentTemplate>
-                    <%-- 2026-10-26 v17 (Pandey image5): Address and Contacts tab in the new Address Lookup UI (same layout as Add Employee).
-                         Server control IDs, the postal search (lnkSearch_Click) and the Save button (btnSaveAddress) are unchanged. --%>
-                    <div class="am-al2 am-al2-profile" id="amEmpAddress">
-                    <asp:Panel ID="pnlAddressLookup" runat="server" CssClass="am-section am-al2-lookup" DefaultButton="lnkSearch">
-                        <div class="am-band"><h2><svg class="am-al2-pin" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7z" fill="#1a5fd6"/><circle cx="12" cy="9" r="2.6" fill="#fff"/></svg>Address Lookup</h2></div>
-                        <p class="am-al2-sub">Enter a postal code to search for an address, then select one from the list below or add a new address.</p>
-                        <div class="am-al2-row">
-                            <div class="am-al2-f am-al2-postal"><label for="txtSearchPostalCode">Enter Postal Code <span class="am-req">(Required)</span></label><span class="am-al2-join">
-                                <asp:TextBox ID="txtSearchPostalCode" MaxLength="7" style="text-transform:uppercase" runat="server" placeholder="e.g. M1B 2W1" data-addr-field="LookupPostal"
-                                    OnTextChanged="txtSearchPostalCode_TextChanged" AutoPostBack="false" ClientIDMode="Static" onkeyup="addHyphenn(this)"></asp:TextBox>
-                                <asp:LinkButton CssClass="am-al2-search" ID="lnkSearch" runat="server" OnClientClick="return validatefields();" ToolTip="Search address" aria-label="Search address"
-                                    OnClick="lnkSearch_Click"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></asp:LinkButton>
-                            </span></div>
-                            <div class="am-al2-f am-al2-choice"><label for="ddlAddressChoices">Select Address from List or Add New <span class="am-req">(Required)</span></label>
-                                <asp:DropDownList ID="ddlAddressChoices" runat="server" ClientIDMode="Static" AutoPostBack="true" OnSelectedIndexChanged="ddlAddressChoices_Changed"><asp:ListItem Value="">Search a postal code first</asp:ListItem></asp:DropDownList></div>
-                            <button type="button" class="am-al2-new" onclick="if(window.AnyminuteAddressLookup&amp;&amp;AnyminuteAddressLookup.newAddress)AnyminuteAddressLookup.newAddress(this);"><span aria-hidden="true">+</span>Add New Address</button>
+                    <%-- 2026-11-01 v46 (Paused deck s2/s4): Address and Contacts tab in the Business Address Lookup look (Country with
+                         flag, Postal / ZIP Code with clear, Search Address, Enter Address Manually, hint, Address Not Found card,
+                         Select Address from Search Results) and the Address Details card. Server IDs and btnSaveAddress unchanged. --%>
+                    <div class="am-emp-al am-emp-al46 am-al2-profile" id="amEmpAddress">
+                    <asp:Panel ID="pnlAddressLookup" runat="server" CssClass="am-al-layout am-al-single" DefaultButton="lnkSearch">
+                       <section class="am-al-main" aria-labelledby="amEmpLookupHead">
+                        <h2 id="amEmpLookupHead">Address Lookup</h2>
+                        <p class="am-al-sub">Search for an address using a postal or ZIP code, select a result, or enter the address manually.</p>
+                        <div class="am-al-search">
+                            <div class="am-al-f am-al-country"><label for="amEmpLookupCountry">Country <b class="am-al-req">*</b></label><span class="am-al-flagsel"><span class="am-al-flag" id="amEmpLookupFlag"><svg class="am-flag-ca" viewBox="0 0 24 16" width="24" height="16" aria-hidden="true" focusable="false"><rect width="24" height="16" fill="#fff"/><rect width="6" height="16" fill="#d52b1e"/><rect x="18" width="6" height="16" fill="#d52b1e"/><path d="M12 3.2l1 2.1 1.3-.6-.4 2.6 1.4-1.3.4 1-1.2 1.1h1.1L15 9.5l.9.5-3.4.6V13h-1V10.6l-3.4-.6.9-.5-.6-1.4h1.1L8.3 7l.4-1 1.4 1.3-.4-2.6 1.3.6z" fill="#d52b1e"/></svg> <svg class="am-flag-us" viewBox="0 0 24 16" width="24" height="16" aria-hidden="true" focusable="false"><rect width="24" height="16" fill="#fff"/><g fill="#b22234"><rect width="24" height="1.23"/><rect y="2.46" width="24" height="1.23"/><rect y="4.92" width="24" height="1.23"/><rect y="7.38" width="24" height="1.23"/><rect y="9.84" width="24" height="1.23"/><rect y="12.3" width="24" height="1.23"/><rect y="14.77" width="24" height="1.23"/></g><rect width="10" height="8.6" fill="#3c3b6e"/></svg></span><select id="amEmpLookupCountry"><option value="Canada">Canada</option><option value="United States">United States</option></select></span></div>
+                            <div class="am-al-f am-al-postal"><label for="txtSearchPostalCode">Postal / ZIP Code <b class="am-al-req">*</b></label><span class="am-al-clearwrap">
+                                <asp:TextBox ID="txtSearchPostalCode" MaxLength="10" style="text-transform:uppercase" runat="server" placeholder="e.g. M1B 2W1" data-addr-field="LookupPostal"
+                                    OnTextChanged="txtSearchPostalCode_TextChanged" AutoPostBack="false" ClientIDMode="Static" onkeyup="addHyphenn(this)"></asp:TextBox><button type="button" class="am-al-clear" data-al-clear="1" aria-label="Clear postal code">&times;</button></span></div>
+                            <asp:LinkButton CssClass="am-al-btn am-al-primary" ID="lnkSearch" runat="server" OnClientClick="return validatefields();" OnClick="lnkSearch_Click"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg> Search Address</asp:LinkButton>
+                            <button type="button" class="am-al-btn am-al-outline" onclick="if(window.AnyminuteAddressLookup&amp;&amp;AnyminuteAddressLookup.newAddress)AnyminuteAddressLookup.newAddress(this);"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path fill="currentColor" d="M3 17.25V21h3.75L17.8 9.94l-3.75-3.75L3 17.25zm17.71-10.21a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg> Enter Address Manually</button>
                         </div>
+                        <div id="LookupInfo" runat="server" class="am-al-info"><span class="am-al-i" aria-hidden="true">i</span><span id="amEmpLookupHint">Enter a valid Canadian postal code (e.g. M1B 2W1) or US ZIP code (e.g. 33185).</span></div>
+                        <asp:Literal ID="AddressNotFound" runat="server" Visible="false" />
+                        <asp:Panel ID="LookupResults" runat="server" CssClass="am-al-results am-al2-choice"><label for="ddlAddressChoices">Select Address from Search Results</label>
+                                <asp:DropDownList ID="ddlAddressChoices" runat="server" ClientIDMode="Static" AutoPostBack="true" OnSelectedIndexChanged="ddlAddressChoices_Changed"><asp:ListItem Value="">Select an address from the list below</asp:ListItem></asp:DropDownList></asp:Panel>
+                       </section>
                         <script>
                             function addHyphenn(element) {
-                                let val = $(element).val().split(' ').join('');   // Remove spaces, then show "A1A 1A1".
-                                if (val.length > 0 && val.length <= 6) $(element).val(val.match(/.{1,3}/g).join(' '));
+                                // v46: "A1A 1A1" for Canadian codes only; US ZIP codes (digits) are left as typed.
+                                let val = $(element).val().split(' ').join('');
+                                if (/^[A-Za-z]/.test(val) && val.length > 0 && val.length <= 6) $(element).val(val.match(/.{1,3}/g).join(' '));
                             }
                         </script>
                         <%-- Legacy result list, kept hidden for the existing code-behind; the dropdown above replaces it. --%>
@@ -1141,25 +1139,25 @@
                         </div>
                     </asp:Panel>
 
-                    <div id="divAddres" runat="server" class="am-section am-al2-addr">
-                        <div class="am-band"><h2>Employee Address</h2></div>
-                        <p class="am-al2-banner">When an address is selected from the list, the fields below will be automatically filled. You can also enter or edit the address manually.</p>
-                        <div class="am-al2-grid">
-                            <div class="am-al2-f"><label for="txtStreetNo">Street Number <span class="am-req">(Required)</span></label><asp:TextBox ID="txtStreetNo" runat="server" ClientIDMode="Static" MaxLength="20" placeholder="Enter street number" data-addr-field="StreetNo"></asp:TextBox></div>
-                            <div class="am-al2-f"><label for="txtStreetName">Address Line 1 <span class="am-req">(Required)</span></label><asp:TextBox ID="txtStreetName" runat="server" ClientIDMode="Static" placeholder="Enter address line 1" data-addr-field="Line1"></asp:TextBox></div>
-                            <div class="am-al2-f"><label for="txtStreetType">Address Line 2 <span class="am-al2-opt">(Optional)</span></label><asp:TextBox ID="txtStreetType" runat="server" ClientIDMode="Static" placeholder="Enter address line 2 (e.g. Unit, Floor, etc.)" data-addr-field="Line2"></asp:TextBox></div>
-                            <div class="am-al2-f"><label for="txtSuiteNumber">Suite Number</label><asp:TextBox ID="txtSuiteNumber" runat="server" ClientIDMode="Static" placeholder="Enter suite number" data-addr-field="SuiteNumber"></asp:TextBox></div>
-                            <div class="am-al2-f"><label for="DropDownList1">Suite Type</label><asp:DropDownList ID="DropDownList1" runat="server" ClientIDMode="Static" AppendDataBoundItems="true" data-addr-field="SuiteType">
+                    <div id="divAddres" runat="server" class="am-al-details am-emp-details">
+                        <div class="am-al-details-head"><h3>Employee Address</h3><span class="am-al-pill">Address Details</span></div>
+                        <div class="am-al-grid">
+                            <div class="am-al-f"><label for="txtStreetNo">Street Number <b class="am-al-req">*</b></label><asp:TextBox ID="txtStreetNo" runat="server" ClientIDMode="Static" MaxLength="20" placeholder="Enter street number" data-addr-field="StreetNo"></asp:TextBox></div>
+                            <div class="am-al-f am-al-span2"><label for="txtStreetName">Address Line 1 <b class="am-al-req">*</b></label><asp:TextBox ID="txtStreetName" runat="server" ClientIDMode="Static" placeholder="Enter address line 1" data-addr-field="Line1"></asp:TextBox></div>
+                            <div class="am-al-f"><label for="txtStreetType">Address Line 2 <span class="am-al-opt">(Optional)</span></label><asp:TextBox ID="txtStreetType" runat="server" ClientIDMode="Static" placeholder="Enter address line 2 (e.g. Unit, Floor, etc.)" data-addr-field="Line2"></asp:TextBox></div>
+                            <div class="am-al-f"><label for="txtSuiteNumber">Suite Number <span class="am-al-opt">(Optional)</span></label><asp:TextBox ID="txtSuiteNumber" runat="server" ClientIDMode="Static" placeholder="Enter suite number" data-addr-field="SuiteNumber"></asp:TextBox></div>
+                            <div class="am-al-f"><label for="DropDownList1">Suite Type <span class="am-al-opt">(Optional)</span></label><asp:DropDownList ID="DropDownList1" runat="server" ClientIDMode="Static" AppendDataBoundItems="true" data-addr-field="SuiteType">
                                 <asp:ListItem Value="" Text="Select"></asp:ListItem>
                                 <asp:ListItem Value="Apartment" Text="Apartment"></asp:ListItem>
                                 <asp:ListItem Value="Suite" Text="Suite"></asp:ListItem>
                                 <asp:ListItem Value="Unit" Text="Unit"></asp:ListItem>
                             </asp:DropDownList></div>
-                            <div class="am-al2-f"><label for="txtCity">City <span class="am-req">(Required)</span></label><asp:TextBox ID="txtCity" runat="server" ClientIDMode="Static" placeholder="Enter city" data-addr-field="City"></asp:TextBox><div id="divautocompleteCity" class="tt-menu" style="display: none"></div></div>
-                            <div class="am-al2-f"><label for="amProfileProvince">Province/State <span class="am-req">(Required)</span></label><select id="amProfileProvince" data-addr-field="Province" data-al2-mirror="txtProvince"><option value="">Select</option><option>ALBERTA</option><option>BRITISH COLUMBIA</option><option>MANITOBA</option><option>NEW BRUNSWICK</option><option>NEWFOUNDLAND AND LABRADOR</option><option>NORTHWEST TERRITORIES</option><option>NOVA SCOTIA</option><option>NUNAVUT</option><option>ONTARIO</option><option>PRINCE EDWARD ISLAND</option><option>QUEBEC</option><option>SASKATCHEWAN</option><option>YUKON</option><option>ALABAMA</option><option>ALASKA</option><option>ARIZONA</option><option>ARKANSAS</option><option>CALIFORNIA</option><option>COLORADO</option><option>CONNECTICUT</option><option>DELAWARE</option><option>DISTRICT OF COLUMBIA</option><option>FLORIDA</option><option>GEORGIA</option><option>HAWAII</option><option>IDAHO</option><option>ILLINOIS</option><option>INDIANA</option><option>IOWA</option><option>KANSAS</option><option>KENTUCKY</option><option>LOUISIANA</option><option>MAINE</option><option>MARYLAND</option><option>MASSACHUSETTS</option><option>MICHIGAN</option><option>MINNESOTA</option><option>MISSISSIPPI</option><option>MISSOURI</option><option>MONTANA</option><option>NEBRASKA</option><option>NEVADA</option><option>NEW HAMPSHIRE</option><option>NEW JERSEY</option><option>NEW MEXICO</option><option>NEW YORK</option><option>NORTH CAROLINA</option><option>NORTH DAKOTA</option><option>OHIO</option><option>OKLAHOMA</option><option>OREGON</option><option>PENNSYLVANIA</option><option>RHODE ISLAND</option><option>SOUTH CAROLINA</option><option>SOUTH DAKOTA</option><option>TENNESSEE</option><option>TEXAS</option><option>UTAH</option><option>VERMONT</option><option>VIRGINIA</option><option>WASHINGTON</option><option>WEST VIRGINIA</option><option>WISCONSIN</option><option>WYOMING</option></select>
+                            <div class="am-al-subhead" role="heading" aria-level="4">City, State/Province and Country</div>
+                            <div class="am-al-f"><label for="txtCity">City <b class="am-al-req">*</b></label><asp:TextBox ID="txtCity" runat="server" ClientIDMode="Static" placeholder="Enter city" data-addr-field="City"></asp:TextBox><div id="divautocompleteCity" class="tt-menu" style="display: none"></div></div>
+                            <div class="am-al-f"><label for="amProfileProvince">Province / State <b class="am-al-req">*</b></label><select id="amProfileProvince" data-addr-field="Province" data-al2-mirror="txtProvince"><option value="">Select</option><option>ALBERTA</option><option>BRITISH COLUMBIA</option><option>MANITOBA</option><option>NEW BRUNSWICK</option><option>NEWFOUNDLAND AND LABRADOR</option><option>NORTHWEST TERRITORIES</option><option>NOVA SCOTIA</option><option>NUNAVUT</option><option>ONTARIO</option><option>PRINCE EDWARD ISLAND</option><option>QUEBEC</option><option>SASKATCHEWAN</option><option>YUKON</option><option>ALABAMA</option><option>ALASKA</option><option>ARIZONA</option><option>ARKANSAS</option><option>CALIFORNIA</option><option>COLORADO</option><option>CONNECTICUT</option><option>DELAWARE</option><option>DISTRICT OF COLUMBIA</option><option>FLORIDA</option><option>GEORGIA</option><option>HAWAII</option><option>IDAHO</option><option>ILLINOIS</option><option>INDIANA</option><option>IOWA</option><option>KANSAS</option><option>KENTUCKY</option><option>LOUISIANA</option><option>MAINE</option><option>MARYLAND</option><option>MASSACHUSETTS</option><option>MICHIGAN</option><option>MINNESOTA</option><option>MISSISSIPPI</option><option>MISSOURI</option><option>MONTANA</option><option>NEBRASKA</option><option>NEVADA</option><option>NEW HAMPSHIRE</option><option>NEW JERSEY</option><option>NEW MEXICO</option><option>NEW YORK</option><option>NORTH CAROLINA</option><option>NORTH DAKOTA</option><option>OHIO</option><option>OKLAHOMA</option><option>OREGON</option><option>PENNSYLVANIA</option><option>RHODE ISLAND</option><option>SOUTH CAROLINA</option><option>SOUTH DAKOTA</option><option>TENNESSEE</option><option>TEXAS</option><option>UTAH</option><option>VERMONT</option><option>VIRGINIA</option><option>WASHINGTON</option><option>WEST VIRGINIA</option><option>WISCONSIN</option><option>WYOMING</option></select>
                                 <asp:TextBox ID="txtProvince" runat="server" ClientIDMode="Static" style="display:none" aria-hidden="true" tabindex="-1"></asp:TextBox><div id="divautocompleteProvince" class="tt-menu" style="display: none"></div></div>
-                            <div class="am-al2-f"><label for="txtPostalCode">Postal Code <span class="am-req">(Required)</span></label><asp:TextBox ID="txtPostalCode" MaxLength="7" runat="server" ClientIDMode="Static" onkeyup="addHyphenn(this)" style="text-transform:uppercase" placeholder="Enter postal code" data-addr-field="PostalCode"></asp:TextBox></div>
-                            <div class="am-al2-f"><label for="amProfileCountry">Country</label><select id="amProfileCountry" data-addr-field="Country"><option>Canada</option><option>United States</option></select></div>
+                            <div class="am-al-f"><label for="txtPostalCode">Postal / ZIP Code <b class="am-al-req">*</b></label><asp:TextBox ID="txtPostalCode" MaxLength="10" runat="server" ClientIDMode="Static" onkeyup="addHyphenn(this)" style="text-transform:uppercase" placeholder="Enter postal code" data-addr-field="PostalCode"></asp:TextBox></div>
+                            <div class="am-al-f am-al-span2 am-al-countryf"><label for="amProfileCountry">Country <b class="am-al-req">*</b></label><select id="amProfileCountry" data-addr-field="Country"><option>Canada</option><option>United States</option></select></div>
                         </div>
                         <div style="display: none;"><asp:TextBox ID="txtStreetDirection" ClientIDMode="Static" runat="server"></asp:TextBox></div>
                         <div class="form-group" style="display: none;">
@@ -1529,6 +1527,6 @@
                 </div>
             </div>
         </div>
-<script src="Scripts/AnyminuteAddressLookup.js?v=20261026v17"></script>
+<script src="Scripts/AnyminuteAddressLookup.js?v=20261101v46"></script>
 </asp:Content>
 

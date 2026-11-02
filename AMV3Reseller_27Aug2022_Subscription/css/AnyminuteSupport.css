@@ -257,3 +257,37 @@
 .sa-ok-btns{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}.sa-ok-btns .sa-btn{justify-content:center;padding:11px 14px}
 @media (max-width:1100px){.sa-sd45 .sa-sd-body{grid-template-columns:1fr}.sa-ed-head .sa-sd-top{flex-wrap:wrap}.sa-limits45{grid-template-columns:1fr 1fr}.sa-status45{grid-template-columns:1fr}}
 @media (max-width:700px){.sa-sd45 .sa-sd-info,.sa-tiles,.sa-plan-use{grid-template-columns:1fr}.sa-sd-col+.sa-sd-col{border-left:0;padding-left:0}.sa-metas{flex-wrap:wrap}.sa-ok-btns{grid-template-columns:1fr}}
+/* 2026-11-01 v46 (t148u / t150u): the open row menu is a fixed pop-over placed by AnyminuteSupport.js, so the whole
+   menu is visible (never clipped by .sa-table-wrap); long menus scroll inside it. */
+.sa-menu-pop.sa-pop-fixed{position:fixed;right:auto;z-index:3000;overflow:auto;overscroll-behavior:contain}
+/* v46 (t148u / t149u): Reseller and Business lists use the Subscribers table pattern - fits the card width (no sideways scroll),
+   kebab-only Actions column, "Showing x to y of z" + "10 per page" selector + pager. */
+.sa-list46{table-layout:auto}
+.sa-list46 td,.sa-list46 th{white-space:normal}
+.sa-list46 th{white-space:nowrap}
+.sa-list46 td.sa-wrap{word-break:break-word;min-width:120px}
+.sa-list46 .sa-c{text-align:center}
+.sa-list46 small{display:block}
+/* v46 (t148u shot: the whole Resellers page ran past the right edge): nothing on a Support page may widen the page;
+   wide tables scroll inside their own card. Fixed row menus are not clipped by this. */
+.sa-page{max-width:100%;min-width:0;overflow-x:clip}
+.sa-page .sa-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.sa-page .sa-card,.sa-page .sa-table-wrap{max-width:100%;min-width:0}
+@media (max-width:1100px){.sa-page .sa-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:640px){.sa-page .sa-kpis{grid-template-columns:1fr}}
+/* v46 (Paused deck s1): no-result state = only the "Address Not Found" card (no blue hint, no plain text line). */
+html body .am-al-nf{display:block;background:#fff;border:1px solid #dfe4ec;border-radius:10px;padding:12px 16px;margin:14px 0;color:#334155;font-size:13px;line-height:1.5;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+html body .am-al-nf[hidden]{display:none}
+html body .am-al-nf-head{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+html body .am-al-nf-head strong{font-size:14px;font-weight:700;color:#1e293b}
+html body .am-al-nf-i{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border:1.5px solid #475569;border-radius:50%;font:700 10px/1 Georgia,serif;color:#475569;font-style:normal;flex:none}
+html body .am-al-nf p{margin:0;padding-left:24px;color:#475569}
+/* v46 (Address deck s1/s2): Address module inside Support forms - full width under the Add / Edit Reseller columns and
+   in place of the old Add Subscriber "Address (Optional)" block. Look comes from css/AnyminuteAddressLookup.css (.am-emp-al). */
+.sa-page .sa-rsl-addr{margin:0 0 16px}
+.sa-page .sa-addrmod .am-al-layout{margin:0}
+.sa-page .sa-addrmod .am-al-main>h2{font-size:20px}
+.sa-page .sa-sub-addr .sa-addrmod .am-al-main{border:0;box-shadow:none;padding:4px 0 0}
+.sa-page .sa-sub-addr .sa-addrmod .am-al-main>h2{font-size:16px}
+.sa-page .sa-addrmod .am-al-f>label{display:block}
+@media (max-width:900px){.sa-page .sa-addrmod .am-al-search{grid-template-columns:1fr 1fr!important}}
