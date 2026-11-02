@@ -27,6 +27,7 @@ public partial class customerWiseReport : System.Web.UI.Page
         {
             Response.Redirect("Login.aspx");
         }
+        AnyminuteReportLayout.LegacyRedirect("time-card"); // v48: same report layout across all modules (deckR)
         // Employee reports must not run company-wide queries or exports.
         if (Convert.ToString(Session["UserTypeid"]) == "4" && Session["UserType_acc"] == null)
         {

@@ -3,7 +3,7 @@
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="Server">
     <link href="css/bootstrap.min.css" rel="stylesheet" />
-    <link href="css/AnyminuteAddressLookup.css?v=20261101v46" rel="stylesheet" />
+    <link href="css/AnyminuteAddressLookup.css?v=20261102v48" rel="stylesheet" />
     <%-- v37 (DOCX image1, strict): Personal / Payment Details use the same full-width 3-column grid as Address Lookup and
          Employee Address below (they were a centred half-width column). Control IDs unchanged. --%>
     <style>
@@ -283,16 +283,7 @@
 
     <script>
         $(document).ready(function () {
-            $("#txtSearchPostalCode").focusout(function () {
-                var replaceSpace = $("#txtSearchPostalCode").val();
-                var result = replaceSpace.replace(" ", "");
-                var FSPinlength = result.value.length;
-                if (FSPinlength != "6") {
-                    swal('Warning!', 'Please enter 6 digit postal code to search', 'warning');
-
-                    return false;
-                }
-            });
+            // v48 (deckP s1/s2, NOTES_v46 #8): the "6 digit postal code" pop-up on leaving the field is gone; validatefields() flags the field (CA or US ZIP).
         });
     </script>
     <script>
@@ -1419,14 +1410,7 @@
                             //        return false;
                             //    }
                             //}
-                            var _txtSearchPostalCode = $("#txtSearchPostalCode").val();
-                            if (_txtSearchPostalCode == "") {
-                                $("#txtSearchPostalCode").focus();
-                                swal('Warning!', 'Please enter 6 digit postal code and click on Search', 'warning');
-                                // alert("Please enter street no");
-                                //$("#txtFirstName").css("border", "1px solid red");
-                                return false;
-                            }
+                            // v48: Search Postal is not required to save (Enter Address Manually fills the Address Details directly).
                             var _txtStreetNo = $("#txtStreetNo").val();
                             if (_txtStreetNo == "") {
                                 $("#txtStreetNo").focus();
@@ -1443,14 +1427,7 @@
                                 //$("#txtFirstName").css("border", "1px solid red");
                                 return false;
                             }
-                            var _txtSuiteNumber = $("#txtSuiteNumber").val();
-                            if (_txtSuiteNumber == "") {
-                                $("#txtSuiteNumber").focus();
-
-                                swal('Warning!', 'Please enter suite number', 'warning');
-                                //$("#txtFirstName").css("border", "1px solid red");
-                                return false;
-                            }
+                            // v48: Suite Number is optional (as labelled in the Business lookup look).
                             var _txtCity = $("#txtCity").val();
                             if (_txtCity == "") {
                                 $("#txtCity").focus();
@@ -1467,22 +1444,14 @@
                                 //$("#txtFirstName").css("border", "1px solid red");
                                 return false;
                             }
-                            var _txtPostalCode = $("#txtPostalCode").val();
-                            if (_txtPostalCode == "") {
-                                $("#txtPostalCode").focus();
-                                swal('Warning!', 'Please enter 6 digit postal code', 'warning');
-
-                                //$("#txtFirstName").css("border", "1px solid red");
+                            // v48 (NOTES_v46 #8): Canadian postal code or US ZIP accepted; an invalid code is flagged on the field, no pop-up.
+                            var _pc = ($("#txtPostalCode").val() || "").replace(/\s/g, "").toUpperCase();
+                            var _pcBox = document.getElementById("txtPostalCode");
+                            if (!(/^[A-Z]\d[A-Z]\d[A-Z]\d$/.test(_pc) || /^\d{5}(-?\d{4})?$/.test(_pc))) {
+                                if (_pcBox) { _pcBox.setAttribute("aria-invalid", "true"); _pcBox.focus(); }
                                 return false;
                             }
-                            var _txtPostalCodelength = document.getElementById("txtPostalCode").value.length;
-                            if (_txtPostalCodelength < "6") {
-                                $("#txtPostalCode").focus();
-                                //alert("Please enter 6 digit postal code");
-                                swal('Warning!', 'Please enter 6 digit postal code', 'warning');
-                                //$("#txtFirstName").css("border", "1px solid red");
-                                return false;
-                            }
+                            if (_pcBox) _pcBox.removeAttribute("aria-invalid");
                             
 
                             if (isValidNext == true) {

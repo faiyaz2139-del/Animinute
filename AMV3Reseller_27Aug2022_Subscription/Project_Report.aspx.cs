@@ -21,6 +21,7 @@ public partial class ProjectWiseReport : System.Web.UI.Page
         {
             Response.Redirect("Login.aspx");
         }
+        AnyminuteReportLayout.LegacyRedirect("project-cost"); // v48: same report layout across all modules (deckR)
         if (!IsPostBack)
         {
             this.pnlhideandshow.Visible = false;

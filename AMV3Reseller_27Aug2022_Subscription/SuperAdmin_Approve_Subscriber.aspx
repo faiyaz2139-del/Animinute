@@ -174,7 +174,7 @@
         #GridView_New_Registered_BO td{padding:12px 10px;border-top:1px solid #e2e8f0;vertical-align:middle;background:#fff}
         .am-sa-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:999px;font-size:12px;font-weight:600;text-decoration:none!important;white-space:nowrap}
         .am-sa-pill::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
-        .am-sa-pill.is-active{background:#e4f8eb;color:#168347!important}.am-sa-pill.is-inactive{background:#ffe8e8;color:#c14949!important}
+        .am-sa-pill.is-active{background:#e4f8eb;color:#168347!important}.am-sa-pill.is-inactive{background:#ffe8e8;color:#c14949!important}.am-sa-pill.is-pending{background:#fff4dc;color:#a86500!important}/* v48 */
         .am-sa-pg-hide{display:none!important}
         .am-sa-pager{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 4px 0;font-size:12px;color:#64748b}
         .am-sa-pager div{display:flex;gap:6px}.am-sa-pager button{min-width:32px;height:32px;border:1px solid #d5dee8;border-radius:7px;background:#fff;color:#334155;cursor:pointer}

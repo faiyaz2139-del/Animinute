@@ -467,6 +467,27 @@ public partial class SuperAdmin_Approve_Subscriber : System.Web.UI.Page
         }
     }
 
+    // v48: subscriber state from UserAcc (+ AnyminuteLoginSecurity when present) for the legacy grid pill; null = keep Active.
+    string LegacySubscriberState(string employeeId)
+    {
+        int emp; if (!Int32.TryParse(employeeId.Trim(), out emp)) return null;
+        try
+        {
+            DataTable acc = Comm.ExecuteQueryDataTable("select TOP 1 UserId, Status, Is_First_Time_Login from UserAcc with (Nolock) where EmployeeId=" + emp + " order by UserId desc");
+            if (acc.Rows.Count == 0) return null;
+            DataRow a = acc.Rows[0];
+            if (a["Status"] != DBNull.Value && !Convert.ToBoolean(a["Status"])) return null;
+            try
+            {
+                DataTable sec = Comm.ExecuteQueryDataTable("IF OBJECT_ID('dbo.AnyminuteLoginSecurity','U') IS NOT NULL select ISNULL(LoginDisabled,0) LoginDisabled from AnyminuteLoginSecurity with (Nolock) where UserId=" + Convert.ToInt32(a["UserId"]) + " else select CAST(0 AS bit) LoginDisabled");
+                if (sec.Rows.Count > 0 && Convert.ToBoolean(sec.Rows[0]["LoginDisabled"])) return "Suspended";
+            }
+            catch (Exception) { }
+            return a["Is_First_Time_Login"] != DBNull.Value && Convert.ToBoolean(a["Is_First_Time_Login"]) ? "Pending" : null;
+        }
+        catch (Exception ex) { Logger.Error("LegacySubscriberState " + ex.Message); return null; }
+    }
+
     protected void GridView_New_Registered_BO_RowDataBound(object sender, GridViewRowEventArgs e)
     {
         if (e.Row.RowType == DataControlRowType.DataRow)
@@ -504,6 +525,22 @@ public partial class SuperAdmin_Approve_Subscriber : System.Web.UI.Page
             {
                 ImageButton_Active_Deactive.Text = "Active";
                 ImageButton_Active_Deactive.CssClass = "am-sa-pill is-active";
+                // v48 (NOTES_v47 deferred, ?legacy=1 grid): a subscriber who has not completed first sign-in is Pending, and a
+                // login-disabled one is Suspended - the same rules as SupportSubscribers (was always shown as Active).
+                HiddenField HiddenField_Partner_Id_Row = (e.Row.FindControl("HiddenField_Partner_Id") as HiddenField);
+                string legacyState = HiddenField_Employee_Id.Value != "" && (HiddenField_Partner_Id_Row == null || HiddenField_Partner_Id_Row.Value.Trim() == "0" || HiddenField_Partner_Id_Row.Value.Trim() == "") ? LegacySubscriberState(HiddenField_Employee_Id.Value) : null;
+                if (legacyState == "Pending")
+                {
+                    ImageButton_Active_Deactive.Text = "Pending";
+                    ImageButton_Active_Deactive.CssClass = "am-sa-pill is-pending";
+                    ImageButton_Active_Deactive.ToolTip = "Pending activation (first sign-in not completed). Click to deactivate.";
+                }
+                else if (legacyState == "Suspended")
+                {
+                    ImageButton_Active_Deactive.Text = "Suspended";
+                    ImageButton_Active_Deactive.CssClass = "am-sa-pill is-inactive";
+                    ImageButton_Active_Deactive.ToolTip = "Sign-in disabled by Support. Click to deactivate.";
+                }
             }
             else
             {

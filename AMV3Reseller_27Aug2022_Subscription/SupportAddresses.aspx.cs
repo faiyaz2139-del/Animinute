@@ -72,7 +72,7 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
                 string who = Submitter(c, r);
                 sb.Append("<tr").Append(rid == id ? " class='sa-selected'" : "").Append("><td><input type='checkbox' aria-label='Select' /></td><td>").Append(SA.H(r["Street_Name"])).Append("</td><td>").Append(SA.H(r["City"]))
                   .Append("</td><td>").Append(SA.H(r["Province"])).Append("</td><td>").Append(SA.H(ctry)).Append("</td><td>").Append(SA.H(r["PostalCode"])).Append("</td><td>")
-                  .Append(who != null ? SA.H(who) : "<span class='sa-muted' title='No employee or subscriber address uses this address'>Not linked</span>").Append("</td><td>").Append(r["SubmittedAtUTC"] != DBNull.Value ? SA.Day(r["SubmittedAtUTC"]) : "<span class='sa-muted' title='Added before submission dates were recorded'>&mdash;</span>").Append("</td><td class='sa-actions'>")
+                  .Append(who != null ? SA.H(who) : "<span class='sa-muted' title='No subscriber, employee, business or reseller address uses this address'>Not linked</span>").Append("</td><td>").Append(r["SubmittedAtUTC"] != DBNull.Value ? SA.Day(r["SubmittedAtUTC"]) : "<span class='sa-muted' title='Added before submission dates were recorded'>&mdash;</span>").Append("</td><td class='sa-actions'>")
                   .Append("<a class='sa-btn sa-btn-sm sa-btn-outline' href='SupportAddresses.aspx?").Append(SA.A(baseQ)).Append("&amp;page=").Append(page).Append("&amp;id=").Append(rid).Append("'>").Append(tab == "pending" ? "Edit" : "View").Append("</a>");
                 if (tab == "pending") sb.Append(" <a class='sa-btn sa-btn-sm sa-btn-danger' href='SupportAddresses.aspx?").Append(SA.A(baseQ)).Append("&amp;page=").Append(page).Append("&amp;id=").Append(rid).Append("&amp;reject=1#sa-edit'>Reject</a>");
                 sb.Append("</td></tr>");
@@ -100,6 +100,25 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
                 WHERE REPLACE(REPLACE(UPPER(e.Postalcode),' ',''),'-','')=@p AND UPPER(LTRIM(RTRIM(e.StreetName)))=UPPER(LTRIM(RTRIM(@s))) ORDER BY CASE WHEN ae.UserType=1 THEN 0 ELSE 1 END,ae.EmployeeID",
                 "@p", SA.CompactPostal(SA.S(r["PostalCode"])), "@s", SA.S(r["Street_Name"]));
             if (t.Rows.Count == 1 && SA.S(t.Rows[0]["Name"]).Length > 0) return SA.S(t.Rows[0]["Name"]) + (SA.S(t.Rows[0]["UserType"]) == "1" ? " (Subscriber)" : " (Employee)");
+        }
+        catch (SqlException) { }
+        catch (InvalidOperationException) { }
+        // v48 (NOTES_v47 deferred "Not linked"): also link addresses used by a saved business (BusinessAddress via AddBusiness.ADDRESSID)
+        // or a reseller (AnyminuteReseller.Address, composed text) - existing tables only, no schema change.
+        try
+        {
+            var b = AnyminuteTimesheetRepair.Query(c, tx, @"SELECT TOP 1 LTRIM(RTRIM(ab.CompanyName)) Name FROM BusinessAddress e JOIN AddBusiness ab ON ab.ADDRESSID=e.BusinessAddressId
+                WHERE REPLACE(REPLACE(UPPER(e.Postalcode),' ',''),'-','')=@p AND UPPER(LTRIM(RTRIM(e.StreetName)))=UPPER(LTRIM(RTRIM(@s))) ORDER BY ab.BusinessID",
+                "@p", SA.CompactPostal(SA.S(r["PostalCode"])), "@s", SA.S(r["Street_Name"]));
+            if (b.Rows.Count == 1 && SA.S(b.Rows[0]["Name"]).Length > 0) return SA.S(b.Rows[0]["Name"]) + " (Business)";
+            string street = SA.S(r["Street_Name"]).Trim(), postal = SA.CompactPostal(SA.S(r["PostalCode"]));
+            if (street.Length > 0 && postal.Length > 0)
+            {
+                var rs = AnyminuteTimesheetRepair.Query(c, tx, @"IF OBJECT_ID('dbo.AnyminuteReseller','U') IS NOT NULL
+                    SELECT TOP 1 ResellerName Name FROM dbo.AnyminuteReseller WHERE REPLACE(REPLACE(UPPER(ISNULL(Address,'')),' ',''),'-','') LIKE '%'+@p+'%' AND UPPER(ISNULL(Address,'')) LIKE '%'+UPPER(@s)+'%' ORDER BY ResellerID
+                    ELSE SELECT CAST(NULL AS nvarchar(150)) Name WHERE 1=0", "@p", postal, "@s", street);
+                if (rs.Rows.Count == 1 && SA.S(rs.Rows[0]["Name"]).Length > 0) return SA.S(rs.Rows[0]["Name"]) + " (Reseller)";
+            }
         }
         catch (SqlException) { }
         catch (InvalidOperationException) { }
@@ -141,7 +160,7 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
         string dis = pending && ready ? "" : " disabled";
         var sb = new StringBuilder("<aside class='sa-card sa-panel' id='sa-edit' aria-label='Edit and verify address'><div class='sa-panel-head'><h2>Edit &amp; Verify Address</h2><a href='SupportAddresses.aspx?" + SA.A(back) + "' class='sa-x' aria-label='Close'>&times;</a></div>");
         sb.Append("<h3>Original Submitted Address</h3><div class='sa-original'><p>").Append(SA.H(os + ", " + oc + ", " + op + ", " + octry + ", " + opc)).Append("</p><dl><dt>Submitted By:</dt><dd>")
-          .Append(who != null ? SA.H(who) : "Not linked to a subscriber or employee address").Append("</dd><dt>Submitted Date:</dt><dd>")
+          .Append(who != null ? SA.H(who) : "Not linked to a subscriber, employee, business or reseller address").Append("</dd><dt>Submitted Date:</dt><dd>")
           .Append(review != null && review["SubmittedAtUTC"] != DBNull.Value ? SA.When(review["SubmittedAtUTC"]).Replace("<br />", " ") : "Not recorded (added before v26)").Append("</dd></dl></div>");
         sb.Append("<div data-sa-address='1'><input type='hidden' name='sa_id' value='").Append(id).Append("' /><h3>Corrected Address (Edit if needed)</h3>")
           .Append("<label class='sa-field'><span>Street Address *</span><input name='sa_street' maxlength='200' value='").Append(SA.A(r["Street_Name"])).Append("'").Append(dis).Append(" /></label>")

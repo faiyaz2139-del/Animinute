@@ -22,6 +22,21 @@ public static class AnyminuteReportLayout
     const string Chevron = "<svg class='am-rl-chev' viewBox='0 0 24 24' aria-hidden='true'><path d='M6 15l6-6 6 6' fill='none' stroke='currentColor' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/></svg>";
     const string Ticket = "<svg viewBox='0 0 24 24' aria-hidden='true'><path d='M5 4h11l3 3v13H5z' fill='none' stroke='currentColor' stroke-width='2' stroke-linejoin='round'/><path d='M8 11h8M8 15h5M15 4v4h4' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round'/></svg>";
 
+    // v48 (deckR "Please change all report similar - across all module"; NOTES_v46 deferred): the old report pages
+    // (Company_Report, Daily_Report, Employee_Report, Project_Report, Report3, My_Time_Report) are still reachable from
+    // DB menu links. When the signed-in user has the Reports hub (Reports.aspx, built on this shared layout), a GET to an
+    // old page opens the matching hub report instead, so every report screen has the same layout. Users without hub
+    // reports keep the old page; ?legacy=1 keeps the old page reachable. Postbacks are never redirected.
+    public static void LegacyRedirect(string key)
+    {
+        var h = HttpContext.Current;
+        if (h == null || h.Session == null || h.Session["EmployeeId"] == null) return;
+        if (!String.Equals(h.Request.HttpMethod, "GET", StringComparison.OrdinalIgnoreCase) || h.Request.QueryString["legacy"] == "1") return;
+        bool hub = false;
+        try { hub = AnyminuteReports.AnyAvailable(); } catch (Exception) { hub = false; }
+        if (!hub) return;
+        h.Response.Redirect("~/Reports.aspx" + (AnyminuteReports.Def(key) != null ? "?r=" + HttpUtility.UrlEncode(key) : ""), true);
+    }
     public static string Head(string crumbRoot, string crumbHref, string reportName, string subtitle, string extraHtml)
     {
         var sb = new StringBuilder("<header class='am-rl-head'><span class='am-rl-tile'>").Append(Ticket).Append("</span><div class='am-rl-titles'>");

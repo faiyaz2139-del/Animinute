@@ -190,3 +190,5 @@ html body .am-emp-al46 .am-al-results select{width:100%!important;max-width:none
 html body .am-emp-al46 .am-al-clearwrap input[aria-invalid=true]{border-color:#dc2626!important}
 html body .am-emp-al .am-al-details .am-al-f input[type=text]{padding:0 12px!important}
 html body .am-emp-al,html body .am-emp-al *,html body .am-emp-al *::before,html body .am-emp-al *::after{box-sizing:border-box}
+/* v48 (NOTES_v46 #8): an invalid Postal / ZIP in the Employee Address Details is flagged on the field (no pop-up). */
+html body .am-emp-al input[aria-invalid=true]{border-color:#dc2626!important;box-shadow:0 0 0 2px rgba(220,38,38,.15)}

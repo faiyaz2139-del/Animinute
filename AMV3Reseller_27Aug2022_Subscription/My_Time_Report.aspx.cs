@@ -14,6 +14,7 @@ public partial class My_Time_Report : Page
     protected void Page_Load(object sender, EventArgs e)
     {
         if (LoginUserId <= 0 || Session["EmployeeId"] == null) { Response.Redirect("Login.aspx"); return; }
+        AnyminuteReportLayout.LegacyRedirect("time-card"); // v48: same report layout across all modules (deckR)
         if (!IsPostBack)
         {
             FromDate.Text = DateTime.Today.AddDays(-30).ToString("yyyy-MM-dd");

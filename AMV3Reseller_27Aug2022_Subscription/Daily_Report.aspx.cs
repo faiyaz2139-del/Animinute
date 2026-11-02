@@ -19,6 +19,7 @@ public partial class Report2 : System.Web.UI.Page
         {
             Response.Redirect("Login.aspx");
         }
+        AnyminuteReportLayout.LegacyRedirect("time-card"); // v48: same report layout across all modules (deckR)
         if (!IsPostBack)
         {
             this.pnlhideandshow.Visible = false;
