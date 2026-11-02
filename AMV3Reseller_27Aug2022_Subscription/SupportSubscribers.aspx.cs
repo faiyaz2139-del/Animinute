@@ -142,9 +142,9 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
                 Title1.Text = "Edit Subscriber"; Lead.Text = "Update subscriber information, plan and limits.";
                 Content.Text = Edit(c, r, null) + UpdatedModal(user);
             }
-            else if (view == "history") { Title1.Text = "Subscriber Login Activity History"; Lead.Text = "View sign-in activity, account changes and security events for this subscriber."; Content.Text = Header(c, r) + Tabs(c, r, "history") + History(c, user); }
+            else if (view == "history") { Title1.Text = "Subscriber Login Activity History"; Lead.Text = "View sign-in activity, account changes and security events for this subscriber."; var nm = Name(r).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); SubName = nm.Length > 1 ? nm[0] + " " + nm[nm.Length - 1] : Name(r); Content.Text = Header(c, r, true) + Tabs(c, r, "history") + History(c, user); }
             else if (view == "reset") { Title1.Text = "Send Password Reset"; Lead.Text = "Send a secure password reset link to the subscriber."; Content.Text = Reset(r, ready); }
-            else { Title1.Text = "Manage Subscriber Login &amp; Access"; Lead.Text = "Subscriber Details &rsaquo; Login &amp; Access"; Content.Text = Header(c, r) + Tabs(c, r, "access") + Access(c, r, ready); }
+            else { Title1.Text = "Manage Subscriber Login &amp; Access"; Lead.Text = "Subscriber Details &rsaquo; Login &amp; Access"; Content.Text = Header(c, r, false) + Access(c, r, ready); }
         }
     }
     static readonly int[] Sizes = { 10, 20, 50 };
@@ -348,13 +348,19 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
         sb.Append("</tbody></table></div></div><div class='sa-panel-foot sa-ed-foot'><a class='sa-btn sa-btn-outline' href='").Append(b).Append("'>Cancel</a><button type='submit' class='sa-btn' name='sa_op' value='edit'>").Append(Ic("save")).Append(" Save Changes</button></div>");
         return sb.ToString();
     }
-    static string Header(SqlConnection c, DataRow r)
+    // v50 PPT s1 (access): avatar, name, SUB-ID, email | Current Plan + View Plan Details | Subscriber Since | Active.
+    // v50 PPT s3 (history): name + Active, "SUB-ID | Plan | email | phone" | Subscription Since | Last Login.
+    static string Header(SqlConnection c, DataRow r, bool history)
     {
-        int u = Convert.ToInt32(r["UserId"]);
-        return "<div class='sa-card sa-subhead'><span class='sa-avatar'>" + SA.H(Initials(Name(r))) + "</span><div class='sa-grow'><h2>" + SA.H(Name(r)) + "</h2><small>Subscriber ID: " + Sub(u) + "<br />" + SA.H(r["Email"]) + (SA.S(r["MobilePhone"]).Length > 0 ? " &middot; " + SA.H(r["MobilePhone"]) : "") + "</small></div>"
-            + "<div><small>Current Plan</small><strong>" + (SA.S(r["PlanName"]).Length > 0 ? SA.H(r["PlanName"]) : "&mdash;") + "</strong><a class='sa-link' href='SupportPlans.aspx'>View Plan Details</a></div>"
-            + "<div><small>Subscriber Since</small><strong>" + SA.Day(r["Since"]) + "</strong></div><div><small>Last Login</small><strong>" + SA.When(r["LastLoginDate"]) + "</strong></div>"
-            + "<div>" + (Enabled(r) ? SA.Pill("Active", "green") : SA.Pill("Disabled", "red")) + "</div></div>";
+        int u = Convert.ToInt32(r["UserId"]); string plan = SA.S(r["PlanName"]).Length > 0 ? SA.H(r["PlanName"]) : "&mdash;";
+        string badge = Enabled(r) ? SA.Pill("Active", "green") : SA.Pill("Disabled", "red");
+        if (history)
+            return "<div class='sa-card sa-subhead'><span class='sa-avatar'>" + SA.H(Initials(Name(r))) + "</span><div class='sa-grow'><h2>" + SA.H(Name(r)) + " " + badge + "</h2><small>Subscriber ID: " + Sub(u) + " &nbsp;|&nbsp; " + plan + " &nbsp;|&nbsp; " + SA.H(r["Email"])
+                + (SA.S(r["MobilePhone"]).Length > 0 ? " &nbsp;|&nbsp; " + SA.H(r["MobilePhone"]) : "") + "</small></div>"
+                + "<div><small>&#128197; Subscription Since</small><strong>" + SA.Day(r["Since"]) + "</strong></div><div><small>&#128339; Last Login</small><strong>" + SA.When(r["LastLoginDate"]) + "</strong></div></div>";
+        return "<div class='sa-card sa-subhead'><span class='sa-avatar'>" + SA.H(Initials(Name(r))) + "</span><div class='sa-grow'><h2>" + SA.H(Name(r)) + "</h2><small>Subscriber ID: " + Sub(u) + "<br />" + SA.H(r["Email"]) + "</small></div>"
+            + "<div><small>Current Plan</small><strong>" + plan + "</strong><a class='sa-link' href='SupportPlans.aspx'>View Plan Details</a></div>"
+            + "<div><small>Subscriber Since</small><strong>" + SA.Day(r["Since"]) + "</strong></div><div>" + badge + "</div></div>";
     }
     // Businesses the subscriber owns: the owner's own AssginBussiness rows (UserTypeId 1) or businesses mapped to the owner's login
     // (same rule as AnyminuteModernScope). Deleted businesses (Status 2) are shown but not counted.
@@ -468,7 +474,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
           .Append("<button type='submit' class='sa-action' name='sa_op' value='invite' data-sa-confirm='Send a new activation invitation to ").Append(SA.A(r["Email"])).Append("?'").Append(dis).Append("><b>&#9993; Resend Invitation</b><small>Send a new activation invitation to the subscriber.</small></button>")
           .Append("<a class='sa-action' href='SupportSubscribers.aspx?user=").Append(u).Append("&amp;view=reset'><b>&#128273; Send Password Reset</b><small>Send a secure password reset link to the subscriber.</small></a>")
           .Append("<a class='sa-action' href='SupportSubscribers.aspx?user=").Append(u).Append("&amp;view=history'><b>&#8634; View Login History</b><small>View recent sign-in activity and login history.</small></a></div>")
-          .Append("<div class='sa-panel-foot'><a class='sa-btn sa-btn-outline' href='SupportSubscribers.aspx'>Cancel</a><button type='submit' class='sa-btn' name='sa_op' value='access'").Append(dis).Append(">&#128190; Save Changes</button></div></div>");
+          .Append("<div class='sa-panel-foot'><a class='sa-btn sa-btn-outline' href='SupportSubscribers.aspx?user=").Append(u).Append("'>Cancel</a><button type='submit' class='sa-btn' name='sa_op' value='access'").Append(dis).Append(">&#128190; Save Changes</button></div></div>");
         return sb.ToString();
     }
     static string Sessions(SqlConnection c, int u)
@@ -477,6 +483,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
         if (t == null) return "<span class='sa-muted'>Not tracked (run REQUIRED_08)</span>";
         if (t.Rows.Count == 0) return "0";
         var r = t.Rows[0];
+        if (t.Rows.Count == 1) return "1 (Current session)"; // v50 PPT s1
         return t.Rows.Count + " <small class='sa-muted'>(last activity " + SA.When(r["LastSeenAtUTC"]).Replace("<br />", " ") + (SA.S(r["IpAddress"]).Length > 0 ? " from " + SA.H(r["IpAddress"]) : "") + ")</small>";
     }
     static string Reset(DataRow r, bool ready)
@@ -485,11 +492,12 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
         return "<input type='hidden' name='sa_user' value='" + u + "' /><div class='sa-card sa-steps'>"
             + "<section><h2><b class='sa-step'>1</b> Subscriber Information</h2><div class='sa-subhead sa-flat'><span class='sa-avatar'>" + SA.H(Initials(Name(r))) + "</span><div class='sa-grow'><strong>" + SA.H(Name(r)) + "</strong><small>Subscriber ID: " + Sub(u) + "<br />" + SA.H(email) + "</small></div>"
             + "<div><small>Account Status</small>" + SA.Pill(StatusOf(r), Tone(StatusOf(r))) + "</div><div><small>Login Access</small>" + (Enabled(r) ? SA.Pill("Enabled", "green") : SA.Pill("Disabled", "red")) + "</div><div><small>Last Login</small><strong>" + SA.When(r["LastLoginDate"]) + "</strong></div></div></section>"
-            + "<section><h2><b class='sa-step'>2</b> Password Reset Email</h2><div class='sa-grid2'><div><label class='sa-field'><span>Send to Email Address</span><input value='" + SA.A(email) + "' readonly /></label><small class='sa-muted'>A secure password reset link will be sent to this email address.</small></div>"
-            + "<div class='sa-preview'><small>Message Preview (Email Subject and Content)</small><p><b>Subject: Reset Your AnyMinute Password</b></p><p>Hello " + SA.H(first) + ",</p><p>We received a request to reset your AnyMinute account password. Click the link below to set a new password. This link will expire in 24 hours and can be used once.</p><p><span class='sa-link'>Reset Your Password</span></p><p>If you did not request this, please ignore this email.</p><p>Thank you,<br />The AnyMinute Team</p></div></div></section>"
-            + "<section><h2><b class='sa-step'>3</b> Confirm and Send</h2><div class='sa-flash sa-warn'><b>Please confirm before sending.</b><ul><li>A secure password reset link will be sent to " + SA.H(email) + ".</li><li>The link will expire in 24 hours and works only once; sending a new link cancels earlier ones.</li><li>The previous password will remain invalid after the reset.</li><li>This action will be recorded in the activity log.</li></ul></div></section>"
+            + "<section><h2><b class='sa-step'>2</b> Password Reset Email</h2><div class='sa-grid2'><div><label class='sa-field'><span>Send to Email Address</span><input type='email' name='sa_email' maxlength='256' required value='" + SA.A(email) + "' oninput=\"document.getElementById('saRstTo').textContent=this.value\" /></label><small class='sa-muted'>A secure password reset link will be sent to this email address.</small></div>"
+            + "<div class='sa-preview'><small>Message Preview (Email Subject and Content)</small><p><b>Subject: Reset Your AnyMinute Password</b></p><p>Hello " + SA.H(first) + ",</p><p>We received a request to reset your AnyMinute account password. Click the link below to set a new password. This link will expire in 24 hours.</p><p><span class='sa-link'>Reset Your Password</span></p><p>If you did not request this, please ignore this email.</p><p>Thank you,<br />The AnyMinute Team</p></div></div></section>"
+            + "<section><h2><b class='sa-step'>3</b> Confirm and Send</h2><div class='sa-flash sa-warn'><b>Please confirm before sending.</b><ul><li>A secure password reset link will be sent to <span id='saRstTo'>" + SA.H(email) + "</span>.</li><li>The link will expire in 24 hours.</li><li>The previous password will remain invalid after the reset.</li><li>This action will be recorded in the activity log.</li></ul></div></section>"
             + "<div class='sa-panel-foot'><a class='sa-btn sa-btn-outline' href='SupportSubscribers.aspx?user=" + u + "'>Cancel</a><button type='submit' class='sa-btn' name='sa_op' value='reset'" + (ready ? "" : " disabled") + ">&#10148; Send Password Reset</button></div></div>";
     }
+    string SubName = "";
     string History(SqlConnection c, int user)
     {
         if (!SA.Has(c, "AnyminuteSupportAudit")) return "<div class='sa-card'><p class='sa-muted'>" + SA.H(SA.MissingTables) + "</p></div>";
@@ -501,14 +509,14 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
         {
             var d = DateTime.SpecifyKind(Convert.ToDateTime(r["ChangedAtUTC"]), DateTimeKind.Utc).ToLocalTime().Date;
             if (hf && d < f) return false; if (ht && d > t) return false;
-            if (ev.Length > 0 && SA.S(r["Action"]) != ev) return false;
+            if (ev.Length > 0 && Ev(r) != ev) return false;
             bool ok = r["Success"] == DBNull.Value || Convert.ToBoolean(r["Success"]);
             if (st == "Success" && !ok) return false; if (st == "Failed" && ok) return false;
             if (ip.Length > 0 && !SA.S(r["IpAddress"]).Contains(ip)) return false;
             if (dev.Length > 0 && SA.S(r["Device"]).IndexOf(dev, StringComparison.OrdinalIgnoreCase) < 0) return false;
             return true;
         }).ToList();
-        var events = all.Select(r => SA.S(r["Action"])).Distinct().OrderBy(x => x);
+        var events = MockEvents.Concat(all.Select(Ev)).Distinct().OrderBy(x => x);
         bool locCol = AnyminuteEmployeeEditor.HasColumn(c, null, "AnyminuteSupportAudit", "Location"); int budget = 3000;
         var devices = all.Select(r => SA.S(r["Device"]).Split('/')[0].Trim()).Where(x => x.Length > 0).Distinct().OrderBy(x => x);
         var sb = new StringBuilder("<div class='sa-card'><div class='sa-filters' data-sa-get='SupportSubscribers.aspx'><input type='hidden' name='user' value='" + user + "' /><input type='hidden' name='view' value='history' />"
@@ -522,14 +530,22 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
         foreach (var r in rows.Skip((page - 1) * PageSize).Take(PageSize))
         {
             bool ok = r["Success"] == DBNull.Value || Convert.ToBoolean(r["Success"]);
-            string by = SA.S(r["ChangedByName"]); bool self = by == "Subscriber";
-            sb.Append("<tr><td>").Append(SA.When(r["ChangedAtUTC"])).Append("</td><td><strong>").Append(SA.H(r["Action"])).Append("</strong></td><td>").Append(SA.H(r["Comments"])).Append("</td><td>").Append(SA.S(r["IpAddress"]).Length > 0 ? SA.H(r["IpAddress"]) : "&mdash;")
-              .Append("</td><td>").Append(Location(c, r, locCol, ref budget)).Append("</td><td>").Append(SA.S(r["Device"]).Length > 0 ? SA.H(r["Device"]) : "&mdash;").Append("</td><td>").Append(self ? "Subscriber" : SA.H(by) + "<br /><small>(Support Admin)</small>")
+            string by = SA.S(r["ChangedByName"]); bool self = by == "Subscriber"; string evn = Ev(r);
+            sb.Append("<tr><td>").Append(SA.When(r["ChangedAtUTC"])).Append("</td><td><strong>").Append(EvIcon(evn)).Append(SA.H(evn)).Append("</strong></td><td>").Append(SA.H(r["Comments"])).Append("</td><td>").Append(SA.S(r["IpAddress"]).Length > 0 ? SA.H(r["IpAddress"]) : "&mdash;")
+              .Append("</td><td>").Append(Location(c, r, locCol, ref budget)).Append("</td><td>").Append(SA.S(r["Device"]).Length > 0 ? SA.H(r["Device"]) : "&mdash;").Append("</td><td>").Append(self ? SA.H(SubName) + "<br /><small>(Subscriber)</small>" : "Support Admin<br /><small>(" + SA.H(by) + ")</small>")
               .Append("</td><td>").Append(SA.Pill(ok ? "Success" : "Failed", ok ? "green" : "red")).Append("</td></tr>");
         }
         if (rows.Count == 0) sb.Append("<tr><td colspan='8' class='sa-empty'>No login activity recorded yet. Sign-ins are recorded from v25 onward.</td></tr>");
         string baseQ = "user=" + user + "&view=history&from=" + from + "&to=" + to + "&event=" + HttpUtility.UrlEncode(ev) + "&status=" + st + "&ip=" + HttpUtility.UrlEncode(ip) + "&device=" + HttpUtility.UrlEncode(dev);
         return sb.Append("</tbody></table></div>").Append(SA.Pager(rows.Count, page, PageSize, baseQ).Replace(" of " + rows.Count + "</span>", " of " + rows.Count + " activities</span>")).Append("</div>").ToString();
+    }
+    // v50 PPT s3 event labels: the subscriber-created audit row reads "Account Created" on this page.
+    static readonly string[] MockEvents = { "Sign In", "Password Reset", "Failed Sign In", "Activation Email", "Account Created", "Login Access Enabled" };
+    static string Ev(DataRow r) { string a = SA.S(r["Action"]); return a == "Subscriber Created" ? "Account Created" : a; }
+    static string EvIcon(string e)
+    {
+        string i = e == "Sign In" ? "&#8680;" : e == "Failed Sign In" ? "&#128274;" : e == "Password Reset" ? "&#128273;" : e == "Activation Email" ? "&#9993;" : e == "Account Created" ? "&#128100;" : e.StartsWith("Login Access") ? "&#128275;" : "";
+        return i.Length == 0 ? "" : "<span class='sa-ev-ico' style='color:#1a73e8' aria-hidden='true'>" + i + "</span> ";
     }
     // Stored location, else best-effort lookup (AnyminuteGeoIp) saved back to the audit row so it is resolved once.
     static string Location(SqlConnection c, DataRow r, bool locCol, ref int budget)
@@ -585,10 +601,14 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
                 var mail = new EmailSettingController();
                 if (op == "reset")
                 {
+                    // v50 PPT s2: "Send to Email Address" is editable; default is the subscriber's sign-in email.
+                    string to = SA.Form("sa_email").Trim();
+                    if (to.Length > 0 && !System.Text.RegularExpressions.Regex.IsMatch(to, @"^[^@\s]+@[^@\s]+\.[^@\s]+$")) { SA.Flash("Enter a valid email address to send the reset link to."); Back(u, "reset"); return; }
+                    if (to.Length > 0) email = to;
                     // v26: one-time token, valid 24 hours (REQUIRED_08). Without the table the legacy link is refused rather than sent unprotected.
                     if (!AnyminutePasswordReset.Ready(c)) { SA.Flash("Run DB_REQUIRED/REQUIRED_08_SupportAdminStrict.sql to enable 24-hour password reset links. Nothing was sent."); Back(u, "reset"); return; }
                     url += "&rt=" + AnyminutePasswordReset.Issue(c, null, u, linkEmployee, email, SA.ActorId());
-                    string body = "<p>Hello " + first + ",</p><p>We received a request to reset your AnyMinute account password. Click the link below to set a new password. This link will expire in 24 hours and can be used once.</p><p><a href=\"" + HttpUtility.HtmlAttributeEncode(url) + "\">Reset Your Password</a></p><p>If you did not request this, please ignore this email.</p><p>Thank you,<br />The AnyMinute Team</p>";
+                    string body = "<p>Hello " + first + ",</p><p>We received a request to reset your AnyMinute account password. Click the link below to set a new password. This link will expire in 24 hours.</p><p><a href=\"" + HttpUtility.HtmlAttributeEncode(url) + "\">Reset Your Password</a></p><p>If you did not request this, please ignore this email.</p><p>Thank you,<br />The AnyMinute Team</p>";
                     mail.SendHtmlFormattedEmail(email, "Reset Your AnyMinute Password", body);
                     SA.Audit(c, null, "Login", key, "Password Reset", null, null, null, email, "Password reset link sent to subscriber (expires in 24 hours, one-time use).");
                     SA.Flash("Password reset link sent to " + email + ".");
