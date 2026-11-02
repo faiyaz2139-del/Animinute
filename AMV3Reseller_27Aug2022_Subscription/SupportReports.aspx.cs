@@ -17,15 +17,16 @@ using RL = AnyminuteReportLayout;
 // Filters travel in the query string (?r=key&f_x=..&o_y=1&gen=1) so a generated report can be bookmarked and exported.
 public partial class AnyminuteSupportReportsPage : System.Web.UI.Page
 {
-    protected void Page_Init(object sender, EventArgs e) { SA.Require(); }
+    // v49 (Pandey notes): Support Admin = all 20 reports; a reseller login with report permission = the 8 Reseller reports (own rows).
+    protected void Page_Init(object sender, EventArgs e) { if (Session["UserId"] == null || !SR.CanOpen()) SA.Require(); }
     protected void Page_Load(object sender, EventArgs e)
     {
-        var q = Request.QueryString; var def = SR.Def(q["r"]);
+        var q = Request.QueryString; var scope = SR.ResellerScope(); var def = SR.DefFor(scope, q["r"]);
         if (q["export"] == "pdf" || q["export"] == "excel") { SR.Export(Context, SR.Execute(def, q), q["export"] == "pdf"); return; }
         Title = def.Name + " Report";
         // v46 (Reports deck): shared report layout (AnyminuteReportLayout) - same design as Reports.aspx in the other modules.
         Head1.Text = RL.Head(def.Group == "Reseller" ? "Reseller Reports" : "Support Admin Reports", "SupportReports.aspx", def.Name, def.Purpose.TrimEnd('.') + ". Filter the report to view and export the results.", null);
-        Nav.Text = NavList(def);
+        Nav.Text = NavList(def, scope);
         bool gen = q["gen"] == "1"; var run = SR.Execute(def, gen ? q : new NameValueCollection { { "r", def.Key } });
         var sb = new StringBuilder();
         sb.Append(FilterCard(def, gen ? q : new NameValueCollection(), run));
@@ -49,13 +50,14 @@ public partial class AnyminuteSupportReportsPage : System.Web.UI.Page
             "<input type='hidden' name='r' value='" + SA.A(def.Key) + "' /><input type='hidden' name='gen' value='1' />",
             main.ToString(), adv.ToString(), opts.ToString(), "SupportReports.aspx?r=" + HttpUtility.UrlEncode(def.Key), "data-sa-apply='1'");
     }
-    static string NavList(SrDef cur)
+    static string NavList(SrDef cur, SrScope scope)
     {
         var groups = new List<RL.Group>();
         foreach (var g in new[] { new[] { "Support", "Support Admin Reports" }, new[] { "Reseller", "Reseller Reports" } })
         {
+            if (scope != null && g[0] != "Reseller") continue;
             var grp = new RL.Group { Title = g[1] };
-            foreach (var d in SR.Defs.Where(x => x.Group == g[0])) grp.Items.Add(new RL.Item { Name = d.Name, Href = "SupportReports.aspx?r=" + d.Key, On = d == cur });
+            foreach (var d in SR.DefsFor(scope).Where(x => x.Group == g[0])) grp.Items.Add(new RL.Item { Name = d.Name, Href = "SupportReports.aspx?r=" + d.Key, On = d == cur });
             groups.Add(grp);
         }
         return RL.Nav(groups);

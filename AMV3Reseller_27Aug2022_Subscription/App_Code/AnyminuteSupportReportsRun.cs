@@ -42,7 +42,9 @@ public static partial class AnyminuteSupportReports
     public static SrRun Execute(SrDef def, NameValueCollection q)
     {
         var run = new SrRun { Def = def };
-        try { using (var c = SA.Open()) run.Base = def.Load(c, q); }
+        var scope = ResellerScope(); // v49: reseller logins only get their own rows (Support Admin: null = everything)
+        if (scope != null && def.Group != "Reseller") { run.Error = "This report is only available to Support Admin."; run.Base = new SrData("Result"); return Shape(run, q); }
+        try { using (var c = SA.Open()) run.Base = Limit(def.Load(c, q), scope); }
         catch (SqlException ex) { run.Error = "The report could not read the database: " + ex.Message; run.Base = new SrData("Result"); }
         return Shape(run, q);
     }

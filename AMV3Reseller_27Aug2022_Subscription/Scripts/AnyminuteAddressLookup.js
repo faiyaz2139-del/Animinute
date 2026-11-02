@@ -19,7 +19,7 @@
  function syncCountry(){
   var us=country()==='United States',f=document.getElementById('amEmpLookupFlag'),h=document.getElementById('amEmpLookupHint'),p=field('LookupPostal');
   if(f)f.classList.toggle('is-us',us);
-  if(h)h.textContent=us?'Enter a valid US ZIP code (e.g. 33185).':'Enter a valid Canadian postal code (e.g. M1B 2W1).';
+  if(h)h.textContent='Enter a valid Canadian postal code (e.g. M1B 2W1) or US ZIP code (e.g. 33185).'; // v49 Pandey notes: one hint for CA + US
   if(p)p.placeholder=us?'e.g. 33185':'e.g. M1B 2W1';
  }
  var back=null;

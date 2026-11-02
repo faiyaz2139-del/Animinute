@@ -62,6 +62,8 @@ public static class AnyminuteUiNavigation
             if(owner || AnyminuteReports.AdminSomewhere())Add(items,"Login & Access","UserLoginAccess.aspx",-220);
             if(owner)Add(items,"Report Access","ReportAccess.aspx",-219);
         }
+        // v49 (Pandey notes): reseller logins with report permission get Reseller Reports (SupportReports.aspx, own rows only).
+        try{if(AnyminuteSupportReports.ResellerScope()!=null)Add(items,"Reseller Reports","SupportReports.aspx",-221);}catch(Exception){}
         return items.OrderBy(item=>item.Seq);
     }
     static void Add(IList<MenuViewModel> items,string name,string href,int id)

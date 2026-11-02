@@ -37,11 +37,12 @@ public static partial class AnyminuteSupportReports
             Filters = new[] { F("sub", "Subscriber", "Subscriber Name", "select"), F("prev", "Previous Plan", "Previous Plan", "select"), F("next", "New Plan", "New Plan", "select"), F("date", "Date Range", "Change Date", "range") },
             Options = O("limits", "Include limit changes", "1", "billing", "Include amounts and references", "1"),
             Kpis = d => new List<KeyValuePair<string, string>> { K("Total Changes", d.Rows.Count), K("Upgrades", Count(d, "Change Type", "Upgrade")), K("Downgrades", Count(d, "Change Type", "Downgrade")), K("New Subscriptions", Count(d, "Change Type", "New Subscription")), K("Renewals", Count(d, "Change Type", "Renewal")) } },
+        // v49 (Pandey Nov 2 mock): Status moved to the main row (Date Range / From / To, Status, Subscriber, Business, Assigned Support Admin).
         // v30 (Pandey post-v29, Shamsu deck 1 Support Ticket mock): Date Range (Custom) + From / To first, then Subscriber, Business,
         // Assigned Support Admin, Priority, Category, Status, Ticket Type, Created By, Resolution Status; four Additional Options.
         new SrDef { Key = "support-ticket", Group = "Support", Name = "Support Ticket", Purpose = "Filter the report to view and export support ticket information.", Load = SupportTicket,
-            Filters = new[] { F("date", "Date Range", "Created Date", "range3"), F("sub", "Subscriber", "Subscriber", "select"), F("biz", "Business", "Business", "select"), F("assigned", "Assigned Support Admin", "Assigned To", "select"),
-                F("prio", "Priority", "Priority", "select", SA.Priorities), F("cat", "Category", "Category", "select", SA.Categories), F("status", "Status", "Status", "select", SA.TicketStatuses),
+            Filters = new[] { F("date", "Date Range", "Created Date", "range3"), F("status", "Status", "Status", "select", SA.TicketStatuses), F("sub", "Subscriber", "Subscriber", "select"), F("biz", "Business", "Business", "select"), F("assigned", "Assigned Support Admin", "Assigned To", "select"),
+                F("prio", "Priority", "Priority", "select", SA.Priorities), F("cat", "Category", "Category", "select", SA.Categories),
                 F("type", "Ticket Type", "Ticket Type", "select"), F("by", "Created By", "Created By", "select"), F("res", "Resolution Status", "Resolution Status", "select", ResolutionStatuses) },
             Options = O("details", "Include ticket details", "1", "latest", "Include latest activity", "0", "time", "Include time metrics", "0", "notes", "Include internal notes", "0"),
             Kpis = d => new List<KeyValuePair<string, string>> { K("Total Tickets", d.Rows.Count), K("Open", Count(d, "Status", "Open")), K("In Progress", Count(d, "Status", "In Progress")), K("Waiting", Count(d, "Status", "Waiting")), K("Resolved / Closed", Count(d, "Status", "Resolved")) } },
