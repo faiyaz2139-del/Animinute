@@ -83,7 +83,7 @@ public partial class Login : System.Web.UI.Page
                 else if (dt.Rows[0]["Email"].ToString() == "support@anyminute.net" && dt.Rows[0]["UserTypeid"].ToString() == "1" && dt.Rows[0]["UserType"].ToString() == "SupportAdmin")
                 {
                     //Response.Redirect("SuperAdmin_Approve_New_Account.aspx", false);
-                    Response.Redirect("SuperAdmin_Approve_Subscriber.aspx", false);
+                    Response.Redirect("SupportSubscribers.aspx", false); // v47: modern Support landing
                 }
                 else if (dt.Rows[0]["UserTypeid"].ToString() == "0" && dt.Rows[0]["UserType"].ToString() == "SuperAdmin")
                 {

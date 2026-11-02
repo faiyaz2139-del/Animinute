@@ -3,7 +3,7 @@
 <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
 <section class="sa-page">
  <header class="sa-head"><div><h1><asp:Literal ID="Title1" runat="server" /></h1><p><asp:Literal ID="Lead" runat="server" /></p></div>
-  <a class="sa-btn" href="SupportPlans.aspx?add=1">+ Add Plan</a></header>
+  <asp:PlaceHolder ID="AddPlan" runat="server"><a class="sa-btn" href="SupportPlans.aspx?add=1">+ Add Plan</a></asp:PlaceHolder></header>
  <asp:Literal ID="Flash" runat="server" />
  <div class="sa-card"><asp:Literal ID="Table" runat="server" /></div>
  <asp:Literal ID="Editor" runat="server" />

@@ -41,6 +41,7 @@ public partial class AnyminuteSupportPlansPage : System.Web.UI.Page
     protected void Page_Load(object sender, EventArgs e)
     {
         bool usage = SA.Get("view") == "usage";
+        AddPlan.Visible = !usage; // v47: Usage & Limits is a read-only view; + Add Plan stays on Subscription Plans
         Title1.Text = usage ? "Usage &amp; Limits" : "Subscription Plans";
         Lead.Text = usage ? "Plan limits and how many active subscriptions use each plan." : "Create and manage subscription plans, limits, pricing and features.";
         Flash.Text = SA.TakeFlash();
@@ -86,8 +87,8 @@ public partial class AnyminuteSupportPlansPage : System.Web.UI.Page
             int[] n; string k = SA.PlanKey(p.Name); if (!counts.TryGetValue(k, out n)) n = new int[2]; counts.Remove(k);
             sb.Append("<tr><td>").Append(SA.H(p.Name)).Append("</td><td>").Append(n[0]).Append("</td><td>").Append(n[0] == 0 ? "&mdash;" : n[1] + " of " + n[0]).Append("</td><td>").Append(Num(p.Businesses)).Append("</td><td>").Append(Num(p.Employees)).Append("</td><td>").Append(Num(p.Projects)).Append("</td><td>").Append(p.Trial).Append("</td></tr>");
         }
-        foreach (var k in counts) sb.Append("<tr><td>").Append(SA.H(names[k.Key])).Append(" <small class='sa-muted'>(billing plan)</small></td><td>").Append(k.Value[0]).Append("</td><td colspan='5' class='sa-muted'>Not in the plan catalogue</td></tr>");
-        return sb.Append("</tbody></table></div><p class='sa-muted'>Max Businesses and Max Employees are enforced by AnyMinute through each subscription's plan record; saving a plan can apply them to active subscribers. Max Projects and Trial Days are catalogue values only (no AnyMinute page enforces them yet); Stripe prices are not changed here.</p>").ToString();
+        foreach (var k in counts) sb.Append("<tr><td>").Append(SA.H(System.Globalization.CultureInfo.InvariantCulture.TextInfo.ToTitleCase(names[k.Key].Trim().ToLowerInvariant()))).Append("</td><td>").Append(k.Value[0]).Append("</td><td colspan='5' class='sa-muted'>Legacy plan (not in Subscription Plans)</td></tr>"); // v47: was "(billing plan)" / "Not in the plan catalogue"
+        return sb.Append("</tbody></table></div><p class='sa-muted'>Max Businesses and Max Employees apply to each subscriber's current plan. Max Projects and Trial Days are shown for reference. <a class='sa-link' href='SupportPlans.aspx'>Manage Subscription Plans</a></p>").ToString();
     }
     // Active, non-cancelled PlanHistory rows for these plan names (old and new name when renamed).
     const string ApplyWhere = " FROM PlanHistory WHERE ISNULL(IsActive,0)=1 AND ISNULL(Is_Cancelled,0)=0 AND {0} IN(@k1,@k2)";

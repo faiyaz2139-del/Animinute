@@ -69,9 +69,15 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
         try { var p = SA.Q(c, "SELECT TOP 1 MaxProjects FROM AnyminuteSubscriptionPlan WHERE " + String.Format(SA.PlanKeySql, "PlanName") + "=@k", "@k", SA.PlanKey(plan)); return p.Rows.Count == 1 ? SA.S(p.Rows[0][0]) : ""; } catch (SqlException) { return ""; }
     }
     static string Addr(DataRow r) { return String.Join(", ", new[] { SA.S(r["Street"]), SA.S(r["City"]), SA.S(r["Province"]), SA.S(r["Postalcode"]) }.Where(x => x.Trim().Length > 0).ToArray()); }
-    static string MoreMenu(DataRow r)
+    // v47: a Pending subscriber's More menu leads with Activate Subscriber (Edit Subscriber with Active preselected; Confirm + Reason
+    // still required) and Resend Invitation (the existing Login & Access "invite" action). withUser: the page has no sa_user field yet.
+    static string MoreMenu(DataRow r, bool withUser)
     {
-        return "<details class='sa-menu'><summary class='sa-btn sa-btn-outline'>" + Ic("more") + " More " + Ic("chev") + "</summary><div class='sa-menu-pop'><h4>Subscriber Actions</h4><small>" + SA.H(Name(r)) + "</small>" + Menu(Convert.ToInt32(r["UserId"])) + "</div></details>";
+        int u = Convert.ToInt32(r["UserId"]); string pend = "";
+        if (StatusOf(r) == "Pending")
+            pend = "<a class='sa-menu-item' href='SupportSubscribers.aspx?user=" + u + "&amp;view=edit&amp;st=Active#sa-status'><i aria-hidden='true'>&#10004;</i><span><b>Activate Subscriber</b><small>Set the account to Active (confirmation and reason required)</small></span></a>"
+                + "<button type='submit' class='sa-menu-item' name='sa_op' value='invite' formnovalidate='formnovalidate' data-sa-confirm='Send a new activation invitation with a new temporary password to " + SA.A(r["Email"]) + "?'><i aria-hidden='true'>&#9993;</i><span><b>Resend Invitation</b><small>New activation email with a new temporary password</small></span></button>";
+        return (withUser ? "<input type='hidden' name='sa_user' value='" + u + "' />" : "") + "<details class='sa-menu'><summary class='sa-btn sa-btn-outline'>" + Ic("more") + " More " + Ic("chev") + "</summary><div class='sa-menu-pop'><h4>Subscriber Actions</h4><small>" + SA.H(Name(r)) + "</small>" + pend + Menu(u) + "</div></details>";
     }
     DataTable Subscribers(SqlConnection c, int user)
     {
@@ -88,8 +94,13 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
             " WHERE EXISTS(SELECT 1 FROM MappingTable m WHERE m.USERID=u.UserId AND m.UserTypeId=1)" + (user > 0 ? " AND u.UserId=@u" : "") + " ORDER BY u.UserId DESC", "@u", user);
     }
     static bool Enabled(DataRow r) { return !Convert.ToBoolean(r["LoginDisabled"]) && (r["Status"] == DBNull.Value || Convert.ToBoolean(r["Status"])); }
-    static string StatusOf(DataRow r) { return !Enabled(r) ? "Inactive" : r["Is_First_Time_Login"] != DBNull.Value && Convert.ToBoolean(r["Is_First_Time_Login"]) ? "Pending" : "Active"; }
-    static string Tone(string st) { return st == "Active" ? "green" : st == "Pending" ? "amber" : "red"; }
+    // v47 (Nov 2 live smoke): four states, the same ones Add Subscriber writes (AnyminuteSubscriberCreate):
+    // Inactive = UserAcc.Status 0; Suspended = login disabled (AnyminuteLoginSecurity); Pending = first sign-in not done yet; else Active.
+    static bool AccOn(DataRow r) { return r["Status"] == DBNull.Value || Convert.ToBoolean(r["Status"]); }
+    static string StatusOf(DataRow r) { return !AccOn(r) ? "Inactive" : Convert.ToBoolean(r["LoginDisabled"]) ? "Suspended" : r["Is_First_Time_Login"] != DBNull.Value && Convert.ToBoolean(r["Is_First_Time_Login"]) ? "Pending" : "Active"; }
+    static string Tone(string st) { return st == "Active" ? "green" : st == "Pending" ? "amber" : st == "Suspended" ? "red" : "grey"; }
+    // Edit Subscriber status label (Add Subscriber wording: "Pending Activation").
+    static string EditStatusOf(DataRow r) { string st = StatusOf(r); return st == "Pending" ? AStatus[0] : st; }
     static string Name(DataRow r) { string n = SA.S(r["Name"]).Replace("  ", " "); return n.Length > 0 ? n : SA.S(r["Email"]); }
     protected void Page_Load(object sender, EventArgs e)
     {
@@ -113,7 +124,13 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
             // v45 PPT 01 s3/s4: Subscriber Details has no page title; the subscriber header card is the top of the page.
             if (view == "" || view == "businesses" || view == "employees" || view == "projects" || view == "billing") { Title1.Text = ""; Lead.Text = ""; Content.Text = Details(c, r) + "<div class='sa-tabbed'>" + DTabs(c, r, view.Length == 0 ? "businesses" : view) + (view == "billing" ? Billing(c, r) : view == "employees" || view == "projects" ? Related(c, r, view) : Biz(c, r)) + "</div>"; }
             else if (view == "bizedit") { int bz; Int32.TryParse(SA.Get("biz"), out bz); Title1.Text = ""; Lead.Text = ""; Content.Text = Details(c, r) + "<div class='sa-tabbed'>" + DTabs(c, r, "businesses") + BizEdit(c, r, bz, null, null) + "</div>"; }
-            else if (view == "edit") { Title1.Text = "Edit Subscriber"; Lead.Text = "Update subscriber information, plan and limits."; Content.Text = Edit(c, r, null); }
+            else if (view == "edit")
+            {
+                // v47: ?st=Active (Pending "Activate Subscriber") preselects the new status; the Confirm Changes + Reason step still applies.
+                string[] pre = null; string want = SA.Get("st");
+                if (AStatus.Contains(want) && want != EditStatusOf(r)) { pre = Current(r); pre[6] = want; Flash.Text += "<div class='sa-flash sa-info'>Status set to " + SA.H(want) + ". Review and click Save Changes to confirm.</div>"; }
+                Title1.Text = "Edit Subscriber"; Lead.Text = "Update subscriber information, plan and limits."; Content.Text = Edit(c, r, pre);
+            }
             else if (view == "created")
             {
                 Crumbs.Text = "<nav class='sa-crumbs'><a href='SupportSubscribers.aspx'>Subscribers</a> &rsaquo; <span>Add Subscriber</span></nav>"; Title1.Text = "Add Subscriber"; Lead.Text = "";
@@ -164,10 +181,10 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
         int pages = Math.Max(1, (rows.Count + size - 1) / size); if (page > pages) page = pages;
         Func<string, string, string, int, string> kpi = (icon, label, tone, cnt) => "<div class='sa-kpi'><i class='sa-kpi-icon sa-" + tone + "' aria-hidden='true'>" + icon + "</i><div><span>" + label + "</span><strong>" + cnt + "</strong></div></div>";
         var sb = new StringBuilder("<div class='sa-kpis'>").Append(kpi("&#128101;", "Total Subscribers", "blue", all.Count)).Append(kpi("&#10004;", "Active Subscribers", "green", all.Count(r => StatusOf(r) == "Active")))
-            .Append(kpi("&#10006;", "Inactive Subscribers", "red", all.Count(r => StatusOf(r) == "Inactive"))).Append(kpi("&#9203;", "Trial Subscribers", "purple", all.Count(r => SA.S(r["PlanName"]).IndexOf("TRIAL", StringComparison.OrdinalIgnoreCase) >= 0))).Append("</div>");
+            .Append(kpi("&#10006;", "Inactive Subscribers", "red", all.Count(r => StatusOf(r) == "Inactive" || StatusOf(r) == "Suspended"))).Append(kpi("&#9203;", "Trial Subscribers", "purple", all.Count(r => SA.S(r["PlanName"]).IndexOf("TRIAL", StringComparison.OrdinalIgnoreCase) >= 0))).Append("</div>");
         sb.Append("<div class='sa-card'><div class='sa-filters' data-sa-get='SupportSubscribers.aspx'><input type='hidden' name='size' value='").Append(size).Append("' /><label class='sa-grow sa-search'><span class='sr-only'>Search</span><i aria-hidden='true'>" + Ic("search") + "</i><input type='search' name='q' value='").Append(SA.A(q)).Append("' placeholder='Search by name, email or phone number...' /></label>")
           .Append("<label><span>Plan</span><select name='plan'>").Append(SA.Options(all.Select(r => SA.S(r["PlanName"])).Where(x => x.Length > 0).Distinct().OrderBy(x => x), plan, "All Plans")).Append("</select></label>")
-          .Append("<label><span>Status</span><select name='status'>").Append(SA.Options(new[] { "Active", "Inactive", "Pending" }, st, "All Statuses")).Append("</select></label>")
+          .Append("<label><span>Status</span><select name='status'>").Append(SA.Options(new[] { "Active", "Inactive", "Pending", "Suspended" }, st, "All Statuses")).Append("</select></label>")
           .Append("<a class='sa-btn sa-btn-outline' href='SupportSubscribers.aspx'>" + Ic("refresh") + " Clear</a><button type='button' class='sa-btn' data-sa-apply='1'>" + Ic("search") + " Search</button></div>");
         sb.Append("<div class='sa-table-wrap'><table class='sa-table sa-sub-list'><thead><tr><th><input type='checkbox' aria-label='Select all' data-sa-all='sa_sel' /></th><th>Sl. No.</th>").Append(th("Subscriber Name", "name")).Append(th("Plan Name", "plan")).Append(th("No. of Businesses", "biz")).Append(th("No. of Users", "users")).Append("<th>Contact Number</th>").Append(th("Email ID", "email")).Append(th("Activation Date", "since")).Append("<th>Status</th><th>Actions</th></tr></thead><tbody>");
         int n = (page - 1) * size;
@@ -204,7 +221,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
         string projLimit = ProjectLimit(c, plan), addr = Addr(r), phone = SA.S(r["MainPhone"]).Length > 0 ? SA.S(r["MainPhone"]) : SA.S(r["MobilePhone"]);
         Func<string, string, string, bool, string> ii = (icon, k, v, strong) => "<div class='sa-ii'>" + Ic(icon) + "<div><small>" + k + "</small>" + (strong ? "<strong>" : "<span>") + (v.Length == 0 ? "&mdash;" : v) + (strong ? "</strong>" : "</span>") + "</div></div>";
         return "<div class='sa-card sa-sd sa-sd45'><div class='sa-sd-top'><span class='sa-avatar sa-avatar-lg'>" + SA.H(Initials(Name(r))) + "</span><div class='sa-grow'><h2>" + SA.H(Name(r)) + " " + SA.Pill(sts, Tone(sts)) + "</h2><div class='sa-sd-sub'>" + (plan.Length > 0 ? SA.H(plan) : "No active plan") + "<span class='sa-vsep' aria-hidden='true'></span>Subscriber since " + SA.Day(r["Since"]) + "</div></div>"
-            + "<div class='sa-sd-btns'><a class='sa-btn sa-btn-outline' href='" + b + "&amp;view=edit'>" + Ic("edit") + " Edit</a><a class='sa-btn sa-btn-outline' href='" + b + "&amp;view=reset'>" + Ic("mail") + " Send Password Reset</a>" + MoreMenu(r) + "</div></div>"
+            + "<div class='sa-sd-btns'><a class='sa-btn sa-btn-outline' href='" + b + "&amp;view=edit'>" + Ic("edit") + " Edit</a><a class='sa-btn sa-btn-outline' href='" + b + "&amp;view=reset'>" + Ic("mail") + " Send Password Reset</a>" + MoreMenu(r, SA.Get("view") != "bizedit") + "</div></div>"
             + "<div class='sa-sd-body'><div class='sa-sd-info'><div class='sa-sd-col'>" + ii("mail", "Email", SA.H(r["Email"]), false) + ii("phone", "Phone", SA.H(phone), true) + "</div><div class='sa-sd-col'>" + ii("pin", "Address", SA.H(addr), false) + "</div>"
             + "<div class='sa-sd-col'>" + ii("cal", "Activation Date", SA.S(r["Since"]).Length > 0 ? SA.Day(r["Since"]) : "", true) + ii("cal", "Next Billing Date", SA.S(r["NextBilling"]).Length > 0 ? SA.Day(r["NextBilling"]) : "", true) + "</div></div>"
             + "<div class='sa-sd-limits'><div class='sa-sd-limhead'><h3>Subscription Limits" + (plan.Length > 0 ? " (" + SA.H(plan) + ")" : "") + "</h3><a class='sa-btn sa-btn-outline sa-btn-sm' href='" + b + "&amp;view=edit#plan'>Upgrade Plan</a><a class='sa-icon-btn' href='" + b + "&amp;view=edit#plan' title='Manage Custom Limits' aria-label='Manage Custom Limits'>" + Ic("gear") + "</a></div>"
@@ -257,7 +274,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
     static string D(object o) { return o == null || o == DBNull.Value ? "" : Convert.ToDateTime(o, CultureInfo.InvariantCulture).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture); }
     static string[] Current(DataRow r)
     {
-        return new[] { SA.S(r["FirstName"]).Trim(), SA.S(r["MiddleName"]).Trim(), SA.S(r["LastName"]).Trim(), SA.S(r["Email"]).Trim(), SA.S(r["MainPhone"]), SA.S(r["MobilePhone"]), r["Status"] == DBNull.Value || Convert.ToBoolean(r["Status"]) ? "Active" : "Inactive", SA.S(r["PlanName"]), SA.S(r["PlanBiz"]), SA.S(r["PlanUsers"]), D(r["PlanStart"]), D(r["NextBilling"]) };
+        return new[] { SA.S(r["FirstName"]).Trim(), SA.S(r["MiddleName"]).Trim(), SA.S(r["LastName"]).Trim(), SA.S(r["Email"]).Trim(), SA.S(r["MainPhone"]), SA.S(r["MobilePhone"]), EditStatusOf(r), SA.S(r["PlanName"]), SA.S(r["PlanBiz"]), SA.S(r["PlanUsers"]), D(r["PlanStart"]), D(r["NextBilling"]) };
     }
     static readonly string[] EL = { "First Name", "Middle Name", "Last Name", "Email Address", "Contact Phone", "Mobile Phone", "Account Status", "Plan", "Max Businesses", "Max Employees", "Start Date", "Next Billing Date" };
     // Plan catalogue (AnyminuteSubscriptionPlan) for the plan selects; null when the catalogue table is missing.
@@ -288,7 +305,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
         int[] n; try { n = Counts(c, r); } catch (SqlException) { n = new[] { 0, 0, 0 }; }
         var plans = Plans(c); string proj = Lim(PlanRow(plans, v[7]), "MaxProjects"); bool planChanged = SA.PlanKey(v[7]) != SA.PlanKey(SA.S(r["PlanName"]));
         string planName = SA.S(r["PlanName"]).Length > 0 ? SA.H(PlanLabel(SA.S(r["PlanName"]))) : "No active plan";
-        HeadActions.Text = "<div class='sa-sd-btns'><a class='sa-btn sa-btn-outline' href='" + b + "&amp;view=reset'>" + Ic("mail") + " Send Password Reset</a>" + MoreMenu(r) + "</div>";
+        HeadActions.Text = "<div class='sa-sd-btns'><a class='sa-btn sa-btn-outline' href='" + b + "&amp;view=reset'>" + Ic("mail") + " Send Password Reset</a>" + MoreMenu(r, false) + "</div>";
         Func<int, string, string, bool, string> f = (i, type, extra, req) => "<label class='sa-field'><span>" + EL[i] + (req ? " <em class='sa-req'>*</em>" : "") + "</span><input type='" + type + "' name='" + EF[i] + "' value='" + SA.A(v[i]) + "'" + extra + (req ? " required" : "") + " /></label>";
         Func<string, string, string, string> meta = (icon, k, val) => "<div class='sa-meta'>" + Ic(icon) + "<div><small>" + k + "</small><strong>" + val + "</strong></div></div>";
         var sb = new StringBuilder("<input type='hidden' name='sa_user' value='" + u + "' />");
@@ -309,9 +326,10 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
               .Append("<label class='sa-field'><span>Max Projects</span><input id='ed_proj' value='").Append(SA.A(proj.Length > 0 ? proj : "Custom")).Append("' readonly /></label>")
               .Append("<button type='button' class='sa-btn sa-btn-outline' data-sa-unlock='1'>").Append(Ic("gear")).Append(" Manage Custom Limits</button></div>");
         }
-        sb.Append("</div><div class='sa-card'><h2>Account Status</h2><div class='sa-status45'><label class='sa-field'><span>Status <em class='sa-req'>*</em></span><select name='ed_status' class='sa-status-sel")
+        sb.Append("</div><div class='sa-card' id='sa-status'><h2>Account Status</h2><div class='sa-status45'><label class='sa-field'><span>Status <em class='sa-req'>*</em></span><select name='ed_status' class='sa-status-sel")
           .Append(v[6] == "Active" ? " on" : "").Append("' onchange=\"this.className='sa-status-sel'+(this.value=='Active'?' on':'')\">");
-        foreach (var o in new[] { "Active", "Inactive" }) sb.Append("<option").Append(v[6] == o ? " selected" : "").Append(">").Append(o).Append("</option>");
+        // v47: all four states (was Active / Inactive only, so a Pending subscriber showed "Active" and saving activated it).
+        foreach (var o in AStatus) sb.Append("<option").Append(v[6] == o ? " selected" : "").Append(">").Append(o).Append("</option>");
         sb.Append("</select></label><div class='sa-flash sa-info'>").Append(Ic("info")).Append("<span>Suspended or inactive accounts cannot sign in to the system.<br />You can send an activation invitation to pending accounts.</span></div></div></div>")
           .Append("<div class='sa-card'><h2>Subscription Dates</h2>").Append(plan ? "<div class='sa-grid2'>" + f(10, "date", "", true) + f(11, "date", "", true) + "</div>" : "<p class='sa-muted'>No active plan record.</p>").Append("</div>");
         string addr = Addr(r);
@@ -416,9 +434,9 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
         }
         Func<string, int, string, string, string> kpi = (label, used, limit, note) => "<div class='sa-card'><small>" + label + "</small><h2>" + used + " / " + (limit.Length > 0 ? SA.H(limit) : "&mdash;") + "</h2><small class='sa-muted'>" + note + "</small></div>";
         var sb = new StringBuilder("<div class='sa-grid3'>")
-            .Append(kpi("Businesses used / plan limit", n[0], act == null ? "" : SA.S(act["Business"]), "Enforced from PlanHistory.Business"))
-            .Append(kpi("Employees used / plan limit", n[1], act == null ? "" : SA.S(act["No_Of_Users"]), "Enforced from PlanHistory.No_Of_Users"))
-            .Append(kpi("Projects used / catalogue limit", n[2], cat == "&mdash;" ? "" : cat, "Catalogue value; not enforced by the app"))
+            .Append(kpi("Businesses used / plan limit", n[0], act == null ? "" : SA.S(act["Business"]), "Allowed by the current plan"))
+            .Append(kpi("Employees used / plan limit", n[1], act == null ? "" : SA.S(act["No_Of_Users"]), "Allowed by the current plan"))
+            .Append(kpi("Projects used / plan limit", n[2], cat == "&mdash;" ? "" : cat, "Included in the plan"))
             .Append("</div><div class='sa-card'><h2>Plan History</h2><div class='sa-table-wrap'><table class='sa-table'><thead><tr><th>Plan</th><th>Start</th><th>End</th><th>Amount Paid</th><th>Employees Limit</th><th>Business Limit</th><th>Status</th></tr></thead><tbody>");
         foreach (DataRow x in plans.Rows)
         {
@@ -427,7 +445,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
               .Append("</td><td>").Append(SA.H(x["No_Of_Users"])).Append("</td><td>").Append(SA.H(x["Business"])).Append("</td><td>").Append(cancelled ? SA.Pill("Cancelled", "red") : on ? SA.Pill("Active", "green") : SA.Pill("Inactive", "grey")).Append("</td></tr>");
         }
         if (plans.Rows.Count == 0) sb.Append("<tr><td colspan='7' class='sa-empty'>No plan history for this subscriber.</td></tr>");
-        return sb.Append("</tbody></table></div><p class='sa-muted'>Payments are processed by the existing subscription pages; Stripe billing details are not shown here. <a class='sa-link' href='SupportPlans.aspx?view=usage'>Usage &amp; Limits for all plans</a></p></div>").ToString();
+        return sb.Append("</tbody></table></div><p class='sa-muted'><a class='sa-link' href='SupportPlans.aspx?view=usage'>Usage &amp; Limits for all plans</a></p></div>").ToString();
     }
     string Access(SqlConnection c, DataRow r, bool ready)
     {
@@ -436,7 +454,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
         if (SA.Has(c, "AnyminuteSupportAudit")) { var lr = SA.Q(c, "SELECT TOP 1 ChangedAtUTC FROM AnyminuteSupportAudit WHERE Entity='Login' AND EntityKey=@k AND Action='Password Reset' ORDER BY ChangedAtUTC DESC", "@k", u.ToString(CultureInfo.InvariantCulture)); if (lr.Rows.Count == 1) lastReset = SA.When(lr.Rows[0][0]).Replace("<br />", " "); }
         string dis = ready ? "" : " disabled";
         var sb = new StringBuilder("<input type='hidden' name='sa_user' value='" + u + "' /><div class='sa-grid2'><div class='sa-card'><h2>Current Login Information</h2><table class='sa-kv'>");
-        sb.Append("<tr><th>Account Status</th><td>").Append(SA.Pill(r["Status"] == DBNull.Value || Convert.ToBoolean(r["Status"]) ? "Active" : "Inactive", r["Status"] == DBNull.Value || Convert.ToBoolean(r["Status"]) ? "green" : "grey")).Append("</td></tr>")
+        sb.Append("<tr><th>Account Status</th><td>").Append(SA.Pill(StatusOf(r), Tone(StatusOf(r)))).Append("</td></tr>")
           .Append("<tr><th>Login Access</th><td>").Append(en ? SA.Pill("Enabled", "green") : SA.Pill("Disabled", "red")).Append("</td></tr>")
           .Append("<tr><th>Invitation Status</th><td>").Append(first ? "Pending" : "Accepted").Append("</td></tr>")
           .Append("<tr><th>Last Login</th><td>").Append(SA.When(r["LastLoginDate"]).Replace("<br />", " ")).Append("</td></tr>")
@@ -466,7 +484,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
         int u = Convert.ToInt32(r["UserId"]); string email = SA.S(r["Email"]), first = Name(r).Split(' ')[0];
         return "<input type='hidden' name='sa_user' value='" + u + "' /><div class='sa-card sa-steps'>"
             + "<section><h2><b class='sa-step'>1</b> Subscriber Information</h2><div class='sa-subhead sa-flat'><span class='sa-avatar'>" + SA.H(Initials(Name(r))) + "</span><div class='sa-grow'><strong>" + SA.H(Name(r)) + "</strong><small>Subscriber ID: " + Sub(u) + "<br />" + SA.H(email) + "</small></div>"
-            + "<div><small>Account Status</small>" + SA.Pill(r["Status"] == DBNull.Value || Convert.ToBoolean(r["Status"]) ? "Active" : "Inactive", "green") + "</div><div><small>Login Access</small>" + (Enabled(r) ? SA.Pill("Enabled", "green") : SA.Pill("Disabled", "red")) + "</div><div><small>Last Login</small><strong>" + SA.When(r["LastLoginDate"]) + "</strong></div></div></section>"
+            + "<div><small>Account Status</small>" + SA.Pill(StatusOf(r), Tone(StatusOf(r))) + "</div><div><small>Login Access</small>" + (Enabled(r) ? SA.Pill("Enabled", "green") : SA.Pill("Disabled", "red")) + "</div><div><small>Last Login</small><strong>" + SA.When(r["LastLoginDate"]) + "</strong></div></div></section>"
             + "<section><h2><b class='sa-step'>2</b> Password Reset Email</h2><div class='sa-grid2'><div><label class='sa-field'><span>Send to Email Address</span><input value='" + SA.A(email) + "' readonly /></label><small class='sa-muted'>A secure password reset link will be sent to this email address.</small></div>"
             + "<div class='sa-preview'><small>Message Preview (Email Subject and Content)</small><p><b>Subject: Reset Your AnyMinute Password</b></p><p>Hello " + SA.H(first) + ",</p><p>We received a request to reset your AnyMinute account password. Click the link below to set a new password. This link will expire in 24 hours and can be used once.</p><p><span class='sa-link'>Reset Your Password</span></p><p>If you did not request this, please ignore this email.</p><p>Thank you,<br />The AnyMinute Team</p></div></div></section>"
             + "<section><h2><b class='sa-step'>3</b> Confirm and Send</h2><div class='sa-flash sa-warn'><b>Please confirm before sending.</b><ul><li>A secure password reset link will be sent to " + SA.H(email) + ".</li><li>The link will expire in 24 hours and works only once; sending a new link cancels earlier ones.</li><li>The previous password will remain invalid after the reset.</li><li>This action will be recorded in the activity log.</li></ul></div></section>"
@@ -699,7 +717,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
     void EditPost(SqlConnection c, DataRow r, bool save)
     {
         int u = Convert.ToInt32(r["UserId"]); var cur = Current(r); var nv = EF.Select(k => SA.Form(k).Trim()).ToArray(); bool plan = r["PlanRowId"] != DBNull.Value;
-        if (nv[6] != "Inactive") nv[6] = "Active";
+        if (!AStatus.Contains(nv[6])) nv[6] = cur[6]; // v47: unknown / missing value keeps the current status (never silently Active)
         if (!plan) { nv[7] = cur[7]; nv[8] = cur[8]; nv[9] = cur[9]; nv[10] = cur[10]; nv[11] = cur[11]; }
         var plans = Plans(c); DataRow np = null;
         if (SA.PlanKey(nv[7]) == SA.PlanKey(cur[7])) nv[7] = cur[7];
@@ -722,7 +740,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
         bool h1 = DateTime.TryParseExact(nv[10], "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out d1), h2 = DateTime.TryParseExact(nv[11], "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out d2);
         if (plan && (!h1 || !h2)) errs.Add("Enter valid subscription dates.");
         if (plan && h1 && h2 && d2 < d1) errs.Add("Next Billing Date must be after the Start Date.");
-        if (u == SA.ActorId() && nv[6] == "Inactive") errs.Add("You cannot deactivate your own account here.");
+        if (u == SA.ActorId() && nv[6] != cur[6] && nv[6] != "Active") errs.Add("You cannot deactivate or suspend your own account here.");
         var changed = Enumerable.Range(0, EF.Length).Where(i => nv[i] != cur[i]).ToList();
         Title1.Text = "Edit Subscriber"; Lead.Text = "Update subscriber information, plan and limits."; Crumbs.Text = CrumbBar(CrumbSep("<span>Edit Subscriber</span>"));
         if (errs.Count > 0 || changed.Count == 0)
@@ -738,19 +756,32 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
             return;
         }
         if (reason.Length > 500) reason = reason.Substring(0, 500);
-        Func<string, object> N = t => t.Length == 0 ? (object)DBNull.Value : t;
+        Func<string, object> N = t => t.Length == 0 ? (object)DBNull.Value : t; bool revoke = false;
         using (var tx = c.BeginTransaction())
         {
             int e = Convert.ToInt32(r["EmployeeId"]);
             AnyminuteTimesheetRepair.Execute(c, tx, "UPDATE AddEmployee SET FirstName=@f,MiddleName=@m,LastName=@l,MobilePhone=@mo WHERE EmployeeID=@e", "@f", nv[0], "@m", N(nv[1]), "@l", N(nv[2]), "@mo", N(nv[5]), "@e", e);
             if (changed.Contains(4)) AnyminuteTimesheetRepair.Execute(c, tx, "UPDATE ea SET MainPhone=@p FROM EmpAddress ea JOIN AddEmployee ae ON ae.ADDRESSID=ea.EmpAddressId WHERE ae.EmployeeID=@e", "@p", N(nv[4]), "@e", e);
-            if (changed.Contains(6)) AnyminuteTimesheetRepair.Execute(c, tx, "UPDATE UserAcc SET Status=@s WHERE UserId=@u", "@s", nv[6] == "Active", "@u", u);
+            // v47: status written the same way Add Subscriber writes it. Pending Activation = Status 1 + first-time sign-in pending;
+            // Active = Status 1, first sign-in done; Suspended = login disabled (sessions revoked); Inactive = Status 0 (sessions revoked).
+            if (changed.Contains(6))
+            {
+                bool off = nv[6] == "Suspended" || nv[6] == "Inactive";
+                if (nv[6] == "Inactive") AnyminuteTimesheetRepair.Execute(c, tx, "UPDATE UserAcc SET Status=0 WHERE UserId=@u", "@u", u);
+                else AnyminuteTimesheetRepair.Execute(c, tx, "UPDATE UserAcc SET Status=1,Is_First_Time_Login=@f WHERE UserId=@u", "@f", nv[6] == AStatus[0], "@u", u);
+                if (nv[6] != "Inactive")
+                    AnyminuteTimesheetRepair.Execute(c, tx, @"IF NOT EXISTS(SELECT 1 FROM AnyminuteLoginSecurity WHERE UserId=@u) INSERT AnyminuteLoginSecurity(UserId,LoginDisabled,RequirePasswordChange,TwoFactorEnabled,UpdatedAtUTC,UpdatedBy) VALUES(@u,@d,0,0,SYSUTCDATETIME(),@a)
+                        ELSE UPDATE AnyminuteLoginSecurity SET LoginDisabled=@d,UpdatedAtUTC=SYSUTCDATETIME(),UpdatedBy=@a WHERE UserId=@u", "@u", u, "@d", nv[6] == "Suspended", "@a", SA.ActorId());
+                if (off) revoke = true;
+            }
             if (plan && changed.Any(i => i >= 7))
                 AnyminuteTimesheetRepair.Execute(c, tx, "UPDATE PlanHistory SET PlanName=@pn,Business=@b,No_Of_Users=@n,StartDate=@sd,EndDate=@ed WHERE Id=@id", "@pn", nv[7], "@b", N(nv[8]), "@n", N(nv[9]), "@sd", d1, "@ed", d2, "@id", Convert.ToInt32(r["PlanRowId"]));
+            if (revoke) AnyminuteSessionGuard.Revoke(c, tx, u, "Subscriber " + nv[6].ToLowerInvariant() + " by Support Admin");
             var logged = changed.Where(i => i != 3).ToList();
             if (logged.Count > 0) SA.Audit(c, tx, "Login", u.ToString(CultureInfo.InvariantCulture), "Subscriber Updated", null, null, String.Join("; ", logged.Select(i => EL[i] + ": " + cur[i]).ToArray()), String.Join("; ", logged.Select(i => EL[i] + ": " + nv[i]).ToArray()), reason);
             tx.Commit();
         }
+        if (revoke) AnyminuteSessionGuard.Revoked(u);
         // v39 rule kept: the login email is never written directly; the new address gets the verification invitation.
         if (emailChanged)
         {

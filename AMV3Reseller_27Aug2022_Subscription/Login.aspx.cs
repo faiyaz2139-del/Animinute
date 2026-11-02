@@ -133,7 +133,7 @@ public partial class Login : System.Web.UI.Page
         //Added this email to approve the newly registered account for business owner only
         else if (dt.Rows[0]["Email"].ToString() == "support@anyminute.net" && dt.Rows[0]["UserTypeid"].ToString() == "1" && dt.Rows[0]["UserType"].ToString() == "SupportAdmin")
         {
-            Response.Redirect("SuperAdmin_Approve_Subscriber.aspx", false);
+            Response.Redirect("SupportSubscribers.aspx", false); // v47 (Nov 2 live smoke): modern Subscriber Management, same as every Support Admin (was legacy SuperAdmin_Approve_Subscriber.aspx)
         }
         else if (dt.Rows[0]["UserTypeid"].ToString() == "0" && dt.Rows[0]["UserType"].ToString() == "SuperAdmin")
         {

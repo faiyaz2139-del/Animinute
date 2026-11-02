@@ -108,3 +108,10 @@ li.am-ap-nav>a[aria-current="page"] svg.am-ap-navico{color:#1f6fe5}
 .am-ap-viewsum .am-ap-email{display:block;font-size:12px;color:#687689}
 @media(max-width:720px){.am-ap-viewsum dl{grid-template-columns:1fr 1fr}}
 @media(max-width:720px){html body.am-ap-navbody .am-topbar>.am-account-menu>summary>.am-account-chevron{display:inline-block!important}}
+
+/* v47 (Nov 2 live smoke: Edit Subscriber / Businesses content under the sidebar, "varies by load"). Modern.master pins the Support
+   Admin sidebar inline before the content paints (am-nav-init); no slide/margin animation on that first layout, and the content
+   column never scrolls sideways under the fixed sidebar. The hamburger animation is unchanged after load. */
+html body.am-drawer-nav.am-nav-init .am-sidebar,html body.am-drawer-nav.am-nav-init .am-main,html body.am-drawer-nav.am-nav-init #page-content-wrapper{transition:none!important}
+html body.am-drawer-nav.am-sa-navbody .am-main{min-width:0;overflow-x:clip;box-sizing:border-box}
+html body.am-drawer-nav.am-sa-navbody .am-main>.sa-page{width:100%;max-width:100%;margin-left:0;margin-right:0}

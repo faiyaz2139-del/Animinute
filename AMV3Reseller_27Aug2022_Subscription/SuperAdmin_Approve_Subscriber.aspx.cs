@@ -23,6 +23,12 @@ public partial class SuperAdmin_Approve_Subscriber : System.Web.UI.Page
         {
             Response.Redirect("Login.aspx");
         }
+        // v47 (Nov 2 live smoke): Support Admin lands on the modern Subscriber Management list (Modern sidebar, Pending shown as Pending).
+        // Old "Home" links and redirects still point here; ?legacy=1 keeps the old approval grid reachable.
+        if (!Page.IsPostBack && AnyminuteSupportAdmin.IsSupportAdminOnly() && Request.QueryString["legacy"] != "1")
+        {
+            Response.Redirect("SupportSubscribers.aspx", false); Context.ApplicationInstance.CompleteRequest(); return;
+        }
         if (!Page.IsPostBack)
         {
             Get_New_Account_Business_Owner();
