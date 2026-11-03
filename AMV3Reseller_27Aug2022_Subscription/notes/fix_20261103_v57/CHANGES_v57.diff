@@ -1,0 +1,753 @@
+diff --git a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteAddressLookup.cs b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteAddressLookup.cs
+index a3a49a7..2258a02 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteAddressLookup.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteAddressLookup.cs
+@@ -40,7 +40,7 @@ public static class AnyminuteAddressLookup
+     {
+         string p = AnyminuteBusinessAddressInput.Postal(postal);
+         if (p.Length == 6 && System.Text.RegularExpressions.Regex.IsMatch(p, "^[A-Z]\\d[A-Z]\\d[A-Z]\\d$")) p = p.Substring(0, 3) + " " + p.Substring(3);
+-        return "<div class=\"am-al-nf\" role=\"alert\"><div class=\"am-al-nf-head\"><span class=\"am-al-nf-i\" aria-hidden=\"true\">i</span><strong>Address Not Found</strong></div>" +
++        return "<div class=\"am-al-nf\" role=\"alert\"><div class=\"am-al-nf-head\"><span class=\"am-al-nf-i\" aria-hidden=\"true\">!</span><strong>Address Not Found</strong></div>" +
+             "<p>No matching address was found for postal code <b>" + System.Web.HttpUtility.HtmlEncode(p) + "</b>. Please verify the postal code and search again, or enter the address manually.</p></div>";
+     }
+ 
+diff --git a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteSupportAddress.cs b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteSupportAddress.cs
+index 41ebffb..44046ca 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteSupportAddress.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteSupportAddress.cs
+@@ -1,6 +1,7 @@
+ using System;
+ using System.Collections.Generic;
+ using System.Data;
++using System.Data.SqlClient;
+ using System.Globalization;
+ using System.Linq;
+ using System.Text;
+@@ -118,24 +119,30 @@ public static class AnyminuteSupportAddress
+     // tells the save path whether the module was opened (not opened = keep the stored address untouched).
+     public static bool Opened(string prefix) { return F(prefix, "_open") == "1"; }
+     const string IcoPin = "<svg class='sa-i' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z'/><circle cx='12' cy='10' r='3'/></svg>";
+-    public static string Gate(string prefix, string summary, bool open, string panel)
++    public static string Gate(string prefix, string summary, bool open, string panel) { return Gate(prefix, summary, open, panel, null); }
++    public static string Gate(string prefix, string summary, bool open, string panel, string badge)
+     {
+         string sum = (summary ?? "").Trim();
+         return "<div class='sa-addr-wrap' id='address'><div class='sa-card sa-addr-gate' id='" + prefix + "_gate'" + (open ? " hidden" : "") + "><span class='sa-addr-gate-ico'>" + IcoPin + "</span><div class='sa-addr-gate-txt'><h2>Address</h2>"
+-            + "<div class='sa-addr-gate-sum'>" + (sum.Length > 0 ? H(sum) : "Please Select") + "</div><small class='sa-muted'>Address changes are managed through the separate Address module.</small></div>"
++            + "<div class='sa-addr-gate-sum'>" + (sum.Length > 0 ? H(sum) + (badge ?? "") : "Please Select") + "</div><small class='sa-muted'>Address changes are managed through the separate Address module.</small></div>"
+             + "<button type='button' class='sa-btn sa-btn-outline sa-addr-gate-btn' data-sa-reveal='" + prefix + "_panel' data-sa-gate='" + prefix + "'>" + IcoPin + " Manage Address</button></div>"
+             + "<input type='hidden' name='" + prefix + "_open' id='" + prefix + "_open' value='" + (open ? "1" : "0") + "' />"
+             + "<div id='" + prefix + "_panel' class='sa-addr-panel' data-sa-addrpanel='1'" + (open ? "" : " hidden") + ">" + panel + "</div></div>";
+     }
+     // prefix: form field prefix (rs_addr / ad_addr). lookupUrl: page URL ending in "postal=" that returns [{street,city,province}].
+-    public static string Render(string prefix, Addr a, bool required, string lookupUrl, string sub)
++    public static string Render(string prefix, Addr a, bool required, string lookupUrl, string sub) { return Render(prefix, a, required, lookupUrl, sub, null, false); }
++    // v57 (PPT s4): verify = this form queues unverified addresses for Address Verification on save; status = the stored
++    // address status (Verified / Pending / Rejected / "" = not in the verification table) shown in the Address Details pill.
++    public static string Render(string prefix, Addr a, bool required, string lookupUrl, string sub, string status, bool verify)
+     {
+         if (a == null) a = new Addr();
+         bool us = a.Country == "United States";
+         string req = "<b class='am-al-req'>*</b>", opt = "<span class='am-al-opt'>(Optional)</span>", rq = required ? " required" : "";
+         Func<string, string, string, string, string, string, string> fld = (label, key, val, ph, extra, cls) =>
+             "<div class='am-al-f" + cls + "'><label for='" + prefix + key + "'>" + label + "</label><input type='text' id='" + prefix + key + "' name='" + prefix + key + "' value='" + A(val) + "' placeholder='" + A(ph) + "'" + extra + " /></div>";
+-        var sb = new StringBuilder("<div class='am-emp-al sa-addrmod' data-sa-addrmod='").Append(A(lookupUrl)).Append("' data-sa-addr-prefix='").Append(prefix).Append("'><div class='am-al-layout am-al-single'><section class='am-al-main' aria-labelledby='").Append(prefix).Append("_h'>")
++        var sb = new StringBuilder("<div class='am-emp-al sa-addrmod' data-sa-addrmod='").Append(A(lookupUrl)).Append("' data-sa-addr-prefix='").Append(prefix).Append("'").Append(verify ? " data-al-verify='1'" : "").Append(">")
++            .Append("<input type='hidden' name='").Append(prefix).Append("_src' id='").Append(prefix).Append("_src' value='").Append(A(F(prefix, "_src"))).Append("' data-al-lsrc='1' />")
++            .Append("<div class='am-al-layout am-al-single'><section class='am-al-main' aria-labelledby='").Append(prefix).Append("_h'>")
+             .Append("<h2 id='").Append(prefix).Append("_h'>Address Lookup</h2><p class='am-al-sub'>").Append(H(sub ?? "Search for an address using a postal or ZIP code, select a result, or enter the address manually.")).Append("</p>")
+             .Append("<div class='am-al-search'><div class='am-al-f am-al-country'><label for='").Append(prefix).Append("_lc'>Country ").Append(req).Append("</label><span class='am-al-flagsel'><span class='am-al-flag").Append(us ? " is-us" : "").Append("' data-al-flag='1'>").Append(FlagCa).Append(FlagUs).Append("</span>")
+             .Append("<select id='").Append(prefix).Append("_lc' data-al-lcountry='1'>").Append(Opts(new[] { "Canada", "United States" }, a.Country, null)).Append("</select></span></div>")
+@@ -143,9 +150,9 @@ public static class AnyminuteSupportAddress
+             .Append("<button type='button' class='am-al-btn am-al-primary' data-al-lsearch='1'>").Append(IcoSearch).Append(" Search Address</button>")
+             .Append("<button type='button' class='am-al-btn am-al-outline' data-al-lmanual='1'>").Append(IcoPen).Append(" Enter Address Manually</button></div>")
+             .Append("<div class='am-al-info' data-al-lhint='1'><span class='am-al-i' aria-hidden='true'>i</span><span data-al-lhinttext='1'>").Append(us ? "Enter a valid US ZIP code (e.g. 33185) or Canadian postal code (e.g. M1B 2W1)." : "Enter a valid Canadian postal code (e.g. M1B 2W1) or US ZIP code (e.g. 33185).").Append("</span></div>")
+-            .Append("<div class='am-al-nf' data-al-lnf='1' role='alert' hidden><div class='am-al-nf-head'><span class='am-al-nf-i' aria-hidden='true'>i</span><strong>Address Not Found</strong></div><p>No matching address was found for postal code <b data-al-lnfcode='1'></b>. Please verify the postal code and search again, or enter the address manually.</p></div>")
++            .Append("<div class='am-al-nf' data-al-lnf='1' role='alert' hidden><div class='am-al-nf-head'><span class='am-al-nf-i' aria-hidden='true'>!</span><strong>Address Not Found</strong></div><p>No matching address was found for postal code <b data-al-lnfcode='1'></b>. Please verify the postal code and search again, or enter the address manually.</p></div>")
+             .Append("<div class='am-al-results'><label for='").Append(prefix).Append("_hits'>Select Address from Search Results</label><select id='").Append(prefix).Append("_hits' data-al-lhits='1' disabled><option value=''>Select an address from the list below</option></select></div>")
+-            .Append("<div class='am-al-details'><div class='am-al-details-head'><h3>Address Details</h3><span class='am-al-pill' data-al-lmode='1'>").Append(a.Any ? "Selected Address" : "Manual Entry").Append("</span></div><div class='am-al-grid'>")
++            .Append("<div class='am-al-details'><div class='am-al-details-head'><h3>Address Details</h3>").Append(verify ? Pill(a.Any ? (F(prefix, "_src") == "manual" ? "Pending" : status ?? "") : null, true) : "<span class='am-al-pill' data-al-lmode='1'>" + (a.Any ? "Selected Address" : "Manual Entry") + "</span>").Append("</div><div class='am-al-grid'>")
+             .Append(fld("Street Number " + req, "_no", a.StreetNo, "e.g. 3112", " maxlength='20'" + rq, ""))
+             .Append(fld("Address Line 1 " + req, "_line1", a.Line1, "e.g. Krome Ave", " maxlength='100' autocomplete='address-line1'" + rq, " am-al-span2"))
+             .Append(fld("Address Line 2 " + opt, "_line2", a.Line2, "e.g. Unit, Floor, Building, etc.", " maxlength='100' autocomplete='address-line2'", ""))
+@@ -160,6 +167,63 @@ public static class AnyminuteSupportAddress
+             .Append("</div></div></section></div></div>");
+         return sb.ToString();
+     }
++    // ---- v57 (PPT s4): Address Verification status + pending queue (AddressMaster Verifed=0 + AnyminuteAddressReview Pending) ----
++    // status: "Verified" | "Pending" | "Rejected" | "" (not in the verification table) | null (no address). mode=true adds data-al-lmode.
++    public static string Pill(string status, bool mode)
++    {
++        string t = status == null ? "Manual Entry" : status == "Verified" ? "Verified Address" : status == "Pending" ? "Pending Verification" : status == "Rejected" ? "Address Rejected" : "Not Verified";
++        string tone = status == "Verified" ? " am-al-pill-ok" : status == "Pending" ? " am-al-pill-pend" : status == "Rejected" ? " am-al-pill-bad" : status == null ? "" : " am-al-pill-none";
++        return "<span class='am-al-pill" + tone + "'" + (mode ? " data-al-lmode='1'" : "") + ">" + t + "</span>";
++    }
++    public static string Source(string prefix) { return F(prefix, "_src"); }
++    static string Full(Addr a) { return (a.StreetNo + " " + a.Line1).Trim(); }
++    static string Cp(string p) { return (p ?? "").ToUpperInvariant().Replace(" ", "").Replace("-", "").Trim(); }
++    public static bool ReviewReady(SqlConnection c) { return AnyminuteEmployeeEditor.HasTable(c, null, "AnyminuteAddressReview"); }
++    // Matches on postal code + street (Address Line 1, or Street Number + Line 1), on the stored row or the original submitted values.
++    public static string Status(SqlConnection c, SqlTransaction tx, Addr a, bool rv)
++    {
++        if (a == null || !a.Any) return null;
++        try
++        {
++            var t = AnyminuteTimesheetRepair.Query(c, tx, rv
++                ? @"SELECT TOP 1 CASE WHEN a.Verifed=1 THEN 'Verified' WHEN r.Status='Rejected' THEN 'Rejected' ELSE 'Pending' END St FROM AddressMaster a LEFT JOIN AnyminuteAddressReview r ON r.AddressMasterId=a.AddressMasterId
++                    WHERE (REPLACE(REPLACE(UPPER(a.PostalCode),' ',''),'-','')=@p AND UPPER(LTRIM(RTRIM(a.Street_Name))) IN (UPPER(@l1),UPPER(@f)))
++                       OR (REPLACE(REPLACE(UPPER(ISNULL(r.OrigPostal,'')),' ',''),'-','')=@p AND UPPER(LTRIM(RTRIM(ISNULL(r.OrigStreet,'')))) IN (UPPER(@l1),UPPER(@f),UPPER(@o)))
++                    ORDER BY CASE WHEN a.Verifed=1 THEN 0 WHEN ISNULL(r.Status,'Pending')='Pending' THEN 1 ELSE 2 END, a.AddressMasterId DESC"
++                : @"SELECT TOP 1 CASE WHEN a.Verifed=1 THEN 'Verified' ELSE 'Pending' END St FROM AddressMaster a
++                    WHERE REPLACE(REPLACE(UPPER(a.PostalCode),' ',''),'-','')=@p AND UPPER(LTRIM(RTRIM(a.Street_Name))) IN (UPPER(@l1),UPPER(@f)) ORDER BY CASE WHEN a.Verifed=1 THEN 0 ELSE 1 END, a.AddressMasterId DESC",
++                "@p", Cp(a.Postal), "@l1", a.Line1.Trim(), "@f", Full(a), "@o", Orig(a));
++            return t.Rows.Count == 1 ? Convert.ToString(t.Rows[0][0]) : "";
++        }
++        catch (SqlException ex) { log4net.LogManager.GetLogger("Log").Warn("Address status lookup failed", ex); return ""; }
++    }
++    // Original submitted street line kept on the review row: "168 Bloor St W Unit 4" (Street_Name keeps Address Line 1, as the lookup rows do).
++    static string Orig(Addr a) { return (Full(a) + (a.Line2.Length > 0 ? " " + a.Line2 : "") + (a.SuiteNo.Length > 0 ? " " + (a.SuiteType.Length > 0 ? a.SuiteType : "Suite") + " " + a.SuiteNo : "")).Trim(); }
++    // A saved address that is not in the Verified Address Database becomes a Pending Verification row (an existing pending row is
++    // reused; a rejected one gets a fresh submission). Returns the resulting status ("Verified" / "Pending").
++    public static string QueuePending(SqlConnection c, SqlTransaction tx, Addr a, bool rv, string submittedBy, string note)
++    {
++        if (a == null || !a.Any) return null;
++        string st = Status(c, tx, a, rv);
++        if (st == "Verified") return st;
++        string who = submittedBy ?? ""; if (who.Length > 150) who = who.Substring(0, 150);
++        string n = note ?? ""; if (n.Length > 500) n = n.Substring(0, 500);
++        if (st == "Pending")
++        {
++            if (rv) AnyminuteTimesheetRepair.Execute(c, tx, @"UPDATE r SET SubmittedBy=@w FROM AnyminuteAddressReview r JOIN AddressMaster a ON a.AddressMasterId=r.AddressMasterId
++                WHERE ISNULL(a.Verifed,0)<>1 AND r.Status='Pending' AND ISNULL(r.SubmittedBy,'')='' AND REPLACE(REPLACE(UPPER(a.PostalCode),' ',''),'-','')=@p AND UPPER(LTRIM(RTRIM(a.Street_Name))) IN (UPPER(@l1),UPPER(@f))",
++                "@w", who, "@p", Cp(a.Postal), "@l1", a.Line1.Trim(), "@f", Full(a));
++            return st;
++        }
++        object id = AnyminuteTimesheetRepair.Query(c, tx, "INSERT AddressMaster(Street_Name,City,Province,PostalCode,Verifed) VALUES(@s,@c,@pr,@pc,0); SELECT CAST(SCOPE_IDENTITY() AS int)",
++            "@s", a.Line1.Trim(), "@c", a.City, "@pr", a.Province, "@pc", a.Postal).Rows[0][0];
++        // TR_AnyminuteAddressMaster_Submitted (REQUIRED_08) may already have written the review row; either way it ends Pending with the submitter.
++        if (rv) AnyminuteTimesheetRepair.Execute(c, tx, @"IF NOT EXISTS(SELECT 1 FROM AnyminuteAddressReview WHERE AddressMasterId=@i)
++                INSERT AnyminuteAddressReview(AddressMasterId,SubmittedBy,SubmittedAtUTC,OrigStreet,OrigCity,OrigProvince,OrigCountry,OrigPostal,Status,Country,Notes) VALUES(@i,@w,SYSUTCDATETIME(),@o,@c,@pr,@co,@pc,'Pending',@co,@n)
++            ELSE UPDATE AnyminuteAddressReview SET SubmittedBy=@w,SubmittedAtUTC=ISNULL(SubmittedAtUTC,SYSUTCDATETIME()),OrigStreet=@o,OrigCountry=@co,Country=@co,Status='Pending',Notes=@n WHERE AddressMasterId=@i",
++            "@i", id, "@w", who, "@o", Orig(a), "@c", a.City, "@pr", a.Province, "@co", a.Country, "@pc", a.Postal, "@n", n);
++        return "Pending";
++    }
+     // JSON for the lookup endpoint: [{street,city,province}] (title case), up to 20 rows.
+     public static string LookupJson(string postal)
+     {
+diff --git a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteSupportBusinessCreate.cs b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteSupportBusinessCreate.cs
+new file mode 100644
+index 0000000..c0bd322
+--- /dev/null
++++ b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteSupportBusinessCreate.cs
+@@ -0,0 +1,64 @@
++using System;
++using System.Collections.Generic;
++using System.Data;
++using System.Data.SqlClient;
++
++// 2026-11-03 v57 (Subscriber Details PPT s1 "it should let me add"): Support Admin / Reseller Add Business for a subscriber that is
++// under its plan business limit. Same stored procedures and order as the owner's Add Business (AnyminuteBusinessSave.Save):
++// Sp_InsertBusiness (Approved A, Status 1) -> Sp_InsertAssginBussiness (owner, UserTypeId 1) -> owner MappingTable business ->
++// Sp_InsertBusinessAddress (+ optional BusinessAddress.Country), on the caller's connection / transaction, for the given owner
++// (no owner session needed). The plan limit is re-checked inside the transaction.
++public static class AnyminuteSupportBusinessCreate
++{
++    static SqlCommand Proc(SqlConnection c, SqlTransaction tx, string name, IDictionary<string, object> values)
++    {
++        var cmd = new SqlCommand(name, c, tx); cmd.CommandType = CommandType.StoredProcedure;
++        foreach (var v in values) cmd.Parameters.AddWithValue("@" + v.Key, v.Value ?? DBNull.Value);
++        return cmd;
++    }
++    static int MasterId(SqlConnection c, SqlTransaction tx, string table, string nameColumn, string idColumn, string name)
++    {
++        using (var cmd = new SqlCommand("IF NOT EXISTS(SELECT 1 FROM dbo." + table + " WITH(UPDLOCK,HOLDLOCK) WHERE " + nameColumn + "=@name) INSERT dbo." + table + " (" + nameColumn + ",Duplicate) VALUES(@name,0); SELECT TOP(1) " + idColumn + " FROM dbo." + table + " WHERE " + nameColumn + "=@name ORDER BY " + idColumn, c, tx))
++        { cmd.Parameters.AddWithValue("@name", name ?? ""); return Convert.ToInt32(cmd.ExecuteScalar()); }
++    }
++    // activeSql: COUNT of the owner's non-deleted businesses (same rule as the Businesses tile), args for it; limit < 0 = no limit recorded.
++    public static int Create(SqlConnection c, SqlTransaction tx, int owner, int limit, string activeSql, object[] activeArgs,
++        string name, string contact, string phone, string email, AnyminuteSupportAddress.Addr a)
++    {
++        if (limit >= 0)
++        {
++            int used = Convert.ToInt32(AnyminuteTimesheetRepair.Query(c, tx, activeSql, activeArgs).Rows[0][0]);
++            if (used >= limit) throw new InvalidOperationException("This subscriber has used " + used + " of " + limit + " businesses on the current plan. Upgrade the plan to add more.");
++        }
++        if (Convert.ToInt32(AnyminuteTimesheetRepair.Query(c, tx, "SELECT COUNT(*) FROM dbo.AddBusiness WHERE CompanyName=@n", "@n", name).Rows[0][0]) > 0)
++            throw new InvalidOperationException("Business name already exists.");
++        var o = AnyminuteTimesheetRepair.Query(c, tx, "SELECT ae.EmployeeID,ae.MotherOrgid,LTRIM(RTRIM(ISNULL(ae.FirstName,'')+' '+ISNULL(ae.LastName,''))) Name FROM dbo.AddEmployee ae WHERE ae.EmployeeID=@e", "@e", owner);
++        if (o.Rows.Count != 1) throw new InvalidOperationException("The subscriber has no business owner employee record.");
++        int mother; Int32.TryParse(Convert.ToString(o.Rows[0]["MotherOrgid"]), out mother);
++        string ownerName = Convert.ToString(o.Rows[0]["Name"]); if (ownerName.Length > 50) ownerName = ownerName.Substring(0, 50);
++        int business;
++        using (var cmd = Proc(c, tx, "dbo.Sp_InsertBusiness", new Dictionary<string, object> {
++            {"CompanyName", name}, {"OperatingName", name}, {"BusinessNumber", ""}, {"LegalEntityType", ""}, {"BusinessRegistrationDate", ""},
++            {"PrimaryContactName", contact}, {"PrimaryContactNumber", phone}, {"BusinessAgreementDate", DateTime.Now}, {"Status", "1"},
++            {"MotherOrgId", mother}, {"Approved", "A"}, {"CareOf", ""} }))
++        {
++            cmd.Parameters.Add("@BusinessId", SqlDbType.Int).Direction = ParameterDirection.Output;
++            cmd.ExecuteNonQuery(); business = Convert.ToInt32(cmd.Parameters["@BusinessId"].Value);
++        }
++        if (business <= 0) throw new InvalidOperationException("Business save did not return a valid business ID.");
++        using (var cmd = Proc(c, tx, "dbo.Sp_InsertAssginBussiness", new Dictionary<string, object> {
++            {"BusinessID", business}, {"EmployeeID", owner}, {"BusinessName", name}, {"EmployeeName", ownerName}, {"UserTypeId", 1}, {"MotherOrgID", mother} })) cmd.ExecuteNonQuery();
++        AnyminuteTimesheetRepair.Execute(c, tx, "UPDATE dbo.MappingTable SET BusinessID=@b WHERE EmployeeID=@e", "@b", business, "@e", owner);
++        using (var cmd = Proc(c, tx, "dbo.Sp_InsertBusinessAddress", new Dictionary<string, object> {
++            {"BusinessID", business}, {"Postalcode", AnyminuteBusinessAddressInput.Postal(a.Postal)}, {"NumberSuffix", "Please Select"}, {"StreetName", a.Line1}, {"StreetType", a.Line2},
++            {"StreetDirection", ""}, {"SuitType", a.SuiteType.Length > 0 ? a.SuiteType : "Please Select"}, {"SuiteNumber", a.SuiteNo}, {"SuitSuffix", "Please Select"}, {"City", a.City}, {"Province", a.Province},
++            {"MainPhone", phone}, {"WorkPhone", ""}, {"Mobile", ""}, {"Fax", ""}, {"MainEmail", email}, {"CCEmail", ""}, {"Website", ""}, {"StreetNo", a.StreetNo}, {"Other1", ""},
++            {"Cityid", MasterId(c, tx, "CityMaster", "CityName", "CityId", a.City)}, {"Provinceid", MasterId(c, tx, "ProvinceMaster", "ProvinceName", "ProvinceId", a.Province)} })) cmd.ExecuteNonQuery();
++        bool countryColumn = AnyminuteTimesheetRepair.Query(c, tx, "SELECT COL_LENGTH('dbo.BusinessAddress','Country')").Rows[0][0] != DBNull.Value;
++        int linked = Convert.ToInt32(AnyminuteTimesheetRepair.Query(c, tx, countryColumn
++            ? "UPDATE ba SET Country=@k FROM dbo.BusinessAddress ba JOIN dbo.AddBusiness b ON b.ADDRESSID=ba.BusinessAddressId WHERE b.BusinessID=@b; SELECT @@ROWCOUNT"
++            : "SELECT COUNT(*) FROM dbo.BusinessAddress ba JOIN dbo.AddBusiness b ON b.ADDRESSID=ba.BusinessAddressId WHERE b.BusinessID=@b", "@k", a.Country, "@b", business).Rows[0][0]);
++        if (linked != 1) throw new InvalidOperationException("Business address was not linked to the saved business.");
++        return business;
++    }
++}
+diff --git a/AMV3Reseller_27Aug2022_Subscription/EmployeeEditor.aspx b/AMV3Reseller_27Aug2022_Subscription/EmployeeEditor.aspx
+index 0fac992..1b9b045 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/EmployeeEditor.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/EmployeeEditor.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="EmployeeEditor.aspx.cs" Inherits="AnyminuteEmployeeEditorPage" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteEmployees.css?v=20261025v13" rel="stylesheet" /><link href="css/AnyminuteEmployeesV2.css?v=20261026v17" rel="stylesheet" /><link href="css/AnyminuteFlash.css?v=20261024v2" rel="stylesheet" /><link href="css/AnyminuteAddressLookup.css?v=20261103v56" rel="stylesheet" /><script src="Scripts/AnyminuteDateText.js?v=20261024v8" defer></script><script src="Scripts/AnyminuteAddressLookup.js?v=20261102v49" defer></script></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteEmployees.css?v=20261025v13" rel="stylesheet" /><link href="css/AnyminuteEmployeesV2.css?v=20261026v17" rel="stylesheet" /><link href="css/AnyminuteFlash.css?v=20261024v2" rel="stylesheet" /><link href="css/AnyminuteAddressLookup.css?v=20261103v57" rel="stylesheet" /><script src="Scripts/AnyminuteDateText.js?v=20261024v8" defer></script><script src="Scripts/AnyminuteAddressLookup.js?v=20261102v49" defer></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section id="Root" runat="server" class="am-dialog-page am-employees-v2 am-editor-v3">
+  <header class="am-dialog-head"><div><h1><asp:Literal ID="PageTitle" runat="server" /></h1><p><asp:Literal ID="PageSubtitle" runat="server" /></p></div><asp:HyperLink ID="CloseLink" runat="server" NavigateUrl="~/Users.aspx" CssClass="am-dialog-close" ToolTip="Close" aria-label="Close">&times;</asp:HyperLink></header>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/EmployeeProfile.aspx b/AMV3Reseller_27Aug2022_Subscription/EmployeeProfile.aspx
+index e5360d1..fc21a29 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/EmployeeProfile.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/EmployeeProfile.aspx
+@@ -3,7 +3,7 @@
+ 
+ <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="Server">
+     <link href="css/bootstrap.min.css" rel="stylesheet" />
+-    <link href="css/AnyminuteAddressLookup.css?v=20261103v56" rel="stylesheet" />
++    <link href="css/AnyminuteAddressLookup.css?v=20261103v57" rel="stylesheet" />
+     <%-- v37 (DOCX image1, strict): Personal / Payment Details use the same full-width 3-column grid as Address Lookup and
+          Employee Address below (they were a centred half-width column). Control IDs unchanged. --%>
+     <style>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Main.master b/AMV3Reseller_27Aug2022_Subscription/Main.master
+index 17f535b..84974c5 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Main.master
++++ b/AMV3Reseller_27Aug2022_Subscription/Main.master
+@@ -5,7 +5,7 @@
+ <!DOCTYPE html>
+ 
+ <html>
+-<head runat="server"><meta name="anyminute-build" content="v56-20261103" />
++<head runat="server"><meta name="anyminute-build" content="v57-20261103" />
+     <title>AnyMinute | Record From Anywhere</title>
+     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Modern.master b/AMV3Reseller_27Aug2022_Subscription/Modern.master
+index 1d7513a..984d6dc 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Modern.master
++++ b/AMV3Reseller_27Aug2022_Subscription/Modern.master
+@@ -1,6 +1,6 @@
+ <%@ Master Language="C#" AutoEventWireup="true" CodeFile="Modern.master.cs" Inherits="AnyminuteModernMaster" %>
+ <!DOCTYPE html>
+-<html lang="en"><head runat="server"><meta charset="utf-8" /><meta name="anyminute-build" content="v56-20261103" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>AnyMinute</title><link href="css/bootstrap.min.css" rel="stylesheet" /><script src="Assets/assets/js/core/jquery.3.2.1.min.js"></script><script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script><script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" /><script src="Assets/assets/js/plugin/datatables/datatables.min.js"></script><script src="Assets/assets/js/SweetAlert.js"></script><link href="css/AnyminuteModern.css" rel="stylesheet" /><asp:ContentPlaceHolder ID="head" runat="server" /><link href="css/AnyminuteUI2026.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUIUnified.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUiBugFixes.css?v=20261026v17" rel="stylesheet" /><link href="css/AnyminuteNavDrawer.css?v=20261101v47" rel="stylesheet" /></head>
++<html lang="en"><head runat="server"><meta charset="utf-8" /><meta name="anyminute-build" content="v57-20261103" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>AnyMinute</title><link href="css/bootstrap.min.css" rel="stylesheet" /><script src="Assets/assets/js/core/jquery.3.2.1.min.js"></script><script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script><script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" /><script src="Assets/assets/js/plugin/datatables/datatables.min.js"></script><script src="Assets/assets/js/SweetAlert.js"></script><link href="css/AnyminuteModern.css" rel="stylesheet" /><asp:ContentPlaceHolder ID="head" runat="server" /><link href="css/AnyminuteUI2026.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUIUnified.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUiBugFixes.css?v=20261026v17" rel="stylesheet" /><link href="css/AnyminuteNavDrawer.css?v=20261101v47" rel="stylesheet" /></head>
+ <body class="am-modern"><form id="frmMaster" runat="server"><asp:ScriptManager ID="ScriptManager1" runat="server" />
+ <header class="am-topbar"><button type="button" class="am-icon-button" data-toggle-sidebar aria-controls="am-main-navigation" aria-expanded="true" aria-label="Toggle navigation">&#9776;</button><a href="Dashboard.aspx" class="am-brand"><asp:PlaceHolder ID="LogoDefault" runat="server"><img src="Assets/assets/img/logo.jpg" alt="AnyMinute" class="am-logo" /></asp:PlaceHolder><asp:Literal ID="Brand" runat="server" /></a><span>Welcome! <asp:Literal ID="Welcome" runat="server" /><asp:Literal ID="WelcomeContext" runat="server" /></span><asp:Literal ID="HeaderHelp" runat="server" /><asp:Literal ID="HeaderBell" runat="server" /><details class="am-account-menu"><summary aria-label="Account menu"><asp:Literal ID="AccountAvatar" runat="server" /><span class="am-account-chevron" aria-hidden="true"></span><span class="sr-only">Account</span></summary><div class="am-account-popover"><a href="MyProfile.aspx"><span data-am-icon="profile" aria-hidden="true"></span>My profile</a><a href="LoginSecurity.aspx"><span data-am-icon="settings" aria-hidden="true"></span>Login &amp; security</a><asp:LinkButton ID="SignOut" runat="server" CausesValidation="false" OnClick="SignOut_Click"><span data-am-icon="signout" aria-hidden="true"></span>Sign out</asp:LinkButton>
+    <a href="Change%20Password.aspx"><span data-am-icon="settings" aria-hidden="true"></span>Change password</a><asp:Literal ID="AccountHelp" runat="server" /><asp:Literal ID="AccountUpgrade" runat="server" /></div></details></header>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/ResellerDashboard.aspx b/AMV3Reseller_27Aug2022_Subscription/ResellerDashboard.aspx
+index 594b13c..2063475 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/ResellerDashboard.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/ResellerDashboard.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="ResellerDashboard.aspx.cs" Inherits="AnyminuteResellerDashboardPage" Title="Reseller Dashboard" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v56" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v56" defer="defer"></script>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v57" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v57" defer="defer"></script>
+ <style>/* v55 Reseller PPT s1/s9 (v56 s1 strict below) */
+ .rsl-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px}.rsl-kpis .sa-kpi-icon svg{width:24px;height:24px}
+ .rsl-qa{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}.rsl-qa a{display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px 10px;border:1px solid var(--sa-line,#dfe5ee);border-radius:12px;background:#fff;color:#14233c;font-weight:600;text-align:center;text-decoration:none}
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Scripts/AnyminuteSupport.js b/AMV3Reseller_27Aug2022_Subscription/Scripts/AnyminuteSupport.js
+index 34b9ecf..f4edf86 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Scripts/AnyminuteSupport.js
++++ b/AMV3Reseller_27Aug2022_Subscription/Scripts/AnyminuteSupport.js
+@@ -144,6 +144,11 @@
+     });
+     // v42 PPT 01 s1: Subscriber list select-all checkbox.
+     $all('[data-sa-all]').forEach(function (m) { m.addEventListener('change', function () { $all('input[name="' + m.getAttribute('data-sa-all') + '"]').forEach(function (x) { x.checked = m.checked; }); }); });
++    // v57 (PPT s1): Upgrade Plan (view=edit&up=1#plan) - scroll the Subscription Plan card into view and focus the New Plan picker.
++    $all('[data-sa-plan-up]').forEach(function (card) {
++      var pick = document.getElementById('sa-plan-pick'); if (pick) pick.hidden = false;
++      setTimeout(function () { card.scrollIntoView({ block: 'start' }); var s = card.querySelector("select[name='ed_plan']"); if (s) s.focus(); }, 60);
++    });
+     // v43 PPT 01 s5/s6: plan select fills the plan limits (empty catalogue limit = Custom, editable); Manage Custom Limits; Change Plan.
+     $all('[data-sa-plan]').forEach(function (sel) {
+       var box = sel.closest('.sa-card') || document;
+@@ -176,6 +181,14 @@
+       var lc = q('[data-al-lcountry]'), lp = q('[data-al-lpostal]'), flag = q('[data-al-flag]'), hint = q('[data-al-lhint]'), hintText = q('[data-al-lhinttext]'),
+           nf = q('[data-al-lnf]'), nfCode = q('[data-al-lnfcode]'), hits = q('[data-al-lhits]'), mode = q('[data-al-lmode]'), dc = f('_country'), prov = f('_prov');
+       var us = function () { return lc.value === 'United States'; };
++      // v57 (PPT s4): _src = lookup | manual; on verify forms a manual address shows "Pending Verification" (queued on save).
++      var src = q('[data-al-lsrc]'), vfy = box.hasAttribute('data-al-verify');
++      var setMode = function (m) {
++        if (src) src.value = m; if (!mode) return;
++        mode.classList.remove('am-al-pill-ok', 'am-al-pill-pend', 'am-al-pill-bad', 'am-al-pill-none');
++        if (m === 'manual' && vfy) { mode.textContent = 'Pending Verification'; mode.classList.add('am-al-pill-pend'); }
++        else mode.textContent = m === 'manual' ? 'Manual Entry' : 'Selected Address';
++      };
+       var fillProv = function (country, keep) {
+         var list = REG[country] || REG.Canada, v = keep || '', html = '<option value="">' + (country === 'United States' ? 'Select state' : 'Select province') + '</option>', hit = false;
+         list.forEach(function (n) { var on = n.toLowerCase() === v.toLowerCase(); hit = hit || on; html += '<option' + (on ? ' selected' : '') + '>' + n + '</option>'; });
+@@ -222,14 +235,20 @@
+         f('_line1').value = a.street || ''; f('_city').value = a.city || '';
+         setCountry(lc.value); fillProv(lc.value, a.province || '');
+         f('_postal').value = fmt(lp.value);
+-        if (mode) mode.textContent = 'Selected Address';
++        setMode('lookup'); picked = [f('_line1').value, f('_city').value, f('_postal').value].join('|');
+         f('_no').focus();
+       });
+       q('[data-al-lmanual]').addEventListener('click', function () {
+-        reset(); if (mode) mode.textContent = 'Manual Entry';
++        reset(); setMode('manual');
+         setCountry(lc.value); if (!f('_postal').value && lp.value.trim()) f('_postal').value = fmt(lp.value);
+         f('_no').focus(); f('_no').scrollIntoView({ block: 'center', behavior: 'smooth' });
+       });
++      // Editing the street / city / postal after a lookup pick makes it a manual address again.
++      var picked = null;
++      ['_line1', '_city', '_postal', '_prov'].forEach(function (k) { var el = f(k); if (el) el.addEventListener('change', function () {
++        if (src && src.value === 'lookup' && [f('_line1').value, f('_city').value, f('_postal').value].join('|') !== picked) setMode('manual');
++        else if (src && !src.value) setMode('manual');
++      }); });
+       sync();
+     });
+     $all('[data-sa-addr]').forEach(function (b) {
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SuperAdmin.aspx b/AMV3Reseller_27Aug2022_Subscription/SuperAdmin.aspx
+index fe7ef1d..6a00806 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SuperAdmin.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SuperAdmin.aspx
+@@ -3,7 +3,7 @@
+ <%-- v36 (DOCX image7, strict): Accountant List moved to the same Modern shell / Support Admin card design as the other Support Admin
+      pages: one toolbar (Search + Status + Clear), status pills, sortable headers, Previous / page / Next pager, no forced H-scroll. --%>
+ <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="Server">
+-    <link href="css/AnyminuteSupport.css?v=20261103v56" rel="stylesheet" />
++    <link href="css/AnyminuteSupport.css?v=20261103v57" rel="stylesheet" />
+     <style>
+         .am-sa-list .sa-head h1{font-size:24px;margin:0}
+         .am-sa-list .sa-table-wrap{overflow-x:visible}
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SuperAdmin_Approve_Subscriber.aspx b/AMV3Reseller_27Aug2022_Subscription/SuperAdmin_Approve_Subscriber.aspx
+index 5d39998..97600a1 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SuperAdmin_Approve_Subscriber.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SuperAdmin_Approve_Subscriber.aspx
+@@ -161,7 +161,7 @@
+         }
+     </script>
+ 
+-    <link href="css/AnyminuteSupport.css?v=20261103v56" rel="stylesheet" />
++    <link href="css/AnyminuteSupport.css?v=20261103v57" rel="stylesheet" />
+     <style>
+         /* v37 (DOCX image4): one toolbar, no forced scrollbar, status pill, sortable headers, pager. */
+         .am-sa-subwrap{overflow-x:auto;border:1px solid #e2e8f0;border-radius:10px;background:#fff}
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx b/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx
+index d0dcb4d..1ea28f1 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="SupportAddresses.aspx.cs" Inherits="AnyminuteSupportAddressesPage" Title="Address Verification" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v56" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v56" defer="defer"></script></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v57" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v57" defer="defer"></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section class="sa-page">
+  <header class="sa-head"><div><h1>Address Verification</h1><p>Review, correct and verify manually entered addresses.</p></div>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportBusinesses.aspx b/AMV3Reseller_27Aug2022_Subscription/SupportBusinesses.aspx
+index a937f66..dd2fc13 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportBusinesses.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportBusinesses.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="SupportBusinesses.aspx.cs" Inherits="AnyminuteSupportBusinessesPage" Title="Businesses" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v56" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v56" defer="defer"></script></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v57" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v57" defer="defer"></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section class="sa-page">
+  <asp:Literal ID="Body1" runat="server" />
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportPlans.aspx b/AMV3Reseller_27Aug2022_Subscription/SupportPlans.aspx
+index d6f0377..b36d8c4 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportPlans.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportPlans.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="SupportPlans.aspx.cs" Inherits="AnyminuteSupportPlansPage" Title="Subscription Plans" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v56" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v56" defer="defer"></script></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v57" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v57" defer="defer"></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section class="sa-page">
+  <header class="sa-head"><div><h1><asp:Literal ID="Title1" runat="server" /></h1><p><asp:Literal ID="Lead" runat="server" /></p></div>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportReports.aspx b/AMV3Reseller_27Aug2022_Subscription/SupportReports.aspx
+index 11f86cb..005aa22 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportReports.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportReports.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="SupportReports.aspx.cs" Inherits="AnyminuteSupportReportsPage" Title="Support Admin Reports" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v56" rel="stylesheet" /><link href="css/AnyminuteReportLayout.css?v=20261101v46" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v56" defer="defer"></script><script src="Scripts/AnyminuteReportLayout.js?v=20261101v46" defer="defer"></script></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v57" rel="stylesheet" /><link href="css/AnyminuteReportLayout.css?v=20261101v46" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v57" defer="defer"></script><script src="Scripts/AnyminuteReportLayout.js?v=20261101v46" defer="defer"></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section class="sa-page am-rl">
+  <asp:Literal ID="Head1" runat="server" />
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportResellers.aspx b/AMV3Reseller_27Aug2022_Subscription/SupportResellers.aspx
+index 3c5479f..6602860 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportResellers.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportResellers.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="SupportResellers.aspx.cs" Inherits="AnyminuteSupportResellersPage" Title="Resellers" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteAddressLookup.css?v=20261103v56" rel="stylesheet" /><link href="css/AnyminuteSupport.css?v=20261103v56" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v56" defer="defer"></script></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteAddressLookup.css?v=20261103v57" rel="stylesheet" /><link href="css/AnyminuteSupport.css?v=20261103v57" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v57" defer="defer"></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section class="sa-page">
+  <asp:Literal ID="Flash" runat="server" />
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx b/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx
+index 6a5e93f..90e173d 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="SupportSubscribers.aspx.cs" Inherits="AnyminuteSupportSubscribersPage" Title="Subscribers" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteAddressLookup.css?v=20261103v56" rel="stylesheet" /><link href="css/AnyminuteSupport.css?v=20261103v56" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v56" defer="defer"></script></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteAddressLookup.css?v=20261103v57" rel="stylesheet" /><link href="css/AnyminuteSupport.css?v=20261103v57" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v57" defer="defer"></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section class="sa-page">
+  <asp:Literal ID="Crumbs" runat="server" />
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx.cs b/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx.cs
+index f15f154..5466715 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx.cs
+@@ -74,7 +74,8 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+         { "check", "<path d='M20 6 9 17l-5-5'/>" },
+         { "swap", "<path d='m17 1 4 4-4 4'/><path d='M3 11V9a4 4 0 0 1 4-4h14'/><path d='m7 23-4-4 4-4'/><path d='M21 13v2a4 4 0 0 1-4 4H3'/>" },
+         { "home", "<path d='m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z'/>" },
+-        { "info", "<circle cx='12' cy='12' r='10'/><path d='M12 16v-4M12 8h.01'/>" }
++        { "info", "<circle cx='12' cy='12' r='10'/><path d='M12 16v-4M12 8h.01'/>" },
++        { "eye", "<path d='M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z'/><circle cx='12' cy='12' r='3'/>" }
+     };
+     static string Ic(string name) { return "<svg class='sa-i' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'>" + Icons[name] + "</svg>"; }
+     static string CrumbBar(string trail) { return "<nav class='sa-crumbs sa-crumbs-v45' aria-label='Breadcrumb'><a href='SupportSubscribers.aspx'>" + Ic("home") + " Subscribers</a>" + trail + "</nav>"; }
+@@ -142,8 +143,8 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+             var t = Subscribers(c, user);
+             if (t.Rows.Count != 1) { Title1.Text = "Subscriber not found"; Content.Text = "<p><a class='sa-link' href='SupportSubscribers.aspx'>Back to Subscribers</a></p>"; return; }
+             var r = t.Rows[0]; string view = SA.Get("view");
+-            if (Rsl != null && (view == "support" || (view == "bizedit" && NoBiz))) view = ""; // v55: no Support History; Edit Business needs "businesses"
+-            string crumb = view == "history" ? "Login Activity History" : view == "reset" ? "Send Password Reset" : view == "edit" ? "Edit Subscriber" : view == "access" ? "Login &amp; Access" : view == "updated" ? "Edit Subscriber" : view == "bizedit" ? "Edit Business" : "";
++            if (Rsl != null && (view == "support" || ((view == "bizedit" || view == "bizadd") && NoBiz))) view = ""; // v55: no Support History; Edit Business needs "businesses"
++            string crumb = view == "history" ? "Login Activity History" : view == "reset" ? "Send Password Reset" : view == "edit" ? "Edit Subscriber" : view == "access" ? "Login &amp; Access" : view == "updated" ? "Edit Subscriber" : view == "bizedit" ? "Edit Business" : view == "bizadd" ? "Add Business" : view == "bizview" ? "View Business" : "";
+             // v45 PPT 01 s3/s4/s6: home-icon breadcrumb "Subscribers > Subscriber Details" (Edit: "Subscribers > Edit Subscriber").
+             Crumbs.Text = CrumbBar(crumb.Length == 0 ? CrumbSep("<span>Subscriber Details</span>") : view == "edit" || view == "updated" ? CrumbSep("<span>Edit Subscriber</span>") : CrumbSep("<a href='SupportSubscribers.aspx?user=" + user + "'>Subscriber Details</a>") + CrumbSep("<span>" + crumb + "</span>"));
+             // v45 PPT 01 s3/s4: Subscriber Details has no page title; the subscriber header card is the top of the page.
+@@ -161,6 +162,8 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+                 string body = on == "billing" ? Billing(c, r) : on == "employees" || on == "projects" ? Related(c, r, on) : rst ? "<div class='sa-tabpad'>" + Reset(r, ready) + "</div>" : on == "access" ? "<div class='sa-tabpad'>" + Access(c, r, ready) + "</div>" : on == "support" ? Support(c, r) : on == "history" ? History(c, user) : Biz(c, r);
+                 Content.Text = Details(c, r) + "<div class='sa-tabbed'>" + DTabs(c, r, on) + body + "</div>";
+             }
++            else if (view == "bizadd") { Title1.Text = ""; Lead.Text = ""; Content.Text = Details(c, r) + "<div class='sa-tabbed'>" + DTabs(c, r, "businesses") + BizAdd(c, r, null) + "</div>"; }
++            else if (view == "bizview") { int bz; Int32.TryParse(SA.Get("biz"), out bz); Title1.Text = ""; Lead.Text = ""; Content.Text = Details(c, r) + "<div class='sa-tabbed'>" + DTabs(c, r, "businesses") + BizView(c, r, bz) + "</div>"; }
+             else if (view == "bizedit") { int bz; Int32.TryParse(SA.Get("biz"), out bz); Title1.Text = ""; Lead.Text = ""; Content.Text = Details(c, r) + "<div class='sa-tabbed'>" + DTabs(c, r, "businesses") + BizEdit(c, r, bz, null, null) + "</div>"; }
+             else if (view == "edit")
+             {
+@@ -193,7 +196,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+         // v42 PPT 01 s2 "Recommended three-dot Actions menu" (labels / descriptions as on the slide)
+         // v51 (held note): "View Subscriber Details" removed - the list has its own View button.
+         return a(b + "&amp;view=edit", "&#9998;", "Edit Subscriber", "Update personal and contact information")
+-            + a(b + "&amp;view=access", "&#128274;", "Manage Login &amp; Access", "Enable or disable access, send reset link") + (NoUpgrade ? "" : a(b + "&amp;view=edit#plan", "&#9636;", "Change Subscription Plan", "Authorized plan upgrade or downgrade"))
++            + a(b + "&amp;view=access", "&#128274;", "Manage Login &amp; Access", "Enable or disable access, send reset link") + (NoUpgrade ? "" : a(b + "&amp;view=edit&amp;up=1#plan", "&#9636;", "Change Subscription Plan", "Authorized plan upgrade or downgrade"))
+             + a(b + "&amp;view=billing", "&#128200;", "View Usage &amp; Limits", "Business, employee and project allowances") + a(b + "&amp;view=history", "&#8634;", "View Activity Log", "Account changes and support history")
+             + a(b + "&amp;view=access", "&#10006;", "Suspend Subscriber", "Restricted action requiring confirmation");
+     }
+@@ -292,10 +295,10 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+         string projLimit = ProjectLimit(c, plan), addr = Addr(r), phone = SA.S(r["MainPhone"]).Length > 0 ? SA.S(r["MainPhone"]) : SA.S(r["MobilePhone"]);
+         Func<string, string, string, bool, string> ii = (icon, k, v, strong) => "<div class='sa-ii'>" + Ic(icon) + "<div><small>" + k + "</small>" + (strong ? "<strong>" : "<span>") + (v.Length == 0 ? "&mdash;" : v) + (strong ? "</strong>" : "</span>") + "</div></div>";
+         return "<div class='sa-card sa-sd sa-sd45'><div class='sa-sd-top'><span class='sa-avatar sa-avatar-lg'>" + SA.H(Initials(Name(r))) + "</span><div class='sa-grow'><h2>" + SA.H(Name(r)) + " " + SA.Pill(sts, Tone(sts)) + "</h2><div class='sa-sd-sub'>" + (plan.Length > 0 ? SA.H(plan) : "No active plan") + "<span class='sa-vsep' aria-hidden='true'></span>Subscriber since " + SA.Day(r["Since"]) + "</div></div>"
+-            + "<div class='sa-sd-btns'><a class='sa-btn sa-btn-outline' href='" + b + "&amp;view=edit'>" + Ic("edit") + " Edit</a><a class='sa-btn sa-btn-outline' href='" + b + "&amp;view=reset'>" + Ic("mail") + " Send Password Reset</a>" + MoreMenu(r, SA.Get("view") != "bizedit" && SA.Get("view") != "access") + "</div></div>"
+-            + "<div class='sa-sd-body'><div class='sa-sd-info'><div class='sa-sd-col'>" + ii("mail", "Email", SA.H(r["Email"]), false) + ii("phone", "Phone", SA.H(phone), true) + "</div><div class='sa-sd-col'>" + ii("pin", "Address", SA.H(addr), false) + "</div>"
++            + "<div class='sa-sd-btns'><a class='sa-btn sa-btn-outline' href='" + b + "&amp;view=edit'>" + Ic("edit") + " Edit</a><a class='sa-btn sa-btn-outline' href='" + b + "&amp;view=reset'>" + Ic("mail") + " Send Password Reset</a>" + MoreMenu(r, SA.Get("view") != "bizedit" && SA.Get("view") != "bizadd" && SA.Get("view") != "bizview" && SA.Get("view") != "access") + "</div></div>"
++            + "<div class='sa-sd-body'><div class='sa-sd-info'><div class='sa-sd-col'>" + ii("mail", "Email", SA.H(r["Email"]), false) + ii("phone", "Phone", SA.H(phone), true) + "</div><div class='sa-sd-col'>" + ii("pin", "Address", SA.H(addr) + (addr.Length > 0 ? " " + AD.Pill(AD.Status(c, null, SubAddr(r), AD.ReviewReady(c)) ?? "", false) : ""), false) + "</div>"
+             + "<div class='sa-sd-col'>" + ii("cal", "Activation Date", SA.S(r["Since"]).Length > 0 ? SA.Day(r["Since"]) : "", true) + ii("cal", "Next Billing Date", SA.S(r["NextBilling"]).Length > 0 ? SA.Day(r["NextBilling"]) : "", true) + "</div></div>"
+-            + "<div class='sa-sd-limits'><div class='sa-sd-limhead'><h3>Subscription Limits" + (plan.Length > 0 ? " (" + SA.H(plan) + ")" : "") + "</h3>" + (NoUpgrade ? "" : "<a class='sa-btn sa-btn-outline sa-btn-sm' href='" + b + "&amp;view=edit#plan'>Upgrade Plan</a><a class='sa-icon-btn' href='" + b + "&amp;view=edit#plan' title='Manage Custom Limits' aria-label='Manage Custom Limits'>" + Ic("gear") + "</a>") + "</div>"
++            + "<div class='sa-sd-limits'><div class='sa-sd-limhead'><h3>Subscription Limits" + (plan.Length > 0 ? " (" + SA.H(plan) + ")" : "") + "</h3>" + (NoUpgrade ? "" : "<a class='sa-btn sa-btn-outline sa-btn-sm' href='" + b + "&amp;view=edit&amp;up=1#plan'>Upgrade Plan</a><a class='sa-icon-btn' href='" + b + "&amp;view=edit&amp;up=1#plan' title='Manage Custom Limits' aria-label='Manage Custom Limits'>" + Ic("gear") + "</a>") + "</div>"
+             + "<div class='sa-tiles'>" + Tile("biz", "blue", "Businesses", n[0], SA.S(r["PlanBiz"])) + Tile("users", "green", "Employees", n[1], SA.S(r["PlanUsers"])) + Tile("folder", "purple", "Projects", n[2], projLimit) + "</div></div></div></div>";
+     }
+     // v50 PPT s1 (access): avatar, name, SUB-ID, email | Current Plan + View Plan Details | Subscriber Since | Active.
+@@ -347,21 +350,25 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+                 (SELECT COUNT(*) FROM AddProject p WHERE p.BusinessID=b.BusinessID) Projects,CASE WHEN ISNULL(b.Status,'')='2' THEN 'Deleted' ELSE 'Active' END Status FROM AddBusiness b JOIN biz ON biz.BusinessID=b.BusinessID ORDER BY b.CompanyName", ScopeArgs(r)).Rows.Cast<DataRow>().ToList();
+         }
+         catch (SqlException ex) { return "<div class='sa-card'><p class='sa-muted'>Could not load this list: " + SA.H(ex.Message) + "</p></div>"; }
+-        int active = rows.Count(x => SA.S(x["Status"]) == "Active"); string lim = SA.S(r["PlanBiz"]);
+-        // Support has no business-create path of its own (business creation is the owner's session flow: Sp_InsertBusiness +
+-        // AssginBussiness + MappingTable + address), so Add Business explains where it is done instead of inserting half a business.
++        int active = rows.Count(x => SA.S(x["Status"]) == "Active"); string lim = SA.S(r["PlanBiz"]); int limN = BizLimit(r);
++        // v57 (PPT s1 "it should let me add"): under the plan limit (e.g. 5 / 6) + Add Business opens the Support-side Add Business
++        // form (view=bizadd); only at / over the limit does it show the upgrade panel, whose Upgrade Plan opens Edit > plan picker.
++        bool room = limN < 0 || active < limN;
+         var sb = new StringBuilder("<div class='sa-card'><div class='sa-panel-head sa-biz-head'><div><h2>Businesses</h2><small>List of businesses under this subscriber.</small></div>")
+-            .Append(NoBiz ? "</div><div hidden>" : "").Append("<details class='sa-menu sa-addbiz'><summary class='sa-btn'>").Append(Ic("plus")).Append(" Add Business</summary><div class='sa-menu-pop'><h4>Add Business</h4><p>New businesses are added by the subscriber from their own account (Business &rsaquo; Add Business), so ownership, address and plan limits are applied by the standard business setup.</p><p><b>Plan limit:</b> ")
+-            .Append(active).Append(" of ").Append(lim.Length > 0 ? SA.H(lim) : "&mdash;").Append(" businesses used.</p><a class='sa-btn sa-btn-sm sa-btn-outline' href='").Append(b).Append("&amp;view=edit#plan'>Upgrade Plan</a></div></details></div>");
++            .Append(NoBiz ? "</div><div hidden>" : "");
++        if (room) sb.Append("<a class='sa-btn sa-addbiz' href='").Append(b).Append("&amp;view=bizadd'>").Append(Ic("plus")).Append(" Add Business</a></div>");
++        else sb.Append("<details class='sa-menu sa-addbiz'><summary class='sa-btn'>").Append(Ic("plus")).Append(" Add Business</summary><div class='sa-menu-pop'><h4>Business limit reached</h4><p><b>Plan limit:</b> ")
++            .Append(active).Append(" of ").Append(SA.H(lim)).Append(" businesses used. Upgrade the plan (or raise Max Businesses) to add another business.</p>")
++            .Append(NoUpgrade ? "" : "<a class='sa-btn sa-btn-sm sa-btn-outline' href='" + b + "&amp;view=edit&amp;up=1#plan'>Upgrade Plan</a>").Append("</div></details></div>");
+         sb.Append("<div class='sa-table-wrap'><table class='sa-table sa-biz-table'><thead><tr><th>Sl. No.</th><th>Business Name</th><th>Industry</th><th class='sa-c'>No. of Employees</th><th class='sa-c'>No. of Projects</th><th>Status</th><th class='sa-c'>Actions</th></tr></thead><tbody>");
+         int i = 0;
+         foreach (var x in rows)
+         {
+             int id = Convert.ToInt32(x["BusinessID"]); string name = SA.S(x["CompanyName"]), q = SA.A(HttpUtility.UrlEncode(name));
+             sb.Append("<tr><td>").Append(++i).Append("</td><td><a class='sa-link' href='SupportBusinesses.aspx?q=").Append(q).Append("'>").Append(SA.H(name)).Append("</a></td><td>&mdash;</td><td class='sa-c'>").Append(x["Employees"]).Append("</td><td class='sa-c'>").Append(x["Projects"]).Append("</td><td>").Append(SA.Pill(SA.S(x["Status"]), SA.S(x["Status"]) == "Active" ? "green" : "grey"))
+-              .Append("</td><td class='sa-c sa-nowrap'><a class='sa-btn sa-btn-sm sa-btn-outline' href='").Append(b).Append("&amp;view=bizedit&amp;biz=").Append(id).Append("'>").Append(Ic("edit")).Append(" Edit</a> <details class='sa-menu'><summary class='sa-kebab' aria-label='Business actions'>").Append(Ic("vmore")).Append("</summary><div class='sa-menu-pop'><h4>Business Actions</h4><small>").Append(SA.H(name)).Append("</small>")
++              .Append("</td><td class='sa-c sa-nowrap'><a class='sa-btn sa-btn-sm sa-btn-outline' href='").Append(b).Append("&amp;view=bizview&amp;biz=").Append(id).Append("'>").Append(Ic("eye")).Append(" View</a> <details class='sa-menu'><summary class='sa-kebab' aria-label='Business actions'>").Append(Ic("vmore")).Append("</summary><div class='sa-menu-pop'><h4>Business Actions</h4><small>").Append(SA.H(name)).Append("</small>")
+               .Append("<a class='sa-menu-item' href='").Append(b).Append("&amp;view=bizedit&amp;biz=").Append(id).Append("'><span><b>Edit Business</b><small>Name and primary contact</small></span></a>")
+-              .Append("<a class='sa-menu-item' href='SupportBusinesses.aspx?q=").Append(q).Append("'><span><b>View Business</b><small>Open in Businesses</small></span></a>")
++              .Append("<a class='sa-menu-item' href='").Append(b).Append("&amp;view=bizview&amp;biz=").Append(id).Append("'><span><b>View Business</b><small>Business details, address and counts</small></span></a>")
+               .Append("<a class='sa-menu-item' href='").Append(b).Append("&amp;view=employees'><span><b>View Employees</b><small>Employees of this subscriber</small></span></a>")
+               .Append("<a class='sa-menu-item' href='").Append(b).Append("&amp;view=projects'><span><b>View Projects</b><small>Projects of this subscriber</small></span></a></div></details></td></tr>");
+         }
+@@ -417,6 +424,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+         int u = Convert.ToInt32(r["UserId"]); var v = vals ?? Current(r); bool plan = r["PlanRowId"] != DBNull.Value; string b = "SupportSubscribers.aspx?user=" + u, sts = StatusOf(r);
+         int[] n; try { n = Counts(c, r); } catch (SqlException) { n = new[] { 0, 0, 0 }; }
+         var plans = Plans(c); string proj = Lim(PlanRow(plans, v[7]), "MaxProjects"); bool planChanged = SA.PlanKey(v[7]) != SA.PlanKey(SA.S(r["PlanName"]));
++        bool up = SA.Get("up") == "1" && plan && !NoUpgrade; // v57 (PPT s1): Upgrade Plan opens Edit with the plan picker shown and focused
+         string planName = SA.S(r["PlanName"]).Length > 0 ? SA.H(PlanLabel(SA.S(r["PlanName"]))) : "No active plan";
+         HeadActions.Text = "<div class='sa-sd-btns'><a class='sa-btn sa-btn-outline' href='" + b + "&amp;view=reset'>" + Ic("mail") + " Send Password Reset</a>" + MoreMenu(r, false) + "</div>";
+         Func<int, string, string, bool, string> f = (i, type, extra, req) => "<label class='sa-field'><span>" + EL[i] + (req ? " <em class='sa-req'>*</em>" : "") + "</span><input type='" + type + "' name='" + EF[i] + "' value='" + SA.A(v[i]) + "'" + extra + (req ? " required" : "") + " /></label>";
+@@ -428,12 +436,12 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+           .Append(meta("id", "Subscriber ID", Sub(u))).Append(meta("cal", "Activation Date", SA.S(r["Since"]).Length > 0 ? SA.Day(r["Since"]) : "&mdash;")).Append(meta("cal", "Next Billing Date", SA.S(r["NextBilling"]).Length > 0 ? SA.Day(r["NextBilling"]) : "&mdash;")).Append("</div></div></div>");
+         sb.Append("<div class='sa-card'><h2>Personal Information</h2><div class='sa-grid3'>").Append(f(0, "text", " maxlength='150'", true)).Append(f(1, "text", " maxlength='50'", false)).Append(f(2, "text", " maxlength='50'", true)).Append("</div></div>")
+           .Append("<div class='sa-card'><h2>Contact Information</h2><div class='sa-grid3'>").Append(f(3, "email", " maxlength='50'", true)).Append(f(4, "tel", " maxlength='30'", true)).Append(f(5, "tel", " maxlength='30'", false)).Append("</div></div>");
+-        sb.Append("<div class='sa-card' id='plan'><div class='sa-panel-head'><h2>Subscription Plan &amp; Limits</h2>").Append(plan && !NoUpgrade ? "<button type='button' class='sa-btn sa-btn-outline' data-sa-reveal='sa-plan-pick'>" + Ic("swap") + " Change Plan</button>" : "").Append("</div>");
++        sb.Append("<div class='sa-card").Append(up ? " sa-plan-up" : "").Append("' id='plan'").Append(up ? " data-sa-plan-up='1'" : "").Append("><div class='sa-panel-head'><h2>Subscription Plan &amp; Limits</h2>").Append(plan && !NoUpgrade ? "<button type='button' class='sa-btn sa-btn-outline' data-sa-reveal='sa-plan-pick'>" + Ic("swap") + " Change Plan</button>" : "").Append("</div>");
+         if (!plan) sb.Append("<p class='sa-muted'>No active plan record, so plan, limits and dates cannot be changed here.</p><input type='hidden' name='ed_plan' value='").Append(SA.A(v[7])).Append("' />");
+         else
+         {
+             sb.Append("<div class='sa-plan-row'><div class='sa-plan-cur'><small>Current Plan</small><div class='sa-plan-name'><strong>").Append(planName).Append("</strong> <a class='sa-link' href='SupportPlans.aspx'>View Plan Details</a></div>")
+-              .Append("<label class='sa-field' id='sa-plan-pick'").Append(planChanged ? "" : " hidden").Append("><span>New Plan</span><select name='ed_plan' data-sa-plan='1' data-sa-proj='ed_proj'>").Append(PlanOptions(plans, v[7], null)).Append("</select></label></div>")
++              .Append("<label class='sa-field' id='sa-plan-pick'").Append(planChanged || up ? "" : " hidden").Append("><span>New Plan</span><select name='ed_plan' data-sa-plan='1' data-sa-proj='ed_proj'>").Append(PlanOptions(plans, v[7], null)).Append("</select></label></div>")
+               .Append("<div class='sa-plan-use'>").Append(Tile("biz", "blue", "Businesses", n[0], v[8])).Append(Tile("users", "green", "Employees", n[1], v[9])).Append(Tile("folder", "purple", "Projects", n[2], proj)).Append("</div></div>")
+               .Append("<div class='sa-limits45' data-sa-limits='1'>").Append(f(8, "number", " min='0' max='100000' readonly data-sa-lim='b'", false)).Append(f(9, "number", " min='0' max='100000' readonly data-sa-lim='e'", false))
+               .Append("<label class='sa-field'><span>Max Projects</span><input id='ed_proj' value='").Append(SA.A(proj.Length > 0 ? proj : "Custom")).Append("' readonly /></label>")
+@@ -447,8 +455,9 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+           .Append("<div class='sa-card'><h2>Subscription Dates</h2>").Append(plan ? "<div class='sa-grid2'>" + f(10, "date", NoUpgrade ? " readonly" : "", true) + f(11, "date", NoUpgrade ? " readonly" : "", true) + "</div>" : "<p class='sa-muted'>No active plan record.</p>").Append("</div>");
+         // v53 (NOTES_v53 #4, img_02 -> img_01): collapsed Address card (current address or Please Select + Manage Address);
+         // Manage Address reveals the same Address Lookup + Address Details as Edit Reseller in place (no SupportAddresses.aspx).
+-        { bool aOpen = IsPostBack && AD.Opened("ed_addr"); var sa0 = SubAddr(r);
+-          sb.Append(AD.Gate("ed_addr", AD.Compose(sa0), aOpen, "<div class='sa-card sa-sub-addr'><h2>Address <span class='sa-muted sa-small'>(Optional)</span></h2>" + AD.Render("ed_addr", aOpen ? AD.FromForm("ed_addr") : sa0, false, "SupportSubscribers.aspx?lookup=1&postal=", "Search for the subscriber address using a postal or ZIP code, select a result, or enter the address manually.") + "</div>")); }
++        // v57 (PPT s4): the Address Details pill and the collapsed card show the Address Verification status of the stored address.
++        { bool aOpen = IsPostBack && AD.Opened("ed_addr"); var sa0 = SubAddr(r); string ast = AD.Status(c, null, sa0, AD.ReviewReady(c));
++          sb.Append(AD.Gate("ed_addr", AD.Compose(sa0), aOpen, "<div class='sa-card sa-sub-addr'><h2>Address <span class='sa-muted sa-small'>(Optional)</span></h2>" + AD.Render("ed_addr", aOpen ? AD.FromForm("ed_addr") : sa0, false, "SupportSubscribers.aspx?lookup=1&postal=", "Search for the subscriber address using a postal or ZIP code, select a result, or enter the address manually.", ast, true) + "</div>", ast == null ? null : " " + AD.Pill(ast, false))); }
+         sb.Append("<div class='sa-card'><div class='sa-panel-head'><h2>Recent Activity <span class='sa-light'>(Last 5)</span></h2><a class='sa-btn sa-btn-outline sa-btn-sm' href='").Append(b).Append("&amp;view=history'>").Append(Ic("open")).Append(" View Full History</a></div>");
+         DataTable h = null; try { if (SA.Has(c, "AnyminuteSupportAudit")) h = SA.Q(c, "SELECT TOP 5 * FROM AnyminuteSupportAudit WHERE Entity='Login' AND EntityKey=@k ORDER BY ChangedAtUTC DESC,AuditID DESC", "@k", u.ToString(CultureInfo.InvariantCulture)); } catch (SqlException) { }
+         sb.Append("<div class='sa-table-wrap'><table class='sa-table sa-act-table'><thead><tr><th>Date &amp; Time</th><th>Changed By</th><th>Field</th><th>Previous Value</th><th>New Value</th><th>Reason</th></tr></thead><tbody>");
+@@ -709,6 +718,8 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+             var t = Subscribers(c, u); if (t.Rows.Count != 1) { SA.Flash("Subscriber not found."); Back(0, null); return; }
+             var r = t.Rows[0]; string key = u.ToString(CultureInfo.InvariantCulture), email = SA.S(r["Email"]);
+             if (op == "edit" || op == "editsave") { EditPost(c, r, op == "editsave"); return; }
++            if (op == "bizaddsave" && NoBiz) { SA.Flash("Your reseller account cannot add businesses."); Back(u, ""); return; }
++            if (op == "bizaddsave") { Title1.Text = ""; Crumbs.Text = CrumbBar(CrumbSep("<a href='SupportSubscribers.aspx?user=" + u + "'>Subscriber Details</a>") + CrumbSep("<span>Add Business</span>")); BizAddPost(c, r); return; }
+             if (op == "bizsave" && NoBiz) { SA.Flash("Your reseller account cannot edit businesses."); Back(u, ""); return; }
+             if (op == "bizsave") { Title1.Text = ""; Crumbs.Text = CrumbBar(CrumbSep("<a href='SupportSubscribers.aspx?user=" + u + "'>Subscriber Details</a>") + CrumbSep("<span>Edit Business</span>")); BizPost(c, r); return; }
+             if (op == "access")
+@@ -718,7 +729,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+                 if (reason.Length > 500) reason = reason.Substring(0, 500);
+                 if (u == SA.ActorId()) { SA.Flash("You cannot change your own login access here."); Back(u, null); return; }
+                 if (enable == was) { SA.Flash("Login access is already " + (was ? "enabled" : "disabled") + "."); Back(u, null); return; }
+-                using (var tx = c.BeginTransaction(IsolationLevel.Serializable))
++                using (var tx = c.BeginTransaction())
+                 {
+                     AnyminuteTimesheetRepair.Execute(c, tx, @"IF NOT EXISTS(SELECT 1 FROM AnyminuteLoginSecurity WHERE UserId=@u) INSERT AnyminuteLoginSecurity(UserId,LoginDisabled,RequirePasswordChange,TwoFactorEnabled,UpdatedAtUTC,UpdatedBy) VALUES(@u,0,0,0,SYSUTCDATETIME(),@a);
+                         UPDATE AnyminuteLoginSecurity SET LoginDisabled=@d,UpdatedAtUTC=SYSUTCDATETIME(),UpdatedBy=@a WHERE UserId=@u", "@u", u, "@a", SA.ActorId(), "@d", !enable);
+@@ -803,7 +814,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+           .Append("<section><h2>Subscription Dates</h2><div class='sa-grid2'>").Append(f("Start Date", 11, "date", "", true)).Append(f("Next Billing Date", 12, "date", "", true)).Append("</div></section>");
+         // v46 (Address deck s2 "Address module in Subscriber - Remove the bottom"): the Business Address Lookup module replaces
+         // the old Address (Optional) block. Optional; once started, the required fields must be completed.
+-        sb.Append("<section class='sa-sub-addr'><h2>Address <span class='sa-muted sa-small'>(Optional)</span></h2>").Append(AnyminuteSupportAddress.Render("ad_addr", AddrOf(v), false, "SupportSubscribers.aspx?lookup=1&postal=", "Search for the subscriber address using a postal or ZIP code, select a result, or enter the address manually.")).Append("</section>");
++        sb.Append("<section class='sa-sub-addr'><h2>Address <span class='sa-muted sa-small'>(Optional)</span></h2>").Append(AnyminuteSupportAddress.Render("ad_addr", AddrOf(v), false, "SupportSubscribers.aspx?lookup=1&postal=", "Search for the subscriber address using a postal or ZIP code, select a result, or enter the address manually.", "", true)).Append("</section>");
+         sb.Append("<div class='sa-panel-foot'><a class='sa-btn sa-btn-outline' href='SupportSubscribers.aspx'>Cancel</a><button type='submit' class='sa-btn' name='sa_op' value='add'>&#128190; Save Subscriber</button></div></div>");
+         Content.Text = sb.ToString();
+     }
+@@ -863,6 +874,10 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+                 log4net.LogManager.GetLogger("Log").Error("Support Add Subscriber failed", ex);
+                 Flash.Text = "<div class='sa-flash sa-warn'>The subscriber could not be created: " + SA.H(ex.Message) + "</div>"; AddView(c, v); return;
+             }
++            // v57 (PPT s4): an address entered on Add Subscriber is queued for Address Verification the same way as Edit Subscriber.
++            if (adr.Any)
++                try { using (var tx = c.BeginTransaction()) { AD.QueuePending(c, tx, adr, AD.ReviewReady(c) , String.Join(" ", new[] { v[0], v[2] }.Where(x => x.Length > 0).ToArray()) + " (Subscriber)", AD.Source("ad_addr") == "lookup" ? "Selected from address lookup in Support Admin > Add Subscriber (not yet verified)." : "Entered manually in Support Admin > Add Subscriber."); tx.Commit(); } }
++                catch (SqlException ex) { log4net.LogManager.GetLogger("Log").Error("Address verification queue failed for user " + user, ex); }
+             // v55: a subscriber created by a reseller is assigned to that reseller (same row Support Admin > Resellers > Assign writes).
+             if (rsl != null)
+                 try { SA.X(c, null, "IF NOT EXISTS(SELECT 1 FROM AnyminuteResellerSubscriber WHERE UserId=@u) INSERT AnyminuteResellerSubscriber(UserId,ResellerID,AssignedBy) VALUES(@u,@i,@b)", "@u", user, "@i", rsl.ResellerId, "@b", SA.ActorName()); }
+@@ -931,7 +946,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+             return;
+         }
+         if (reason.Length > 500) reason = reason.Substring(0, 500);
+-        Func<string, object> N = t => t.Length == 0 ? (object)DBNull.Value : t; bool revoke = false;
++        Func<string, object> N = t => t.Length == 0 ? (object)DBNull.Value : t; bool revoke = false; bool rv = AD.ReviewReady(c); string vst = null;
+         using (var tx = c.BeginTransaction())
+         {
+             int e = Convert.ToInt32(r["EmployeeId"]);
+@@ -952,6 +967,10 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+             if (changed.Contains(12))
+                 AnyminuteTimesheetRepair.Execute(c, tx, "UPDATE ea SET StreetNo=@no,NumberSuffix='',StreetName=@l1,StreetType=@l2,SuitType=@st,SuiteNumber=@sn,City=@ci,Province=@pr,Postalcode=@pc" + (AnyminuteEmployeeEditor.HasColumn(c, tx, "EmpAddress", "Country") ? ",Country=@k" : "") + " FROM EmpAddress ea JOIN AddEmployee ae ON ae.ADDRESSID=ea.EmpAddressId WHERE ae.EmployeeID=@e",
+                     "@no", nAddr.StreetNo, "@l1", nAddr.Line1, "@l2", nAddr.Line2, "@st", nAddr.SuiteType, "@sn", nAddr.SuiteNo, "@ci", nAddr.City, "@pr", nAddr.Province, "@pc", nAddr.Postal, "@k", nAddr.Any ? nAddr.Country : "", "@e", e);
++            // v57 (PPT s4): a new address that is not in the Verified Address Database (Enter Address Manually, or a lookup pick that was
++            // never verified) goes to Address Verification > Pending Verification (sidebar badge count) with this subscriber as submitter.
++            if (changed.Contains(12) && nAddr.Any)
++                vst = AD.QueuePending(c, tx, nAddr, rv, Name(r) + " (Subscriber)", AD.Source("ed_addr") == "lookup" ? "Selected from address lookup in Support Admin > Edit Subscriber (not yet verified)." : "Entered manually in Support Admin > Edit Subscriber.");
+             if (plan && changed.Any(i => i >= 7 && i <= 11))
+                 AnyminuteTimesheetRepair.Execute(c, tx, "UPDATE PlanHistory SET PlanName=@pn,Business=@b,No_Of_Users=@n,StartDate=@sd,EndDate=@ed WHERE Id=@id", "@pn", nv[7], "@b", N(nv[8]), "@n", N(nv[9]), "@sd", d1, "@ed", d2, "@id", Convert.ToInt32(r["PlanRowId"]));
+             if (revoke) AnyminuteSessionGuard.Revoke(c, tx, u, "Subscriber " + nv[6].ToLowerInvariant() + " by Support Admin");
+@@ -967,6 +986,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+             if (err != null) SA.Flash("Other changes were saved, but the email change was not started: " + err);
+             else SA.Audit(c, null, "Login", u.ToString(CultureInfo.InvariantCulture), "Email Change Invitation", null, null, cur[3], nv[3], reason);
+         }
++        if (vst == "Pending") SA.Flash("The new address was sent to Address Verification (Pending Verification).");
+         Back(u, "updated");
+     }
+     // v45 PPT 01 s6 step 3: Confirm Changes is a dialog over the Edit Subscriber form (the form underneath still carries the new values).
+@@ -989,6 +1009,80 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+             + "<div class='sa-flash sa-info'>" + Ic("info") + "<span>If the email address was changed, an invitation email was sent to the new email address.</span></div>"
+             + "<div class='sa-ok-btns'><a class='sa-btn sa-btn-outline' href='" + b + "'>View Subscriber Details</a><a class='sa-btn' href='SupportSubscribers.aspx'>Back to Subscriber List</a></div></div></div>";
+     }
++    // v57 (PPT s1): plan business limit (PlanHistory.Business); -1 = none recorded (no limit to enforce).
++    static int BizLimit(DataRow r) { int n; return Int32.TryParse(SA.S(r["PlanBiz"]).Trim(), out n) ? n : -1; }
++    const string BizActiveSql = "SELECT COUNT(*) FROM AddBusiness b JOIN biz ON biz.BusinessID=b.BusinessID WHERE ISNULL(b.Status,'')<>'2'";
++    // v57 (PPT s1 "it should let me add"): Support Admin / Reseller Add Business for a subscriber under its plan limit. Business
++    // name, primary contact, phone, email and a required business address (lookup or manual; manual goes to Address Verification).
++    string BizAdd(SqlConnection c, DataRow r, string[] v)
++    {
++        int u = Convert.ToInt32(r["UserId"]); string b = "SupportSubscribers.aspx?user=" + u;
++        v = v ?? new[] { "", Name(r), SA.S(r["MainPhone"]), SA.S(r["Email"]) };
++        int lim = BizLimit(r), used; try { used = Convert.ToInt32(SA.Q(c, BizCte + BizActiveSql, ScopeArgs(r)).Rows[0][0]); } catch (SqlException) { used = 0; }
++        if (lim >= 0 && used >= lim) return "<div class='sa-card'><h2>Business limit reached</h2><p>" + used + " of " + lim + " businesses used on the current plan.</p><div class='sa-panel-foot'><a class='sa-btn sa-btn-outline' href='" + b + "&amp;view=businesses'>Back to Businesses</a>"
++            + (NoUpgrade ? "" : "<a class='sa-btn' href='" + b + "&amp;view=edit&amp;up=1#plan'>Upgrade Plan</a>") + "</div></div>";
++        Func<int, string, string, string, string, string> f = (i, nm, label, type, extra) => "<label class='sa-field'><span>" + label + (extra.Contains("required") ? " <em class='sa-req'>*</em>" : "") + "</span><input type='" + type + "' name='" + nm + "' value='" + SA.A(v[i]) + "'" + extra + " /></label>";
++        return "<input type='hidden' name='sa_user' value='" + u + "' /><div class='sa-card sa-bizadd'><div class='sa-panel-head'><div><h2>Add Business</h2><small>" + used + " of " + (lim >= 0 ? lim.ToString(CultureInfo.InvariantCulture) : "&mdash;") + " businesses used. The subscriber is the business owner.</small></div></div>"
++            + "<div class='sa-grid2'>" + f(0, "bz_name", "Business Name", "text", " maxlength='50' required") + f(1, "bz_contact", "Primary Contact Name", "text", " maxlength='100' required")
++            + f(2, "bz_phone", "Primary Contact Number", "tel", " maxlength='14' required placeholder='10 digits'") + f(3, "bz_email", "Main Email", "email", " maxlength='100'") + "</div>"
++            + "<section class='sa-sub-addr'><h2>Business Address</h2>" + AD.Render("bz_addr", v.Length > 4 ? AD.FromForm("bz_addr") : new AD.Addr(), true, "SupportSubscribers.aspx?lookup=1&postal=", "Search for the business address using a postal or ZIP code, select a result, or enter the address manually.", "", true) + "</section>"
++            + "<div class='sa-panel-foot'><a class='sa-btn sa-btn-outline' href='" + b + "&amp;view=businesses'>Cancel</a><button type='submit' class='sa-btn' name='sa_op' value='bizaddsave'>" + Ic("save") + " Add Business</button></div></div>";
++    }
++    void BizAddPost(SqlConnection c, DataRow r)
++    {
++        int u = Convert.ToInt32(r["UserId"]), owner = Convert.ToInt32(r["EmployeeId"]);
++        string name = SA.Form("bz_name").Trim(), contact = SA.Form("bz_contact").Trim(), phone = new string(SA.Form("bz_phone").Where(Char.IsDigit).ToArray()), email = SA.Form("bz_email").Trim();
++        var a = AD.FromForm("bz_addr"); var errs = new List<string>();
++        if (name.Length == 0 || name.Length > 50) errs.Add("Enter a business name (up to 50 characters).");
++        if (contact.Length == 0) errs.Add("Enter the primary contact name.");
++        if (phone.Length != 10) errs.Add("Enter a 10-digit primary contact number.");
++        if (email.Length > 0 && !System.Text.RegularExpressions.Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$")) errs.Add("Enter a valid email address.");
++        errs.AddRange(AD.Validate(a, true));
++        int biz = 0; string vst = null;
++        if (errs.Count == 0)
++        {
++            bool rv = AD.ReviewReady(c);
++            try
++            {
++                using (var tx = c.BeginTransaction())
++                {
++                    biz = AnyminuteSupportBusinessCreate.Create(c, tx, owner, BizLimit(r), BizCte + BizActiveSql, ScopeArgs(r), name, contact, phone, email, a);
++                    vst = AD.QueuePending(c, tx, a, rv, name + " (Business)", "Added by " + (Rsl != null ? "Reseller" : "Support") + " for subscriber " + Name(r) + " (" + AD.Source("bz_addr") + ")");
++                    SA.Audit(c, tx, "Login", u.ToString(CultureInfo.InvariantCulture), "Business Added", null, null, null, "Business: " + name + " (ID " + biz + ")", "Address: " + AD.Compose(a));
++                    tx.Commit();
++                }
++            }
++            catch (InvalidOperationException ex) { errs.Add(ex.Message); }
++            catch (SqlException ex) { errs.Add("Could not add the business: " + ex.Message); }
++        }
++        if (errs.Count > 0) { Flash.Text = "<div class='sa-flash sa-warn'>" + String.Join("<br/>", errs.Select(e => SA.H(e)).ToArray()) + "</div>"; Content.Text = Details(c, r) + "<div class='sa-tabbed'>" + DTabs(c, r, "businesses") + BizAdd(c, r, new[] { name, contact, SA.Form("bz_phone"), email, "post" }) + "</div>"; return; }
++        SA.Flash("Business added." + (vst == "Pending" ? " The business address was sent to Address Verification (Pending Verification)." : "")); Back(u, "businesses");
++    }
++    // v57 (PPT s2 "View instead of Edit"): read-only business card inside the Subscriber Details shell, limited to this subscriber's businesses.
++    string BizView(SqlConnection c, DataRow r, int biz)
++    {
++        int u = Convert.ToInt32(r["UserId"]); string b = "SupportSubscribers.aspx?user=" + u, back = "<a class='sa-btn sa-btn-outline' href='" + b + "&amp;view=businesses'>Back to Businesses</a>";
++        DataTable t; DataRow ba = null;
++        try
++        {
++            t = SA.Q(c, BizCte + @"SELECT b.BusinessID,b.CompanyName,b.OperatingName,b.BusinessNumber,b.PrimaryContactName,b.PrimaryContactNumber,b.Status,
++                (SELECT COUNT(DISTINCT a.EmployeeID) FROM AssginBussiness a WHERE a.BusinessID=b.BusinessID AND a.EmployeeID<>@a) Employees,(SELECT COUNT(*) FROM AddProject p WHERE p.BusinessID=b.BusinessID) Projects
++                FROM AddBusiness b JOIN biz ON biz.BusinessID=b.BusinessID WHERE b.BusinessID=@b", ScopeArgs(r).Concat(new object[] { "@b", biz }).ToArray());
++            if (t.Rows.Count == 1) ba = SA.Q(c, "SELECT TOP 1 ba.* FROM BusinessAddress ba JOIN AddBusiness b ON b.ADDRESSID=ba.BusinessAddressId WHERE b.BusinessID=@b", "@b", biz).Rows.Cast<DataRow>().FirstOrDefault();
++        }
++        catch (SqlException ex) { return "<div class='sa-card'><p class='sa-muted'>Could not load this business: " + SA.H(ex.Message) + "</p>" + back + "</div>"; }
++        if (t.Rows.Count != 1) return "<div class='sa-card'><p>This business does not belong to this subscriber.</p>" + back + "</div>";
++        var x = t.Rows[0]; bool del = SA.S(x["Status"]) == "2";
++        Func<string, string> col = k => ba != null && ba.Table.Columns.Contains(k) ? SA.S(ba[k]).Trim() : "";
++        var a = new AD.Addr { StreetNo = col("StreetNo"), Line1 = col("StreetName"), Line2 = col("StreetType"), SuiteNo = col("SuiteNumber"), City = col("City"), Province = col("Province"), Postal = col("Postalcode"), Country = col("Country") == "United States" ? "United States" : "Canada" };
++        string ast = null; if (a.Any) try { ast = AD.Status(c, null, a, AD.ReviewReady(c)); } catch (SqlException) { }
++        Func<string, string, string> ii = (k, val) => "<div class='sa-meta'><div><small>" + k + "</small><strong>" + (val.Length > 0 ? val : "&mdash;") + "</strong></div></div>";
++        return "<div class='sa-card sa-bizview'><div class='sa-panel-head'><div><h2>" + SA.H(SA.S(x["CompanyName"])) + "</h2><small>Business ID " + biz + "</small></div>" + SA.Pill(del ? "Deleted" : "Active", del ? "grey" : "green") + "</div>"
++            + "<div class='sa-grid2'>" + ii("Business Name", SA.H(SA.S(x["CompanyName"]))) + ii("Operating Name", SA.H(SA.S(x["OperatingName"]))) + ii("Business Number", SA.H(SA.S(x["BusinessNumber"]))) + ii("Primary Contact", SA.H(SA.S(x["PrimaryContactName"])))
++            + ii("Primary Contact Number", SA.H(SA.S(x["PrimaryContactNumber"]))) + ii("Main Email", SA.H(col("MainEmail"))) + ii("Address", SA.H(AD.Compose(a)) + (ast != null ? " " + AD.Pill(ast, false) : "")) + ii("Employees / Projects", x["Employees"] + " / " + x["Projects"]) + "</div>"
++            + "<div class='sa-panel-foot'>" + back + "<a class='sa-btn sa-btn-outline' href='" + b + "&amp;view=employees'>View Employees</a><a class='sa-btn sa-btn-outline' href='" + b + "&amp;view=projects'>View Projects</a>"
++            + (NoBiz ? "" : "<a class='sa-btn' href='" + b + "&amp;view=bizedit&amp;biz=" + biz + "'>" + Ic("edit") + " Edit Business</a>") + "</div></div>";
++    }
+     // v45 PPT 01 s3/s4 Businesses tab "Edit": business name (the same AddBusiness / AssginBussiness / AssgineManager name update the
+     // owner's Edit Business uses), limited to businesses this subscriber owns, with a reason in the support audit.
+     string BizEdit(SqlConnection c, DataRow r, int biz, string name, string reason)
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportTickets.aspx b/AMV3Reseller_27Aug2022_Subscription/SupportTickets.aspx
+index fa707e2..3f7faae 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportTickets.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportTickets.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="SupportTickets.aspx.cs" Inherits="AnyminuteSupportTicketsPage" Title="Support Tickets" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v56" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v56" defer="defer"></script></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v57" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v57" defer="defer"></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section class="sa-page">
+  <header class="sa-head"><div><h1>Support Tickets</h1><p>View and manage support tickets from subscribers.</p></div>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteAddressLookup.css b/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteAddressLookup.css
+index ab6021a..fb1f95a 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteAddressLookup.css
++++ b/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteAddressLookup.css
+@@ -209,3 +209,17 @@ html body #amEmpAddress input[type=text],html body #amEmpAddress select{display:
+ html body #amEmpAddress .am-al-clearwrap,html body #amEmpAddress .am-al-flagsel{display:block;position:relative;width:100%}
+ @media (max-width:900px){html body #amEmpAddress .am-al-search{grid-template-columns:1fr 1fr}}
+ @media (max-width:560px){html body #amEmpAddress .am-al-search{grid-template-columns:1fr}}
++
++/* v57 (PPT s3 "make it Red or Highlight More"): Address Not Found card is a danger card - red border, light red background, red icon and bold red title. */
++html body .am-al-nf{background:#fef2f2!important;border:1px solid #f87171!important;border-left:4px solid #dc2626!important;color:#7f1d1d!important;box-shadow:0 1px 3px rgba(220,38,38,.12)!important}
++html body .am-al-nf-head strong{color:#b91c1c!important;font-weight:800}
++html body .am-al-nf-i{border-color:#dc2626!important;color:#fff!important;background:#dc2626!important;font-family:Arial,sans-serif!important}
++html body .am-al-nf p{color:#991b1b!important}
++/* v57 (PPT s4): address status pills - Verified Address (green), Pending Verification (amber), Address Rejected (red), Not Verified (grey). */
++html body .am-al-pill.am-al-pill-ok,html body .am-al-pill-ok{background:#dcfce7!important;color:#166534!important;border:1px solid #86efac!important}
++html body .am-al-pill.am-al-pill-pend,html body .am-al-pill-pend{background:#fef3c7!important;color:#92400e!important;border:1px solid #fcd34d!important}
++html body .am-al-pill.am-al-pill-bad,html body .am-al-pill-bad{background:#fee2e2!important;color:#991b1b!important;border:1px solid #fca5a5!important}
++html body .am-al-pill.am-al-pill-none,html body .am-al-pill-none{background:#f1f5f9!important;color:#475569!important;border:1px solid #cbd5e1!important}
++html body .am-al-pill-ok,html body .am-al-pill-pend,html body .am-al-pill-bad,html body .am-al-pill-none{display:inline-block;border-radius:999px;padding:2px 9px;font-size:11.5px;font-weight:600;vertical-align:middle}
++/* v57 (PPT s1): Upgrade Plan highlights the Subscription Plan card. */
++html body .sa-card.sa-plan-up{box-shadow:0 0 0 2px #2563eb,0 4px 14px rgba(37,99,235,.15)!important;scroll-margin-top:90px}
+diff --git a/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteBusinessEditor.css b/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteBusinessEditor.css
+index d0aab68..adaddab 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteBusinessEditor.css
++++ b/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteBusinessEditor.css
+@@ -311,3 +311,9 @@ html body .am-al-nf-head{display:flex;align-items:center;gap:8px;margin-bottom:4
+ html body .am-al-nf-head strong{font-size:14px;font-weight:700;color:#1e293b}
+ html body .am-al-nf-i{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border:1.5px solid #475569;border-radius:50%;font:700 10px/1 Georgia,serif;color:#475569;font-style:normal;flex:none}
+ html body .am-al-nf p{margin:0;padding-left:24px;color:#475569}
++
++/* v57 (PPT s3 "make it Red or Highlight More"): Address Not Found card is a danger card - red border, light red background, red icon and bold red title. */
++html body .am-al-nf{background:#fef2f2!important;border:1px solid #f87171!important;border-left:4px solid #dc2626!important;color:#7f1d1d!important;box-shadow:0 1px 3px rgba(220,38,38,.12)!important}
++html body .am-al-nf-head strong{color:#b91c1c!important;font-weight:800}
++html body .am-al-nf-i{border-color:#dc2626!important;color:#fff!important;background:#dc2626!important;font-family:Arial,sans-serif!important}
++html body .am-al-nf p{color:#991b1b!important}
+diff --git a/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteSupport.css b/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteSupport.css
+index 8800dba..2a81bd4 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteSupport.css
++++ b/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteSupport.css
+@@ -308,3 +308,17 @@ html body .am-al-nf p{margin:0;padding-left:24px;color:#475569}
+ .sa-addr-gate-txt small { display: block; font-size: 11px; margin-top: 2px; }
+ .sa-addr-gate-btn { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+ .sa-addr-gate-btn .sa-i { width: 15px; height: 15px; }
++
++/* v57 (PPT s3 "make it Red or Highlight More"): Address Not Found card is a danger card - red border, light red background, red icon and bold red title. */
++html body .am-al-nf{background:#fef2f2!important;border:1px solid #f87171!important;border-left:4px solid #dc2626!important;color:#7f1d1d!important;box-shadow:0 1px 3px rgba(220,38,38,.12)!important}
++html body .am-al-nf-head strong{color:#b91c1c!important;font-weight:800}
++html body .am-al-nf-i{border-color:#dc2626!important;color:#fff!important;background:#dc2626!important;font-family:Arial,sans-serif!important}
++html body .am-al-nf p{color:#991b1b!important}
++/* v57 (PPT s4): address status pills - Verified Address (green), Pending Verification (amber), Address Rejected (red), Not Verified (grey). */
++html body .am-al-pill.am-al-pill-ok,html body .am-al-pill-ok{background:#dcfce7!important;color:#166534!important;border:1px solid #86efac!important}
++html body .am-al-pill.am-al-pill-pend,html body .am-al-pill-pend{background:#fef3c7!important;color:#92400e!important;border:1px solid #fcd34d!important}
++html body .am-al-pill.am-al-pill-bad,html body .am-al-pill-bad{background:#fee2e2!important;color:#991b1b!important;border:1px solid #fca5a5!important}
++html body .am-al-pill.am-al-pill-none,html body .am-al-pill-none{background:#f1f5f9!important;color:#475569!important;border:1px solid #cbd5e1!important}
++html body .am-al-pill-ok,html body .am-al-pill-pend,html body .am-al-pill-bad,html body .am-al-pill-none{display:inline-block;border-radius:999px;padding:2px 9px;font-size:11.5px;font-weight:600;vertical-align:middle}
++/* v57 (PPT s1): Upgrade Plan highlights the Subscription Plan card. */
++html body .sa-card.sa-plan-up{box-shadow:0 0 0 2px #2563eb,0 4px 14px rgba(37,99,235,.15)!important;scroll-margin-top:90px}
