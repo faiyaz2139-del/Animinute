@@ -112,6 +112,21 @@ public static class AnyminuteSupportAddress
     const string IcoSearch = "<svg viewBox='0 0 24 24' width='18' height='18' aria-hidden='true' focusable='false'><circle cx='11' cy='11' r='7' fill='none' stroke='currentColor' stroke-width='2.4'/><path d='M16.5 16.5L21 21' stroke='currentColor' stroke-width='2.4' stroke-linecap='round'/></svg>";
     const string IcoPen = "<svg viewBox='0 0 24 24' width='18' height='18' aria-hidden='true' focusable='false'><path fill='currentColor' d='M3 17.25V21h3.75L17.8 9.94l-3.75-3.75L3 17.25zm17.71-10.21a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z'/></svg>";
 
+    // v53 (NOTES_v53 #3/#4, img_02 -> img_01): Edit Reseller / Edit Subscriber collapsed Address card. Pin + "Address",
+    // current composed address or "Please Select", module note and an outline "Manage Address" button that reveals the
+    // Address Lookup module (panel) in place. The panel stays in the DOM (hidden) so its fields still post; {prefix}_open
+    // tells the save path whether the module was opened (not opened = keep the stored address untouched).
+    public static bool Opened(string prefix) { return F(prefix, "_open") == "1"; }
+    const string IcoPin = "<svg class='sa-i' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z'/><circle cx='12' cy='10' r='3'/></svg>";
+    public static string Gate(string prefix, string summary, bool open, string panel)
+    {
+        string sum = (summary ?? "").Trim();
+        return "<div class='sa-addr-wrap' id='address'><div class='sa-card sa-addr-gate' id='" + prefix + "_gate'" + (open ? " hidden" : "") + "><span class='sa-addr-gate-ico'>" + IcoPin + "</span><div class='sa-addr-gate-txt'><h2>Address</h2>"
+            + "<div class='sa-addr-gate-sum'>" + (sum.Length > 0 ? H(sum) : "Please Select") + "</div><small class='sa-muted'>Address changes are managed through the separate Address module.</small></div>"
+            + "<button type='button' class='sa-btn sa-btn-outline sa-addr-gate-btn' data-sa-reveal='" + prefix + "_panel' data-sa-gate='" + prefix + "'>" + IcoPin + " Manage Address</button></div>"
+            + "<input type='hidden' name='" + prefix + "_open' id='" + prefix + "_open' value='" + (open ? "1" : "0") + "' />"
+            + "<div id='" + prefix + "_panel' class='sa-addr-panel' data-sa-addrpanel='1'" + (open ? "" : " hidden") + ">" + panel + "</div></div>";
+    }
     // prefix: form field prefix (rs_addr / ad_addr). lookupUrl: page URL ending in "postal=" that returns [{street,city,province}].
     public static string Render(string prefix, Addr a, bool required, string lookupUrl, string sub)
     {

@@ -297,3 +297,14 @@ html body .am-al-nf p{margin:0;padding-left:24px;color:#475569}
 .sa-tabbed > .sa-tabpad .sa-card { border: 1px solid var(--sa-line, #d9e0ea); margin: 0 0 16px; border-radius: 12px; box-shadow: none; }
 .sa-tabbed > .sa-tabpad .sa-card:last-child { margin-bottom: 0; }
 .sa-sub-addr h2 { margin: 0 0 12px; }
+/* ===== v53 (NOTES_v53 #3/#4, img_02): Edit Reseller / Edit Subscriber collapsed Address card + Manage Address ===== */
+.sa-addr-gate { display: flex; align-items: center; gap: 14px; }
+.sa-addr-gate[hidden], .sa-addr-panel[hidden] { display: none !important; }
+.sa-addr-gate-ico { display: inline-flex; color: #45597a; }
+.sa-addr-gate-ico .sa-i { width: 22px; height: 22px; }
+.sa-addr-gate-txt { flex: 1 1 auto; min-width: 0; }
+.sa-addr-gate-txt h2 { margin: 0 0 2px; }
+.sa-addr-gate-sum { font-size: 13px; color: #1f2a44; word-break: break-word; }
+.sa-addr-gate-txt small { display: block; font-size: 11px; margin-top: 2px; }
+.sa-addr-gate-btn { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.sa-addr-gate-btn .sa-i { width: 15px; height: 15px; }

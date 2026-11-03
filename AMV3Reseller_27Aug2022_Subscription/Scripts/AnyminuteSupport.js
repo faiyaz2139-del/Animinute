@@ -158,7 +158,12 @@
       sel.addEventListener('change', fill);
     });
     $all('[data-sa-unlock]').forEach(function (b) { b.addEventListener('click', function () { var box = b.closest('.sa-card') || document; $all('[data-sa-lim]').forEach(function (x) { if (box.contains(x)) x.readOnly = false; }); var f = box.querySelector('[data-sa-lim]'); if (f) f.focus(); }); });
-    $all('[data-sa-reveal]').forEach(function (b) { b.addEventListener('click', function () { var el = document.getElementById(b.getAttribute('data-sa-reveal')); if (el) { el.hidden = false; var s = el.querySelector('select'); if (s) s.focus(); } }); });
+    // v53: a collapsed Address module (Manage Address gate) keeps its fields in the DOM but parks "required" so a hidden empty
+    // field cannot block Save; revealing it restores "required", hides the gate card and marks {prefix}_open = 1.
+    $all('[data-sa-addrpanel][hidden] [required]').forEach(function (x) { x.removeAttribute('required'); x.setAttribute('data-sa-req', '1'); });
+    $all('[data-sa-reveal]').forEach(function (b) { b.addEventListener('click', function () { var el = document.getElementById(b.getAttribute('data-sa-reveal')); if (el) { el.hidden = false;
+      var g = b.getAttribute('data-sa-gate'); if (g) { $all('[data-sa-req]').forEach(function (x) { if (el.contains(x)) x.setAttribute('required', 'required'); }); var gc = document.getElementById(g + '_gate'), op = document.getElementById(g + '_open'); if (gc) gc.hidden = true; if (op) op.value = '1'; var fi = el.querySelector('input:not([type=hidden]),select'); if (fi) fi.focus(); return; }
+      var s = el.querySelector('select'); if (s) s.focus(); } }); });
     // v43 PPT 01 s5: Search Address (postal code lookup) or enter manually.
     // v46 (Address deck s1/s2, Paused deck s1): Business-style Address Lookup module on Add / Edit Reseller and Add Subscriber.
     var REG = {

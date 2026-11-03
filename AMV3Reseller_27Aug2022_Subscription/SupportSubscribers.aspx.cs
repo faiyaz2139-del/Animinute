@@ -127,12 +127,14 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
             // v45 PPT 01 s3/s4: Subscriber Details has no page title; the subscriber header card is the top of the page.
             // v51 PPT s1-s4: every tab (Businesses / Employees / Projects / Subscription & Billing / Login & Access / Support History /
             // Activity Log) renders inside the same Subscriber Details shell - the header card stays, only the tab body changes.
-            // v52 (NOTES_v52 A/B/D): access and history are standalone pages again (Login PPT s1/s3); the sticky shell keeps the rest.
-            if (view == "" || view == "businesses" || view == "employees" || view == "projects" || view == "billing" || view == "support")
+            // v53 (NOTES_v53 #2): access and history are back inside the sticky Details + DTabs shell (v51 pattern) - the header card
+            // never changes across Businesses / Employees / Projects / Billing / Login & Access / Support History / Login Activity History.
+            if (view == "" || view == "businesses" || view == "employees" || view == "projects" || view == "billing" || view == "access" || view == "support" || view == "history")
             {
                 Title1.Text = ""; Lead.Text = ""; string on = view.Length == 0 ? "businesses" : view;
-                Crumbs.Text = CrumbBar(CrumbSep(on == "businesses" ? "<span>Subscriber Details</span>" : "<a href='SupportSubscribers.aspx?user=" + user + "'>Subscriber Details</a>") + (on == "support" ? CrumbSep("<span>Support History</span>") : ""));
-                string body = on == "billing" ? Billing(c, r) : on == "employees" || on == "projects" ? Related(c, r, on) : on == "support" ? Support(c, r) : Biz(c, r);
+                Crumbs.Text = CrumbBar(CrumbSep(on == "businesses" ? "<span>Subscriber Details</span>" : "<a href='SupportSubscribers.aspx?user=" + user + "'>Subscriber Details</a>") + (on == "access" ? CrumbSep("<span>Login &amp; Access</span>") : on == "support" ? CrumbSep("<span>Support History</span>") : on == "history" ? CrumbSep("<span>Login Activity History</span>") : ""));
+                if (on == "history") { var nm = Name(r).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); SubName = nm.Length > 1 ? nm[0] + " " + nm[nm.Length - 1] : Name(r); }
+                string body = on == "billing" ? Billing(c, r) : on == "employees" || on == "projects" ? Related(c, r, on) : on == "access" ? "<div class='sa-tabpad'>" + Access(c, r, ready) + "</div>" : on == "support" ? Support(c, r) : on == "history" ? History(c, user) : Biz(c, r);
                 Content.Text = Details(c, r) + "<div class='sa-tabbed'>" + DTabs(c, r, on) + body + "</div>";
             }
             else if (view == "bizedit") { int bz; Int32.TryParse(SA.Get("biz"), out bz); Title1.Text = ""; Lead.Text = ""; Content.Text = Details(c, r) + "<div class='sa-tabbed'>" + DTabs(c, r, "businesses") + BizEdit(c, r, bz, null, null) + "</div>"; }
@@ -154,8 +156,6 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
                 Title1.Text = "Edit Subscriber"; Lead.Text = "Update subscriber information, plan and limits.";
                 Content.Text = Edit(c, r, null) + UpdatedModal(user);
             }
-            else if (view == "access") { Title1.Text = "Manage Subscriber Login &amp; Access"; Lead.Text = "Subscriber Details &rsaquo; Login &amp; Access"; HeadActions.Text = "<a class='sa-icon-btn' href='SupportSubscribers.aspx?user=" + user + "' title='Close' aria-label='Close'>&#10005;</a>"; Content.Text = Header(c, r, false) + Access(c, r, ready); }
-            else if (view == "history") { Title1.Text = "Subscriber Login Activity History"; Lead.Text = "View sign-in activity, account changes and security events for this subscriber."; var nm = Name(r).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); SubName = nm.Length > 1 ? nm[0] + " " + nm[nm.Length - 1] : Name(r); Content.Text = Header(c, r, true) + Tabs(c, r, "history") + History(c, user); }
             else if (view == "reset") { Title1.Text = "Send Password Reset"; Lead.Text = "Send a secure password reset link to the subscriber."; Content.Text = Reset(r, ready); }
             else { Response.Redirect("SupportSubscribers.aspx?user=" + user, false); Context.ApplicationInstance.CompleteRequest(); }
         }
@@ -386,8 +386,10 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
         foreach (var o in AStatus) sb.Append("<option").Append(v[6] == o ? " selected" : "").Append(">").Append(o).Append("</option>");
         sb.Append("</select></label><div class='sa-flash sa-info'>").Append(Ic("info")).Append("<span>Suspended or inactive accounts cannot sign in to the system.<br />You can send an activation invitation to pending accounts.</span></div></div></div>")
           .Append("<div class='sa-card'><h2>Subscription Dates</h2>").Append(plan ? "<div class='sa-grid2'>" + f(10, "date", "", true) + f(11, "date", "", true) + "</div>" : "<p class='sa-muted'>No active plan record.</p>").Append("</div>");
-        // v51 (held note, red-boxed Address): same Address Lookup + Address Details as Edit Reseller (old link-out address block removed).
-        sb.Append("<div class='sa-card sa-sub-addr' id='address'><h2>Address <span class='sa-muted sa-small'>(Optional)</span></h2>").Append(AD.Render("ed_addr", IsPostBack ? AD.FromForm("ed_addr") : SubAddr(r), false, "SupportSubscribers.aspx?lookup=1&postal=", "Search for the subscriber address using a postal or ZIP code, select a result, or enter the address manually.")).Append("</div>");
+        // v53 (NOTES_v53 #4, img_02 -> img_01): collapsed Address card (current address or Please Select + Manage Address);
+        // Manage Address reveals the same Address Lookup + Address Details as Edit Reseller in place (no SupportAddresses.aspx).
+        { bool aOpen = IsPostBack && AD.Opened("ed_addr"); var sa0 = SubAddr(r);
+          sb.Append(AD.Gate("ed_addr", AD.Compose(sa0), aOpen, "<div class='sa-card sa-sub-addr'><h2>Address <span class='sa-muted sa-small'>(Optional)</span></h2>" + AD.Render("ed_addr", aOpen ? AD.FromForm("ed_addr") : sa0, false, "SupportSubscribers.aspx?lookup=1&postal=", "Search for the subscriber address using a postal or ZIP code, select a result, or enter the address manually.") + "</div>")); }
         sb.Append("<div class='sa-card'><div class='sa-panel-head'><h2>Recent Activity <span class='sa-light'>(Last 5)</span></h2><a class='sa-btn sa-btn-outline sa-btn-sm' href='").Append(b).Append("&amp;view=history'>").Append(Ic("open")).Append(" View Full History</a></div>");
         DataTable h = null; try { if (SA.Has(c, "AnyminuteSupportAudit")) h = SA.Q(c, "SELECT TOP 5 * FROM AnyminuteSupportAudit WHERE Entity='Login' AND EntityKey=@k ORDER BY ChangedAtUTC DESC,AuditID DESC", "@k", u.ToString(CultureInfo.InvariantCulture)); } catch (SqlException) { }
         sb.Append("<div class='sa-table-wrap'><table class='sa-table sa-act-table'><thead><tr><th>Date &amp; Time</th><th>Changed By</th><th>Field</th><th>Previous Value</th><th>New Value</th><th>Reason</th></tr></thead><tbody>");
@@ -819,7 +821,8 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
         if (!AStatus.Contains(nv[6])) nv[6] = cur[6]; // v47: unknown / missing value keeps the current status (never silently Active)
         if (!plan) { nv[7] = cur[7]; nv[8] = cur[8]; nv[9] = cur[9]; nv[10] = cur[10]; nv[11] = cur[11]; }
         var nAddr = AD.FromForm("ed_addr"); nv[12] = AD.Compose(nAddr);
-        { // untouched form = no change, even when a legacy province value has no match in the Province / State select
+        if (!AD.Opened("ed_addr")) { nv[12] = cur[12]; nAddr = SubAddr(r); } // v53: Manage Address not opened = address unchanged
+        else { // untouched form = no change, even when a legacy province value has no match in the Province / State select
             var shown = SubAddr(r); if (!(shown.Country == "United States" ? AD.States : AD.Canada).Contains(shown.Province)) shown.Province = "";
             if (nv[12] == AD.Compose(shown)) { nv[12] = cur[12]; nAddr = SubAddr(r); }
         }

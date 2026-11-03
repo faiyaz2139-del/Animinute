@@ -98,7 +98,7 @@ public partial class AnyminuteSupportResellersPage : System.Web.UI.Page
             foreach (var r in rows.Skip((page - 1) * PageSize).Take(PageSize))
             {
                 int id = Convert.ToInt32(r["ResellerID"]); string s = St(r); bool off = Convert.ToBoolean(r["LoginDisabled"]);
-                sb.Append("<tr><td>").Append(++n).Append("</td><td class='sa-wrap'><a class='sa-link' href='SupportResellers.aspx?view=").Append(id).Append("'>").Append(SA.H(r["ResellerName"])).Append("</a><small class='sa-muted'>").Append(SA.H(RS.Rsl(r["ResellerID"]))).Append("</small></td><td class='sa-wrap'>").Append(SA.H(r["ContactPerson"]))
+                sb.Append("<tr><td>").Append(++n).Append("</td><td class='sa-wrap'><a class='sa-link' href='SupportResellers.aspx?view=").Append(id).Append("'>").Append(SA.H(r["ResellerName"])).Append("</a></td><td class='sa-wrap'>").Append(SA.H(r["ContactPerson"]))
                   .Append(SA.S(r["Phone"]).Length > 0 ? "<small class='sa-muted'>" + SA.H(r["Phone"]) + "</small>" : "").Append("</td><td class='sa-wrap'>").Append(SA.H(r["Email"])).Append("</td><td>").Append(SA.S(r["PlanName"]).Length > 0 ? SA.H(r["PlanName"]) : "&mdash;")
                   .Append("</td><td class='sa-c'>").Append(r["Subscribers"]).Append("</td><td class='sa-c'>").Append(r["Businesses"]).Append("</td><td class='sa-nowrap'>").Append(CDay(r["CreatedAtUTC"])).Append("</td><td>").Append(SA.Pill(s, s == "Active" ? "green" : "red"))
                   // v51 (held note): View button in Actions, the three-dot menu in the next column.
@@ -211,6 +211,12 @@ public partial class AnyminuteSupportResellersPage : System.Web.UI.Page
     {
         return "<div class='sa-rsl-addr' id='address'>" + AD.Render("rs_addr", a, true, "SupportResellers.aspx?lookup=1&postal=", "Reseller address (required). Search using a postal or ZIP code, select a result, or enter the address manually.") + "</div>";
     }
+    // v53 (NOTES_v53 #3): Edit Reseller shows the collapsed Address card (img_02); Manage Address reveals the module in place (img_01).
+    string EditAddress(string stored)
+    {
+        bool open = IsPostBack && AD.Opened("rs_addr"); var a = open ? AD.FromForm("rs_addr") : AD.Parse(stored);
+        return AD.Gate("rs_addr", stored, open, AD.Render("rs_addr", a, true, "SupportResellers.aspx?lookup=1&postal=", "Reseller address (required). Search using a postal or ZIP code, select a result, or enter the address manually."));
+    }
     string EditForm(DataRow e, string dis, Func<string, string> D, Func<string, string, string, string, string> input)
     {
         int id = Convert.ToInt32(e["ResellerID"]); string csv = IsPostBack ? String.Join(",", Request.Form.GetValues("rs_perm") ?? new string[0]) : SA.S(e["Permissions"]);
@@ -236,7 +242,7 @@ public partial class AnyminuteSupportResellersPage : System.Web.UI.Page
           .Append(input("Maximum Businesses per Subscriber", "rs_maxbiz", "number", " min='0' max='100000' placeholder='Unlimited'").Replace("</label>", "<small class='sa-muted'>Leave blank for unlimited.</small></label>")).Append("</div></div>")
           .Append("<div class='sa-card'><h2><i class='sa-rpt-ico' aria-hidden='true'>&#128221;</i> Notes</h2><p class='sa-muted'>Internal Notes (Support Admin Only)</p><label class='sa-field'><span class='sr-only'>Internal Notes</span><textarea name='rs_notes' rows='3' maxlength='1000' data-sa-counter='1000'").Append(dis).Append(">")
           .Append(SA.H(Val("rs_notes", D("rs_notes")))).Append("</textarea><small data-sa-count='1'>0/1000</small></label></div></div></div>")
-          .Append(AddressCard(IsPostBack ? AD.FromForm("rs_addr") : AD.Parse(D("rs_address"))))
+          .Append(EditAddress(D("rs_address")))
           .Append("<div class='sa-panel-foot'><a class='sa-btn sa-btn-outline' href='SupportResellers.aspx?view=").Append(id).Append("'>Cancel</a><button type='submit' class='sa-btn' name='sa_op' value='update'").Append(dis).Append(">Save Changes</button></div>");
         return sb.ToString();
     }
@@ -305,7 +311,9 @@ public partial class AnyminuteSupportResellersPage : System.Web.UI.Page
             status = SA.Form("rs_status") == "Inactive" ? "Inactive" : "Active", notes = SA.Form("rs_notes"), ms = SA.Form("rs_maxsub"), mb = SA.Form("rs_maxbiz");
         var errs = new List<string>();
         // v46 (Address deck s1): required structured address from the Address module, stored as one composed line in Address.
-        var ad = AD.FromForm("rs_addr"); errs.AddRange(AD.Validate(ad, true)); addr = AD.Compose(ad);
+        // v53: Manage Address never opened = keep the stored address as-is (no re-validation / re-compose of legacy text).
+        if (AD.Opened("rs_addr")) { var ad = AD.FromForm("rs_addr"); errs.AddRange(AD.Validate(ad, true)); addr = AD.Compose(ad); }
+        else { addr = SA.S(old["Address"]); if (addr.Trim().Length == 0) errs.Add("Address is required. Click Manage Address to enter it."); }
         if (name.Length == 0) errs.Add("Reseller name is required."); if (contact.Length == 0) errs.Add("Contact person is required.");
         if (!Mail.IsMatch(email)) errs.Add("Enter a valid email address."); if (!Regex.IsMatch(phone, @"^[0-9+()\-.\s]{7,30}$")) errs.Add("Enter a valid phone number.");
         if (alt.Length > 0 && !Regex.IsMatch(alt, @"^[0-9+()\-.\s]{7,30}$")) errs.Add("Alternate phone is not valid.");
