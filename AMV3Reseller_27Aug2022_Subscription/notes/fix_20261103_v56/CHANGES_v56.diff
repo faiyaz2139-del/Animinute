@@ -1,0 +1,276 @@
+diff --git a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteResellerPortal.cs b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteResellerPortal.cs
+index 5df56a3..9e39081 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteResellerPortal.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteResellerPortal.cs
+@@ -67,21 +67,35 @@ public static class AnyminuteResellerPortal
+     {
+         var req = HttpContext.Current.Request; string path = req.Url.AbsolutePath, view = req.QueryString["view"] ?? "";
+         string page = System.IO.Path.GetFileName(path);
+-        var items = new List<string[]> { new[] { "Dashboard", "~/ResellerDashboard.aspx", "dash" } };
+-        if (r.Can("subscribers")) items.Add(new[] { "Subscribers", "~/SupportSubscribers.aspx", "subs" });
+-        if (r.Can("businesses") || r.Can("subscribers")) items.Add(new[] { "Businesses", "~/ResellerDashboard.aspx?view=businesses", "businesses" });
+-        if (r.Can("plans")) items.Add(new[] { "Subscription Plans", "~/ResellerDashboard.aspx?view=plans", "plans" });
+-        if (r.Can("usage")) items.Add(new[] { "Usage & Limits", "~/ResellerDashboard.aspx?view=usage", "usage" });
+-        if (r.Can("reports")) items.Add(new[] { "Reports", "~/SupportReports.aspx", "reports" });
+-        items.Add(new[] { "Settings", "~/ResellerDashboard.aspx?view=settings", "settings" });
++        // v56 (PPT s1 strict): the full 7-item menu always shows; permission gates stay server-side on each page / action.
++        var items = new List<string[]> {
++            new[] { "Dashboard", "~/ResellerDashboard.aspx", "dash" },
++            new[] { "Subscribers", "~/SupportSubscribers.aspx", "subs" },
++            new[] { "Businesses", "~/ResellerDashboard.aspx?view=businesses", "businesses" },
++            new[] { "Subscription Plans", "~/ResellerDashboard.aspx?view=plans", "plans" },
++            new[] { "Usage & Limits", "~/ResellerDashboard.aspx?view=usage", "usage" },
++            new[] { "Reports", "~/SupportReports.aspx", "reports" },
++            new[] { "Settings", "~/ResellerDashboard.aspx?view=settings", "settings" } };
+         string on = page.Equals("SupportSubscribers.aspx", StringComparison.OrdinalIgnoreCase) ? "subs" : page.Equals("SupportReports.aspx", StringComparison.OrdinalIgnoreCase) ? "reports"
+             : page.Equals("ResellerDashboard.aspx", StringComparison.OrdinalIgnoreCase) ? (view.Length == 0 ? "dash" : view) : "";
+         var html = new StringBuilder();
+         foreach (var i in items)
+             html.Append("<li class='am-sa-nav am-rsl-nav'><a href='").Append(HttpUtility.HtmlAttributeEncode(VirtualPathUtility.ToAbsolute(i[1]))).Append("' data-am-primary='true'")
+-                .Append(i[2] == on ? " aria-current='page' class='active'" : "").Append("><i class='' aria-hidden='true'></i><span>").Append(HttpUtility.HtmlEncode(i[0])).Append("</span></a></li>");
++                .Append(i[2] == on ? " aria-current='page' class='active'" : "").Append(">").Append(NavIcon(i[2])).Append("<span>").Append(HttpUtility.HtmlEncode(i[0])).Append("</span></a></li>");
+         return html.ToString();
+     }
++    // v56 (PPT s1): line icons per nav item - home, users, building, paperclip, bar chart, document, gear.
++    public static string NavIcon(string key)
++    {
++        string d = key == "dash" ? "<path d='M3 11l9-8 9 8'/><path d='M5 10v10h5v-6h4v6h5V10'/>"
++            : key == "subs" ? "<path d='M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2'/><circle cx='9' cy='7' r='4'/><path d='M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8'/>"
++            : key == "businesses" ? "<path d='M6 21V3h12v18M3 21h18M9 7h1m4 0h1M9 11h1m4 0h1M9 15h1m4 0h1M10 21v-3h4v3'/>"
++            : key == "plans" ? "<path d='M21.4 11.1l-9.2 9.2a6 6 0 0 1-8.5-8.5l9.2-9.2a4 4 0 0 1 5.7 5.7l-9.2 9.2a2 2 0 0 1-2.8-2.8l8.5-8.5'/>"
++            : key == "usage" ? "<path d='M4 20h16'/><path d='M7 16v-4M12 16V6M17 16v-7'/>"
++            : key == "reports" ? "<path d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/><path d='M14 2v6h6M8 13h8M8 17h5'/>"
++            : "<circle cx='12' cy='12' r='3'/><path d='M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z'/>";
++        return "<svg class='am-ap-navico am-rsl-navico' viewBox='0 0 24 24' width='20' height='20' style='flex:0 0 20px;width:20px;height:20px' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'>" + d + "</svg>";
++    }
+     // Top bar brand: AnyMinute mark + wordmark and the "Reseller" label (PPT header).
+     public const string Brand = "<span class='am-ap-brand am-rsl-brand'><svg viewBox='0 0 40 40' width='34' height='34' aria-hidden='true' focusable='false'><circle cx='20' cy='21' r='15' fill='none' stroke='#1f6fe5' stroke-width='4'/><path d='M20 12v9.5l6 3.5' fill='none' stroke='#1f6fe5' stroke-width='3.6' stroke-linecap='round' stroke-linejoin='round'/><path d='M15 3.5h10' stroke='#1f6fe5' stroke-width='3.6' stroke-linecap='round'/></svg><span class='am-ap-brand-text'>AnyMinute</span><span class='am-rsl-brand-role' style='margin-left:18px;padding-left:18px;border-left:1px solid #dfe5ee;font-weight:700;font-size:20px;color:#14233c'>Reseller</span></span>";
+ 
+diff --git a/AMV3Reseller_27Aug2022_Subscription/EmployeeEditor.aspx b/AMV3Reseller_27Aug2022_Subscription/EmployeeEditor.aspx
+index 856e979..0fac992 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/EmployeeEditor.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/EmployeeEditor.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="EmployeeEditor.aspx.cs" Inherits="AnyminuteEmployeeEditorPage" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteEmployees.css?v=20261025v13" rel="stylesheet" /><link href="css/AnyminuteEmployeesV2.css?v=20261026v17" rel="stylesheet" /><link href="css/AnyminuteFlash.css?v=20261024v2" rel="stylesheet" /><link href="css/AnyminuteAddressLookup.css?v=20261103v55" rel="stylesheet" /><script src="Scripts/AnyminuteDateText.js?v=20261024v8" defer></script><script src="Scripts/AnyminuteAddressLookup.js?v=20261102v49" defer></script></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteEmployees.css?v=20261025v13" rel="stylesheet" /><link href="css/AnyminuteEmployeesV2.css?v=20261026v17" rel="stylesheet" /><link href="css/AnyminuteFlash.css?v=20261024v2" rel="stylesheet" /><link href="css/AnyminuteAddressLookup.css?v=20261103v56" rel="stylesheet" /><script src="Scripts/AnyminuteDateText.js?v=20261024v8" defer></script><script src="Scripts/AnyminuteAddressLookup.js?v=20261102v49" defer></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section id="Root" runat="server" class="am-dialog-page am-employees-v2 am-editor-v3">
+  <header class="am-dialog-head"><div><h1><asp:Literal ID="PageTitle" runat="server" /></h1><p><asp:Literal ID="PageSubtitle" runat="server" /></p></div><asp:HyperLink ID="CloseLink" runat="server" NavigateUrl="~/Users.aspx" CssClass="am-dialog-close" ToolTip="Close" aria-label="Close">&times;</asp:HyperLink></header>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/EmployeeProfile.aspx b/AMV3Reseller_27Aug2022_Subscription/EmployeeProfile.aspx
+index 0ff121b..e5360d1 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/EmployeeProfile.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/EmployeeProfile.aspx
+@@ -3,7 +3,7 @@
+ 
+ <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="Server">
+     <link href="css/bootstrap.min.css" rel="stylesheet" />
+-    <link href="css/AnyminuteAddressLookup.css?v=20261103v55" rel="stylesheet" />
++    <link href="css/AnyminuteAddressLookup.css?v=20261103v56" rel="stylesheet" />
+     <%-- v37 (DOCX image1, strict): Personal / Payment Details use the same full-width 3-column grid as Address Lookup and
+          Employee Address below (they were a centred half-width column). Control IDs unchanged. --%>
+     <style>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Main.master b/AMV3Reseller_27Aug2022_Subscription/Main.master
+index 15263e6..17f535b 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Main.master
++++ b/AMV3Reseller_27Aug2022_Subscription/Main.master
+@@ -5,7 +5,7 @@
+ <!DOCTYPE html>
+ 
+ <html>
+-<head runat="server"><meta name="anyminute-build" content="v55-20261103" />
++<head runat="server"><meta name="anyminute-build" content="v56-20261103" />
+     <title>AnyMinute | Record From Anywhere</title>
+     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Modern.master b/AMV3Reseller_27Aug2022_Subscription/Modern.master
+index b3be002..1d7513a 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Modern.master
++++ b/AMV3Reseller_27Aug2022_Subscription/Modern.master
+@@ -1,6 +1,6 @@
+ <%@ Master Language="C#" AutoEventWireup="true" CodeFile="Modern.master.cs" Inherits="AnyminuteModernMaster" %>
+ <!DOCTYPE html>
+-<html lang="en"><head runat="server"><meta charset="utf-8" /><meta name="anyminute-build" content="v55-20261103" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>AnyMinute</title><link href="css/bootstrap.min.css" rel="stylesheet" /><script src="Assets/assets/js/core/jquery.3.2.1.min.js"></script><script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script><script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" /><script src="Assets/assets/js/plugin/datatables/datatables.min.js"></script><script src="Assets/assets/js/SweetAlert.js"></script><link href="css/AnyminuteModern.css" rel="stylesheet" /><asp:ContentPlaceHolder ID="head" runat="server" /><link href="css/AnyminuteUI2026.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUIUnified.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUiBugFixes.css?v=20261026v17" rel="stylesheet" /><link href="css/AnyminuteNavDrawer.css?v=20261101v47" rel="stylesheet" /></head>
++<html lang="en"><head runat="server"><meta charset="utf-8" /><meta name="anyminute-build" content="v56-20261103" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>AnyMinute</title><link href="css/bootstrap.min.css" rel="stylesheet" /><script src="Assets/assets/js/core/jquery.3.2.1.min.js"></script><script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script><script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" /><script src="Assets/assets/js/plugin/datatables/datatables.min.js"></script><script src="Assets/assets/js/SweetAlert.js"></script><link href="css/AnyminuteModern.css" rel="stylesheet" /><asp:ContentPlaceHolder ID="head" runat="server" /><link href="css/AnyminuteUI2026.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUIUnified.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUiBugFixes.css?v=20261026v17" rel="stylesheet" /><link href="css/AnyminuteNavDrawer.css?v=20261101v47" rel="stylesheet" /></head>
+ <body class="am-modern"><form id="frmMaster" runat="server"><asp:ScriptManager ID="ScriptManager1" runat="server" />
+ <header class="am-topbar"><button type="button" class="am-icon-button" data-toggle-sidebar aria-controls="am-main-navigation" aria-expanded="true" aria-label="Toggle navigation">&#9776;</button><a href="Dashboard.aspx" class="am-brand"><asp:PlaceHolder ID="LogoDefault" runat="server"><img src="Assets/assets/img/logo.jpg" alt="AnyMinute" class="am-logo" /></asp:PlaceHolder><asp:Literal ID="Brand" runat="server" /></a><span>Welcome! <asp:Literal ID="Welcome" runat="server" /><asp:Literal ID="WelcomeContext" runat="server" /></span><asp:Literal ID="HeaderHelp" runat="server" /><asp:Literal ID="HeaderBell" runat="server" /><details class="am-account-menu"><summary aria-label="Account menu"><asp:Literal ID="AccountAvatar" runat="server" /><span class="am-account-chevron" aria-hidden="true"></span><span class="sr-only">Account</span></summary><div class="am-account-popover"><a href="MyProfile.aspx"><span data-am-icon="profile" aria-hidden="true"></span>My profile</a><a href="LoginSecurity.aspx"><span data-am-icon="settings" aria-hidden="true"></span>Login &amp; security</a><asp:LinkButton ID="SignOut" runat="server" CausesValidation="false" OnClick="SignOut_Click"><span data-am-icon="signout" aria-hidden="true"></span>Sign out</asp:LinkButton>
+    <a href="Change%20Password.aspx"><span data-am-icon="settings" aria-hidden="true"></span>Change password</a><asp:Literal ID="AccountHelp" runat="server" /><asp:Literal ID="AccountUpgrade" runat="server" /></div></details></header>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/ResellerDashboard.aspx b/AMV3Reseller_27Aug2022_Subscription/ResellerDashboard.aspx
+index f4afb51..594b13c 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/ResellerDashboard.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/ResellerDashboard.aspx
+@@ -1,10 +1,16 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="ResellerDashboard.aspx.cs" Inherits="AnyminuteResellerDashboardPage" Title="Reseller Dashboard" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v55" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v55" defer="defer"></script>
+-<style>/* v55 Reseller PPT s1/s9 */
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v56" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v56" defer="defer"></script>
++<style>/* v55 Reseller PPT s1/s9 (v56 s1 strict below) */
+ .rsl-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px}.rsl-kpis .sa-kpi-icon svg{width:24px;height:24px}
+ .rsl-qa{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}.rsl-qa a{display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px 10px;border:1px solid var(--sa-line,#dfe5ee);border-radius:12px;background:#fff;color:#14233c;font-weight:600;text-align:center;text-decoration:none}
+ .rsl-qa a:hover{border-color:#1f6fe5;box-shadow:0 2px 10px rgba(31,111,229,.12)}.rsl-qa svg{width:28px;height:28px;color:#1f6fe5}
+ .rsl-set{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.rsl-set a{display:block;padding:18px;border:1px solid var(--sa-line,#dfe5ee);border-radius:12px;background:#fff;color:#14233c;text-decoration:none}.rsl-set a b{display:block;margin-bottom:4px}
++/* v56 PPT s1 strict: bold Reseller label above title, 3x2 KPI cards (solid Active / Inactive circles), 5 Quick Actions in one row */
++.rsl-home-crumb{margin-bottom:4px}.rsl-home-crumb span{font-weight:700;font-size:20px;color:#14233c}
++.rsl-kpis .sa-kpi{padding:18px 20px;gap:16px;border-radius:12px;box-shadow:0 1px 3px rgba(20,35,60,.05)}.rsl-kpis .sa-kpi-icon{width:48px;height:48px;flex:0 0 48px}
++.rsl-kpis .sa-kpi span{font-size:13px;font-weight:600;color:#14233c}.rsl-kpis .sa-kpi strong{display:block;font-size:26px;font-weight:800;line-height:1.2;color:#14233c}
++.rsl-kpis .sa-kpi:nth-child(2) .sa-kpi-icon{background:#22a45d;color:#fff}.rsl-kpis .sa-kpi:nth-child(3) .sa-kpi-icon{background:#e5484d;color:#fff}
++.rsl-qa-card h2{font-size:17px;font-weight:700;margin:0 0 14px}.rsl-qa a span{font-size:13px;line-height:1.3}
+ @media (max-width:1100px){.rsl-kpis{grid-template-columns:1fr 1fr}.rsl-qa{grid-template-columns:repeat(3,1fr)}.rsl-set{grid-template-columns:1fr}}
+ </style></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+diff --git a/AMV3Reseller_27Aug2022_Subscription/ResellerDashboard.aspx.cs b/AMV3Reseller_27Aug2022_Subscription/ResellerDashboard.aspx.cs
+index d7ce0ef..fcf59e0 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/ResellerDashboard.aspx.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/ResellerDashboard.aspx.cs
+@@ -38,7 +38,7 @@ public partial class AnyminuteResellerDashboardPage : System.Web.UI.Page
+     {
+         Flash.Text = SA.TakeFlash();
+         string view = SA.Get("view");
+-        // Permission gates (nav hides these too): businesses = businesses or subscribers, plans, usage.
++        // Permission gates (v56: nav always shows all 7; gates stay here): businesses = businesses or subscribers, plans, usage.
+         if ((view == "businesses" && !rsl.Can("businesses") && !rsl.Can("subscribers")) || (view == "plans" && !rsl.Can("plans")) || (view == "usage" && !rsl.Can("usage")))
+         { Flash.Text += "<div class='sa-flash sa-warn'>Your reseller account does not have access to that page.</div>"; view = ""; }
+         using (var c = SA.Open())
+@@ -61,6 +61,7 @@ public partial class AnyminuteResellerDashboardPage : System.Web.UI.Page
+     // s1: Reseller Dashboard - Total / Active / Inactive Subscribers, Total Businesses / Employees / Projects + Quick Actions.
+     void Dashboard(SqlConnection c)
+     {
++        Crumbs.Text = "<nav class='sa-crumbs rsl-home-crumb' aria-label='Breadcrumb'><span>Reseller</span></nav>"; // v56 PPT s1: bold Reseller above the title
+         Title1.Text = "Reseller Dashboard"; Lead.Text = "Manage your subscribers, businesses and subscription plans.";
+         var t = RP.Subscribers(c, rsl).Rows.Cast<DataRow>().ToList();
+         int act = t.Count(r => RP.StatusOf(r) == "Active"), ina = t.Count(r => RP.StatusOf(r) == "Inactive" || RP.StatusOf(r) == "Suspended");
+@@ -68,13 +69,12 @@ public partial class AnyminuteResellerDashboardPage : System.Web.UI.Page
+             .Append(Kpi("users", "blue", "Total Subscribers", t.Count)).Append(Kpi("check", "green", "Active", act)).Append(Kpi("x", "red", "Inactive", ina))
+             .Append(Kpi("biz", "purple", "Total Businesses", t.Sum(r => Convert.ToInt32(r["Businesses"])))).Append(Kpi("users", "blue", "Total Employees", t.Sum(r => Convert.ToInt32(r["Employees"]))))
+             .Append(Kpi("folder", "purple", "Total Projects", t.Sum(r => Convert.ToInt32(r["Projects"])))).Append("</div>");
+-        var qa = new List<string>();
++        // v56 (PPT s1 strict): all five Quick Actions always show; the target pages keep their server-side permission gates (flash + redirect).
+         Func<string, string, string, string> a = (href, icon, label) => "<a href='" + href + "'>" + Ic(icon) + "<span>" + label + "</span></a>";
+-        if (rsl.Can("subscribers")) { qa.Add(a("SupportSubscribers.aspx?view=add", "useradd", "Add Subscriber")); qa.Add(a("SupportSubscribers.aspx", "list", "View Subscribers")); }
+-        if (rsl.Can("plans")) qa.Add(a("ResellerDashboard.aspx?view=plans", "doc", "Subscription Plans"));
+-        if (rsl.Can("usage")) qa.Add(a("ResellerDashboard.aspx?view=usage", "bars", "Usage Limits"));
+-        if (rsl.Can("reports")) qa.Add(a("SupportReports.aspx", "report", "Reports"));
+-        sb.Append("<div class='sa-card'><h2>Quick Actions</h2>").Append(qa.Count == 0 ? "<p class='sa-muted'>No actions are enabled for your reseller account. Contact AnyMinute Support to update your permissions.</p>" : "<div class='rsl-qa'>" + String.Join("", qa.ToArray()) + "</div>").Append("</div>");
++        sb.Append("<div class='sa-card rsl-qa-card'><h2>Quick Actions</h2><div class='rsl-qa'>")
++            .Append(a("SupportSubscribers.aspx?view=add", "useradd", "Add Subscriber")).Append(a("SupportSubscribers.aspx", "list", "View Subscribers"))
++            .Append(a("ResellerDashboard.aspx?view=plans", "doc", "Subscription Plans")).Append(a("ResellerDashboard.aspx?view=usage", "bars", "Usage Limits"))
++            .Append(a("SupportReports.aspx", "report", "Reports")).Append("</div></div>");
+         Content.Text = sb.ToString();
+     }
+     // Businesses nav: businesses under this reseller's subscribers (search + pager); View opens the subscriber's Businesses tab.
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SuperAdmin.aspx b/AMV3Reseller_27Aug2022_Subscription/SuperAdmin.aspx
+index 3311e55..fe7ef1d 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SuperAdmin.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SuperAdmin.aspx
+@@ -3,7 +3,7 @@
+ <%-- v36 (DOCX image7, strict): Accountant List moved to the same Modern shell / Support Admin card design as the other Support Admin
+      pages: one toolbar (Search + Status + Clear), status pills, sortable headers, Previous / page / Next pager, no forced H-scroll. --%>
+ <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="Server">
+-    <link href="css/AnyminuteSupport.css?v=20261103v55" rel="stylesheet" />
++    <link href="css/AnyminuteSupport.css?v=20261103v56" rel="stylesheet" />
+     <style>
+         .am-sa-list .sa-head h1{font-size:24px;margin:0}
+         .am-sa-list .sa-table-wrap{overflow-x:visible}
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SuperAdmin_Approve_Subscriber.aspx b/AMV3Reseller_27Aug2022_Subscription/SuperAdmin_Approve_Subscriber.aspx
+index 50484dd..5d39998 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SuperAdmin_Approve_Subscriber.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SuperAdmin_Approve_Subscriber.aspx
+@@ -161,7 +161,7 @@
+         }
+     </script>
+ 
+-    <link href="css/AnyminuteSupport.css?v=20261103v55" rel="stylesheet" />
++    <link href="css/AnyminuteSupport.css?v=20261103v56" rel="stylesheet" />
+     <style>
+         /* v37 (DOCX image4): one toolbar, no forced scrollbar, status pill, sortable headers, pager. */
+         .am-sa-subwrap{overflow-x:auto;border:1px solid #e2e8f0;border-radius:10px;background:#fff}
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx b/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx
+index e64ebbe..d0dcb4d 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="SupportAddresses.aspx.cs" Inherits="AnyminuteSupportAddressesPage" Title="Address Verification" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v55" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v55" defer="defer"></script></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v56" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v56" defer="defer"></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section class="sa-page">
+  <header class="sa-head"><div><h1>Address Verification</h1><p>Review, correct and verify manually entered addresses.</p></div>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportBusinesses.aspx b/AMV3Reseller_27Aug2022_Subscription/SupportBusinesses.aspx
+index d6168c2..a937f66 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportBusinesses.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportBusinesses.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="SupportBusinesses.aspx.cs" Inherits="AnyminuteSupportBusinessesPage" Title="Businesses" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v55" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v55" defer="defer"></script></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v56" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v56" defer="defer"></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section class="sa-page">
+  <asp:Literal ID="Body1" runat="server" />
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportPlans.aspx b/AMV3Reseller_27Aug2022_Subscription/SupportPlans.aspx
+index 2048218..d6f0377 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportPlans.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportPlans.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="SupportPlans.aspx.cs" Inherits="AnyminuteSupportPlansPage" Title="Subscription Plans" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v55" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v55" defer="defer"></script></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v56" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v56" defer="defer"></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section class="sa-page">
+  <header class="sa-head"><div><h1><asp:Literal ID="Title1" runat="server" /></h1><p><asp:Literal ID="Lead" runat="server" /></p></div>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportReports.aspx b/AMV3Reseller_27Aug2022_Subscription/SupportReports.aspx
+index a20cc34..11f86cb 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportReports.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportReports.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="SupportReports.aspx.cs" Inherits="AnyminuteSupportReportsPage" Title="Support Admin Reports" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v55" rel="stylesheet" /><link href="css/AnyminuteReportLayout.css?v=20261101v46" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v55" defer="defer"></script><script src="Scripts/AnyminuteReportLayout.js?v=20261101v46" defer="defer"></script></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v56" rel="stylesheet" /><link href="css/AnyminuteReportLayout.css?v=20261101v46" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v56" defer="defer"></script><script src="Scripts/AnyminuteReportLayout.js?v=20261101v46" defer="defer"></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section class="sa-page am-rl">
+  <asp:Literal ID="Head1" runat="server" />
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportResellers.aspx b/AMV3Reseller_27Aug2022_Subscription/SupportResellers.aspx
+index cbb863b..3c5479f 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportResellers.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportResellers.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="SupportResellers.aspx.cs" Inherits="AnyminuteSupportResellersPage" Title="Resellers" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteAddressLookup.css?v=20261103v55" rel="stylesheet" /><link href="css/AnyminuteSupport.css?v=20261103v55" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v55" defer="defer"></script></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteAddressLookup.css?v=20261103v56" rel="stylesheet" /><link href="css/AnyminuteSupport.css?v=20261103v56" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v56" defer="defer"></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section class="sa-page">
+  <asp:Literal ID="Flash" runat="server" />
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx b/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx
+index 75d8523..6a5e93f 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="SupportSubscribers.aspx.cs" Inherits="AnyminuteSupportSubscribersPage" Title="Subscribers" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteAddressLookup.css?v=20261103v55" rel="stylesheet" /><link href="css/AnyminuteSupport.css?v=20261103v55" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v55" defer="defer"></script></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteAddressLookup.css?v=20261103v56" rel="stylesheet" /><link href="css/AnyminuteSupport.css?v=20261103v56" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v56" defer="defer"></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section class="sa-page">
+  <asp:Literal ID="Crumbs" runat="server" />
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx.cs b/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx.cs
+index 523b339..f15f154 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx.cs
+@@ -37,7 +37,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+     {
+         var r = Session["UserId"] == null ? null : Rsl;
+         if (r == null) { SA.Require(); return; }
+-        if (!r.Can("subscribers")) Response.Redirect("ResellerDashboard.aspx", true);
++        if (!r.Can("subscribers")) { SA.Flash("Your reseller account does not have access to Subscribers."); Response.Redirect("ResellerDashboard.aspx", true); } // v56: nav always shows Subscribers
+     }
+     // v55: reseller pages never link into Support Admin-only pages (plans / usage / businesses open in the Reseller portal).
+     protected override void Render(System.Web.UI.HtmlTextWriter writer)
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportTickets.aspx b/AMV3Reseller_27Aug2022_Subscription/SupportTickets.aspx
+index 952e4bb..fa707e2 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportTickets.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportTickets.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="SupportTickets.aspx.cs" Inherits="AnyminuteSupportTicketsPage" Title="Support Tickets" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v55" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v55" defer="defer"></script></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v56" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v56" defer="defer"></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section class="sa-page">
+  <header class="sa-head"><div><h1>Support Tickets</h1><p>View and manage support tickets from subscribers.</p></div>
