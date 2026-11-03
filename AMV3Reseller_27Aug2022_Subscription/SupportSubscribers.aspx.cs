@@ -129,12 +129,14 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
             // Activity Log) renders inside the same Subscriber Details shell - the header card stays, only the tab body changes.
             // v53 (NOTES_v53 #2): access and history are back inside the sticky Details + DTabs shell (v51 pattern) - the header card
             // never changes across Businesses / Employees / Projects / Billing / Login & Access / Support History / Login Activity History.
-            if (view == "" || view == "businesses" || view == "employees" || view == "projects" || view == "billing" || view == "access" || view == "support" || view == "history")
+            if (view == "" || view == "businesses" || view == "employees" || view == "projects" || view == "billing" || view == "access" || view == "support" || view == "history" || view == "reset")
             {
                 Title1.Text = ""; Lead.Text = ""; string on = view.Length == 0 ? "businesses" : view;
-                Crumbs.Text = CrumbBar(CrumbSep(on == "businesses" ? "<span>Subscriber Details</span>" : "<a href='SupportSubscribers.aspx?user=" + user + "'>Subscriber Details</a>") + (on == "access" ? CrumbSep("<span>Login &amp; Access</span>") : on == "support" ? CrumbSep("<span>Support History</span>") : on == "history" ? CrumbSep("<span>Login Activity History</span>") : ""));
+                // v54 (NOTES_v54): Send Password Reset renders inside the sticky Details + DTabs shell with Login & Access selected.
+                bool rst = on == "reset"; if (rst) on = "access";
+                Crumbs.Text = CrumbBar(CrumbSep(on == "businesses" ? "<span>Subscriber Details</span>" : "<a href='SupportSubscribers.aspx?user=" + user + "'>Subscriber Details</a>") + (rst ? CrumbSep("<a href='SupportSubscribers.aspx?user=" + user + "&amp;view=access'>Login &amp; Access</a>") + CrumbSep("<span>Send Password Reset</span>") : on == "access" ? CrumbSep("<span>Login &amp; Access</span>") : on == "support" ? CrumbSep("<span>Support History</span>") : on == "history" ? CrumbSep("<span>Login Activity History</span>") : ""));
                 if (on == "history") { var nm = Name(r).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); SubName = nm.Length > 1 ? nm[0] + " " + nm[nm.Length - 1] : Name(r); }
-                string body = on == "billing" ? Billing(c, r) : on == "employees" || on == "projects" ? Related(c, r, on) : on == "access" ? "<div class='sa-tabpad'>" + Access(c, r, ready) + "</div>" : on == "support" ? Support(c, r) : on == "history" ? History(c, user) : Biz(c, r);
+                string body = on == "billing" ? Billing(c, r) : on == "employees" || on == "projects" ? Related(c, r, on) : rst ? "<div class='sa-tabpad'>" + Reset(r, ready) + "</div>" : on == "access" ? "<div class='sa-tabpad'>" + Access(c, r, ready) + "</div>" : on == "support" ? Support(c, r) : on == "history" ? History(c, user) : Biz(c, r);
                 Content.Text = Details(c, r) + "<div class='sa-tabbed'>" + DTabs(c, r, on) + body + "</div>";
             }
             else if (view == "bizedit") { int bz; Int32.TryParse(SA.Get("biz"), out bz); Title1.Text = ""; Lead.Text = ""; Content.Text = Details(c, r) + "<div class='sa-tabbed'>" + DTabs(c, r, "businesses") + BizEdit(c, r, bz, null, null) + "</div>"; }
@@ -156,7 +158,6 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
                 Title1.Text = "Edit Subscriber"; Lead.Text = "Update subscriber information, plan and limits.";
                 Content.Text = Edit(c, r, null) + UpdatedModal(user);
             }
-            else if (view == "reset") { Title1.Text = "Send Password Reset"; Lead.Text = "Send a secure password reset link to the subscriber."; Content.Text = Reset(r, ready); }
             else { Response.Redirect("SupportSubscribers.aspx?user=" + user, false); Context.ApplicationInstance.CompleteRequest(); }
         }
     }
@@ -576,7 +577,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
             + "<section><h2><b class='sa-step'>2</b> Password Reset Email</h2><div class='sa-grid2'><div><label class='sa-field'><span>Send to Email Address</span><input type='email' name='sa_email' maxlength='256' required value='" + SA.A(email) + "' oninput=\"document.getElementById('saRstTo').textContent=this.value\" /></label><small class='sa-muted'>A secure password reset link will be sent to this email address.</small></div>"
             + "<div class='sa-preview'><small>Message Preview (Email Subject and Content)</small><p><b>Subject: Reset Your AnyMinute Password</b></p><p>Hello " + SA.H(first) + ",</p><p>We received a request to reset your AnyMinute account password. Click the link below to set a new password. This link will expire in 24 hours.</p><p><span class='sa-link'>Reset Your Password</span></p><p>If you did not request this, please ignore this email.</p><p>Thank you,<br />The AnyMinute Team</p></div></div></section>"
             + "<section><h2><b class='sa-step'>3</b> Confirm and Send</h2><div class='sa-flash sa-warn'><b>Please confirm before sending.</b><ul><li>A secure password reset link will be sent to <span id='saRstTo'>" + SA.H(email) + "</span>.</li><li>The link will expire in 24 hours.</li><li>The previous password will remain invalid after the reset.</li><li>This action will be recorded in the activity log.</li></ul></div></section>"
-            + "<div class='sa-panel-foot'><a class='sa-btn sa-btn-outline' href='SupportSubscribers.aspx?user=" + u + "'>Cancel</a><button type='submit' class='sa-btn' name='sa_op' value='reset'" + (ready ? "" : " disabled") + ">&#10148; Send Password Reset</button></div></div>";
+            + "<div class='sa-panel-foot'><a class='sa-btn sa-btn-outline' href='SupportSubscribers.aspx?user=" + u + "&amp;view=access'>Cancel</a><button type='submit' class='sa-btn' name='sa_op' value='reset'" + (ready ? "" : " disabled") + ">&#10148; Send Password Reset</button></div></div>";
     }
     string SubName = "";
     string History(SqlConnection c, int user)
