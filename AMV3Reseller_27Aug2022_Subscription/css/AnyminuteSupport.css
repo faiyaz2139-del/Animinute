@@ -291,3 +291,9 @@ html body .am-al-nf p{margin:0;padding-left:24px;color:#475569}
 .sa-page .sa-sub-addr .sa-addrmod .am-al-main>h2{font-size:16px}
 .sa-page .sa-addrmod .am-al-f>label{display:block}
 @media (max-width:900px){.sa-page .sa-addrmod .am-al-search{grid-template-columns:1fr 1fr!important}}
+
+/* ===== v51: Subscriber Details shell - Login & Access / Support History / Activity Log render inside the tabbed card ===== */
+.sa-tabbed > .sa-tabpad { padding: 16px; }
+.sa-tabbed > .sa-tabpad .sa-card { border: 1px solid var(--sa-line, #d9e0ea); margin: 0 0 16px; border-radius: 12px; box-shadow: none; }
+.sa-tabbed > .sa-tabpad .sa-card:last-child { margin-bottom: 0; }
+.sa-sub-addr h2 { margin: 0 0 12px; }

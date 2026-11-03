@@ -104,7 +104,7 @@ html body .am-emp-al .am-addr-dialog [aria-invalid=true]{border-color:#dc2626!im
 @media (max-width:1100px){html body .am-emp-al .am-al-layout{grid-template-columns:1fr}}
 @media (max-width:760px){html body .am-emp-al .am-al-search{grid-template-columns:1fr 1fr}html body .am-emp-al .am-al-grid>.am-al-f,html body .am-emp-al .am-al-grid>.am-al-f:nth-child(n){grid-column:1 / -1}html body .am-emp-al .am-md-grid>label,html body .am-emp-al .am-md-grid>label.am-al-span2{grid-column:1 / -1}}
 html body .am-emp-al .am-al-search{grid-template-columns:minmax(175px,1fr) minmax(160px,1.1fr) auto auto}
-); the design uses normal case.
+/* ===== v51 (comment repaired - the opening was lost, which dropped the label rule below): labels are not uppercased (no text-transform); the design uses normal case.
    Card grid now mirrors the modal: Street Number 1/3 + Address Line 1 2/3; Line 2 / Suite Type / Suite Number; section bar;
    City / Province / Postal on one even row; Country 2/3. ===== */
 html body .am-emp-al .am-al-layout label,html body .am-emp-al .am-addr-dialog label,
@@ -192,3 +192,20 @@ html body .am-emp-al .am-al-details .am-al-f input[type=text]{padding:0 12px!imp
 html body .am-emp-al,html body .am-emp-al *,html body .am-emp-al *::before,html body .am-emp-al *::after{box-sizing:border-box}
 /* v48 (NOTES_v46 #8): an invalid Postal / ZIP in the Employee Address Details is flagged on the field (no pop-up). */
 html body .am-emp-al input[aria-invalid=true]{border-color:#dc2626!important;box-shadow:0 0 0 2px rgba(220,38,38,.15)}
+/* v51 (held note: EmployeeProfile Address and Contacts misaligned - clipped fields, floating "Select Address from Search Results"):
+   the profile lookup and Address Details are full-width cards stacked one under the other; nothing floats or overflows. */
+html body #amEmpAddress{display:block!important;width:100%!important;max-width:100%!important;float:none!important;clear:both;overflow:visible;margin:0 0 16px;padding:0}
+html body #amEmpAddress>.am-al-layout,html body #amEmpAddress>.am-al-layout.am-al-single{display:block!important;width:100%!important;max-width:100%!important;margin:0 0 14px!important}
+html body #amEmpAddress .am-al-main,html body #amEmpAddress>.am-al-details{display:block!important;width:100%!important;max-width:100%!important;float:none!important;position:static!important;min-width:0}
+html body #amEmpAddress>.am-al-details{background:#fff;border:1px solid #e3e8f0;border-radius:10px;box-shadow:0 1px 3px rgba(15,23,42,.05)}
+html body #amEmpAddress .am-al-search{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr) auto auto;gap:12px;align-items:end;width:100%}
+html body #amEmpAddress .am-al-info,html body #amEmpAddress .am-al-results{display:flex;position:static!important;float:none!important;width:100%!important;max-width:100%!important;margin:12px 0 0!important}
+html body #amEmpAddress .am-al-results{flex-direction:column}
+html body #amEmpAddress .am-al-nf{display:block;position:static!important;float:none!important;width:100%!important;margin:12px 0 0!important}
+html body #amEmpAddress .am-al-info[hidden],html body #amEmpAddress .am-al-nf[hidden],html body #amEmpAddress .am-al-results[hidden]{display:none!important}
+html body #amEmpAddress .am-al-f{display:flex;flex-direction:column;gap:6px;min-width:0;float:none!important;width:auto!important;padding:0!important}
+html body #amEmpAddress .am-al-f>label,html body #amEmpAddress .am-al-results>label{display:block!important;max-width:none!important;text-transform:none!important;letter-spacing:normal!important;white-space:normal}
+html body #amEmpAddress input[type=text],html body #amEmpAddress select{display:block;width:100%!important;max-width:100%!important;min-width:0;height:44px;float:none!important}
+html body #amEmpAddress .am-al-clearwrap,html body #amEmpAddress .am-al-flagsel{display:block;position:relative;width:100%}
+@media (max-width:900px){html body #amEmpAddress .am-al-search{grid-template-columns:1fr 1fr}}
+@media (max-width:560px){html body #amEmpAddress .am-al-search{grid-template-columns:1fr}}

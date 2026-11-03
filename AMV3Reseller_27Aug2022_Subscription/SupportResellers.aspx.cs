@@ -89,9 +89,9 @@ public partial class AnyminuteSupportResellersPage : System.Web.UI.Page
         sb.Append("<div class='sa-card'><div class='sa-rpt-cardhead'><h2>Reseller List</h2><a class='sa-btn sa-btn-outline sa-btn-sm' href='SupportResellers.aspx?").Append(SA.A(qs)).Append("&amp;export=excel'>&#8682; Export</a></div>")
           // v46 (t148u/t149u): same table pattern as Subscribers / Businesses - fits the card (no sideways scroll), name link,
           // status pill, kebab-only Actions (View Details is the first menu item), full menu shown as a fixed pop-over.
-          .Append("<div class='sa-table-wrap'><table class='sa-table sa-list46'><thead><tr><th>Sl. No.</th><th>Reseller Name</th><th>Contact Person</th><th>Email ID</th><th>Plan Name</th><th class='sa-c'>Subscribers</th><th class='sa-c'>Businesses</th><th>Created Date</th><th>Status</th><th class='sa-c'>Actions</th></tr></thead><tbody>");
+          .Append("<div class='sa-table-wrap'><table class='sa-table sa-list46'><thead><tr><th>Sl. No.</th><th>Reseller Name</th><th>Contact Person</th><th>Email ID</th><th>Plan Name</th><th class='sa-c'>Subscribers</th><th class='sa-c'>Businesses</th><th>Created Date</th><th>Status</th><th class='sa-c'>Actions</th><th class='sa-c'><span class='sr-only'>More actions</span></th></tr></thead><tbody>");
         if (rows.Count == 0)
-            sb.Append("<tr><td colspan='10' class='sa-rpt-empty'>").Append(all.Count == 0 ? (ready ? "No resellers yet. Use + Add Reseller to create the first one." : "Reseller tables are not installed yet (run DB_REQUIRED/REQUIRED_09_Resellers.sql).") : "No resellers match these filters.").Append("</td></tr>");
+            sb.Append("<tr><td colspan='11' class='sa-rpt-empty'>").Append(all.Count == 0 ? (ready ? "No resellers yet. Use + Add Reseller to create the first one." : "Reseller tables are not installed yet (run DB_REQUIRED/REQUIRED_09_Resellers.sql).") : "No resellers match these filters.").Append("</td></tr>");
         else
         {
             int n = (page - 1) * PageSize;
@@ -101,7 +101,8 @@ public partial class AnyminuteSupportResellersPage : System.Web.UI.Page
                 sb.Append("<tr><td>").Append(++n).Append("</td><td class='sa-wrap'><a class='sa-link' href='SupportResellers.aspx?view=").Append(id).Append("'>").Append(SA.H(r["ResellerName"])).Append("</a><small class='sa-muted'>").Append(SA.H(RS.Rsl(r["ResellerID"]))).Append("</small></td><td class='sa-wrap'>").Append(SA.H(r["ContactPerson"]))
                   .Append(SA.S(r["Phone"]).Length > 0 ? "<small class='sa-muted'>" + SA.H(r["Phone"]) + "</small>" : "").Append("</td><td class='sa-wrap'>").Append(SA.H(r["Email"])).Append("</td><td>").Append(SA.S(r["PlanName"]).Length > 0 ? SA.H(r["PlanName"]) : "&mdash;")
                   .Append("</td><td class='sa-c'>").Append(r["Subscribers"]).Append("</td><td class='sa-c'>").Append(r["Businesses"]).Append("</td><td class='sa-nowrap'>").Append(CDay(r["CreatedAtUTC"])).Append("</td><td>").Append(SA.Pill(s, s == "Active" ? "green" : "red"))
-                  .Append("</td><td class='sa-c'><details class='sa-menu'><summary class='sa-kebab' aria-label='Reseller actions'>&#8942;</summary><div class='sa-menu-pop'><h4>Reseller Actions</h4><small>").Append(SA.H(r["ResellerName"])).Append(" &middot; ").Append(s).Append("</small>")
+                  // v51 (held note): View button in Actions, the three-dot menu in the next column.
+                  .Append("</td><td class='sa-c'><a class='sa-btn sa-btn-sm sa-btn-outline' href='SupportResellers.aspx?view=").Append(id).Append("'>View</a></td><td class='sa-c'><details class='sa-menu'><summary class='sa-kebab' aria-label='Reseller actions'>&#8942;</summary><div class='sa-menu-pop'><h4>Reseller Actions</h4><small>").Append(SA.H(r["ResellerName"])).Append(" &middot; ").Append(s).Append("</small>")
                   .Append(Menu(id, s, off))
                   .Append("</div></details></td></tr>");
             }
@@ -131,8 +132,8 @@ public partial class AnyminuteSupportResellersPage : System.Web.UI.Page
         string v = "SupportResellers.aspx?view=" + id;
         Func<string, string, string, string, string> a = (href, ico, b, sm) => "<a class='sa-menu-item' href='" + href + "'><i aria-hidden='true'>" + ico + "</i><span><b>" + b + "</b><small>" + sm + "</small></span></a>";
         Func<string, string, string, string, string, string, string> p = (op, conf, ico, b, sm, cls) => "<button type='submit' name='sa_op' value='" + op + "' formnovalidate='formnovalidate' class='sa-menu-item" + cls + "' data-sa-set='sa_id=" + id + "' data-sa-confirm='" + conf + "'><i aria-hidden='true'>" + ico + "</i><span><b>" + b + "</b><small>" + sm + "</small></span></button>";
-        return a(v, "&#128065;", "View Reseller Details", "View profile, subscription limits and information")
-            + a("SupportResellers.aspx?edit=" + id, "&#9998;", "Edit Reseller", "Update reseller contact and account details")
+        // v51 (held note): "View Reseller Details" removed - the list has its own View button.
+        return a("SupportResellers.aspx?edit=" + id, "&#9998;", "Edit Reseller", "Update reseller contact and account details")
             + a(v + "&amp;tab=subscribers", "&#128101;", "View Subscribers", "See subscribers created by this reseller")
             + a(v + "&amp;tab=businesses", "&#127970;", "View Businesses", "See businesses belonging to reseller subscribers")
             + p("login", (off ? "Enable" : "Disable") + " login for this reseller?", "&#128274;", "Manage Login &amp; Access", "Enable or disable reseller login access", "")
@@ -149,7 +150,7 @@ public partial class AnyminuteSupportResellersPage : System.Web.UI.Page
         int n = 0;
         foreach (var r in rows) s.Rows.Add(new[] { (++n).ToString(Inv), RS.Rsl(r["ResellerID"]), SA.S(r["ResellerName"]), SA.S(r["ContactPerson"]), SA.S(r["Email"]), SA.S(r["Phone"]), SA.S(r["PlanName"]), St(r), SA.S(r["Subscribers"]), SA.S(r["Businesses"]),
             r["CreatedAtUTC"] == DBNull.Value ? "" : DateTime.SpecifyKind(Convert.ToDateTime(r["CreatedAtUTC"]), DateTimeKind.Utc).ToLocalTime().ToString("yyyy-MM-dd", Inv) });
-        var res = new AmRptResult { Def = new AmRptDef { Key = "sa-resellers", Name = "Resellers" }, Subtitle = rows.Count + " reseller(s)", FilterText = "Search: " + SA.Get("q") + "; Status: " + SA.Get("status") + "; Plan: " + SA.Get("plan"), Generated = DateTime.Now.ToString("yyyy-MM-dd HH:mm", Inv) + " by " + SA.ActorName() };
+        var res = new AmRptResult { Company = AnyminuteReportFiles.ActorCompany(), Def = new AmRptDef { Key = "sa-resellers", Name = "Resellers" }, Subtitle = rows.Count + " reseller(s)", FilterText = "Search: " + SA.Get("q") + "; Status: " + SA.Get("status") + "; Plan: " + SA.Get("plan"), Generated = DateTime.Now.ToString("yyyy-MM-dd HH:mm", Inv) + " by " + SA.ActorName() };
         res.Sections.Add(s);
         Response.Clear(); Response.ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
         Response.AddHeader("Content-Disposition", "attachment; filename=\"AnyMinute_Resellers_" + DateTime.Now.ToString("yyyyMMdd", Inv) + ".xlsx\"");

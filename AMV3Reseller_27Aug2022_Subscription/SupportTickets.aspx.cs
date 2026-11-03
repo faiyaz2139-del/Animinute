@@ -78,7 +78,7 @@ public partial class AnyminuteSupportTicketsPage : System.Web.UI.Page
                 + "<button type='button' class='sa-btn' data-sa-apply='1'>&#128269; Search</button><a class='sa-btn sa-btn-outline' href='SupportTickets.aspx'>&#8635; Clear</a></div>";
             string baseQ = "q=" + HttpUtility.UrlEncode(q) + "&status=" + HttpUtility.UrlEncode(status) + "&priority=" + prio + "&category=" + HttpUtility.UrlEncode(cat) + "&from=" + from + "&to=" + to + (archived ? "&archived=1" : "");
             string here = baseQ + "&page=" + page;
-            var sb = new StringBuilder("<div class='sa-table-wrap'><table class='sa-table'><thead><tr><th><input type='checkbox' aria-label='Select all' data-sa-all='1' /></th><th>Ticket No.</th><th>Subject</th><th>Subscriber</th><th>Category</th><th>Priority</th><th>Status</th><th>Created Date</th><th>Last Updated</th><th>Assigned To</th><th>Actions</th></tr></thead><tbody>");
+            var sb = new StringBuilder("<div class='sa-table-wrap'><table class='sa-table'><thead><tr><th><input type='checkbox' aria-label='Select all' data-sa-all='1' /></th><th>Ticket No.</th><th>Subject</th><th>Subscriber</th><th>Category</th><th>Priority</th><th>Status</th><th>Created Date</th><th>Last Updated</th><th>Assigned To</th><th class='sa-c'>Actions</th><th class='sa-c'><span class='sr-only'>More actions</span></th></tr></thead><tbody>");
             foreach (var r in rows.Skip((page - 1) * PageSize).Take(PageSize))
             {
                 int tid = Convert.ToInt32(r["TicketId"]); string st = SA.StatusLabel(r["StatusType"]), pr = Priority(r);
@@ -89,8 +89,8 @@ public partial class AnyminuteSupportTicketsPage : System.Web.UI.Page
                   .Append("</td><td><strong>").Append(SA.H(r["Name"])).Append("</strong><br /><small>").Append(SA.H(r["EmailId"])).Append("</small></td><td>").Append(SA.H(Category(r)))
                   .Append("</td><td>").Append(SA.Pill(pr, pr == "High" ? "red" : pr == "Medium" ? "amber" : "green")).Append("</td><td>").Append(SA.Pill(st, SA.StatusTone(st)))
                   .Append("</td><td>").Append(Local(created)).Append("</td><td>").Append(Local(Updated(r) ?? created)).Append("</td><td>").Append(SA.S(r["AssignedTo"]).Length > 0 ? SA.H(r["AssignedTo"]) : "<span class='sa-muted'>Unassigned</span>")
-                  .Append("</td><td><details class='sa-menu'><summary aria-label='Ticket actions'>&#8942;</summary><div class='sa-menu-pop'><h4>Ticket Actions</h4><small>Ticket #").Append(SA.H(no.TrimStart('#'))).Append(" &middot; ").Append(st).Append("</small>")
-                  .Append(MenuItem(link("details"), "&#128065;", "View Ticket Details", "Read the issue, attachments and conversations"))
+                  // v51 (held note 8): View button in Actions, the three-dot menu in the next column (Subscribers / Resellers pattern).
+                  .Append("</td><td class='sa-c'><a class='sa-btn sa-btn-sm sa-btn-outline' href='").Append(link("details")).Append("'>View</a></td><td class='sa-c'><details class='sa-menu'><summary class='sa-kebab' aria-label='Ticket actions'>&#8942;</summary><div class='sa-menu-pop'><h4>Ticket Actions</h4><small>Ticket #").Append(SA.H(no.TrimStart('#'))).Append(" &middot; ").Append(st).Append("</small>")
                   .Append(MenuItem(link("edit"), "&#9998;", "Edit Ticket", "Change category, priority or description"))
                   .Append(MenuItem(link("assign"), "&#128100;", "Assign / Reassign", "Assign a Support Admin to handle the issue"))
                   .Append(MenuItem(link("reply"), "&#128172;", "Reply to Subscriber", "Send a response or request more information"))
@@ -99,7 +99,7 @@ public partial class AnyminuteSupportTicketsPage : System.Web.UI.Page
                   .Append(MenuItem(link("history"), "&#8634;", "View Activity History", "See all ticket changes and actions"))
                   .Append("<hr /><button type='submit' name='sa_op' value='archive' formnovalidate='formnovalidate' class='sa-menu-item' data-sa-set='sa_id=").Append(tid).Append("' data-sa-confirm='Archive this ticket? Its history is kept.'><i aria-hidden='true'>&#128451;</i><span><b>").Append(Convert.ToBoolean(r["Archived"]) ? "Unarchive Ticket" : "Archive Ticket").Append("</b><small>Archive resolved tickets without deleting history</small></span></button></div></details></td></tr>");
             }
-            if (rows.Count == 0) sb.Append("<tr><td colspan='11' class='sa-empty'>No tickets match these filters.</td></tr>");
+            if (rows.Count == 0) sb.Append("<tr><td colspan='12' class='sa-empty'>No tickets match these filters.</td></tr>");
             Table.Text = "<input type='hidden' name='sa_id' value='" + id + "' data-sa-id='1' />" + sb.Append("</tbody></table></div>").ToString() + Pager(rows.Count, page, baseQ);
             if (id > 0)
             {

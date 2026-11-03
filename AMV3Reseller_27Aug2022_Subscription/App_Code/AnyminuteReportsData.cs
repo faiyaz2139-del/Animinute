@@ -97,6 +97,7 @@ public static partial class AnyminuteReports
         if (d.DateMode == "range" && (q.To.Value - q.From.Value).TotalDays > 370) q.To = q.From.Value.AddDays(370);
         var r = new AmRptResult { Def = d, Generated = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, Zone()).ToString("MMMM d, yyyy h:mm tt", Inv) };
         string period = q.From.HasValue || q.To.HasValue ? d.DateLabel + ": " + (q.From.HasValue ? q.From.Value.ToString("MMM d, yyyy", Inv) : "\u2026") + " \u2013 " + (q.To.HasValue ? q.To.Value.ToString("MMM d, yyyy", Inv) : "\u2026") : "";
+        r.Company = bizs.Count == 1 ? bizs[0].Name : AnyminuteReportFiles.ActorCompany(); // v51: report brand = the business reported on
         r.Subtitle = "Business: " + (bizs.Count == 1 ? bizs[0].Name : "All authorized businesses (" + bizs.Count + ")") + (period == "" ? "" : "  \u2022  " + period) + "  \u2022  Generated: " + r.Generated + " (Toronto time)";
         using (var c = AnyminuteTimesheetRepair.Open())
             switch (d.Key)

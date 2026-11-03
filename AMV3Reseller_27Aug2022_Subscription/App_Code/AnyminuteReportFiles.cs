@@ -28,15 +28,33 @@ public static class AnyminuteReportFiles
         }
     }
 
+    // v51 (held note B+): the title band / footer carry the company the report is about, not a hard-coded "ANYMINUTE".
+    static string Brand(AmRptResult r) { string k = (r.Company ?? "").Trim(); return k.Length == 0 ? "" : k.ToUpperInvariant() + "  |  "; }
+    static string FootBrand(AmRptResult r) { string k = (r.Company ?? "").Trim(); return k.Length == 0 ? "" : k + " \u2022 "; }
+    // Signed-in user's own organisation (MotherOrg) - the fallback when the rows are not about one single company.
+    public static string ActorCompany()
+    {
+        try
+        {
+            var h = System.Web.HttpContext.Current; int m;
+            if (h == null || h.Session == null || !Int32.TryParse(Convert.ToString(h.Session["MotherOrgid"]), out m) || m <= 0) return "";
+            using (var c = AnyminuteTimesheetRepair.Open())
+            {
+                var t = AnyminuteTimesheetRepair.Query(c, null, "SELECT MotherOrgName FROM MotherOrg WHERE MotherOrgID=@m", "@m", m);
+                return t.Rows.Count == 0 ? "" : Convert.ToString(t.Rows[0][0]).Trim();
+            }
+        }
+        catch (Exception) { return ""; }
+    }
     public static void Pdf(AmRptResult r, Stream output)
     {
         var doc = new Document(PageSize.LETTER.Rotate(), 28, 28, 28, 36);
         var writer = PdfWriter.GetInstance(doc, output);
         writer.CloseStream = false;
-        writer.PageEvent = new Footer { Text = "AnyMinute \u2022 " + r.Def.Name + " \u2022 Confidential \u2022 Generated " + r.Generated };
+        writer.PageEvent = new Footer { Text = FootBrand(r) + r.Def.Name + " \u2022 Confidential \u2022 Generated " + r.Generated };
         doc.Open();
         var band = new PdfPTable(1) { WidthPercentage = 100 };
-        var title = new PdfPCell(new Phrase("ANYMINUTE  |  " + r.Def.Name.ToUpperInvariant(), FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 15, BaseColor.WHITE)));
+        var title = new PdfPCell(new Phrase(Brand(r) + r.Def.Name.ToUpperInvariant(), FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 15, BaseColor.WHITE)));
         title.BackgroundColor = Navy; title.Border = 0; title.Padding = 10; title.PaddingBottom = 12; band.AddCell(title);
         doc.Add(band);
         doc.Add(new Paragraph(r.Subtitle, FontFactory.GetFont(FontFactory.HELVETICA, 8.5f, Muted)) { SpacingBefore = 6, SpacingAfter = 4 });
@@ -96,7 +114,7 @@ public static class AnyminuteReportFiles
             sb.Append("<col min=\"").Append(j + 1).Append("\" max=\"").Append(j + 1).Append("\" width=\"").Append(Math.Max(w, 10)).Append("\" customWidth=\"1\"/>");
         }
         sb.Append("</cols><sheetData>");
-        sb.Append("<row r=\"1\">").Append(Cell(0, 1, "ANYMINUTE  |  " + r.Def.Name.ToUpperInvariant() + (s.Title == r.Def.Name ? "" : "  /  " + s.Title.ToUpperInvariant()), 1)).Append("</row>");
+        sb.Append("<row r=\"1\">").Append(Cell(0, 1, Brand(r) + r.Def.Name.ToUpperInvariant() + (s.Title == r.Def.Name ? "" : "  /  " + s.Title.ToUpperInvariant()), 1)).Append("</row>");
         sb.Append("<row r=\"2\">").Append(Cell(0, 2, r.Subtitle + (String.IsNullOrEmpty(r.FilterText) ? "" : "  \u2022  Filters: " + r.FilterText), 3)).Append("</row>");
         sb.Append("<row r=\"4\">"); for (int j = 0; j < s.Cols.Length; j++) sb.Append(Cell(j, 4, s.Cols[j], 2)); sb.Append("</row>");
         for (int i = 0; i < s.Rows.Count; i++)

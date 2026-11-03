@@ -25,7 +25,7 @@ public sealed class AmRptBiz { public int Id, Tier, Actor, Role, Owner; public s
 public sealed class AmRptSection { public string Title; public string[] Cols; public List<string[]> Rows = new List<string[]>(); }
 public sealed class AmRptResult
 {
-    public AmRptDef Def; public string Subtitle, FilterText, Generated, Note;
+    public AmRptDef Def; public string Subtitle, FilterText, Generated, Note, Company; // v51: Company = brand in the report title band (no hard-coded AnyMinute)
     public List<KeyValuePair<string, string>> Kpis = new List<KeyValuePair<string, string>>();
     public List<AmRptSection> Sections = new List<AmRptSection>();
     public Dictionary<string, List<string>> Options = new Dictionary<string, List<string>>();

@@ -1,3 +1,4 @@
+using AD = AnyminuteSupportAddress;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -68,7 +69,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
         if (plan.Length == 0 || !SA.Has(c, "AnyminuteSubscriptionPlan")) return "";
         try { var p = SA.Q(c, "SELECT TOP 1 MaxProjects FROM AnyminuteSubscriptionPlan WHERE " + String.Format(SA.PlanKeySql, "PlanName") + "=@k", "@k", SA.PlanKey(plan)); return p.Rows.Count == 1 ? SA.S(p.Rows[0][0]) : ""; } catch (SqlException) { return ""; }
     }
-    static string Addr(DataRow r) { return String.Join(", ", new[] { SA.S(r["Street"]), SA.S(r["City"]), SA.S(r["Province"]), SA.S(r["Postalcode"]) }.Where(x => x.Trim().Length > 0).ToArray()); }
+    static string Addr(DataRow r) { return String.Join(", ", new[] { SA.S(r["Street"]), Clean(r["City"]), Clean(r["Province"]), Clean(r["Postalcode"]) }.Where(x => x.Trim().Length > 0).ToArray()); }
     // v47: a Pending subscriber's More menu leads with Activate Subscriber (Edit Subscriber with Active preselected; Confirm + Reason
     // still required) and Resend Invitation (the existing Login & Access "invite" action). withUser: the page has no sa_user field yet.
     static string MoreMenu(DataRow r, bool withUser)
@@ -84,7 +85,8 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
         bool sec = SA.Has(c, "AnyminuteLoginSecurity"), last = sec && AnyminuteEmployeeEditor.HasColumn(c, null, "AnyminuteLoginSecurity", "LastLoginDate");
         return SA.Q(c, @"SELECT u.UserId,u.EmployeeId,u.Email,u.Status,u.Is_First_Time_Login,LTRIM(RTRIM(ISNULL(ae.FirstName,'')+' '+ISNULL(ae.MiddleName,'')+' '+ISNULL(ae.LastName,''))) Name,ae.MobilePhone,
             pl.PlanName,pl.Id PlanRowId,pl.StartDate PlanStart,pl.EndDate NextBilling,pl.Business PlanBiz,pl.No_Of_Users PlanUsers,ae.FirstName,ae.MiddleName,ae.LastName,ea.MainPhone,
-            LTRIM(RTRIM(ISNULL(ea.StreetNo,'')+' '+ISNULL(ea.NumberSuffix,'')+' '+ISNULL(ea.StreetName,'')+' '+ISNULL(ea.StreetType,''))) Street,COALESCE(ci.CityName,ea.City) City,COALESCE(pr.ProvinceName,ea.Province) Province,ea.Postalcode,
+            LTRIM(RTRIM(ISNULL(ea.StreetNo,'')+' '+ISNULL(NULLIF(ea.NumberSuffix,'Please Select'),'')+' '+ISNULL(NULLIF(ea.StreetName,'Please Select'),'')+' '+ISNULL(NULLIF(ea.StreetType,'Please Select'),''))) Street,COALESCE(ci.CityName,ea.City) City,COALESCE(pr.ProvinceName,ea.Province) Province,ea.Postalcode,
+            ae.ADDRESSID AddrId,ea.StreetNo AStreetNo,ea.StreetName AStreetName,ea.StreetType AStreetType,ea.SuitType ASuitType,ea.SuiteNumber ASuiteNo," + (AnyminuteEmployeeEditor.HasColumn(c, null, "EmpAddress", "Country") ? "ea.Country ACountry," : "CAST(NULL AS nvarchar(50)) ACountry,") + @"
             " + AnyminuteResellers.OwnedBiz + @" Businesses,(SELECT COUNT(DISTINCT a2.EmployeeID) FROM AssginBussiness a2 WHERE a2.EmployeeID<>u.EmployeeId AND a2.BusinessID IN (SELECT a.BusinessID FROM AssginBussiness a WHERE a.EmployeeID=u.EmployeeId AND a.UserTypeId=1)) Users,
             (SELECT MIN(p.StartDate) FROM PlanHistory p WHERE p.EmailId=u.Email) Since," +
             (sec ? "ISNULL(s.LoginDisabled,0) LoginDisabled," : "CAST(0 AS bit) LoginDisabled,") + (last ? "s.LastLoginDate" : "CAST(NULL AS datetime2) LastLoginDate") +
@@ -122,7 +124,16 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
             // v45 PPT 01 s3/s4/s6: home-icon breadcrumb "Subscribers > Subscriber Details" (Edit: "Subscribers > Edit Subscriber").
             Crumbs.Text = CrumbBar(crumb.Length == 0 ? CrumbSep("<span>Subscriber Details</span>") : view == "edit" || view == "updated" ? CrumbSep("<span>Edit Subscriber</span>") : CrumbSep("<a href='SupportSubscribers.aspx?user=" + user + "'>Subscriber Details</a>") + CrumbSep("<span>" + crumb + "</span>"));
             // v45 PPT 01 s3/s4: Subscriber Details has no page title; the subscriber header card is the top of the page.
-            if (view == "" || view == "businesses" || view == "employees" || view == "projects" || view == "billing") { Title1.Text = ""; Lead.Text = ""; Content.Text = Details(c, r) + "<div class='sa-tabbed'>" + DTabs(c, r, view.Length == 0 ? "businesses" : view) + (view == "billing" ? Billing(c, r) : view == "employees" || view == "projects" ? Related(c, r, view) : Biz(c, r)) + "</div>"; }
+            // v51 PPT s1-s4: every tab (Businesses / Employees / Projects / Subscription & Billing / Login & Access / Support History /
+            // Activity Log) renders inside the same Subscriber Details shell - the header card stays, only the tab body changes.
+            if (view == "" || view == "businesses" || view == "employees" || view == "projects" || view == "billing" || view == "access" || view == "support" || view == "history")
+            {
+                Title1.Text = ""; Lead.Text = ""; string on = view.Length == 0 ? "businesses" : view;
+                Crumbs.Text = CrumbBar(CrumbSep(on == "businesses" ? "<span>Subscriber Details</span>" : "<a href='SupportSubscribers.aspx?user=" + user + "'>Subscriber Details</a>") + (on == "access" ? CrumbSep("<span>Login &amp; Access</span>") : on == "support" ? CrumbSep("<span>Support History</span>") : on == "history" ? CrumbSep("<span>Activity Log</span>") : ""));
+                if (on == "history") { var nm = Name(r).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); SubName = nm.Length > 1 ? nm[0] + " " + nm[nm.Length - 1] : Name(r); }
+                string body = on == "billing" ? Billing(c, r) : on == "employees" || on == "projects" ? Related(c, r, on) : on == "access" ? "<div class='sa-tabpad'>" + Access(c, r, ready) + "</div>" : on == "support" ? Support(c, r) : on == "history" ? History(c, user) : Biz(c, r);
+                Content.Text = Details(c, r) + "<div class='sa-tabbed'>" + DTabs(c, r, on) + body + "</div>";
+            }
             else if (view == "bizedit") { int bz; Int32.TryParse(SA.Get("biz"), out bz); Title1.Text = ""; Lead.Text = ""; Content.Text = Details(c, r) + "<div class='sa-tabbed'>" + DTabs(c, r, "businesses") + BizEdit(c, r, bz, null, null) + "</div>"; }
             else if (view == "edit")
             {
@@ -142,9 +153,8 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
                 Title1.Text = "Edit Subscriber"; Lead.Text = "Update subscriber information, plan and limits.";
                 Content.Text = Edit(c, r, null) + UpdatedModal(user);
             }
-            else if (view == "history") { Title1.Text = "Subscriber Login Activity History"; Lead.Text = "View sign-in activity, account changes and security events for this subscriber."; var nm = Name(r).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); SubName = nm.Length > 1 ? nm[0] + " " + nm[nm.Length - 1] : Name(r); Content.Text = Header(c, r, true) + Tabs(c, r, "history") + History(c, user); }
             else if (view == "reset") { Title1.Text = "Send Password Reset"; Lead.Text = "Send a secure password reset link to the subscriber."; Content.Text = Reset(r, ready); }
-            else { Title1.Text = "Manage Subscriber Login &amp; Access"; Lead.Text = "Subscriber Details &rsaquo; Login &amp; Access"; Content.Text = Header(c, r, false) + Access(c, r, ready); }
+            else { Response.Redirect("SupportSubscribers.aspx?user=" + user, false); Context.ApplicationInstance.CompleteRequest(); }
         }
     }
     static readonly int[] Sizes = { 10, 20, 50 };
@@ -155,7 +165,8 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
         string b = "SupportSubscribers.aspx?user=" + u;
         Func<string, string, string, string, string> a = (href, ico, t, sm) => "<a class='sa-menu-item' href='" + href + "'><i aria-hidden='true'>" + ico + "</i><span><b>" + t + "</b><small>" + sm + "</small></span></a>";
         // v42 PPT 01 s2 "Recommended three-dot Actions menu" (labels / descriptions as on the slide)
-        return a(b, "&#128065;", "View Subscriber Details", "Profile, businesses, employees and projects") + a(b + "&amp;view=edit", "&#9998;", "Edit Subscriber", "Update personal and contact information")
+        // v51 (held note): "View Subscriber Details" removed - the list has its own View button.
+        return a(b + "&amp;view=edit", "&#9998;", "Edit Subscriber", "Update personal and contact information")
             + a(b + "&amp;view=access", "&#128274;", "Manage Login &amp; Access", "Enable or disable access, send reset link") + a(b + "&amp;view=edit#plan", "&#9636;", "Change Subscription Plan", "Authorized plan upgrade or downgrade")
             + a(b + "&amp;view=billing", "&#128200;", "View Usage &amp; Limits", "Business, employee and project allowances") + a(b + "&amp;view=history", "&#8634;", "View Activity Log", "Account changes and support history")
             + a(b + "&amp;view=access", "&#10006;", "Suspend Subscriber", "Restricted action requiring confirmation");
@@ -186,7 +197,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
           .Append("<label><span>Plan</span><select name='plan'>").Append(SA.Options(all.Select(r => SA.S(r["PlanName"])).Where(x => x.Length > 0).Distinct().OrderBy(x => x), plan, "All Plans")).Append("</select></label>")
           .Append("<label><span>Status</span><select name='status'>").Append(SA.Options(new[] { "Active", "Inactive", "Pending", "Suspended" }, st, "All Statuses")).Append("</select></label>")
           .Append("<a class='sa-btn sa-btn-outline' href='SupportSubscribers.aspx'>" + Ic("refresh") + " Clear</a><button type='button' class='sa-btn' data-sa-apply='1'>" + Ic("search") + " Search</button></div>");
-        sb.Append("<div class='sa-table-wrap'><table class='sa-table sa-sub-list'><thead><tr><th><input type='checkbox' aria-label='Select all' data-sa-all='sa_sel' /></th><th>Sl. No.</th>").Append(th("Subscriber Name", "name")).Append(th("Plan Name", "plan")).Append(th("No. of Businesses", "biz")).Append(th("No. of Users", "users")).Append("<th>Contact Number</th>").Append(th("Email ID", "email")).Append(th("Activation Date", "since")).Append("<th>Status</th><th>Actions</th></tr></thead><tbody>");
+        sb.Append("<div class='sa-table-wrap'><table class='sa-table sa-sub-list'><thead><tr><th><input type='checkbox' aria-label='Select all' data-sa-all='sa_sel' /></th><th>Sl. No.</th>").Append(th("Subscriber Name", "name")).Append(th("Plan Name", "plan")).Append(th("No. of Businesses", "biz")).Append(th("No. of Users", "users")).Append("<th>Contact Number</th>").Append(th("Email ID", "email")).Append(th("Activation Date", "since")).Append("<th>Status</th><th class='sa-c'>Actions</th><th class='sa-c'><span class='sr-only'>More actions</span></th></tr></thead><tbody>");
         int n = (page - 1) * size;
         foreach (var r in rows.Skip((page - 1) * size).Take(size))
         {
@@ -194,9 +205,10 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
             sb.Append("<tr><td><input type='checkbox' name='sa_sel' value='").Append(u).Append("' aria-label='Select' /></td><td>").Append(++n).Append("</td><td><a class='sa-link' href='").Append(b).Append("'>").Append(SA.H(Name(r))).Append("</a></td><td>")
               .Append(SA.S(r["PlanName"]).Length > 0 ? SA.H(r["PlanName"]) : "&mdash;").Append("</td><td class='sa-c'>").Append(Used(r["Businesses"], r["PlanBiz"])).Append("</td><td class='sa-c'>").Append(Used(r["Users"], r["PlanUsers"]))
               .Append("</td><td>").Append(phone.Length > 0 ? SA.H(phone) : "&mdash;").Append("</td><td>").Append(SA.H(r["Email"])).Append("</td><td>").Append(r["Since"] == DBNull.Value ? "&mdash;" : D(r["Since"])).Append("</td><td class='sa-nowrap'>").Append(SA.Pill(sts, Tone(sts))) // v46 (t150u): status toggle removed - status pill only, as on Resellers / Businesses
-              .Append("</td><td><details class='sa-menu'><summary class='sa-kebab' aria-label='Subscriber actions'>" + Ic("vmore") + "</summary><div class='sa-menu-pop'><h4>Subscriber Actions</h4><small>").Append(SA.H(Name(r))).Append(" &middot; ").Append(sts).Append("</small>").Append(Menu(u)).Append("</div></details></td></tr>");
+              // v51 (held note): View button in Actions, the three-dot menu in the next column.
+              .Append("</td><td class='sa-c'><a class='sa-btn sa-btn-sm sa-btn-outline' href='").Append(b).Append("'>View</a></td><td class='sa-c'><details class='sa-menu'><summary class='sa-kebab' aria-label='Subscriber actions'>" + Ic("vmore") + "</summary><div class='sa-menu-pop'><h4>Subscriber Actions</h4><small>").Append(SA.H(Name(r))).Append(" &middot; ").Append(sts).Append("</small>").Append(Menu(u)).Append("</div></details></td></tr>");
         }
-        if (rows.Count == 0) sb.Append("<tr><td colspan='11' class='sa-empty'>No subscribers found.</td></tr>");
+        if (rows.Count == 0) sb.Append("<tr><td colspan='12' class='sa-empty'>No subscribers found.</td></tr>");
         Func<int, string> pg = i => SA.A(bq + "&size=" + size + "&page=" + i);
         sb.Append("</tbody></table></div><div class='sa-pager sa-rsl-pager'><span>Showing ").Append(rows.Count == 0 ? 0 : (page - 1) * size + 1).Append(" to ").Append(Math.Min(rows.Count, page * size)).Append(" of ").Append(rows.Count).Append(" subscriber").Append(rows.Count == 1 ? "" : "s").Append("</span>")
           .Append("<label class='sa-rsl-size'><select onchange=\"location.href='").Append(SA.A(bq)).Append("&size='+this.value\">");
@@ -221,7 +233,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
         string projLimit = ProjectLimit(c, plan), addr = Addr(r), phone = SA.S(r["MainPhone"]).Length > 0 ? SA.S(r["MainPhone"]) : SA.S(r["MobilePhone"]);
         Func<string, string, string, bool, string> ii = (icon, k, v, strong) => "<div class='sa-ii'>" + Ic(icon) + "<div><small>" + k + "</small>" + (strong ? "<strong>" : "<span>") + (v.Length == 0 ? "&mdash;" : v) + (strong ? "</strong>" : "</span>") + "</div></div>";
         return "<div class='sa-card sa-sd sa-sd45'><div class='sa-sd-top'><span class='sa-avatar sa-avatar-lg'>" + SA.H(Initials(Name(r))) + "</span><div class='sa-grow'><h2>" + SA.H(Name(r)) + " " + SA.Pill(sts, Tone(sts)) + "</h2><div class='sa-sd-sub'>" + (plan.Length > 0 ? SA.H(plan) : "No active plan") + "<span class='sa-vsep' aria-hidden='true'></span>Subscriber since " + SA.Day(r["Since"]) + "</div></div>"
-            + "<div class='sa-sd-btns'><a class='sa-btn sa-btn-outline' href='" + b + "&amp;view=edit'>" + Ic("edit") + " Edit</a><a class='sa-btn sa-btn-outline' href='" + b + "&amp;view=reset'>" + Ic("mail") + " Send Password Reset</a>" + MoreMenu(r, SA.Get("view") != "bizedit") + "</div></div>"
+            + "<div class='sa-sd-btns'><a class='sa-btn sa-btn-outline' href='" + b + "&amp;view=edit'>" + Ic("edit") + " Edit</a><a class='sa-btn sa-btn-outline' href='" + b + "&amp;view=reset'>" + Ic("mail") + " Send Password Reset</a>" + MoreMenu(r, SA.Get("view") != "bizedit" && SA.Get("view") != "access") + "</div></div>"
             + "<div class='sa-sd-body'><div class='sa-sd-info'><div class='sa-sd-col'>" + ii("mail", "Email", SA.H(r["Email"]), false) + ii("phone", "Phone", SA.H(phone), true) + "</div><div class='sa-sd-col'>" + ii("pin", "Address", SA.H(addr), false) + "</div>"
             + "<div class='sa-sd-col'>" + ii("cal", "Activation Date", SA.S(r["Since"]).Length > 0 ? SA.Day(r["Since"]) : "", true) + ii("cal", "Next Billing Date", SA.S(r["NextBilling"]).Length > 0 ? SA.Day(r["NextBilling"]) : "", true) + "</div></div>"
             + "<div class='sa-sd-limits'><div class='sa-sd-limhead'><h3>Subscription Limits" + (plan.Length > 0 ? " (" + SA.H(plan) + ")" : "") + "</h3><a class='sa-btn sa-btn-outline sa-btn-sm' href='" + b + "&amp;view=edit#plan'>Upgrade Plan</a><a class='sa-icon-btn' href='" + b + "&amp;view=edit#plan' title='Manage Custom Limits' aria-label='Manage Custom Limits'>" + Ic("gear") + "</a></div>"
@@ -233,7 +245,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
         Func<string, string, string, string> t = (key, label, href) => "<a href='" + href + "'" + (key == on ? " class='on' aria-current='page'" : "") + ">" + label + "</a>";
         string u = "SupportSubscribers.aspx?user=" + user + "&amp;view="; Func<int, string> k = i => n == null ? "" : " (" + n[i] + ")";
         return "<nav class='sa-tabs sa-tabs45'>" + t("businesses", "Businesses" + k(0), u + "businesses") + t("employees", "Employees" + k(1), u + "employees") + t("projects", "Projects" + k(2), u + "projects")
-            + t("billing", "Subscription &amp; Billing", u + "billing") + t("support", "Support History", "SupportTickets.aspx?q=" + HttpUtility.UrlEncode(SA.S(r["Email"]))) + t("history", "Activity Log", u + "history") + "</nav>";
+            + t("billing", "Subscription &amp; Billing", u + "billing") + t("access", "Login &amp; Access", u + "access") + t("support", "Support History", u + "support") + t("history", "Activity Log", u + "history") + "</nav>";
     }
     // Businesses tab (PPT 01 s3/s4): "Businesses" + "List of businesses under this subscriber." + "+ Add Business";
     // Sl. No., Business Name, Industry, No. of Employees, No. of Projects, Status, Actions (Edit + three-dot menu).
@@ -270,13 +282,26 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
     }
     // v43 PPT 01 s6 Edit Subscriber (header card, editable email, Subscription Plan & Limits with Change Plan / Manage Custom Limits,
     // Account Status select, Subscription Dates, Address module link, Recent Activity table). vals == null: first render.
-    static readonly string[] EF = { "ed_first", "ed_middle", "ed_last", "ed_email", "ed_phone", "ed_mobile", "ed_status", "ed_plan", "ed_biz", "ed_users", "ed_start", "ed_end" };
+    static readonly string[] EF = { "ed_first", "ed_middle", "ed_last", "ed_email", "ed_phone", "ed_mobile", "ed_status", "ed_plan", "ed_biz", "ed_users", "ed_start", "ed_end", "ed_addr" };
     static string D(object o) { return o == null || o == DBNull.Value ? "" : Convert.ToDateTime(o, CultureInfo.InvariantCulture).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture); }
     static string[] Current(DataRow r)
     {
-        return new[] { SA.S(r["FirstName"]).Trim(), SA.S(r["MiddleName"]).Trim(), SA.S(r["LastName"]).Trim(), SA.S(r["Email"]).Trim(), SA.S(r["MainPhone"]), SA.S(r["MobilePhone"]), EditStatusOf(r), SA.S(r["PlanName"]), SA.S(r["PlanBiz"]), SA.S(r["PlanUsers"]), D(r["PlanStart"]), D(r["NextBilling"]) };
+        return new[] { SA.S(r["FirstName"]).Trim(), SA.S(r["MiddleName"]).Trim(), SA.S(r["LastName"]).Trim(), SA.S(r["Email"]).Trim(), SA.S(r["MainPhone"]), SA.S(r["MobilePhone"]), EditStatusOf(r), SA.S(r["PlanName"]), SA.S(r["PlanBiz"]), SA.S(r["PlanUsers"]), D(r["PlanStart"]), D(r["NextBilling"]), AD.Compose(SubAddr(r)) };
     }
-    static readonly string[] EL = { "First Name", "Middle Name", "Last Name", "Email Address", "Contact Phone", "Mobile Phone", "Account Status", "Plan", "Max Businesses", "Max Employees", "Start Date", "Next Billing Date" };
+    // v51 (held note): Edit Subscriber address uses the Reseller Address Lookup module (AnyminuteSupportAddress), read from / written to
+    // the subscriber's EmpAddress row the same way Add Subscriber writes it (StreetNo, StreetName = Line 1, StreetType = Line 2, SuitType, SuiteNumber).
+    static string Clean(object o) { string s = SA.S(o).Trim(); return s.Equals("Please Select", StringComparison.OrdinalIgnoreCase) || s.Equals("Select", StringComparison.OrdinalIgnoreCase) ? "" : s; }
+    static AD.Addr SubAddr(DataRow r)
+    {
+        string pc = Clean(r["Postalcode"]), k = Clean(r["ACountry"]), prov = Clean(r["Province"]);
+        string country = k == "United States" || k == "USA" || k == "US" ? "United States" : k.Length == 0 && System.Text.RegularExpressions.Regex.IsMatch(pc, @"^\d{5}(-\d{4})?$") ? "United States" : "Canada";
+        string pm = (country == "United States" ? AD.States : AD.Canada).FirstOrDefault(x => x.Equals(prov, StringComparison.OrdinalIgnoreCase)) ?? prov;
+        string st = Clean(r["ASuitType"]); st = AD.SuiteTypes.FirstOrDefault(x => x.Equals(st, StringComparison.OrdinalIgnoreCase)) ?? "";
+        var a = new AD.Addr { StreetNo = Clean(r["AStreetNo"]), Line1 = Clean(r["AStreetName"]), Line2 = Clean(r["AStreetType"]), SuiteType = st, SuiteNo = Clean(r["ASuiteNo"]), City = Clean(r["City"]), Province = pm, Country = country };
+        a.Postal = AD.NormalPostal(pc, country); if (!a.Any) a.SuiteType = "";
+        return a;
+    }
+    static readonly string[] EL = { "First Name", "Middle Name", "Last Name", "Email Address", "Contact Phone", "Mobile Phone", "Account Status", "Plan", "Max Businesses", "Max Employees", "Start Date", "Next Billing Date", "Address" };
     // Plan catalogue (AnyminuteSubscriptionPlan) for the plan selects; null when the catalogue table is missing.
     static DataTable Plans(SqlConnection c)
     {
@@ -332,9 +357,8 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
         foreach (var o in AStatus) sb.Append("<option").Append(v[6] == o ? " selected" : "").Append(">").Append(o).Append("</option>");
         sb.Append("</select></label><div class='sa-flash sa-info'>").Append(Ic("info")).Append("<span>Suspended or inactive accounts cannot sign in to the system.<br />You can send an activation invitation to pending accounts.</span></div></div></div>")
           .Append("<div class='sa-card'><h2>Subscription Dates</h2>").Append(plan ? "<div class='sa-grid2'>" + f(10, "date", "", true) + f(11, "date", "", true) + "</div>" : "<p class='sa-muted'>No active plan record.</p>").Append("</div>");
-        string addr = Addr(r);
-        sb.Append("<div class='sa-card'><div class='sa-addr45'><span class='sa-addr-ico'>").Append(Ic("pin")).Append("</span><div class='sa-grow'><h2>Address</h2><p>").Append(addr.Length > 0 ? SA.H(addr) : "&mdash;").Append("</p><small class='sa-muted'>Address changes are managed through the separate Address module.</small></div><a class='sa-btn sa-btn-outline' href='SupportAddresses.aspx?q=")
-          .Append(SA.A(HttpUtility.UrlEncode(SA.S(r["Postalcode"]).Length > 0 ? SA.S(r["Postalcode"]) : SA.S(r["Street"])))).Append("'>").Append(Ic("pin")).Append(" Manage Address</a></div></div>");
+        // v51 (held note, red-boxed Address): same Address Lookup + Address Details as Edit Reseller (was a link to the separate Address module).
+        sb.Append("<div class='sa-card sa-sub-addr' id='address'><h2>Address <span class='sa-muted sa-small'>(Optional)</span></h2>").Append(AD.Render("ed_addr", IsPostBack ? AD.FromForm("ed_addr") : SubAddr(r), false, "SupportSubscribers.aspx?lookup=1&postal=", "Search for the subscriber address using a postal or ZIP code, select a result, or enter the address manually.")).Append("</div>");
         sb.Append("<div class='sa-card'><div class='sa-panel-head'><h2>Recent Activity <span class='sa-light'>(Last 5)</span></h2><a class='sa-btn sa-btn-outline sa-btn-sm' href='").Append(b).Append("&amp;view=history'>").Append(Ic("open")).Append(" View Full History</a></div>");
         DataTable h = null; try { if (SA.Has(c, "AnyminuteSupportAudit")) h = SA.Q(c, "SELECT TOP 5 * FROM AnyminuteSupportAudit WHERE Entity='Login' AND EntityKey=@k ORDER BY ChangedAtUTC DESC,AuditID DESC", "@k", u.ToString(CultureInfo.InvariantCulture)); } catch (SqlException) { }
         sb.Append("<div class='sa-table-wrap'><table class='sa-table sa-act-table'><thead><tr><th>Date &amp; Time</th><th>Changed By</th><th>Field</th><th>Previous Value</th><th>New Value</th><th>Reason</th></tr></thead><tbody>");
@@ -348,20 +372,6 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
         sb.Append("</tbody></table></div></div><div class='sa-panel-foot sa-ed-foot'><a class='sa-btn sa-btn-outline' href='").Append(b).Append("'>Cancel</a><button type='submit' class='sa-btn' name='sa_op' value='edit'>").Append(Ic("save")).Append(" Save Changes</button></div>");
         return sb.ToString();
     }
-    // v50 PPT s1 (access): avatar, name, SUB-ID, email | Current Plan + View Plan Details | Subscriber Since | Active.
-    // v50 PPT s3 (history): name + Active, "SUB-ID | Plan | email | phone" | Subscription Since | Last Login.
-    static string Header(SqlConnection c, DataRow r, bool history)
-    {
-        int u = Convert.ToInt32(r["UserId"]); string plan = SA.S(r["PlanName"]).Length > 0 ? SA.H(r["PlanName"]) : "&mdash;";
-        string badge = Enabled(r) ? SA.Pill("Active", "green") : SA.Pill("Disabled", "red");
-        if (history)
-            return "<div class='sa-card sa-subhead'><span class='sa-avatar'>" + SA.H(Initials(Name(r))) + "</span><div class='sa-grow'><h2>" + SA.H(Name(r)) + " " + badge + "</h2><small>Subscriber ID: " + Sub(u) + " &nbsp;|&nbsp; " + plan + " &nbsp;|&nbsp; " + SA.H(r["Email"])
-                + (SA.S(r["MobilePhone"]).Length > 0 ? " &nbsp;|&nbsp; " + SA.H(r["MobilePhone"]) : "") + "</small></div>"
-                + "<div><small>&#128197; Subscription Since</small><strong>" + SA.Day(r["Since"]) + "</strong></div><div><small>&#128339; Last Login</small><strong>" + SA.When(r["LastLoginDate"]) + "</strong></div></div>";
-        return "<div class='sa-card sa-subhead'><span class='sa-avatar'>" + SA.H(Initials(Name(r))) + "</span><div class='sa-grow'><h2>" + SA.H(Name(r)) + "</h2><small>Subscriber ID: " + Sub(u) + "<br />" + SA.H(r["Email"]) + "</small></div>"
-            + "<div><small>Current Plan</small><strong>" + plan + "</strong><a class='sa-link' href='SupportPlans.aspx'>View Plan Details</a></div>"
-            + "<div><small>Subscriber Since</small><strong>" + SA.Day(r["Since"]) + "</strong></div><div>" + badge + "</div></div>";
-    }
     // Businesses the subscriber owns: the owner's own AssginBussiness rows (UserTypeId 1) or businesses mapped to the owner's login
     // (same rule as AnyminuteModernScope). Deleted businesses (Status 2) are shown but not counted.
     const string BizCte = @"WITH biz AS (SELECT DISTINCT a.BusinessID FROM AssginBussiness a WHERE (a.EmployeeID=@a AND a.UserTypeId=1)
@@ -374,16 +384,56 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
             (SELECT COUNT(*) FROM AddProject p JOIN biz ON biz.BusinessID=p.BusinessID)", ScopeArgs(r));
         return new[] { Convert.ToInt32(t.Rows[0][0]), Convert.ToInt32(t.Rows[0][1]), Convert.ToInt32(t.Rows[0][2]) };
     }
-    static string Tabs(SqlConnection c, DataRow r, string on)
+    // v51 PPT s2: Support History tab - this subscriber's tickets (Ticket.EmailId = subscriber email) inside the Subscriber Details shell.
+    // Opening one ticket still uses the Support Tickets detail panel (reply / assign / status actions live there).
+    static string Support(SqlConnection c, DataRow r)
     {
-        int user = Convert.ToInt32(r["UserId"]); string email = SA.S(r["Email"]); int[] n;
-        try { n = Counts(c, r); } catch (SqlException) { n = null; }
-        Func<string, string, string, string> t = (key, label, href) => "<a href='" + href + "'" + (key == on ? " class='on' aria-current='page'" : "") + ">" + label + "</a>";
-        string u = "SupportSubscribers.aspx?user=" + user + "&amp;view=";
-        Func<int, string> k = i => n == null ? "" : " (" + n[i] + ")";
-        return "<nav class='sa-tabs'>" + t("profile", "Profile", "SupportSubscribers.aspx?user=" + user) + t("businesses", "Businesses" + k(0), u + "businesses") + t("employees", "Employees" + k(1), u + "employees") + t("projects", "Projects" + k(2), u + "projects")
-            + t("billing", "Subscription &amp; Billing", u + "billing") + t("access", "Login &amp; Access", u + "access")
-            + t("support", "Support History", "SupportTickets.aspx?q=" + HttpUtility.UrlEncode(email)) + t("history", "Login Activity History", u + "history") + "</nav>";
+        int user = Convert.ToInt32(r["UserId"]); string email = SA.S(r["Email"]).Trim();
+        string q = SA.Get("q"), status = SA.Get("status"), prio = SA.Get("priority"), from = SA.Get("from"), to = SA.Get("to");
+        int page; if (!Int32.TryParse(SA.Get("page"), out page) || page < 1) page = 1;
+        DateTime f, t; bool hf = DateTime.TryParseExact(from, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out f), ht = DateTime.TryParseExact(to, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out t);
+        List<DataRow> all;
+        try
+        {
+            bool meta = SA.Has(c, "AnyminuteTicketMeta");
+            all = SA.Q(c, "SELECT t.TicketId,t.TicketNo,t.Description,t.StatusType,t.TicketSeverity,t.ProblemType,t.Module,t.TicketRaiseDate," + (meta ? "m.Subject,m.Category,m.Priority,m.AssignedTo,ISNULL(m.Archived,0) Archived" : "CAST(NULL AS nvarchar(200)) Subject,CAST(NULL AS nvarchar(60)) Category,CAST(NULL AS varchar(10)) Priority,CAST(NULL AS nvarchar(150)) AssignedTo,CAST(0 AS bit) Archived")
+                + ",(SELECT MAX(k.CommentsDate) FROM Ticket_Comments k WHERE k.TicketId=t.TicketId) LastComment FROM Ticket t" + (meta ? " LEFT JOIN AnyminuteTicketMeta m ON m.TicketId=t.TicketId" : "") + " WHERE LTRIM(RTRIM(t.EmailId))=@m ORDER BY t.TicketId DESC", "@m", email).Rows.Cast<DataRow>().ToList();
+        }
+        catch (SqlException ex) { return "<div class='sa-card'><p class='sa-muted'>Could not load support history: " + SA.H(ex.Message) + "</p></div>"; }
+        Func<DataRow, string> subj = x => { string s = SA.S(x["Subject"]); if (s.Length > 0) return s; s = SA.S(x["Description"]).Replace("\r", " ").Replace("\n", " "); return s.Length > 48 ? s.Substring(0, 45) + "..." : (s.Length == 0 ? "(no subject)" : s); };
+        Func<DataRow, string> prOf = x => { string s = SA.S(x["Priority"]); if (s.Length == 0) s = SA.S(x["TicketSeverity"]); return SA.Priorities.FirstOrDefault(p => p.Equals(s, StringComparison.OrdinalIgnoreCase)) ?? "Medium"; };
+        Func<DataRow, string> catOf = x => { string s = SA.S(x["Category"]); return s.Length > 0 ? s : SA.LegacyCategory(x["ProblemType"], x["Module"]); };
+        var live = all.Where(x => !Convert.ToBoolean(x["Archived"])).ToList();
+        var rows = live.Where(x =>
+        {
+            if (status.Length > 0 && SA.StatusLabel(x["StatusType"]) != status) return false;
+            if (prio.Length > 0 && prOf(x) != prio) return false;
+            if (q.Length > 0 && (SA.S(x["TicketNo"]) + " " + subj(x) + " " + SA.S(x["Description"])).IndexOf(q, StringComparison.OrdinalIgnoreCase) < 0) return false;
+            if (x["TicketRaiseDate"] != DBNull.Value) { var d = Convert.ToDateTime(x["TicketRaiseDate"]).Date; if (hf && d < f) return false; if (ht && d > t) return false; }
+            return true;
+        }).ToList();
+        Func<string, string, int, string> kpi = (label, tone, n) => "<div class='sa-kpi'><i class='sa-kpi-icon sa-" + tone + "' aria-hidden='true'>&#9742;</i><div><span>" + label + "</span><strong>" + n + "</strong></div></div>";
+        var sb = new StringBuilder("<div class='sa-tabpad'><div class='sa-panel-head sa-biz-head'><div><h2>Support History</h2><small>Support tickets raised by this subscriber.</small></div><a class='sa-btn' href='SupportTickets.aspx?create=1'>+ Create Ticket</a></div>");
+        sb.Append("<div class='sa-kpis'>").Append(kpi("Total Tickets", "blue", live.Count)).Append(kpi("Open Tickets", "green", live.Count(x => SA.StatusLabel(x["StatusType"]) == "Open")))
+          .Append(kpi("In Progress", "amber", live.Count(x => SA.StatusLabel(x["StatusType"]) == "In Progress"))).Append(kpi("Resolved", "purple", live.Count(x => SA.StatusLabel(x["StatusType"]) == "Resolved"))).Append("</div>");
+        sb.Append("<div class='sa-filters' data-sa-get='SupportSubscribers.aspx'><input type='hidden' name='user' value='").Append(user).Append("' /><input type='hidden' name='view' value='support' />")
+          .Append("<label class='sa-grow'><span class='sr-only'>Search</span><input type='search' name='q' value='").Append(SA.A(q)).Append("' placeholder='Search by ticket number or subject...' /></label>")
+          .Append("<label><span>Status</span><select name='status'>").Append(SA.Options(SA.TicketStatuses, status, "All Statuses")).Append("</select></label>")
+          .Append("<label><span>Priority</span><select name='priority'>").Append(SA.Options(SA.Priorities, prio, "All Priorities")).Append("</select></label>")
+          .Append("<label class='sa-range'><span>Date Range</span><span><input type='date' name='from' value='").Append(SA.A(from)).Append("' aria-label='From' /> &ndash; <input type='date' name='to' value='").Append(SA.A(to)).Append("' aria-label='To' /></span></label>")
+          .Append("<button type='button' class='sa-btn' data-sa-apply='1'>&#128269; Search</button><a class='sa-btn sa-btn-outline' href='SupportSubscribers.aspx?user=").Append(user).Append("&amp;view=support'>&#8635; Clear</a></div>");
+        sb.Append("<div class='sa-table-wrap'><table class='sa-table'><thead><tr><th>Ticket No.</th><th>Subject</th><th>Category</th><th>Priority</th><th>Status</th><th>Created Date</th><th>Last Updated</th><th>Assigned To</th><th class='sa-c'>Actions</th></tr></thead><tbody>");
+        foreach (var x in rows.Skip((page - 1) * PageSize).Take(PageSize))
+        {
+            int tid = Convert.ToInt32(x["TicketId"]); string st = SA.StatusLabel(x["StatusType"]), pr = prOf(x), no = SA.S(x["TicketNo"]).Length > 0 ? SA.S(x["TicketNo"]) : "TK-" + tid, href = "SupportTickets.aspx?id=" + tid + "&amp;panel=details";
+            sb.Append("<tr><td><a class='sa-link' href='").Append(href).Append("'>#").Append(SA.H(no.TrimStart('#'))).Append("</a></td><td>").Append(SA.H(subj(x))).Append("</td><td>").Append(SA.H(catOf(x))).Append("</td><td>")
+              .Append(SA.Pill(pr, pr == "High" ? "red" : pr == "Medium" ? "amber" : "green")).Append("</td><td>").Append(SA.Pill(st, SA.StatusTone(st))).Append("</td><td>").Append(x["TicketRaiseDate"] == DBNull.Value ? "&mdash;" : SA.Day(x["TicketRaiseDate"]))
+              .Append("</td><td>").Append(x["LastComment"] == DBNull.Value ? "&mdash;" : SA.Day(x["LastComment"])).Append("</td><td>").Append(SA.S(x["AssignedTo"]).Length > 0 ? SA.H(x["AssignedTo"]) : "<span class='sa-muted'>Unassigned</span>")
+              .Append("</td><td class='sa-c'><a class='sa-btn sa-btn-sm sa-btn-outline' href='").Append(href).Append("'>View</a></td></tr>");
+        }
+        if (rows.Count == 0) sb.Append("<tr><td colspan='9' class='sa-empty'>No support tickets for this subscriber.</td></tr>");
+        string bq = "user=" + user + "&view=support&q=" + HttpUtility.UrlEncode(q) + "&status=" + HttpUtility.UrlEncode(status) + "&priority=" + HttpUtility.UrlEncode(prio) + "&from=" + from + "&to=" + to;
+        return sb.Append("</tbody></table></div>").Append(SA.Pager(rows.Count, page, PageSize, bq).Replace(" of " + rows.Count + "</span>", " of " + rows.Count + " tickets</span>")).Append("</div>").ToString();
     }
     // Read-only lists for the Businesses / Employees / Projects tabs (edits stay with the subscriber's own pages).
     static string Related(SqlConnection c, DataRow r, string view)
@@ -739,6 +789,11 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
         int u = Convert.ToInt32(r["UserId"]); var cur = Current(r); var nv = EF.Select(k => SA.Form(k).Trim()).ToArray(); bool plan = r["PlanRowId"] != DBNull.Value;
         if (!AStatus.Contains(nv[6])) nv[6] = cur[6]; // v47: unknown / missing value keeps the current status (never silently Active)
         if (!plan) { nv[7] = cur[7]; nv[8] = cur[8]; nv[9] = cur[9]; nv[10] = cur[10]; nv[11] = cur[11]; }
+        var nAddr = AD.FromForm("ed_addr"); nv[12] = AD.Compose(nAddr);
+        { // untouched form = no change, even when a legacy province value has no match in the Province / State select
+            var shown = SubAddr(r); if (!(shown.Country == "United States" ? AD.States : AD.Canada).Contains(shown.Province)) shown.Province = "";
+            if (nv[12] == AD.Compose(shown)) { nv[12] = cur[12]; nAddr = SubAddr(r); }
+        }
         var plans = Plans(c); DataRow np = null;
         if (SA.PlanKey(nv[7]) == SA.PlanKey(cur[7])) nv[7] = cur[7];
         else
@@ -760,6 +815,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
         bool h1 = DateTime.TryParseExact(nv[10], "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out d1), h2 = DateTime.TryParseExact(nv[11], "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out d2);
         if (plan && (!h1 || !h2)) errs.Add("Enter valid subscription dates.");
         if (plan && h1 && h2 && d2 < d1) errs.Add("Next Billing Date must be after the Start Date.");
+        if (nv[12] != cur[12]) { errs.AddRange(AD.Validate(nAddr, false)); if (r["AddrId"] == DBNull.Value) errs.Add("This subscriber has no contact record, so the address cannot be saved here."); }
         if (u == SA.ActorId() && nv[6] != cur[6] && nv[6] != "Active") errs.Add("You cannot deactivate or suspend your own account here.");
         var changed = Enumerable.Range(0, EF.Length).Where(i => nv[i] != cur[i]).ToList();
         Title1.Text = "Edit Subscriber"; Lead.Text = "Update subscriber information, plan and limits."; Crumbs.Text = CrumbBar(CrumbSep("<span>Edit Subscriber</span>"));
@@ -794,7 +850,10 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
                         ELSE UPDATE AnyminuteLoginSecurity SET LoginDisabled=@d,UpdatedAtUTC=SYSUTCDATETIME(),UpdatedBy=@a WHERE UserId=@u", "@u", u, "@d", nv[6] == "Suspended", "@a", SA.ActorId());
                 if (off) revoke = true;
             }
-            if (plan && changed.Any(i => i >= 7))
+            if (changed.Contains(12))
+                AnyminuteTimesheetRepair.Execute(c, tx, "UPDATE ea SET StreetNo=@no,NumberSuffix='',StreetName=@l1,StreetType=@l2,SuitType=@st,SuiteNumber=@sn,City=@ci,Province=@pr,Postalcode=@pc" + (AnyminuteEmployeeEditor.HasColumn(c, tx, "EmpAddress", "Country") ? ",Country=@k" : "") + " FROM EmpAddress ea JOIN AddEmployee ae ON ae.ADDRESSID=ea.EmpAddressId WHERE ae.EmployeeID=@e",
+                    "@no", nAddr.StreetNo, "@l1", nAddr.Line1, "@l2", nAddr.Line2, "@st", nAddr.SuiteType, "@sn", nAddr.SuiteNo, "@ci", nAddr.City, "@pr", nAddr.Province, "@pc", nAddr.Postal, "@k", nAddr.Any ? nAddr.Country : "", "@e", e);
+            if (plan && changed.Any(i => i >= 7 && i <= 11))
                 AnyminuteTimesheetRepair.Execute(c, tx, "UPDATE PlanHistory SET PlanName=@pn,Business=@b,No_Of_Users=@n,StartDate=@sd,EndDate=@ed WHERE Id=@id", "@pn", nv[7], "@b", N(nv[8]), "@n", N(nv[9]), "@sd", d1, "@ed", d2, "@id", Convert.ToInt32(r["PlanRowId"]));
             if (revoke) AnyminuteSessionGuard.Revoke(c, tx, u, "Subscriber " + nv[6].ToLowerInvariant() + " by Support Admin");
             var logged = changed.Where(i => i != 3).ToList();
@@ -859,7 +918,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
                 tx.Commit();
             }
         }
-        if (err != null) { Flash.Text = "<div class='sa-flash sa-warn'>" + SA.H(err) + "</div>"; Content.Text = Details(c, r) + DTabs(c, r, "businesses") + BizEdit(c, r, biz, name, reason); return; }
+        if (err != null) { Flash.Text = "<div class='sa-flash sa-warn'>" + SA.H(err) + "</div>"; Content.Text = Details(c, r) + "<div class='sa-tabbed'>" + DTabs(c, r, "businesses") + BizEdit(c, r, biz, name, reason) + "</div>"; return; }
         SA.Flash(old == name ? "No changes to save." : "Business updated."); Back(u, "businesses");
     }
     // v43 PPT 01 s6 / s5 success screens.

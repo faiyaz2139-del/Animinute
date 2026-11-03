@@ -95,7 +95,21 @@ public static partial class AnyminuteSupportReports
         var s = new AmRptSection { Title = run.Def.Name + " Report", Cols = vis.Select(i => run.Data.Cols[i]).ToArray() };
         foreach (var row in run.Data.Rows) s.Rows.Add(vis.Select(i => row[i]).ToArray());
         r.Sections.Add(s);
+        r.Company = Company(run, vis);
         return r;
+    }
+    // v51 (held note B+): brand the export with the company it is about - one reseller / business / subscriber company when every
+    // visible row belongs to the same one (e.g. filtered to one reseller), otherwise the signed-in user's own organisation.
+    static readonly string[] CompanyCols = { "Reseller", "Reseller Name", "Business", "Business Name", "Company", "Company Name", "Subscriber Company" };
+    static string Company(SrRun run, IList<int> vis)
+    {
+        foreach (string col in CompanyCols)
+        {
+            int i = Array.IndexOf(run.Data.Cols, col); if (i < 0) continue;
+            var names = run.Data.Rows.Select(row => i < row.Length ? (row[i] ?? "").Trim() : "").Where(x => x.Length > 0 && x != "-" && x != "\u2014").Distinct(StringComparer.OrdinalIgnoreCase).Take(2).ToList();
+            if (names.Count == 1) return names[0];
+        }
+        return AnyminuteReportFiles.ActorCompany();
     }
     public static void Export(HttpContext h, SrRun run, bool pdf)
     {
