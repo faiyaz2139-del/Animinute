@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.SqlClient;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -118,24 +119,30 @@ public static class AnyminuteSupportAddress
     // tells the save path whether the module was opened (not opened = keep the stored address untouched).
     public static bool Opened(string prefix) { return F(prefix, "_open") == "1"; }
     const string IcoPin = "<svg class='sa-i' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z'/><circle cx='12' cy='10' r='3'/></svg>";
-    public static string Gate(string prefix, string summary, bool open, string panel)
+    public static string Gate(string prefix, string summary, bool open, string panel) { return Gate(prefix, summary, open, panel, null); }
+    public static string Gate(string prefix, string summary, bool open, string panel, string badge)
     {
         string sum = (summary ?? "").Trim();
         return "<div class='sa-addr-wrap' id='address'><div class='sa-card sa-addr-gate' id='" + prefix + "_gate'" + (open ? " hidden" : "") + "><span class='sa-addr-gate-ico'>" + IcoPin + "</span><div class='sa-addr-gate-txt'><h2>Address</h2>"
-            + "<div class='sa-addr-gate-sum'>" + (sum.Length > 0 ? H(sum) : "Please Select") + "</div><small class='sa-muted'>Address changes are managed through the separate Address module.</small></div>"
+            + "<div class='sa-addr-gate-sum'>" + (sum.Length > 0 ? H(sum) + (badge ?? "") : "Please Select") + "</div><small class='sa-muted'>Address changes are managed through the separate Address module.</small></div>"
             + "<button type='button' class='sa-btn sa-btn-outline sa-addr-gate-btn' data-sa-reveal='" + prefix + "_panel' data-sa-gate='" + prefix + "'>" + IcoPin + " Manage Address</button></div>"
             + "<input type='hidden' name='" + prefix + "_open' id='" + prefix + "_open' value='" + (open ? "1" : "0") + "' />"
             + "<div id='" + prefix + "_panel' class='sa-addr-panel' data-sa-addrpanel='1'" + (open ? "" : " hidden") + ">" + panel + "</div></div>";
     }
     // prefix: form field prefix (rs_addr / ad_addr). lookupUrl: page URL ending in "postal=" that returns [{street,city,province}].
-    public static string Render(string prefix, Addr a, bool required, string lookupUrl, string sub)
+    public static string Render(string prefix, Addr a, bool required, string lookupUrl, string sub) { return Render(prefix, a, required, lookupUrl, sub, null, false); }
+    // v57 (PPT s4): verify = this form queues unverified addresses for Address Verification on save; status = the stored
+    // address status (Verified / Pending / Rejected / "" = not in the verification table) shown in the Address Details pill.
+    public static string Render(string prefix, Addr a, bool required, string lookupUrl, string sub, string status, bool verify)
     {
         if (a == null) a = new Addr();
         bool us = a.Country == "United States";
         string req = "<b class='am-al-req'>*</b>", opt = "<span class='am-al-opt'>(Optional)</span>", rq = required ? " required" : "";
         Func<string, string, string, string, string, string, string> fld = (label, key, val, ph, extra, cls) =>
             "<div class='am-al-f" + cls + "'><label for='" + prefix + key + "'>" + label + "</label><input type='text' id='" + prefix + key + "' name='" + prefix + key + "' value='" + A(val) + "' placeholder='" + A(ph) + "'" + extra + " /></div>";
-        var sb = new StringBuilder("<div class='am-emp-al sa-addrmod' data-sa-addrmod='").Append(A(lookupUrl)).Append("' data-sa-addr-prefix='").Append(prefix).Append("'><div class='am-al-layout am-al-single'><section class='am-al-main' aria-labelledby='").Append(prefix).Append("_h'>")
+        var sb = new StringBuilder("<div class='am-emp-al sa-addrmod' data-sa-addrmod='").Append(A(lookupUrl)).Append("' data-sa-addr-prefix='").Append(prefix).Append("'").Append(verify ? " data-al-verify='1'" : "").Append(">")
+            .Append("<input type='hidden' name='").Append(prefix).Append("_src' id='").Append(prefix).Append("_src' value='").Append(A(F(prefix, "_src"))).Append("' data-al-lsrc='1' />")
+            .Append("<div class='am-al-layout am-al-single'><section class='am-al-main' aria-labelledby='").Append(prefix).Append("_h'>")
             .Append("<h2 id='").Append(prefix).Append("_h'>Address Lookup</h2><p class='am-al-sub'>").Append(H(sub ?? "Search for an address using a postal or ZIP code, select a result, or enter the address manually.")).Append("</p>")
             .Append("<div class='am-al-search'><div class='am-al-f am-al-country'><label for='").Append(prefix).Append("_lc'>Country ").Append(req).Append("</label><span class='am-al-flagsel'><span class='am-al-flag").Append(us ? " is-us" : "").Append("' data-al-flag='1'>").Append(FlagCa).Append(FlagUs).Append("</span>")
             .Append("<select id='").Append(prefix).Append("_lc' data-al-lcountry='1'>").Append(Opts(new[] { "Canada", "United States" }, a.Country, null)).Append("</select></span></div>")
@@ -143,9 +150,9 @@ public static class AnyminuteSupportAddress
             .Append("<button type='button' class='am-al-btn am-al-primary' data-al-lsearch='1'>").Append(IcoSearch).Append(" Search Address</button>")
             .Append("<button type='button' class='am-al-btn am-al-outline' data-al-lmanual='1'>").Append(IcoPen).Append(" Enter Address Manually</button></div>")
             .Append("<div class='am-al-info' data-al-lhint='1'><span class='am-al-i' aria-hidden='true'>i</span><span data-al-lhinttext='1'>").Append(us ? "Enter a valid US ZIP code (e.g. 33185) or Canadian postal code (e.g. M1B 2W1)." : "Enter a valid Canadian postal code (e.g. M1B 2W1) or US ZIP code (e.g. 33185).").Append("</span></div>")
-            .Append("<div class='am-al-nf' data-al-lnf='1' role='alert' hidden><div class='am-al-nf-head'><span class='am-al-nf-i' aria-hidden='true'>i</span><strong>Address Not Found</strong></div><p>No matching address was found for postal code <b data-al-lnfcode='1'></b>. Please verify the postal code and search again, or enter the address manually.</p></div>")
+            .Append("<div class='am-al-nf' data-al-lnf='1' role='alert' hidden><div class='am-al-nf-head'><span class='am-al-nf-i' aria-hidden='true'>!</span><strong>Address Not Found</strong></div><p>No matching address was found for postal code <b data-al-lnfcode='1'></b>. Please verify the postal code and search again, or enter the address manually.</p></div>")
             .Append("<div class='am-al-results'><label for='").Append(prefix).Append("_hits'>Select Address from Search Results</label><select id='").Append(prefix).Append("_hits' data-al-lhits='1' disabled><option value=''>Select an address from the list below</option></select></div>")
-            .Append("<div class='am-al-details'><div class='am-al-details-head'><h3>Address Details</h3><span class='am-al-pill' data-al-lmode='1'>").Append(a.Any ? "Selected Address" : "Manual Entry").Append("</span></div><div class='am-al-grid'>")
+            .Append("<div class='am-al-details'><div class='am-al-details-head'><h3>Address Details</h3>").Append(verify ? Pill(a.Any ? (F(prefix, "_src") == "manual" ? "Pending" : status ?? "") : null, true) : "<span class='am-al-pill' data-al-lmode='1'>" + (a.Any ? "Selected Address" : "Manual Entry") + "</span>").Append("</div><div class='am-al-grid'>")
             .Append(fld("Street Number " + req, "_no", a.StreetNo, "e.g. 3112", " maxlength='20'" + rq, ""))
             .Append(fld("Address Line 1 " + req, "_line1", a.Line1, "e.g. Krome Ave", " maxlength='100' autocomplete='address-line1'" + rq, " am-al-span2"))
             .Append(fld("Address Line 2 " + opt, "_line2", a.Line2, "e.g. Unit, Floor, Building, etc.", " maxlength='100' autocomplete='address-line2'", ""))
@@ -159,6 +166,63 @@ public static class AnyminuteSupportAddress
             .Append("<div class='am-al-f am-al-span2 am-al-countryf'><label for='").Append(prefix).Append("_country'>Country ").Append(req).Append("</label><select id='").Append(prefix).Append("_country' name='").Append(prefix).Append("_country' data-al-dcountry='1'>").Append(Opts(new[] { "Canada", "United States" }, a.Country, null)).Append("</select></div>")
             .Append("</div></div></section></div></div>");
         return sb.ToString();
+    }
+    // ---- v57 (PPT s4): Address Verification status + pending queue (AddressMaster Verifed=0 + AnyminuteAddressReview Pending) ----
+    // status: "Verified" | "Pending" | "Rejected" | "" (not in the verification table) | null (no address). mode=true adds data-al-lmode.
+    public static string Pill(string status, bool mode)
+    {
+        string t = status == null ? "Manual Entry" : status == "Verified" ? "Verified Address" : status == "Pending" ? "Pending Verification" : status == "Rejected" ? "Address Rejected" : "Not Verified";
+        string tone = status == "Verified" ? " am-al-pill-ok" : status == "Pending" ? " am-al-pill-pend" : status == "Rejected" ? " am-al-pill-bad" : status == null ? "" : " am-al-pill-none";
+        return "<span class='am-al-pill" + tone + "'" + (mode ? " data-al-lmode='1'" : "") + ">" + t + "</span>";
+    }
+    public static string Source(string prefix) { return F(prefix, "_src"); }
+    static string Full(Addr a) { return (a.StreetNo + " " + a.Line1).Trim(); }
+    static string Cp(string p) { return (p ?? "").ToUpperInvariant().Replace(" ", "").Replace("-", "").Trim(); }
+    public static bool ReviewReady(SqlConnection c) { return AnyminuteEmployeeEditor.HasTable(c, null, "AnyminuteAddressReview"); }
+    // Matches on postal code + street (Address Line 1, or Street Number + Line 1), on the stored row or the original submitted values.
+    public static string Status(SqlConnection c, SqlTransaction tx, Addr a, bool rv)
+    {
+        if (a == null || !a.Any) return null;
+        try
+        {
+            var t = AnyminuteTimesheetRepair.Query(c, tx, rv
+                ? @"SELECT TOP 1 CASE WHEN a.Verifed=1 THEN 'Verified' WHEN r.Status='Rejected' THEN 'Rejected' ELSE 'Pending' END St FROM AddressMaster a LEFT JOIN AnyminuteAddressReview r ON r.AddressMasterId=a.AddressMasterId
+                    WHERE (REPLACE(REPLACE(UPPER(a.PostalCode),' ',''),'-','')=@p AND UPPER(LTRIM(RTRIM(a.Street_Name))) IN (UPPER(@l1),UPPER(@f)))
+                       OR (REPLACE(REPLACE(UPPER(ISNULL(r.OrigPostal,'')),' ',''),'-','')=@p AND UPPER(LTRIM(RTRIM(ISNULL(r.OrigStreet,'')))) IN (UPPER(@l1),UPPER(@f),UPPER(@o)))
+                    ORDER BY CASE WHEN a.Verifed=1 THEN 0 WHEN ISNULL(r.Status,'Pending')='Pending' THEN 1 ELSE 2 END, a.AddressMasterId DESC"
+                : @"SELECT TOP 1 CASE WHEN a.Verifed=1 THEN 'Verified' ELSE 'Pending' END St FROM AddressMaster a
+                    WHERE REPLACE(REPLACE(UPPER(a.PostalCode),' ',''),'-','')=@p AND UPPER(LTRIM(RTRIM(a.Street_Name))) IN (UPPER(@l1),UPPER(@f)) ORDER BY CASE WHEN a.Verifed=1 THEN 0 ELSE 1 END, a.AddressMasterId DESC",
+                "@p", Cp(a.Postal), "@l1", a.Line1.Trim(), "@f", Full(a), "@o", Orig(a));
+            return t.Rows.Count == 1 ? Convert.ToString(t.Rows[0][0]) : "";
+        }
+        catch (SqlException ex) { log4net.LogManager.GetLogger("Log").Warn("Address status lookup failed", ex); return ""; }
+    }
+    // Original submitted street line kept on the review row: "168 Bloor St W Unit 4" (Street_Name keeps Address Line 1, as the lookup rows do).
+    static string Orig(Addr a) { return (Full(a) + (a.Line2.Length > 0 ? " " + a.Line2 : "") + (a.SuiteNo.Length > 0 ? " " + (a.SuiteType.Length > 0 ? a.SuiteType : "Suite") + " " + a.SuiteNo : "")).Trim(); }
+    // A saved address that is not in the Verified Address Database becomes a Pending Verification row (an existing pending row is
+    // reused; a rejected one gets a fresh submission). Returns the resulting status ("Verified" / "Pending").
+    public static string QueuePending(SqlConnection c, SqlTransaction tx, Addr a, bool rv, string submittedBy, string note)
+    {
+        if (a == null || !a.Any) return null;
+        string st = Status(c, tx, a, rv);
+        if (st == "Verified") return st;
+        string who = submittedBy ?? ""; if (who.Length > 150) who = who.Substring(0, 150);
+        string n = note ?? ""; if (n.Length > 500) n = n.Substring(0, 500);
+        if (st == "Pending")
+        {
+            if (rv) AnyminuteTimesheetRepair.Execute(c, tx, @"UPDATE r SET SubmittedBy=@w FROM AnyminuteAddressReview r JOIN AddressMaster a ON a.AddressMasterId=r.AddressMasterId
+                WHERE ISNULL(a.Verifed,0)<>1 AND r.Status='Pending' AND ISNULL(r.SubmittedBy,'')='' AND REPLACE(REPLACE(UPPER(a.PostalCode),' ',''),'-','')=@p AND UPPER(LTRIM(RTRIM(a.Street_Name))) IN (UPPER(@l1),UPPER(@f))",
+                "@w", who, "@p", Cp(a.Postal), "@l1", a.Line1.Trim(), "@f", Full(a));
+            return st;
+        }
+        object id = AnyminuteTimesheetRepair.Query(c, tx, "INSERT AddressMaster(Street_Name,City,Province,PostalCode,Verifed) VALUES(@s,@c,@pr,@pc,0); SELECT CAST(SCOPE_IDENTITY() AS int)",
+            "@s", a.Line1.Trim(), "@c", a.City, "@pr", a.Province, "@pc", a.Postal).Rows[0][0];
+        // TR_AnyminuteAddressMaster_Submitted (REQUIRED_08) may already have written the review row; either way it ends Pending with the submitter.
+        if (rv) AnyminuteTimesheetRepair.Execute(c, tx, @"IF NOT EXISTS(SELECT 1 FROM AnyminuteAddressReview WHERE AddressMasterId=@i)
+                INSERT AnyminuteAddressReview(AddressMasterId,SubmittedBy,SubmittedAtUTC,OrigStreet,OrigCity,OrigProvince,OrigCountry,OrigPostal,Status,Country,Notes) VALUES(@i,@w,SYSUTCDATETIME(),@o,@c,@pr,@co,@pc,'Pending',@co,@n)
+            ELSE UPDATE AnyminuteAddressReview SET SubmittedBy=@w,SubmittedAtUTC=ISNULL(SubmittedAtUTC,SYSUTCDATETIME()),OrigStreet=@o,OrigCountry=@co,Country=@co,Status='Pending',Notes=@n WHERE AddressMasterId=@i",
+            "@i", id, "@w", who, "@o", Orig(a), "@c", a.City, "@pr", a.Province, "@co", a.Country, "@pc", a.Postal, "@n", n);
+        return "Pending";
     }
     // JSON for the lookup endpoint: [{street,city,province}] (title case), up to 20 rows.
     public static string LookupJson(string postal)

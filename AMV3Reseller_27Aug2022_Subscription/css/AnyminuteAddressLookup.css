@@ -209,3 +209,17 @@ html body #amEmpAddress input[type=text],html body #amEmpAddress select{display:
 html body #amEmpAddress .am-al-clearwrap,html body #amEmpAddress .am-al-flagsel{display:block;position:relative;width:100%}
 @media (max-width:900px){html body #amEmpAddress .am-al-search{grid-template-columns:1fr 1fr}}
 @media (max-width:560px){html body #amEmpAddress .am-al-search{grid-template-columns:1fr}}
+
+/* v57 (PPT s3 "make it Red or Highlight More"): Address Not Found card is a danger card - red border, light red background, red icon and bold red title. */
+html body .am-al-nf{background:#fef2f2!important;border:1px solid #f87171!important;border-left:4px solid #dc2626!important;color:#7f1d1d!important;box-shadow:0 1px 3px rgba(220,38,38,.12)!important}
+html body .am-al-nf-head strong{color:#b91c1c!important;font-weight:800}
+html body .am-al-nf-i{border-color:#dc2626!important;color:#fff!important;background:#dc2626!important;font-family:Arial,sans-serif!important}
+html body .am-al-nf p{color:#991b1b!important}
+/* v57 (PPT s4): address status pills - Verified Address (green), Pending Verification (amber), Address Rejected (red), Not Verified (grey). */
+html body .am-al-pill.am-al-pill-ok,html body .am-al-pill-ok{background:#dcfce7!important;color:#166534!important;border:1px solid #86efac!important}
+html body .am-al-pill.am-al-pill-pend,html body .am-al-pill-pend{background:#fef3c7!important;color:#92400e!important;border:1px solid #fcd34d!important}
+html body .am-al-pill.am-al-pill-bad,html body .am-al-pill-bad{background:#fee2e2!important;color:#991b1b!important;border:1px solid #fca5a5!important}
+html body .am-al-pill.am-al-pill-none,html body .am-al-pill-none{background:#f1f5f9!important;color:#475569!important;border:1px solid #cbd5e1!important}
+html body .am-al-pill-ok,html body .am-al-pill-pend,html body .am-al-pill-bad,html body .am-al-pill-none{display:inline-block;border-radius:999px;padding:2px 9px;font-size:11.5px;font-weight:600;vertical-align:middle}
+/* v57 (PPT s1): Upgrade Plan highlights the Subscription Plan card. */
+html body .sa-card.sa-plan-up{box-shadow:0 0 0 2px #2563eb,0 4px 14px rgba(37,99,235,.15)!important;scroll-margin-top:90px}

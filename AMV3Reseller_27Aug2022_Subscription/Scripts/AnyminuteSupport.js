@@ -144,6 +144,11 @@
     });
     // v42 PPT 01 s1: Subscriber list select-all checkbox.
     $all('[data-sa-all]').forEach(function (m) { m.addEventListener('change', function () { $all('input[name="' + m.getAttribute('data-sa-all') + '"]').forEach(function (x) { x.checked = m.checked; }); }); });
+    // v57 (PPT s1): Upgrade Plan (view=edit&up=1#plan) - scroll the Subscription Plan card into view and focus the New Plan picker.
+    $all('[data-sa-plan-up]').forEach(function (card) {
+      var pick = document.getElementById('sa-plan-pick'); if (pick) pick.hidden = false;
+      setTimeout(function () { card.scrollIntoView({ block: 'start' }); var s = card.querySelector("select[name='ed_plan']"); if (s) s.focus(); }, 60);
+    });
     // v43 PPT 01 s5/s6: plan select fills the plan limits (empty catalogue limit = Custom, editable); Manage Custom Limits; Change Plan.
     $all('[data-sa-plan]').forEach(function (sel) {
       var box = sel.closest('.sa-card') || document;
@@ -176,6 +181,14 @@
       var lc = q('[data-al-lcountry]'), lp = q('[data-al-lpostal]'), flag = q('[data-al-flag]'), hint = q('[data-al-lhint]'), hintText = q('[data-al-lhinttext]'),
           nf = q('[data-al-lnf]'), nfCode = q('[data-al-lnfcode]'), hits = q('[data-al-lhits]'), mode = q('[data-al-lmode]'), dc = f('_country'), prov = f('_prov');
       var us = function () { return lc.value === 'United States'; };
+      // v57 (PPT s4): _src = lookup | manual; on verify forms a manual address shows "Pending Verification" (queued on save).
+      var src = q('[data-al-lsrc]'), vfy = box.hasAttribute('data-al-verify');
+      var setMode = function (m) {
+        if (src) src.value = m; if (!mode) return;
+        mode.classList.remove('am-al-pill-ok', 'am-al-pill-pend', 'am-al-pill-bad', 'am-al-pill-none');
+        if (m === 'manual' && vfy) { mode.textContent = 'Pending Verification'; mode.classList.add('am-al-pill-pend'); }
+        else mode.textContent = m === 'manual' ? 'Manual Entry' : 'Selected Address';
+      };
       var fillProv = function (country, keep) {
         var list = REG[country] || REG.Canada, v = keep || '', html = '<option value="">' + (country === 'United States' ? 'Select state' : 'Select province') + '</option>', hit = false;
         list.forEach(function (n) { var on = n.toLowerCase() === v.toLowerCase(); hit = hit || on; html += '<option' + (on ? ' selected' : '') + '>' + n + '</option>'; });
@@ -222,14 +235,20 @@
         f('_line1').value = a.street || ''; f('_city').value = a.city || '';
         setCountry(lc.value); fillProv(lc.value, a.province || '');
         f('_postal').value = fmt(lp.value);
-        if (mode) mode.textContent = 'Selected Address';
+        setMode('lookup'); picked = [f('_line1').value, f('_city').value, f('_postal').value].join('|');
         f('_no').focus();
       });
       q('[data-al-lmanual]').addEventListener('click', function () {
-        reset(); if (mode) mode.textContent = 'Manual Entry';
+        reset(); setMode('manual');
         setCountry(lc.value); if (!f('_postal').value && lp.value.trim()) f('_postal').value = fmt(lp.value);
         f('_no').focus(); f('_no').scrollIntoView({ block: 'center', behavior: 'smooth' });
       });
+      // Editing the street / city / postal after a lookup pick makes it a manual address again.
+      var picked = null;
+      ['_line1', '_city', '_postal', '_prov'].forEach(function (k) { var el = f(k); if (el) el.addEventListener('change', function () {
+        if (src && src.value === 'lookup' && [f('_line1').value, f('_city').value, f('_postal').value].join('|') !== picked) setMode('manual');
+        else if (src && !src.value) setMode('manual');
+      }); });
       sync();
     });
     $all('[data-sa-addr]').forEach(function (b) {

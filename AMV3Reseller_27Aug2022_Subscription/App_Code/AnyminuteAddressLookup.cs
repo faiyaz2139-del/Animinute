@@ -40,7 +40,7 @@ public static class AnyminuteAddressLookup
     {
         string p = AnyminuteBusinessAddressInput.Postal(postal);
         if (p.Length == 6 && System.Text.RegularExpressions.Regex.IsMatch(p, "^[A-Z]\\d[A-Z]\\d[A-Z]\\d$")) p = p.Substring(0, 3) + " " + p.Substring(3);
-        return "<div class=\"am-al-nf\" role=\"alert\"><div class=\"am-al-nf-head\"><span class=\"am-al-nf-i\" aria-hidden=\"true\">i</span><strong>Address Not Found</strong></div>" +
+        return "<div class=\"am-al-nf\" role=\"alert\"><div class=\"am-al-nf-head\"><span class=\"am-al-nf-i\" aria-hidden=\"true\">!</span><strong>Address Not Found</strong></div>" +
             "<p>No matching address was found for postal code <b>" + System.Web.HttpUtility.HtmlEncode(p) + "</b>. Please verify the postal code and search again, or enter the address manually.</p></div>";
     }
 
