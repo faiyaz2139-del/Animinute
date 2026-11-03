@@ -69,7 +69,8 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
         if (plan.Length == 0 || !SA.Has(c, "AnyminuteSubscriptionPlan")) return "";
         try { var p = SA.Q(c, "SELECT TOP 1 MaxProjects FROM AnyminuteSubscriptionPlan WHERE " + String.Format(SA.PlanKeySql, "PlanName") + "=@k", "@k", SA.PlanKey(plan)); return p.Rows.Count == 1 ? SA.S(p.Rows[0][0]) : ""; } catch (SqlException) { return ""; }
     }
-    static string Addr(DataRow r) { return String.Join(", ", new[] { SA.S(r["Street"]), Clean(r["City"]), Clean(r["Province"]), Clean(r["Postalcode"]) }.Where(x => x.Trim().Length > 0).ToArray()); }
+    // v52 (NOTES_v52 E): every street fragment goes through Clean() so "Please Select" never reaches the header address.
+    static string Addr(DataRow r) { string street = String.Join(" ", new[] { Clean(r["AStreetNo"]), Clean(r["AStreetName"]), Clean(r["AStreetType"]) }.Where(x => x.Length > 0).ToArray()); if (street.Length == 0) street = Clean(r["Street"]); return String.Join(", ", new[] { street, Clean(r["City"]), Clean(r["Province"]), Clean(r["Postalcode"]) }.Where(x => x.Trim().Length > 0).ToArray()); }
     // v47: a Pending subscriber's More menu leads with Activate Subscriber (Edit Subscriber with Active preselected; Confirm + Reason
     // still required) and Resend Invitation (the existing Login & Access "invite" action). withUser: the page has no sa_user field yet.
     static string MoreMenu(DataRow r, bool withUser)
@@ -126,12 +127,12 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
             // v45 PPT 01 s3/s4: Subscriber Details has no page title; the subscriber header card is the top of the page.
             // v51 PPT s1-s4: every tab (Businesses / Employees / Projects / Subscription & Billing / Login & Access / Support History /
             // Activity Log) renders inside the same Subscriber Details shell - the header card stays, only the tab body changes.
-            if (view == "" || view == "businesses" || view == "employees" || view == "projects" || view == "billing" || view == "access" || view == "support" || view == "history")
+            // v52 (NOTES_v52 A/B/D): access and history are standalone pages again (Login PPT s1/s3); the sticky shell keeps the rest.
+            if (view == "" || view == "businesses" || view == "employees" || view == "projects" || view == "billing" || view == "support")
             {
                 Title1.Text = ""; Lead.Text = ""; string on = view.Length == 0 ? "businesses" : view;
-                Crumbs.Text = CrumbBar(CrumbSep(on == "businesses" ? "<span>Subscriber Details</span>" : "<a href='SupportSubscribers.aspx?user=" + user + "'>Subscriber Details</a>") + (on == "access" ? CrumbSep("<span>Login &amp; Access</span>") : on == "support" ? CrumbSep("<span>Support History</span>") : on == "history" ? CrumbSep("<span>Activity Log</span>") : ""));
-                if (on == "history") { var nm = Name(r).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); SubName = nm.Length > 1 ? nm[0] + " " + nm[nm.Length - 1] : Name(r); }
-                string body = on == "billing" ? Billing(c, r) : on == "employees" || on == "projects" ? Related(c, r, on) : on == "access" ? "<div class='sa-tabpad'>" + Access(c, r, ready) + "</div>" : on == "support" ? Support(c, r) : on == "history" ? History(c, user) : Biz(c, r);
+                Crumbs.Text = CrumbBar(CrumbSep(on == "businesses" ? "<span>Subscriber Details</span>" : "<a href='SupportSubscribers.aspx?user=" + user + "'>Subscriber Details</a>") + (on == "support" ? CrumbSep("<span>Support History</span>") : ""));
+                string body = on == "billing" ? Billing(c, r) : on == "employees" || on == "projects" ? Related(c, r, on) : on == "support" ? Support(c, r) : Biz(c, r);
                 Content.Text = Details(c, r) + "<div class='sa-tabbed'>" + DTabs(c, r, on) + body + "</div>";
             }
             else if (view == "bizedit") { int bz; Int32.TryParse(SA.Get("biz"), out bz); Title1.Text = ""; Lead.Text = ""; Content.Text = Details(c, r) + "<div class='sa-tabbed'>" + DTabs(c, r, "businesses") + BizEdit(c, r, bz, null, null) + "</div>"; }
@@ -153,6 +154,8 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
                 Title1.Text = "Edit Subscriber"; Lead.Text = "Update subscriber information, plan and limits.";
                 Content.Text = Edit(c, r, null) + UpdatedModal(user);
             }
+            else if (view == "access") { Title1.Text = "Manage Subscriber Login &amp; Access"; Lead.Text = "Subscriber Details &rsaquo; Login &amp; Access"; HeadActions.Text = "<a class='sa-icon-btn' href='SupportSubscribers.aspx?user=" + user + "' title='Close' aria-label='Close'>&#10005;</a>"; Content.Text = Header(c, r, false) + Access(c, r, ready); }
+            else if (view == "history") { Title1.Text = "Subscriber Login Activity History"; Lead.Text = "View sign-in activity, account changes and security events for this subscriber."; var nm = Name(r).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); SubName = nm.Length > 1 ? nm[0] + " " + nm[nm.Length - 1] : Name(r); Content.Text = Header(c, r, true) + Tabs(c, r, "history") + History(c, user); }
             else if (view == "reset") { Title1.Text = "Send Password Reset"; Lead.Text = "Send a secure password reset link to the subscriber."; Content.Text = Reset(r, ready); }
             else { Response.Redirect("SupportSubscribers.aspx?user=" + user, false); Context.ApplicationInstance.CompleteRequest(); }
         }
@@ -239,13 +242,39 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
             + "<div class='sa-sd-limits'><div class='sa-sd-limhead'><h3>Subscription Limits" + (plan.Length > 0 ? " (" + SA.H(plan) + ")" : "") + "</h3><a class='sa-btn sa-btn-outline sa-btn-sm' href='" + b + "&amp;view=edit#plan'>Upgrade Plan</a><a class='sa-icon-btn' href='" + b + "&amp;view=edit#plan' title='Manage Custom Limits' aria-label='Manage Custom Limits'>" + Ic("gear") + "</a></div>"
             + "<div class='sa-tiles'>" + Tile("biz", "blue", "Businesses", n[0], SA.S(r["PlanBiz"])) + Tile("users", "green", "Employees", n[1], SA.S(r["PlanUsers"])) + Tile("folder", "purple", "Projects", n[2], projLimit) + "</div></div></div></div>";
     }
+    // v50 PPT s1 (access): avatar, name, SUB-ID, email | Current Plan + View Plan Details | Subscriber Since | Active.
+    // v50 PPT s3 (history): name + Active, "SUB-ID | Plan | email | phone" | Subscription Since | Last Login.
+    static string Header(SqlConnection c, DataRow r, bool history)
+    {
+        int u = Convert.ToInt32(r["UserId"]); string plan = SA.S(r["PlanName"]).Length > 0 ? SA.H(r["PlanName"]) : "&mdash;";
+        string badge = Enabled(r) ? SA.Pill("Active", "green") : SA.Pill("Disabled", "red");
+        if (history)
+            return "<div class='sa-card sa-subhead'><span class='sa-avatar'>" + SA.H(Initials(Name(r))) + "</span><div class='sa-grow'><h2>" + SA.H(Name(r)) + " " + badge + "</h2><small>Subscriber ID: " + Sub(u) + " &nbsp;|&nbsp; " + plan + " &nbsp;|&nbsp; " + SA.H(r["Email"])
+                + (SA.S(r["MobilePhone"]).Length > 0 ? " &nbsp;|&nbsp; " + SA.H(r["MobilePhone"]) : "") + "</small></div>"
+                + "<div><small>&#128197; Subscription Since</small><strong>" + SA.Day(r["Since"]) + "</strong></div><div><small>&#128339; Last Login</small><strong>" + SA.When(r["LastLoginDate"]) + "</strong></div></div>";
+        return "<div class='sa-card sa-subhead'><span class='sa-avatar'>" + SA.H(Initials(Name(r))) + "</span><div class='sa-grow'><h2>" + SA.H(Name(r)) + "</h2><small>Subscriber ID: " + Sub(u) + "<br />" + SA.H(r["Email"]) + "</small></div>"
+            + "<div><small>Current Plan</small><strong>" + plan + "</strong><a class='sa-link' href='SupportPlans.aspx'>View Plan Details</a></div>"
+            + "<div><small>Subscriber Since</small><strong>" + SA.Day(r["Since"]) + "</strong></div><div>" + badge + "</div></div>";
+    }
+    // v52 (NOTES_v52 D): history-page tabs, Login Activity History selected; Support History stays in-app (view=support).
+    static string Tabs(SqlConnection c, DataRow r, string on)
+    {
+        int user = Convert.ToInt32(r["UserId"]); int[] n;
+        try { n = Counts(c, r); } catch (SqlException) { n = null; }
+        Func<string, string, string, string> t = (key, label, href) => "<a href='" + href + "'" + (key == on ? " class='on' aria-current='page'" : "") + ">" + label + "</a>";
+        string u = "SupportSubscribers.aspx?user=" + user + "&amp;view=";
+        Func<int, string> k = i => n == null ? "" : " (" + n[i] + ")";
+        return "<nav class='sa-tabs'>" + t("profile", "Profile", "SupportSubscribers.aspx?user=" + user) + t("businesses", "Businesses" + k(0), u + "businesses") + t("employees", "Employees" + k(1), u + "employees") + t("projects", "Projects" + k(2), u + "projects")
+            + t("billing", "Subscription &amp; Billing", u + "billing") + t("access", "Login &amp; Access", u + "access")
+            + t("support", "Support History", u + "support") + t("history", "Login Activity History", u + "history") + "</nav>";
+    }
     static string DTabs(SqlConnection c, DataRow r, string on)
     {
         int user = Convert.ToInt32(r["UserId"]); int[] n; try { n = Counts(c, r); } catch (SqlException) { n = null; }
         Func<string, string, string, string> t = (key, label, href) => "<a href='" + href + "'" + (key == on ? " class='on' aria-current='page'" : "") + ">" + label + "</a>";
         string u = "SupportSubscribers.aspx?user=" + user + "&amp;view="; Func<int, string> k = i => n == null ? "" : " (" + n[i] + ")";
         return "<nav class='sa-tabs sa-tabs45'>" + t("businesses", "Businesses" + k(0), u + "businesses") + t("employees", "Employees" + k(1), u + "employees") + t("projects", "Projects" + k(2), u + "projects")
-            + t("billing", "Subscription &amp; Billing", u + "billing") + t("access", "Login &amp; Access", u + "access") + t("support", "Support History", u + "support") + t("history", "Activity Log", u + "history") + "</nav>";
+            + t("billing", "Subscription &amp; Billing", u + "billing") + t("access", "Login &amp; Access", u + "access") + t("support", "Support History", u + "support") + t("history", "Login Activity History", u + "history") + "</nav>";
     }
     // Businesses tab (PPT 01 s3/s4): "Businesses" + "List of businesses under this subscriber." + "+ Add Business";
     // Sl. No., Business Name, Industry, No. of Employees, No. of Projects, Status, Actions (Edit + three-dot menu).
@@ -281,7 +310,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
         return sb.Append("</tbody></table></div></div>").ToString();
     }
     // v43 PPT 01 s6 Edit Subscriber (header card, editable email, Subscription Plan & Limits with Change Plan / Manage Custom Limits,
-    // Account Status select, Subscription Dates, Address module link, Recent Activity table). vals == null: first render.
+    // Account Status select, Subscription Dates, Address Lookup, Recent Activity table). vals == null: first render.
     static readonly string[] EF = { "ed_first", "ed_middle", "ed_last", "ed_email", "ed_phone", "ed_mobile", "ed_status", "ed_plan", "ed_biz", "ed_users", "ed_start", "ed_end", "ed_addr" };
     static string D(object o) { return o == null || o == DBNull.Value ? "" : Convert.ToDateTime(o, CultureInfo.InvariantCulture).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture); }
     static string[] Current(DataRow r)
@@ -357,7 +386,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
         foreach (var o in AStatus) sb.Append("<option").Append(v[6] == o ? " selected" : "").Append(">").Append(o).Append("</option>");
         sb.Append("</select></label><div class='sa-flash sa-info'>").Append(Ic("info")).Append("<span>Suspended or inactive accounts cannot sign in to the system.<br />You can send an activation invitation to pending accounts.</span></div></div></div>")
           .Append("<div class='sa-card'><h2>Subscription Dates</h2>").Append(plan ? "<div class='sa-grid2'>" + f(10, "date", "", true) + f(11, "date", "", true) + "</div>" : "<p class='sa-muted'>No active plan record.</p>").Append("</div>");
-        // v51 (held note, red-boxed Address): same Address Lookup + Address Details as Edit Reseller (was a link to the separate Address module).
+        // v51 (held note, red-boxed Address): same Address Lookup + Address Details as Edit Reseller (old link-out address block removed).
         sb.Append("<div class='sa-card sa-sub-addr' id='address'><h2>Address <span class='sa-muted sa-small'>(Optional)</span></h2>").Append(AD.Render("ed_addr", IsPostBack ? AD.FromForm("ed_addr") : SubAddr(r), false, "SupportSubscribers.aspx?lookup=1&postal=", "Search for the subscriber address using a postal or ZIP code, select a result, or enter the address manually.")).Append("</div>");
         sb.Append("<div class='sa-card'><div class='sa-panel-head'><h2>Recent Activity <span class='sa-light'>(Last 5)</span></h2><a class='sa-btn sa-btn-outline sa-btn-sm' href='").Append(b).Append("&amp;view=history'>").Append(Ic("open")).Append(" View Full History</a></div>");
         DataTable h = null; try { if (SA.Has(c, "AnyminuteSupportAudit")) h = SA.Q(c, "SELECT TOP 5 * FROM AnyminuteSupportAudit WHERE Entity='Login' AND EntityKey=@k ORDER BY ChangedAtUTC DESC,AuditID DESC", "@k", u.ToString(CultureInfo.InvariantCulture)); } catch (SqlException) { }
