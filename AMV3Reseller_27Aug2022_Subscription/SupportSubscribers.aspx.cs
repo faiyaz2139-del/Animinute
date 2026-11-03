@@ -37,7 +37,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
     {
         var r = Session["UserId"] == null ? null : Rsl;
         if (r == null) { SA.Require(); return; }
-        if (!r.Can("subscribers")) Response.Redirect("ResellerDashboard.aspx", true);
+        if (!r.Can("subscribers")) { SA.Flash("Your reseller account does not have access to Subscribers."); Response.Redirect("ResellerDashboard.aspx", true); } // v56: nav always shows Subscribers
     }
     // v55: reseller pages never link into Support Admin-only pages (plans / usage / businesses open in the Reseller portal).
     protected override void Render(System.Web.UI.HtmlTextWriter writer)

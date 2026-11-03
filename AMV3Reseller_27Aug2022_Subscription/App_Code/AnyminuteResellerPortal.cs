@@ -67,20 +67,34 @@ public static class AnyminuteResellerPortal
     {
         var req = HttpContext.Current.Request; string path = req.Url.AbsolutePath, view = req.QueryString["view"] ?? "";
         string page = System.IO.Path.GetFileName(path);
-        var items = new List<string[]> { new[] { "Dashboard", "~/ResellerDashboard.aspx", "dash" } };
-        if (r.Can("subscribers")) items.Add(new[] { "Subscribers", "~/SupportSubscribers.aspx", "subs" });
-        if (r.Can("businesses") || r.Can("subscribers")) items.Add(new[] { "Businesses", "~/ResellerDashboard.aspx?view=businesses", "businesses" });
-        if (r.Can("plans")) items.Add(new[] { "Subscription Plans", "~/ResellerDashboard.aspx?view=plans", "plans" });
-        if (r.Can("usage")) items.Add(new[] { "Usage & Limits", "~/ResellerDashboard.aspx?view=usage", "usage" });
-        if (r.Can("reports")) items.Add(new[] { "Reports", "~/SupportReports.aspx", "reports" });
-        items.Add(new[] { "Settings", "~/ResellerDashboard.aspx?view=settings", "settings" });
+        // v56 (PPT s1 strict): the full 7-item menu always shows; permission gates stay server-side on each page / action.
+        var items = new List<string[]> {
+            new[] { "Dashboard", "~/ResellerDashboard.aspx", "dash" },
+            new[] { "Subscribers", "~/SupportSubscribers.aspx", "subs" },
+            new[] { "Businesses", "~/ResellerDashboard.aspx?view=businesses", "businesses" },
+            new[] { "Subscription Plans", "~/ResellerDashboard.aspx?view=plans", "plans" },
+            new[] { "Usage & Limits", "~/ResellerDashboard.aspx?view=usage", "usage" },
+            new[] { "Reports", "~/SupportReports.aspx", "reports" },
+            new[] { "Settings", "~/ResellerDashboard.aspx?view=settings", "settings" } };
         string on = page.Equals("SupportSubscribers.aspx", StringComparison.OrdinalIgnoreCase) ? "subs" : page.Equals("SupportReports.aspx", StringComparison.OrdinalIgnoreCase) ? "reports"
             : page.Equals("ResellerDashboard.aspx", StringComparison.OrdinalIgnoreCase) ? (view.Length == 0 ? "dash" : view) : "";
         var html = new StringBuilder();
         foreach (var i in items)
             html.Append("<li class='am-sa-nav am-rsl-nav'><a href='").Append(HttpUtility.HtmlAttributeEncode(VirtualPathUtility.ToAbsolute(i[1]))).Append("' data-am-primary='true'")
-                .Append(i[2] == on ? " aria-current='page' class='active'" : "").Append("><i class='' aria-hidden='true'></i><span>").Append(HttpUtility.HtmlEncode(i[0])).Append("</span></a></li>");
+                .Append(i[2] == on ? " aria-current='page' class='active'" : "").Append(">").Append(NavIcon(i[2])).Append("<span>").Append(HttpUtility.HtmlEncode(i[0])).Append("</span></a></li>");
         return html.ToString();
+    }
+    // v56 (PPT s1): line icons per nav item - home, users, building, paperclip, bar chart, document, gear.
+    public static string NavIcon(string key)
+    {
+        string d = key == "dash" ? "<path d='M3 11l9-8 9 8'/><path d='M5 10v10h5v-6h4v6h5V10'/>"
+            : key == "subs" ? "<path d='M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2'/><circle cx='9' cy='7' r='4'/><path d='M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8'/>"
+            : key == "businesses" ? "<path d='M6 21V3h12v18M3 21h18M9 7h1m4 0h1M9 11h1m4 0h1M9 15h1m4 0h1M10 21v-3h4v3'/>"
+            : key == "plans" ? "<path d='M21.4 11.1l-9.2 9.2a6 6 0 0 1-8.5-8.5l9.2-9.2a4 4 0 0 1 5.7 5.7l-9.2 9.2a2 2 0 0 1-2.8-2.8l8.5-8.5'/>"
+            : key == "usage" ? "<path d='M4 20h16'/><path d='M7 16v-4M12 16V6M17 16v-7'/>"
+            : key == "reports" ? "<path d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/><path d='M14 2v6h6M8 13h8M8 17h5'/>"
+            : "<circle cx='12' cy='12' r='3'/><path d='M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z'/>";
+        return "<svg class='am-ap-navico am-rsl-navico' viewBox='0 0 24 24' width='20' height='20' style='flex:0 0 20px;width:20px;height:20px' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'>" + d + "</svg>";
     }
     // Top bar brand: AnyMinute mark + wordmark and the "Reseller" label (PPT header).
     public const string Brand = "<span class='am-ap-brand am-rsl-brand'><svg viewBox='0 0 40 40' width='34' height='34' aria-hidden='true' focusable='false'><circle cx='20' cy='21' r='15' fill='none' stroke='#1f6fe5' stroke-width='4'/><path d='M20 12v9.5l6 3.5' fill='none' stroke='#1f6fe5' stroke-width='3.6' stroke-linecap='round' stroke-linejoin='round'/><path d='M15 3.5h10' stroke='#1f6fe5' stroke-width='3.6' stroke-linecap='round'/></svg><span class='am-ap-brand-text'>AnyMinute</span><span class='am-rsl-brand-role' style='margin-left:18px;padding-left:18px;border-left:1px solid #dfe5ee;font-weight:700;font-size:20px;color:#14233c'>Reseller</span></span>";

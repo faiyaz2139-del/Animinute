@@ -38,7 +38,7 @@ public partial class AnyminuteResellerDashboardPage : System.Web.UI.Page
     {
         Flash.Text = SA.TakeFlash();
         string view = SA.Get("view");
-        // Permission gates (nav hides these too): businesses = businesses or subscribers, plans, usage.
+        // Permission gates (v56: nav always shows all 7; gates stay here): businesses = businesses or subscribers, plans, usage.
         if ((view == "businesses" && !rsl.Can("businesses") && !rsl.Can("subscribers")) || (view == "plans" && !rsl.Can("plans")) || (view == "usage" && !rsl.Can("usage")))
         { Flash.Text += "<div class='sa-flash sa-warn'>Your reseller account does not have access to that page.</div>"; view = ""; }
         using (var c = SA.Open())
@@ -61,6 +61,7 @@ public partial class AnyminuteResellerDashboardPage : System.Web.UI.Page
     // s1: Reseller Dashboard - Total / Active / Inactive Subscribers, Total Businesses / Employees / Projects + Quick Actions.
     void Dashboard(SqlConnection c)
     {
+        Crumbs.Text = "<nav class='sa-crumbs rsl-home-crumb' aria-label='Breadcrumb'><span>Reseller</span></nav>"; // v56 PPT s1: bold Reseller above the title
         Title1.Text = "Reseller Dashboard"; Lead.Text = "Manage your subscribers, businesses and subscription plans.";
         var t = RP.Subscribers(c, rsl).Rows.Cast<DataRow>().ToList();
         int act = t.Count(r => RP.StatusOf(r) == "Active"), ina = t.Count(r => RP.StatusOf(r) == "Inactive" || RP.StatusOf(r) == "Suspended");
@@ -68,13 +69,12 @@ public partial class AnyminuteResellerDashboardPage : System.Web.UI.Page
             .Append(Kpi("users", "blue", "Total Subscribers", t.Count)).Append(Kpi("check", "green", "Active", act)).Append(Kpi("x", "red", "Inactive", ina))
             .Append(Kpi("biz", "purple", "Total Businesses", t.Sum(r => Convert.ToInt32(r["Businesses"])))).Append(Kpi("users", "blue", "Total Employees", t.Sum(r => Convert.ToInt32(r["Employees"]))))
             .Append(Kpi("folder", "purple", "Total Projects", t.Sum(r => Convert.ToInt32(r["Projects"])))).Append("</div>");
-        var qa = new List<string>();
+        // v56 (PPT s1 strict): all five Quick Actions always show; the target pages keep their server-side permission gates (flash + redirect).
         Func<string, string, string, string> a = (href, icon, label) => "<a href='" + href + "'>" + Ic(icon) + "<span>" + label + "</span></a>";
-        if (rsl.Can("subscribers")) { qa.Add(a("SupportSubscribers.aspx?view=add", "useradd", "Add Subscriber")); qa.Add(a("SupportSubscribers.aspx", "list", "View Subscribers")); }
-        if (rsl.Can("plans")) qa.Add(a("ResellerDashboard.aspx?view=plans", "doc", "Subscription Plans"));
-        if (rsl.Can("usage")) qa.Add(a("ResellerDashboard.aspx?view=usage", "bars", "Usage Limits"));
-        if (rsl.Can("reports")) qa.Add(a("SupportReports.aspx", "report", "Reports"));
-        sb.Append("<div class='sa-card'><h2>Quick Actions</h2>").Append(qa.Count == 0 ? "<p class='sa-muted'>No actions are enabled for your reseller account. Contact AnyMinute Support to update your permissions.</p>" : "<div class='rsl-qa'>" + String.Join("", qa.ToArray()) + "</div>").Append("</div>");
+        sb.Append("<div class='sa-card rsl-qa-card'><h2>Quick Actions</h2><div class='rsl-qa'>")
+            .Append(a("SupportSubscribers.aspx?view=add", "useradd", "Add Subscriber")).Append(a("SupportSubscribers.aspx", "list", "View Subscribers"))
+            .Append(a("ResellerDashboard.aspx?view=plans", "doc", "Subscription Plans")).Append(a("ResellerDashboard.aspx?view=usage", "bars", "Usage Limits"))
+            .Append(a("SupportReports.aspx", "report", "Reports")).Append("</div></div>");
         Content.Text = sb.ToString();
     }
     // Businesses nav: businesses under this reseller's subscribers (search + pager); View opens the subscriber's Businesses tab.
