@@ -240,6 +240,8 @@ public static class AnyminuteUiNavigation
         // 2026-10-28 v25 (Shamsu Support Admin decks): Support Admin / Super Admin get the deck navigation first
         // (Support Tickets + Address Verification badges); the legacy links that role already had follow below.
         bool support = AnyminuteSupportAdmin.IsSupport();
+        // 2026-11-03 v55 (Reseller PPT collage): a pure reseller login gets only the Reseller portal sidebar.
+        if (!support) { var rsl = AnyminuteResellerPortal.Current(); if (rsl != null) return AnyminuteResellerPortal.NavHtml(rsl); }
         if (support) html.Append(AnyminuteSupportAdmin.NavHtml(ReportHref(menu), PermittedHref(menu, "EmailSetting.aspx", "EmailTemplate.aspx")));
         // 2026-10-26 v18 (deck slides 1-3): employees and supervisors get the deck's flat navigation
         // (no My Employees for employee-only users). Owners/admins/accountants keep the grouped menu below.

@@ -1,0 +1,850 @@
+diff --git a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteResellerPortal.cs b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteResellerPortal.cs
+new file mode 100644
+index 0000000..5df56a3
+--- /dev/null
++++ b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteResellerPortal.cs
+@@ -0,0 +1,122 @@
++using System;
++using System.Collections.Generic;
++using System.Data;
++using System.Data.SqlClient;
++using System.Linq;
++using System.Text;
++using System.Web;
++using SA = AnyminuteSupportAdmin;
++using RS = AnyminuteResellers;
++
++// 2026-11-03 v55 (Reseller PPT collage, 9 screens): the Reseller login portal. A reseller signs in with the UserAcc login that
++// AnyminuteResellers.EnsureLogin created for AnyminuteReseller.LoginEmail. Current() identifies that login (Active reseller, any
++// permissions); every reseller screen is scoped to AnyminuteResellerSubscriber rows of that ResellerID and gated by Permissions CSV.
++public sealed class RslCtx
++{
++    public int ResellerId; public string Code = "", Name = ""; public int? MaxSubscribers;
++    public HashSet<string> Perms = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
++    public bool Can(string p) { return Perms.Contains(p); }
++}
++public static class AnyminuteResellerPortal
++{
++    // Subscribers (UserAcc.UserId) owned by reseller @rsl.
++    public const string Scope = "(SELECT rs.UserId FROM AnyminuteResellerSubscriber rs WHERE rs.ResellerID=@rsl)";
++    // Signed-in pure reseller, or null (Support Admin / SuperAdmin, any other login, REQUIRED_09 not run). Cached 2 minutes per session.
++    public static RslCtx Current()
++    {
++        var h = HttpContext.Current; if (h == null || h.Session == null || h.Session["UserId"] == null) return null;
++        if (SA.IsSupport()) return null;
++        var cached = h.Session["AmRslPortal"] as Tuple<DateTime, string, RslCtx>;
++        string uid = Convert.ToString(h.Session["UserId"]);
++        if (cached != null && cached.Item1 > DateTime.UtcNow && cached.Item2 == uid) return cached.Item3;
++        RslCtx s = null; int user; Int32.TryParse(uid, out user);
++        string email = Convert.ToString(h.Session["email"]).Trim();
++        if (user > 0 && email.Length > 0)
++        {
++            try
++            {
++                using (var c = SA.Open())
++                    if (RS.Ready(c) && RS.LoginUser(c, email) == user)
++                    {
++                        var t = SA.Q(c, "SELECT TOP 1 ResellerID,ResellerName,Status,Permissions,MaxSubscribers FROM AnyminuteReseller WHERE LTRIM(RTRIM(LoginEmail))=@e", "@e", email);
++                        if (t.Rows.Count == 1 && (SA.S(t.Rows[0]["Status"]).Length == 0 || SA.S(t.Rows[0]["Status"]) == "Active"))
++                        {
++                            var r = t.Rows[0];
++                            s = new RslCtx { ResellerId = Convert.ToInt32(r["ResellerID"]), Code = RS.Rsl(r["ResellerID"]), Name = SA.S(r["ResellerName"]), MaxSubscribers = r["MaxSubscribers"] == DBNull.Value ? (int?)null : Convert.ToInt32(r["MaxSubscribers"]) };
++                            foreach (var p in SA.S(r["Permissions"]).Split(',')) if (p.Trim().Length > 0) s.Perms.Add(p.Trim());
++                        }
++                    }
++            }
++            catch (SqlException) { s = null; }
++            catch (InvalidOperationException) { s = null; }
++        }
++        h.Session["AmRslPortal"] = Tuple.Create(DateTime.UtcNow.AddMinutes(2), uid, s); return s;
++    }
++    public static bool Is() { return Current() != null; }
++    // Pages under Modern.master: signed-in reseller required (others get 403, not the reseller screens).
++    public static RslCtx Require()
++    {
++        var h = HttpContext.Current;
++        if (h.Session == null || h.Session["UserId"] == null) { h.Response.Redirect("Login.aspx", true); return null; }
++        var r = Current(); if (r == null) throw new HttpException(403, "Only reseller logins can open this page.");
++        return r;
++    }
++    // PPT sidebar: Dashboard, Subscribers, Businesses, Subscription Plans, Usage & Limits, Reports, Settings (permission-gated).
++    // li.am-sa-nav reuses the pinned Support drawer (Modern.master pin script + AnyminuteNavDrawer) so content never sits under it.
++    public static string NavHtml(RslCtx r)
++    {
++        var req = HttpContext.Current.Request; string path = req.Url.AbsolutePath, view = req.QueryString["view"] ?? "";
++        string page = System.IO.Path.GetFileName(path);
++        var items = new List<string[]> { new[] { "Dashboard", "~/ResellerDashboard.aspx", "dash" } };
++        if (r.Can("subscribers")) items.Add(new[] { "Subscribers", "~/SupportSubscribers.aspx", "subs" });
++        if (r.Can("businesses") || r.Can("subscribers")) items.Add(new[] { "Businesses", "~/ResellerDashboard.aspx?view=businesses", "businesses" });
++        if (r.Can("plans")) items.Add(new[] { "Subscription Plans", "~/ResellerDashboard.aspx?view=plans", "plans" });
++        if (r.Can("usage")) items.Add(new[] { "Usage & Limits", "~/ResellerDashboard.aspx?view=usage", "usage" });
++        if (r.Can("reports")) items.Add(new[] { "Reports", "~/SupportReports.aspx", "reports" });
++        items.Add(new[] { "Settings", "~/ResellerDashboard.aspx?view=settings", "settings" });
++        string on = page.Equals("SupportSubscribers.aspx", StringComparison.OrdinalIgnoreCase) ? "subs" : page.Equals("SupportReports.aspx", StringComparison.OrdinalIgnoreCase) ? "reports"
++            : page.Equals("ResellerDashboard.aspx", StringComparison.OrdinalIgnoreCase) ? (view.Length == 0 ? "dash" : view) : "";
++        var html = new StringBuilder();
++        foreach (var i in items)
++            html.Append("<li class='am-sa-nav am-rsl-nav'><a href='").Append(HttpUtility.HtmlAttributeEncode(VirtualPathUtility.ToAbsolute(i[1]))).Append("' data-am-primary='true'")
++                .Append(i[2] == on ? " aria-current='page' class='active'" : "").Append("><i class='' aria-hidden='true'></i><span>").Append(HttpUtility.HtmlEncode(i[0])).Append("</span></a></li>");
++        return html.ToString();
++    }
++    // Top bar brand: AnyMinute mark + wordmark and the "Reseller" label (PPT header).
++    public const string Brand = "<span class='am-ap-brand am-rsl-brand'><svg viewBox='0 0 40 40' width='34' height='34' aria-hidden='true' focusable='false'><circle cx='20' cy='21' r='15' fill='none' stroke='#1f6fe5' stroke-width='4'/><path d='M20 12v9.5l6 3.5' fill='none' stroke='#1f6fe5' stroke-width='3.6' stroke-linecap='round' stroke-linejoin='round'/><path d='M15 3.5h10' stroke='#1f6fe5' stroke-width='3.6' stroke-linecap='round'/></svg><span class='am-ap-brand-text'>AnyMinute</span><span class='am-rsl-brand-role' style='margin-left:18px;padding-left:18px;border-left:1px solid #dfe5ee;font-weight:700;font-size:20px;color:#14233c'>Reseller</span></span>";
++
++    // ---- data (all scoped to AnyminuteResellerSubscriber.ResellerID = @rsl; same owner / business rules as SupportSubscribers) ----
++    // s = the reseller's subscribers, biz = (subscriber, business) pairs the subscriber owns or is mapped to.
++    static string Cte(bool sec)
++    {
++        return @"WITH s AS (SELECT u.UserId,u.EmployeeId,u.Email,u.Status,u.Is_First_Time_Login,LTRIM(RTRIM(ISNULL(ae.FirstName,'')+' '+ISNULL(ae.LastName,''))) Name," + (sec ? "ISNULL(ls.LoginDisabled,0)" : "CAST(0 AS bit)") + @" LoginDisabled
++            FROM AnyminuteResellerSubscriber rs JOIN UserAcc u ON u.UserId=rs.UserId LEFT JOIN AddEmployee ae ON ae.EmployeeID=u.EmployeeId" + (sec ? " LEFT JOIN AnyminuteLoginSecurity ls ON ls.UserId=u.UserId" : "") + @"
++            WHERE rs.ResellerID=@rsl AND EXISTS(SELECT 1 FROM MappingTable m WHERE m.USERID=u.UserId AND m.UserTypeId=1)),
++            biz AS (SELECT s.UserId,a.BusinessID FROM s JOIN AssginBussiness a ON a.EmployeeID=s.EmployeeId AND a.UserTypeId=1
++              UNION SELECT s.UserId,m.BusinessID FROM s JOIN MappingTable m ON m.USERID=s.UserId JOIN AssginBussiness a ON a.BusinessID=m.BusinessID AND a.EmployeeID=m.EmployeeID AND a.UserTypeId=m.UserTypeId) ";
++    }
++    // One row per subscriber: status inputs, active plan + limits and Businesses / Employees / Projects used.
++    public static DataTable Subscribers(SqlConnection c, RslCtx r)
++    {
++        bool sec = SA.Has(c, "AnyminuteLoginSecurity");
++        return SA.Q(c, Cte(sec) + @"SELECT s.*,pl.PlanName,pl.Business PlanBiz,pl.No_Of_Users PlanUsers,
++            (SELECT COUNT(*) FROM biz JOIN AddBusiness b ON b.BusinessID=biz.BusinessID WHERE biz.UserId=s.UserId AND ISNULL(b.Status,'')<>'2') Businesses,
++            (SELECT COUNT(DISTINCT a.EmployeeID) FROM biz JOIN AssginBussiness a ON a.BusinessID=biz.BusinessID JOIN AddEmployee ae ON ae.EmployeeID=a.EmployeeID WHERE biz.UserId=s.UserId AND a.EmployeeID<>s.EmployeeId AND ae.TerminationDate IS NULL) Employees,
++            (SELECT COUNT(*) FROM biz JOIN AddProject p ON p.BusinessID=biz.BusinessID WHERE biz.UserId=s.UserId) Projects
++            FROM s OUTER APPLY (SELECT TOP 1 p.PlanName,p.Business,p.No_Of_Users FROM PlanHistory p WHERE p.EmailId=s.Email AND ISNULL(p.IsActive,0)=1 ORDER BY p.StartDate DESC) pl ORDER BY s.Name", "@rsl", r.ResellerId);
++    }
++    // Businesses under the reseller's subscribers (deleted businesses shown as Deleted).
++    public static DataTable Businesses(SqlConnection c, RslCtx r)
++    {
++        return SA.Q(c, Cte(false) + @"SELECT b.BusinessID,b.CompanyName,biz.UserId,s.Name,s.Email,CASE WHEN ISNULL(b.Status,'')='2' THEN 'Deleted' ELSE 'Active' END St,
++            (SELECT COUNT(DISTINCT a.EmployeeID) FROM AssginBussiness a WHERE a.BusinessID=b.BusinessID AND a.EmployeeID<>s.EmployeeId) Employees,
++            (SELECT COUNT(*) FROM AddProject p WHERE p.BusinessID=b.BusinessID) Projects
++            FROM biz JOIN s ON s.UserId=biz.UserId JOIN AddBusiness b ON b.BusinessID=biz.BusinessID ORDER BY b.CompanyName", "@rsl", r.ResellerId);
++    }
++    // Same four states as SupportSubscribers.StatusOf.
++    public static string StatusOf(DataRow r)
++    {
++        bool on = r["Status"] == DBNull.Value || Convert.ToBoolean(r["Status"]);
++        return !on ? "Inactive" : Convert.ToBoolean(r["LoginDisabled"]) ? "Suspended" : r["Is_First_Time_Login"] != DBNull.Value && Convert.ToBoolean(r["Is_First_Time_Login"]) ? "Pending" : "Active";
++    }
++}
+diff --git a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteUiNavigation.cs b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteUiNavigation.cs
+index 8085044..3eaa962 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteUiNavigation.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteUiNavigation.cs
+@@ -240,6 +240,8 @@ public static class AnyminuteUiNavigation
+         // 2026-10-28 v25 (Shamsu Support Admin decks): Support Admin / Super Admin get the deck navigation first
+         // (Support Tickets + Address Verification badges); the legacy links that role already had follow below.
+         bool support = AnyminuteSupportAdmin.IsSupport();
++        // 2026-11-03 v55 (Reseller PPT collage): a pure reseller login gets only the Reseller portal sidebar.
++        if (!support) { var rsl = AnyminuteResellerPortal.Current(); if (rsl != null) return AnyminuteResellerPortal.NavHtml(rsl); }
+         if (support) html.Append(AnyminuteSupportAdmin.NavHtml(ReportHref(menu), PermittedHref(menu, "EmailSetting.aspx", "EmailTemplate.aspx")));
+         // 2026-10-26 v18 (deck slides 1-3): employees and supervisors get the deck's flat navigation
+         // (no My Employees for employee-only users). Owners/admins/accountants keep the grouped menu below.
+diff --git a/AMV3Reseller_27Aug2022_Subscription/EmployeeEditor.aspx b/AMV3Reseller_27Aug2022_Subscription/EmployeeEditor.aspx
+index 23f77e3..856e979 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/EmployeeEditor.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/EmployeeEditor.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="EmployeeEditor.aspx.cs" Inherits="AnyminuteEmployeeEditorPage" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteEmployees.css?v=20261025v13" rel="stylesheet" /><link href="css/AnyminuteEmployeesV2.css?v=20261026v17" rel="stylesheet" /><link href="css/AnyminuteFlash.css?v=20261024v2" rel="stylesheet" /><link href="css/AnyminuteAddressLookup.css?v=20261103v54" rel="stylesheet" /><script src="Scripts/AnyminuteDateText.js?v=20261024v8" defer></script><script src="Scripts/AnyminuteAddressLookup.js?v=20261102v49" defer></script></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteEmployees.css?v=20261025v13" rel="stylesheet" /><link href="css/AnyminuteEmployeesV2.css?v=20261026v17" rel="stylesheet" /><link href="css/AnyminuteFlash.css?v=20261024v2" rel="stylesheet" /><link href="css/AnyminuteAddressLookup.css?v=20261103v55" rel="stylesheet" /><script src="Scripts/AnyminuteDateText.js?v=20261024v8" defer></script><script src="Scripts/AnyminuteAddressLookup.js?v=20261102v49" defer></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section id="Root" runat="server" class="am-dialog-page am-employees-v2 am-editor-v3">
+  <header class="am-dialog-head"><div><h1><asp:Literal ID="PageTitle" runat="server" /></h1><p><asp:Literal ID="PageSubtitle" runat="server" /></p></div><asp:HyperLink ID="CloseLink" runat="server" NavigateUrl="~/Users.aspx" CssClass="am-dialog-close" ToolTip="Close" aria-label="Close">&times;</asp:HyperLink></header>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/EmployeeProfile.aspx b/AMV3Reseller_27Aug2022_Subscription/EmployeeProfile.aspx
+index fd2d2e2..0ff121b 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/EmployeeProfile.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/EmployeeProfile.aspx
+@@ -3,7 +3,7 @@
+ 
+ <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="Server">
+     <link href="css/bootstrap.min.css" rel="stylesheet" />
+-    <link href="css/AnyminuteAddressLookup.css?v=20261103v54" rel="stylesheet" />
++    <link href="css/AnyminuteAddressLookup.css?v=20261103v55" rel="stylesheet" />
+     <%-- v37 (DOCX image1, strict): Personal / Payment Details use the same full-width 3-column grid as Address Lookup and
+          Employee Address below (they were a centred half-width column). Control IDs unchanged. --%>
+     <style>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Login.aspx.cs b/AMV3Reseller_27Aug2022_Subscription/Login.aspx.cs
+index ae0b8f8..978cc98 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Login.aspx.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/Login.aspx.cs
+@@ -128,6 +128,8 @@ public partial class Login : System.Web.UI.Page
+         if (dt.Rows[0]["UserTypeid"].ToString() == "0" && dt.Rows[0]["UserType"].ToString() == "Admin")
+         {
+             Session["email_aac1"] = Session["email"];
++            // v55 (Reseller PPT collage): a reseller login (AnyminuteReseller.LoginEmail -> UserAcc via EnsureLogin) lands on the Reseller portal.
++            if (AnyminuteResellerPortal.Is()) { Response.Redirect("ResellerDashboard.aspx", false); return; }
+             Response.Redirect("Dashboard.aspx", false); // v37: accountant / payroll-agency logins land on the PPT Accountant & Payroll Dashboard (was legacy Accountant_Dashboard.aspx)
+         }
+         //Added this email to approve the newly registered account for business owner only
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Main.master b/AMV3Reseller_27Aug2022_Subscription/Main.master
+index ef2727a..15263e6 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Main.master
++++ b/AMV3Reseller_27Aug2022_Subscription/Main.master
+@@ -5,7 +5,7 @@
+ <!DOCTYPE html>
+ 
+ <html>
+-<head runat="server"><meta name="anyminute-build" content="v54-20261103" />
++<head runat="server"><meta name="anyminute-build" content="v55-20261103" />
+     <title>AnyMinute | Record From Anywhere</title>
+     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Modern.master b/AMV3Reseller_27Aug2022_Subscription/Modern.master
+index bc96c9c..b3be002 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Modern.master
++++ b/AMV3Reseller_27Aug2022_Subscription/Modern.master
+@@ -1,6 +1,6 @@
+ <%@ Master Language="C#" AutoEventWireup="true" CodeFile="Modern.master.cs" Inherits="AnyminuteModernMaster" %>
+ <!DOCTYPE html>
+-<html lang="en"><head runat="server"><meta charset="utf-8" /><meta name="anyminute-build" content="v54-20261103" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>AnyMinute</title><link href="css/bootstrap.min.css" rel="stylesheet" /><script src="Assets/assets/js/core/jquery.3.2.1.min.js"></script><script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script><script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" /><script src="Assets/assets/js/plugin/datatables/datatables.min.js"></script><script src="Assets/assets/js/SweetAlert.js"></script><link href="css/AnyminuteModern.css" rel="stylesheet" /><asp:ContentPlaceHolder ID="head" runat="server" /><link href="css/AnyminuteUI2026.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUIUnified.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUiBugFixes.css?v=20261026v17" rel="stylesheet" /><link href="css/AnyminuteNavDrawer.css?v=20261101v47" rel="stylesheet" /></head>
++<html lang="en"><head runat="server"><meta charset="utf-8" /><meta name="anyminute-build" content="v55-20261103" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>AnyMinute</title><link href="css/bootstrap.min.css" rel="stylesheet" /><script src="Assets/assets/js/core/jquery.3.2.1.min.js"></script><script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script><script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" /><script src="Assets/assets/js/plugin/datatables/datatables.min.js"></script><script src="Assets/assets/js/SweetAlert.js"></script><link href="css/AnyminuteModern.css" rel="stylesheet" /><asp:ContentPlaceHolder ID="head" runat="server" /><link href="css/AnyminuteUI2026.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUIUnified.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUiBugFixes.css?v=20261026v17" rel="stylesheet" /><link href="css/AnyminuteNavDrawer.css?v=20261101v47" rel="stylesheet" /></head>
+ <body class="am-modern"><form id="frmMaster" runat="server"><asp:ScriptManager ID="ScriptManager1" runat="server" />
+ <header class="am-topbar"><button type="button" class="am-icon-button" data-toggle-sidebar aria-controls="am-main-navigation" aria-expanded="true" aria-label="Toggle navigation">&#9776;</button><a href="Dashboard.aspx" class="am-brand"><asp:PlaceHolder ID="LogoDefault" runat="server"><img src="Assets/assets/img/logo.jpg" alt="AnyMinute" class="am-logo" /></asp:PlaceHolder><asp:Literal ID="Brand" runat="server" /></a><span>Welcome! <asp:Literal ID="Welcome" runat="server" /><asp:Literal ID="WelcomeContext" runat="server" /></span><asp:Literal ID="HeaderHelp" runat="server" /><asp:Literal ID="HeaderBell" runat="server" /><details class="am-account-menu"><summary aria-label="Account menu"><asp:Literal ID="AccountAvatar" runat="server" /><span class="am-account-chevron" aria-hidden="true"></span><span class="sr-only">Account</span></summary><div class="am-account-popover"><a href="MyProfile.aspx"><span data-am-icon="profile" aria-hidden="true"></span>My profile</a><a href="LoginSecurity.aspx"><span data-am-icon="settings" aria-hidden="true"></span>Login &amp; security</a><asp:LinkButton ID="SignOut" runat="server" CausesValidation="false" OnClick="SignOut_Click"><span data-am-icon="signout" aria-hidden="true"></span>Sign out</asp:LinkButton>
+    <a href="Change%20Password.aspx"><span data-am-icon="settings" aria-hidden="true"></span>Change password</a><asp:Literal ID="AccountHelp" runat="server" /><asp:Literal ID="AccountUpgrade" runat="server" /></div></details></header>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Modern.master.cs b/AMV3Reseller_27Aug2022_Subscription/Modern.master.cs
+index a1e6742..7a923f0 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Modern.master.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/Modern.master.cs
+@@ -6,7 +6,9 @@ public partial class AnyminuteModernMaster : System.Web.UI.MasterPage
+ {
+  private bool signingOut,accountantHeader;
+  protected void Page_Init(object s,EventArgs e)
+- {Response.ContentEncoding=System.Text.Encoding.UTF8;Response.HeaderEncoding=System.Text.Encoding.UTF8;Response.Charset="utf-8";if(Session["UserId"]==null) {Response.Redirect("Login.aspx");return;}AnyminuteModernScope.Login();Page.ViewStateUserKey=Session.SessionID;}
++ {Response.ContentEncoding=System.Text.Encoding.UTF8;Response.HeaderEncoding=System.Text.Encoding.UTF8;Response.Charset="utf-8";if(Session["UserId"]==null) {Response.Redirect("Login.aspx");return;}AnyminuteModernScope.Login();Page.ViewStateUserKey=Session.SessionID;
++  // v55: a pure reseller login never opens the owner Dashboard (brand link / old bookmarks) - it goes to the Reseller portal.
++  if(System.IO.Path.GetFileName(Request.Url.AbsolutePath).Equals("Dashboard.aspx",StringComparison.OrdinalIgnoreCase)&&AnyminuteResellerPortal.Is()){Response.Redirect("ResellerDashboard.aspx",true);return;}}
+  protected void Page_Load(object s,EventArgs e)
+  {
+   var menu=AnyminuteUiNavigation.Load().ToList();
+@@ -37,6 +39,10 @@ public partial class AnyminuteModernMaster : System.Web.UI.MasterPage
+    HeaderHelp.Text="";
+    AccountHelp.Text="<a href='"+HttpUtility.HtmlAttributeEncode(VirtualPathUtility.ToAbsolute("~/Help.aspx"))+"'><span data-am-icon='help' aria-hidden='true'></span>Help Center</a>";
+   }
++  // v55 (Reseller PPT header): AnyMinute mark + "Reseller"; the help button moves into the account menu.
++  var rslCtx=AnyminuteResellerPortal.Current();
++  if(rslCtx!=null){LogoDefault.Visible=false;Brand.Text=AnyminuteResellerPortal.Brand;context="Reseller";HeaderHelp.Text="";accountantHeader=false;AccountHelp.Text="";
++   if(rslCtx.Name.Length>0){Welcome.Text=HttpUtility.HtmlEncode(rslCtx.Name);AccountAvatar.Text="<span class='am-ap-avatar' aria-hidden='true'>"+HttpUtility.HtmlEncode(AnyminuteAccountantDashboard.Initials(rslCtx.Name))+"</span><span class='am-ap-avatar-name'>"+HttpUtility.HtmlEncode(rslCtx.Name)+"</span>";}}
+   if(!String.IsNullOrEmpty(context))WelcomeContext.Text="<small class='am-welcome-context' style='display:block;font-size:12px;font-weight:500;color:#5b6778;line-height:1.3'>"+HttpUtility.HtmlEncode(context)+"</small>";
+ 
+   int business;
+diff --git a/AMV3Reseller_27Aug2022_Subscription/ResellerDashboard.aspx b/AMV3Reseller_27Aug2022_Subscription/ResellerDashboard.aspx
+new file mode 100644
+index 0000000..f4afb51
+--- /dev/null
++++ b/AMV3Reseller_27Aug2022_Subscription/ResellerDashboard.aspx
+@@ -0,0 +1,17 @@
++<%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="ResellerDashboard.aspx.cs" Inherits="AnyminuteResellerDashboardPage" Title="Reseller Dashboard" %>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v55" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v55" defer="defer"></script>
++<style>/* v55 Reseller PPT s1/s9 */
++.rsl-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px}.rsl-kpis .sa-kpi-icon svg{width:24px;height:24px}
++.rsl-qa{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}.rsl-qa a{display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px 10px;border:1px solid var(--sa-line,#dfe5ee);border-radius:12px;background:#fff;color:#14233c;font-weight:600;text-align:center;text-decoration:none}
++.rsl-qa a:hover{border-color:#1f6fe5;box-shadow:0 2px 10px rgba(31,111,229,.12)}.rsl-qa svg{width:28px;height:28px;color:#1f6fe5}
++.rsl-set{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.rsl-set a{display:block;padding:18px;border:1px solid var(--sa-line,#dfe5ee);border-radius:12px;background:#fff;color:#14233c;text-decoration:none}.rsl-set a b{display:block;margin-bottom:4px}
++@media (max-width:1100px){.rsl-kpis{grid-template-columns:1fr 1fr}.rsl-qa{grid-template-columns:repeat(3,1fr)}.rsl-set{grid-template-columns:1fr}}
++</style></asp:Content>
++<asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
++<section class="sa-page sa-rsl-portal">
++ <asp:Literal ID="Crumbs" runat="server" />
++ <header class="sa-head"><div><h1><asp:Literal ID="Title1" runat="server" /></h1><p><asp:Literal ID="Lead" runat="server" /></p></div><asp:Literal ID="HeadActions" runat="server" /></header>
++ <asp:Literal ID="Flash" runat="server" />
++ <asp:Literal ID="Content" runat="server" />
++</section>
++</asp:Content>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/ResellerDashboard.aspx.cs b/AMV3Reseller_27Aug2022_Subscription/ResellerDashboard.aspx.cs
+new file mode 100644
+index 0000000..d7ce0ef
+--- /dev/null
++++ b/AMV3Reseller_27Aug2022_Subscription/ResellerDashboard.aspx.cs
+@@ -0,0 +1,166 @@
++using System;
++using System.Collections.Generic;
++using System.Data;
++using System.Data.SqlClient;
++using System.Globalization;
++using System.Linq;
++using System.Text;
++using System.Web;
++using SA = AnyminuteSupportAdmin;
++using RP = AnyminuteResellerPortal;
++
++// 2026-11-03 v55 (Reseller PPT collage): Reseller portal home. view = (none) Dashboard (s1 KPIs + Quick Actions) | businesses
++// (businesses under the reseller's subscribers) | plans (s9 Subscription Plans catalogue, read-only) | usage (Usage & Limits,
++// read-only) | settings (profile / security links). Subscribers (s2-s8) live on SupportSubscribers.aspx in reseller mode.
++public partial class AnyminuteResellerDashboardPage : System.Web.UI.Page
++{
++    RslCtx rsl;
++    protected void Page_Init(object sender, EventArgs e) { rsl = RP.Require(); }
++    static readonly Dictionary<string, string> Icons = new Dictionary<string, string>
++    {
++        { "users", "<path d='M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2'/><circle cx='9' cy='7' r='4'/><path d='M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8'/>" },
++        { "check", "<circle cx='12' cy='12' r='10'/><path d='m8 12 3 3 5-6'/>" },
++        { "x", "<circle cx='12' cy='12' r='10'/><path d='m15 9-6 6M9 9l6 6'/>" },
++        { "biz", "<rect x='4' y='2' width='16' height='20' rx='1'/><path d='M9 22v-4h6v4M8 6h2M14 6h2M8 10h2M14 10h2M8 14h2M14 14h2'/>" },
++        { "folder", "<path d='M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z'/>" },
++        { "useradd", "<path d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2'/><circle cx='9' cy='7' r='4'/><path d='M19 8v6M22 11h-6'/>" },
++        { "list", "<path d='M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01'/>" },
++        { "doc", "<path d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/><path d='M14 2v6h6M8 13h8M8 17h8'/>" },
++        { "bars", "<path d='M3 3v18h18'/><path d='M8 17v-5M13 17V8M18 17v-9'/>" },
++        { "report", "<path d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/><path d='M14 2v6h6M9 15h6M9 11h2'/>" },
++        { "search", "<circle cx='11' cy='11' r='8'/><path d='m21 21-4.3-4.3'/>" }
++    };
++    static string Ic(string n) { return "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'>" + Icons[n] + "</svg>"; }
++    static string Kpi(string icon, string tone, string label, int n) { return "<div class='sa-kpi'><i class='sa-kpi-icon sa-" + tone + "' aria-hidden='true'>" + Ic(icon) + "</i><div><span>" + label + "</span><strong>" + n.ToString("#,0", CultureInfo.InvariantCulture) + "</strong></div></div>"; }
++    static string Used(int used, object lim) { string l = SA.S(lim); return used + (l.Length > 0 ? " / " + SA.H(l) : ""); }
++    static string Crumb(string label) { return "<nav class='sa-crumbs' aria-label='Breadcrumb'><a href='ResellerDashboard.aspx'>Dashboard</a> &rsaquo; <span>" + label + "</span></nav>"; }
++    protected void Page_Load(object sender, EventArgs e)
++    {
++        Flash.Text = SA.TakeFlash();
++        string view = SA.Get("view");
++        // Permission gates (nav hides these too): businesses = businesses or subscribers, plans, usage.
++        if ((view == "businesses" && !rsl.Can("businesses") && !rsl.Can("subscribers")) || (view == "plans" && !rsl.Can("plans")) || (view == "usage" && !rsl.Can("usage")))
++        { Flash.Text += "<div class='sa-flash sa-warn'>Your reseller account does not have access to that page.</div>"; view = ""; }
++        using (var c = SA.Open())
++        {
++            try
++            {
++                if (view == "businesses") Businesses(c);
++                else if (view == "plans") Plans(c);
++                else if (view == "usage") Usage(c);
++                else if (view == "settings") Settings();
++                else Dashboard(c);
++            }
++            catch (SqlException ex)
++            {
++                log4net.LogManager.GetLogger("Log").Error("Reseller portal " + view, ex);
++                Content.Text = "<div class='sa-card'><p class='sa-muted'>This page could not be loaded right now. Please try again or contact AnyMinute Support.</p></div>";
++            }
++        }
++    }
++    // s1: Reseller Dashboard - Total / Active / Inactive Subscribers, Total Businesses / Employees / Projects + Quick Actions.
++    void Dashboard(SqlConnection c)
++    {
++        Title1.Text = "Reseller Dashboard"; Lead.Text = "Manage your subscribers, businesses and subscription plans.";
++        var t = RP.Subscribers(c, rsl).Rows.Cast<DataRow>().ToList();
++        int act = t.Count(r => RP.StatusOf(r) == "Active"), ina = t.Count(r => RP.StatusOf(r) == "Inactive" || RP.StatusOf(r) == "Suspended");
++        var sb = new StringBuilder("<div class='rsl-kpis'>")
++            .Append(Kpi("users", "blue", "Total Subscribers", t.Count)).Append(Kpi("check", "green", "Active", act)).Append(Kpi("x", "red", "Inactive", ina))
++            .Append(Kpi("biz", "purple", "Total Businesses", t.Sum(r => Convert.ToInt32(r["Businesses"])))).Append(Kpi("users", "blue", "Total Employees", t.Sum(r => Convert.ToInt32(r["Employees"]))))
++            .Append(Kpi("folder", "purple", "Total Projects", t.Sum(r => Convert.ToInt32(r["Projects"])))).Append("</div>");
++        var qa = new List<string>();
++        Func<string, string, string, string> a = (href, icon, label) => "<a href='" + href + "'>" + Ic(icon) + "<span>" + label + "</span></a>";
++        if (rsl.Can("subscribers")) { qa.Add(a("SupportSubscribers.aspx?view=add", "useradd", "Add Subscriber")); qa.Add(a("SupportSubscribers.aspx", "list", "View Subscribers")); }
++        if (rsl.Can("plans")) qa.Add(a("ResellerDashboard.aspx?view=plans", "doc", "Subscription Plans"));
++        if (rsl.Can("usage")) qa.Add(a("ResellerDashboard.aspx?view=usage", "bars", "Usage Limits"));
++        if (rsl.Can("reports")) qa.Add(a("SupportReports.aspx", "report", "Reports"));
++        sb.Append("<div class='sa-card'><h2>Quick Actions</h2>").Append(qa.Count == 0 ? "<p class='sa-muted'>No actions are enabled for your reseller account. Contact AnyMinute Support to update your permissions.</p>" : "<div class='rsl-qa'>" + String.Join("", qa.ToArray()) + "</div>").Append("</div>");
++        Content.Text = sb.ToString();
++    }
++    // Businesses nav: businesses under this reseller's subscribers (search + pager); View opens the subscriber's Businesses tab.
++    void Businesses(SqlConnection c)
++    {
++        Crumbs.Text = Crumb("Businesses"); Title1.Text = "Businesses"; Lead.Text = "Businesses under your subscribers.";
++        string q = SA.Get("q"); int page; if (!Int32.TryParse(SA.Get("page"), out page) || page < 1) page = 1; int size = SA.PageSizeArg(10);
++        var all = RP.Businesses(c, rsl).Rows.Cast<DataRow>().ToList();
++        var rows = all.Where(r => q.Length == 0 || (SA.S(r["CompanyName"]) + " " + SA.S(r["Name"]) + " " + SA.S(r["Email"])).IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
++        int pages = Math.Max(1, (rows.Count + size - 1) / size); if (page > pages) page = pages;
++        var sb = new StringBuilder("<div class='sa-card'><div class='sa-filters' data-sa-get='ResellerDashboard.aspx'><input type='hidden' name='view' value='businesses' /><input type='hidden' name='size' value='").Append(size)
++            .Append("' /><label class='sa-grow sa-search'><span class='sr-only'>Search</span><i aria-hidden='true'>").Append(Ic("search")).Append("</i><input type='search' name='q' value='").Append(SA.A(q)).Append("' placeholder='Search by business or subscriber...' /></label>")
++            .Append("<a class='sa-btn sa-btn-outline' href='ResellerDashboard.aspx?view=businesses'>Clear</a><button type='button' class='sa-btn' data-sa-apply='1'>Search</button></div>")
++            .Append("<div class='sa-table-wrap'><table class='sa-table'><thead><tr><th>#</th><th>Business Name</th><th>Subscriber</th><th class='sa-c'>Employees</th><th class='sa-c'>Projects</th><th>Status</th><th class='sa-c'>Actions</th></tr></thead><tbody>");
++        int n = (page - 1) * size;
++        foreach (var r in rows.Skip((page - 1) * size).Take(size))
++        {
++            string sub = "SupportSubscribers.aspx?user=" + Convert.ToInt32(r["UserId"]), st = SA.S(r["St"]); bool open = rsl.Can("subscribers");
++            sb.Append("<tr><td>").Append(++n).Append("</td><td>").Append(SA.H(r["CompanyName"])).Append("</td><td>").Append(open ? "<a class='sa-link' href='" + sub + "'>" + SA.H(SA.S(r["Name"]).Length > 0 ? r["Name"] : r["Email"]) + "</a>" : SA.H(SA.S(r["Name"]).Length > 0 ? r["Name"] : r["Email"]))
++              .Append("</td><td class='sa-c'>").Append(r["Employees"]).Append("</td><td class='sa-c'>").Append(r["Projects"]).Append("</td><td>").Append(SA.Pill(st, st == "Active" ? "green" : "grey")).Append("</td><td class='sa-c'>")
++              .Append(open ? "<a class='sa-btn sa-btn-sm sa-btn-outline' href='" + sub + "&amp;view=businesses'>View</a>" : "&mdash;").Append("</td></tr>");
++        }
++        if (rows.Count == 0) sb.Append("<tr><td colspan='7' class='sa-empty'>No businesses found.</td></tr>");
++        sb.Append("</tbody></table></div>").Append(SA.Pager46(rows.Count, page, size, "ResellerDashboard.aspx?view=businesses&q=" + HttpUtility.UrlEncode(q), "business")).Append("</div>");
++        Content.Text = sb.ToString();
++    }
++    static string Money(object o) { return o == null || o == DBNull.Value ? "Custom" : "$" + Convert.ToDecimal(o).ToString("#,0.00", CultureInfo.InvariantCulture); }
++    static string Num(object o) { return o == null || o == DBNull.Value ? "Custom" : SA.H(o); }
++    // s9: Subscription Plans catalogue (AnyminuteSubscriptionPlan, same source as Support Admin > Subscription Plans). Read-only:
++    // the reseller permission is "View subscription plans", so + Add Plan / Edit are not offered (FIX_REPORT_v55).
++    void Plans(SqlConnection c)
++    {
++        Title1.Text = "Subscription Plans"; Lead.Text = "Subscription plans, limits, pricing and features available to your subscribers.";
++        if (!SA.Has(c, "AnyminuteSubscriptionPlan")) { Content.Text = "<div class='sa-card'><p class='sa-muted'>Subscription plans are not available yet. Contact AnyMinute Support.</p></div>"; return; }
++        var t = SA.Q(c, "SELECT * FROM AnyminuteSubscriptionPlan ORDER BY PlanID"); int id; Int32.TryParse(SA.Get("plan"), out id);
++        var sb = new StringBuilder("<div class='sa-card'><div class='sa-table-wrap'><table class='sa-table'><thead><tr><th>#</th><th>Plan Name</th><th>Description</th><th>Monthly Price (CAD)</th><th>Annual Price (CAD)</th><th class='sa-c'>Businesses</th><th class='sa-c'>Employees</th><th class='sa-c'>Projects</th><th>Status</th><th class='sa-c'>Actions</th></tr></thead><tbody>");
++        int n = 0; DataRow pick = null;
++        foreach (DataRow r in t.Rows)
++        {
++            bool on = r["IsActive"] == DBNull.Value || Convert.ToBoolean(r["IsActive"]); if (Convert.ToInt32(r["PlanID"]) == id) pick = r;
++            sb.Append("<tr><td>").Append(++n).Append("</td><td><b>").Append(SA.H(r["PlanName"])).Append("</b></td><td>").Append(SA.H(r["Description"])).Append("</td><td>").Append(Money(r["MonthlyPrice"])).Append("</td><td>").Append(Money(r["AnnualPrice"]))
++              .Append("</td><td class='sa-c'>").Append(Num(r["MaxBusinesses"])).Append("</td><td class='sa-c'>").Append(Num(r["MaxEmployees"])).Append("</td><td class='sa-c'>").Append(Num(r["MaxProjects"])).Append("</td><td>").Append(SA.Pill(on ? "Active" : "Inactive", on ? "green" : "grey"))
++              .Append("</td><td class='sa-c'><a class='sa-btn sa-btn-sm sa-btn-outline' href='ResellerDashboard.aspx?view=plans&amp;plan=").Append(r["PlanID"]).Append("#plan'>View</a></td></tr>");
++        }
++        if (n == 0) sb.Append("<tr><td colspan='10' class='sa-empty'>No plans found.</td></tr>");
++        sb.Append("</tbody></table></div><div class='sa-pager'><span>Showing 1 to ").Append(n).Append(" of ").Append(n).Append(" plans</span></div></div>");
++        if (pick != null)
++        {
++            Func<string, string, string> kv = (k, v) => "<tr><th>" + k + "</th><td>" + (v.Length > 0 ? v : "&mdash;") + "</td></tr>";
++            Func<string, string> col = k => t.Columns.Contains(k) ? SA.H(pick[k]) : "";
++            sb.Append("<div class='sa-card' id='plan'><div class='sa-panel-head'><h2>").Append(SA.H(pick["PlanName"])).Append("</h2><a class='sa-btn sa-btn-outline sa-btn-sm' href='ResellerDashboard.aspx?view=plans'>Close</a></div><table class='sa-kv'>")
++              .Append(kv("Description", col("Description"))).Append(kv("Monthly Price (CAD)", Money(pick["MonthlyPrice"]))).Append(kv("Annual Price (CAD)", Money(pick["AnnualPrice"]))).Append(kv("Billing Frequency", col("BillingFrequency")))
++              .Append(kv("Max Businesses", Num(pick["MaxBusinesses"]))).Append(kv("Max Employees", Num(pick["MaxEmployees"]))).Append(kv("Max Projects", Num(pick["MaxProjects"]))).Append(kv("Trial Days", col("TrialDays")))
++              .Append(kv("Features", col("Features").Replace("\n", "<br />"))).Append("</table></div>");
++        }
++        Content.Text = sb.ToString();
++    }
++    // Usage & Limits (read-only): each subscriber's Businesses / Employees / Projects used against the active plan limits.
++    void Usage(SqlConnection c)
++    {
++        Crumbs.Text = Crumb("Usage &amp; Limits"); Title1.Text = "Usage &amp; Limits"; Lead.Text = "Businesses, employees and projects used by your subscribers against their plan limits.";
++        var t = RP.Subscribers(c, rsl).Rows.Cast<DataRow>().ToList();
++        var proj = new Dictionary<string, string>();
++        if (SA.Has(c, "AnyminuteSubscriptionPlan")) foreach (DataRow p in SA.Q(c, "SELECT PlanName,MaxProjects FROM AnyminuteSubscriptionPlan").Rows) proj[SA.PlanKey(SA.S(p["PlanName"]))] = SA.S(p["MaxProjects"]);
++        var sb = new StringBuilder("<div class='sa-card'><div class='sa-table-wrap'><table class='sa-table'><thead><tr><th>#</th><th>Subscriber</th><th>Plan</th><th class='sa-c'>Businesses</th><th class='sa-c'>Employees</th><th class='sa-c'>Projects</th><th>Status</th></tr></thead><tbody>");
++        int n = 0;
++        foreach (var r in t)
++        {
++            string plan = SA.S(r["PlanName"]), pl; proj.TryGetValue(SA.PlanKey(plan), out pl); string st = RP.StatusOf(r);
++            string name = SA.S(r["Name"]).Length > 0 ? SA.H(r["Name"]) : SA.H(r["Email"]);
++            sb.Append("<tr><td>").Append(++n).Append("</td><td>").Append(rsl.Can("subscribers") ? "<a class='sa-link' href='SupportSubscribers.aspx?user=" + Convert.ToInt32(r["UserId"]) + "&amp;view=billing'>" + name + "</a>" : name)
++              .Append("</td><td>").Append(plan.Length > 0 ? SA.H(plan) : "&mdash;").Append("</td><td class='sa-c'>").Append(Used(Convert.ToInt32(r["Businesses"]), r["PlanBiz"])).Append("</td><td class='sa-c'>").Append(Used(Convert.ToInt32(r["Employees"]), r["PlanUsers"]))
++              .Append("</td><td class='sa-c'>").Append(Used(Convert.ToInt32(r["Projects"]), pl ?? "")).Append("</td><td>").Append(SA.Pill(st, st == "Active" ? "green" : st == "Pending" ? "amber" : st == "Suspended" ? "red" : "grey")).Append("</td></tr>");
++        }
++        if (n == 0) sb.Append("<tr><td colspan='7' class='sa-empty'>No subscribers yet.</td></tr>");
++        Content.Text = sb.Append("</tbody></table></div></div>").ToString();
++    }
++    // Settings: reseller account summary (read-only; Support Admin manages it) + profile / security links.
++    void Settings()
++    {
++        Crumbs.Text = Crumb("Settings"); Title1.Text = "Settings"; Lead.Text = "Your reseller account, profile and sign-in security.";
++        Func<string, string, string> kv = (k, v) => "<tr><th>" + k + "</th><td>" + (v.Length > 0 ? v : "&mdash;") + "</td></tr>";
++        string perms = AnyminuteResellers.PermissionText(String.Join(",", rsl.Perms.ToArray()));
++        Content.Text = "<div class='sa-card'><h2>Reseller Account</h2><table class='sa-kv'>" + kv("Reseller", SA.H(rsl.Name)) + kv("Reseller ID", SA.H(rsl.Code)) + kv("Permissions", SA.H(perms))
++            + kv("Subscriber Limit", rsl.MaxSubscribers.HasValue ? rsl.MaxSubscribers.Value.ToString(CultureInfo.InvariantCulture) : "Unlimited") + "</table><p class='sa-muted'>Contact AnyMinute Support to change your reseller details or permissions.</p></div>"
++            + "<div class='rsl-set'><a href='MyProfile.aspx'><b>My Profile</b><span class='sa-muted'>Name, contact details and photo</span></a><a href='LoginSecurity.aspx'><b>Login &amp; Security</b><span class='sa-muted'>Sign-in email, password and two-step verification</span></a>"
++            + "<a href='Change%20Password.aspx'><b>Change Password</b><span class='sa-muted'>Set a new sign-in password</span></a></div>";
++    }
++}
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SuperAdmin.aspx b/AMV3Reseller_27Aug2022_Subscription/SuperAdmin.aspx
+index 0f4943d..3311e55 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SuperAdmin.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SuperAdmin.aspx
+@@ -3,7 +3,7 @@
+ <%-- v36 (DOCX image7, strict): Accountant List moved to the same Modern shell / Support Admin card design as the other Support Admin
+      pages: one toolbar (Search + Status + Clear), status pills, sortable headers, Previous / page / Next pager, no forced H-scroll. --%>
+ <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="Server">
+-    <link href="css/AnyminuteSupport.css?v=20261103v54" rel="stylesheet" />
++    <link href="css/AnyminuteSupport.css?v=20261103v55" rel="stylesheet" />
+     <style>
+         .am-sa-list .sa-head h1{font-size:24px;margin:0}
+         .am-sa-list .sa-table-wrap{overflow-x:visible}
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SuperAdmin_Approve_Subscriber.aspx b/AMV3Reseller_27Aug2022_Subscription/SuperAdmin_Approve_Subscriber.aspx
+index be77be3..50484dd 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SuperAdmin_Approve_Subscriber.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SuperAdmin_Approve_Subscriber.aspx
+@@ -161,7 +161,7 @@
+         }
+     </script>
+ 
+-    <link href="css/AnyminuteSupport.css?v=20261103v54" rel="stylesheet" />
++    <link href="css/AnyminuteSupport.css?v=20261103v55" rel="stylesheet" />
+     <style>
+         /* v37 (DOCX image4): one toolbar, no forced scrollbar, status pill, sortable headers, pager. */
+         .am-sa-subwrap{overflow-x:auto;border:1px solid #e2e8f0;border-radius:10px;background:#fff}
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx b/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx
+index 658ff9b..e64ebbe 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="SupportAddresses.aspx.cs" Inherits="AnyminuteSupportAddressesPage" Title="Address Verification" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v54" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v54" defer="defer"></script></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v55" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v55" defer="defer"></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section class="sa-page">
+  <header class="sa-head"><div><h1>Address Verification</h1><p>Review, correct and verify manually entered addresses.</p></div>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportBusinesses.aspx b/AMV3Reseller_27Aug2022_Subscription/SupportBusinesses.aspx
+index fafd1f7..d6168c2 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportBusinesses.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportBusinesses.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="SupportBusinesses.aspx.cs" Inherits="AnyminuteSupportBusinessesPage" Title="Businesses" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v54" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v54" defer="defer"></script></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v55" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v55" defer="defer"></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section class="sa-page">
+  <asp:Literal ID="Body1" runat="server" />
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportPlans.aspx b/AMV3Reseller_27Aug2022_Subscription/SupportPlans.aspx
+index 622db32..2048218 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportPlans.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportPlans.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="SupportPlans.aspx.cs" Inherits="AnyminuteSupportPlansPage" Title="Subscription Plans" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v54" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v54" defer="defer"></script></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v55" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v55" defer="defer"></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section class="sa-page">
+  <header class="sa-head"><div><h1><asp:Literal ID="Title1" runat="server" /></h1><p><asp:Literal ID="Lead" runat="server" /></p></div>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportReports.aspx b/AMV3Reseller_27Aug2022_Subscription/SupportReports.aspx
+index 2213d87..a20cc34 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportReports.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportReports.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="SupportReports.aspx.cs" Inherits="AnyminuteSupportReportsPage" Title="Support Admin Reports" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v54" rel="stylesheet" /><link href="css/AnyminuteReportLayout.css?v=20261101v46" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v54" defer="defer"></script><script src="Scripts/AnyminuteReportLayout.js?v=20261101v46" defer="defer"></script></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v55" rel="stylesheet" /><link href="css/AnyminuteReportLayout.css?v=20261101v46" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v55" defer="defer"></script><script src="Scripts/AnyminuteReportLayout.js?v=20261101v46" defer="defer"></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section class="sa-page am-rl">
+  <asp:Literal ID="Head1" runat="server" />
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportResellers.aspx b/AMV3Reseller_27Aug2022_Subscription/SupportResellers.aspx
+index bc84177..cbb863b 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportResellers.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportResellers.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="SupportResellers.aspx.cs" Inherits="AnyminuteSupportResellersPage" Title="Resellers" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteAddressLookup.css?v=20261103v54" rel="stylesheet" /><link href="css/AnyminuteSupport.css?v=20261103v54" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v54" defer="defer"></script></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteAddressLookup.css?v=20261103v55" rel="stylesheet" /><link href="css/AnyminuteSupport.css?v=20261103v55" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v55" defer="defer"></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section class="sa-page">
+  <asp:Literal ID="Flash" runat="server" />
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx b/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx
+index 77a058e..75d8523 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="SupportSubscribers.aspx.cs" Inherits="AnyminuteSupportSubscribersPage" Title="Subscribers" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteAddressLookup.css?v=20261103v54" rel="stylesheet" /><link href="css/AnyminuteSupport.css?v=20261103v54" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v54" defer="defer"></script></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteAddressLookup.css?v=20261103v55" rel="stylesheet" /><link href="css/AnyminuteSupport.css?v=20261103v55" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v55" defer="defer"></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section class="sa-page">
+  <asp:Literal ID="Crumbs" runat="server" />
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx.cs b/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx.cs
+index 20aaa2a..523b339 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx.cs
+@@ -23,10 +23,31 @@ using SA = AnyminuteSupportAdmin;
+ // Subscriber Details as the default subscriber screen (header, Subscription Limits, Edit / Send Password Reset / More, deck tabs,
+ // Businesses tab columns) and Edit Subscriber with the Confirm Changes + Reason for Change step. Login & Access moved to view=access.
+ // The login email stays read-only here (v39: changes go through Change Login Email verification).
++// 2026-11-03 v55 (Reseller PPT collage s2-s8): the same screens serve a signed-in reseller (AnyminuteResellerPortal.Current()):
++// only that reseller's subscribers (AnyminuteResellerSubscriber), PPT list columns, tabs Businesses / Employees / Projects /
++// Subscription & Billing / Login & Access / Activity Log, new subscribers assigned to the reseller, plan / limit / date changes
++// only with the "upgrades" permission. Support Admin (Rsl == null) is unchanged.
+ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+ {
+     const int PageSize = 10;
+-    protected void Page_Init(object sender, EventArgs e) { SA.Require(); }
++    static RslCtx Rsl { get { return AnyminuteResellerPortal.Current(); } }
++    static bool NoUpgrade { get { var r = Rsl; return r != null && !r.Can("upgrades"); } }
++    static bool NoBiz { get { var r = Rsl; return r != null && !r.Can("businesses"); } }
++    protected void Page_Init(object sender, EventArgs e)
++    {
++        var r = Session["UserId"] == null ? null : Rsl;
++        if (r == null) { SA.Require(); return; }
++        if (!r.Can("subscribers")) Response.Redirect("ResellerDashboard.aspx", true);
++    }
++    // v55: reseller pages never link into Support Admin-only pages (plans / usage / businesses open in the Reseller portal).
++    protected override void Render(System.Web.UI.HtmlTextWriter writer)
++    {
++        if (Rsl == null) { base.Render(writer); return; }
++        var sw = new System.IO.StringWriter(CultureInfo.InvariantCulture);
++        base.Render(new System.Web.UI.HtmlTextWriter(sw));
++        writer.Write(sw.ToString().Replace("SupportPlans.aspx?view=usage", "ResellerDashboard.aspx?view=usage").Replace("SupportPlans.aspx", "ResellerDashboard.aspx?view=plans")
++            .Replace("SupportBusinesses.aspx?q=", "ResellerDashboard.aspx?view=businesses&amp;q="));
++    }
+     static string Sub(int user) { return "SUB-" + user.ToString("000", CultureInfo.InvariantCulture); }
+     static string Initials(string name) { var p = name.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); return p.Length == 0 ? "?" : (p[0].Substring(0, 1) + (p.Length > 1 ? p[p.Length - 1].Substring(0, 1) : "")).ToUpperInvariant(); }
+     // v45 PPT 01 s3/s4/s6: line icons (inline SVG, currentColor) so the screens carry the slide icons instead of emoji.
+@@ -83,7 +104,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+     }
+     DataTable Subscribers(SqlConnection c, int user)
+     {
+-        bool sec = SA.Has(c, "AnyminuteLoginSecurity"), last = sec && AnyminuteEmployeeEditor.HasColumn(c, null, "AnyminuteLoginSecurity", "LastLoginDate");
++        bool sec = SA.Has(c, "AnyminuteLoginSecurity"), last = sec && AnyminuteEmployeeEditor.HasColumn(c, null, "AnyminuteLoginSecurity", "LastLoginDate"); var rsl = Rsl;
+         return SA.Q(c, @"SELECT u.UserId,u.EmployeeId,u.Email,u.Status,u.Is_First_Time_Login,LTRIM(RTRIM(ISNULL(ae.FirstName,'')+' '+ISNULL(ae.MiddleName,'')+' '+ISNULL(ae.LastName,''))) Name,ae.MobilePhone,
+             pl.PlanName,pl.Id PlanRowId,pl.StartDate PlanStart,pl.EndDate NextBilling,pl.Business PlanBiz,pl.No_Of_Users PlanUsers,ae.FirstName,ae.MiddleName,ae.LastName,ea.MainPhone,
+             LTRIM(RTRIM(ISNULL(ea.StreetNo,'')+' '+ISNULL(NULLIF(ea.NumberSuffix,'Please Select'),'')+' '+ISNULL(NULLIF(ea.StreetName,'Please Select'),'')+' '+ISNULL(NULLIF(ea.StreetType,'Please Select'),''))) Street,COALESCE(ci.CityName,ea.City) City,COALESCE(pr.ProvinceName,ea.Province) Province,ea.Postalcode,
+@@ -94,7 +115,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+             " FROM UserAcc u LEFT JOIN AddEmployee ae ON ae.EmployeeID=u.EmployeeId LEFT JOIN EmpAddress ea ON ea.EmpAddressId=ae.ADDRESSID" +
+             " LEFT JOIN CityMaster ci ON CAST(ci.CityId AS nvarchar(50))=ea.City LEFT JOIN ProvinceMaster pr ON CAST(pr.ProvinceId AS nvarchar(50))=ea.Province" +
+             " OUTER APPLY (SELECT TOP 1 p.Id,p.PlanName,p.StartDate,p.EndDate,p.Business,p.No_Of_Users FROM PlanHistory p WHERE p.EmailId=u.Email AND ISNULL(p.IsActive,0)=1 ORDER BY p.StartDate DESC) pl" + (sec ? " LEFT JOIN AnyminuteLoginSecurity s ON s.UserId=u.UserId" : "") +
+-            " WHERE EXISTS(SELECT 1 FROM MappingTable m WHERE m.USERID=u.UserId AND m.UserTypeId=1)" + (user > 0 ? " AND u.UserId=@u" : "") + " ORDER BY u.UserId DESC", "@u", user);
++            " WHERE EXISTS(SELECT 1 FROM MappingTable m WHERE m.USERID=u.UserId AND m.UserTypeId=1)" + (user > 0 ? " AND u.UserId=@u" : "") + (rsl != null ? " AND u.UserId IN " + AnyminuteResellerPortal.Scope : "") + " ORDER BY u.UserId DESC", "@u", user, "@rsl", rsl == null ? 0 : rsl.ResellerId);
+     }
+     static bool Enabled(DataRow r) { return !Convert.ToBoolean(r["LoginDisabled"]) && (r["Status"] == DBNull.Value || Convert.ToBoolean(r["Status"])); }
+     // v47 (Nov 2 live smoke): four states, the same ones Add Subscriber writes (AnyminuteSubscriberCreate):
+@@ -121,6 +142,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+             var t = Subscribers(c, user);
+             if (t.Rows.Count != 1) { Title1.Text = "Subscriber not found"; Content.Text = "<p><a class='sa-link' href='SupportSubscribers.aspx'>Back to Subscribers</a></p>"; return; }
+             var r = t.Rows[0]; string view = SA.Get("view");
++            if (Rsl != null && (view == "support" || (view == "bizedit" && NoBiz))) view = ""; // v55: no Support History; Edit Business needs "businesses"
+             string crumb = view == "history" ? "Login Activity History" : view == "reset" ? "Send Password Reset" : view == "edit" ? "Edit Subscriber" : view == "access" ? "Login &amp; Access" : view == "updated" ? "Edit Subscriber" : view == "bizedit" ? "Edit Business" : "";
+             // v45 PPT 01 s3/s4/s6: home-icon breadcrumb "Subscribers > Subscriber Details" (Edit: "Subscribers > Edit Subscriber").
+             Crumbs.Text = CrumbBar(crumb.Length == 0 ? CrumbSep("<span>Subscriber Details</span>") : view == "edit" || view == "updated" ? CrumbSep("<span>Edit Subscriber</span>") : CrumbSep("<a href='SupportSubscribers.aspx?user=" + user + "'>Subscriber Details</a>") + CrumbSep("<span>" + crumb + "</span>"));
+@@ -171,12 +193,13 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+         // v42 PPT 01 s2 "Recommended three-dot Actions menu" (labels / descriptions as on the slide)
+         // v51 (held note): "View Subscriber Details" removed - the list has its own View button.
+         return a(b + "&amp;view=edit", "&#9998;", "Edit Subscriber", "Update personal and contact information")
+-            + a(b + "&amp;view=access", "&#128274;", "Manage Login &amp; Access", "Enable or disable access, send reset link") + a(b + "&amp;view=edit#plan", "&#9636;", "Change Subscription Plan", "Authorized plan upgrade or downgrade")
++            + a(b + "&amp;view=access", "&#128274;", "Manage Login &amp; Access", "Enable or disable access, send reset link") + (NoUpgrade ? "" : a(b + "&amp;view=edit#plan", "&#9636;", "Change Subscription Plan", "Authorized plan upgrade or downgrade"))
+             + a(b + "&amp;view=billing", "&#128200;", "View Usage &amp; Limits", "Business, employee and project allowances") + a(b + "&amp;view=history", "&#8634;", "View Activity Log", "Account changes and support history")
+             + a(b + "&amp;view=access", "&#10006;", "Suspend Subscriber", "Restricted action requiring confirmation");
+     }
+     void List(SqlConnection c)
+     {
++        if (Rsl != null) { RList(c); return; }
+         Title1.Text = "Subscriber Management"; Lead.Text = "Create subscribers, activate accounts, manage businesses, employees and projects.";
+         string q = SA.Get("q"), plan = SA.Get("plan"), st = SA.Get("status"); int page; if (!Int32.TryParse(SA.Get("page"), out page) || page < 1) page = 1;
+         int size; if (!Int32.TryParse(SA.Get("size"), out size) || !Sizes.Contains(size)) size = PageSize;
+@@ -227,6 +250,38 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+         sb.Append(page < pages ? "<a href='" + pg(page + 1) + "' aria-label='Next page'>&rsaquo;</a>" : "<span class='sa-pg-off' aria-hidden='true'>&rsaquo;</span>").Append("</nav></div></div>");
+         Content.Text = sb.ToString();
+     }
++    // v55 Reseller PPT s2 "Subscriber Management": search + Plan / Status filters + Clear / Search, columns #, Subscriber Name, Plan Name,
++    // Businesses, Employees, Projects, Status, Actions (View + three-dot Subscriber Actions); "Showing x to y of z subscribers" + per page + pager.
++    void RList(SqlConnection c)
++    {
++        Title1.Text = "Subscriber Management"; Lead.Text = "Create subscribers, manage businesses, employees and projects.";
++        HeadActions.Text = "<a class='sa-btn' href='SupportSubscribers.aspx?view=add'>" + Ic("plus") + " Add Subscriber</a>";
++        string q = SA.Get("q"), plan = SA.Get("plan"), st = SA.Get("status"); int page; if (!Int32.TryParse(SA.Get("page"), out page) || page < 1) page = 1;
++        int size = SA.PageSizeArg(PageSize);
++        var all = Subscribers(c, 0).Rows.Cast<DataRow>().ToList();
++        var rows = all.Where(r => (q.Length == 0 || (Name(r) + " " + SA.S(r["Email"]) + " " + SA.S(r["MobilePhone"]) + " " + SA.S(r["MainPhone"])).IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0)
++            && (plan.Length == 0 || SA.S(r["PlanName"]) == plan) && (st.Length == 0 || StatusOf(r) == st)).ToList();
++        int pages = Math.Max(1, (rows.Count + size - 1) / size); if (page > pages) page = pages;
++        string bq = "SupportSubscribers.aspx?q=" + HttpUtility.UrlEncode(q) + "&plan=" + HttpUtility.UrlEncode(plan) + "&status=" + HttpUtility.UrlEncode(st);
++        var sb = new StringBuilder("<div class='sa-card'><div class='sa-filters' data-sa-get='SupportSubscribers.aspx'><input type='hidden' name='size' value='").Append(size).Append("' /><label class='sa-grow sa-search'><span class='sr-only'>Search</span><i aria-hidden='true'>").Append(Ic("search")).Append("</i><input type='search' name='q' value='").Append(SA.A(q)).Append("' placeholder='Search by name, email or phone...' /></label>")
++          .Append("<label><span>Plan</span><select name='plan'>").Append(SA.Options(all.Select(r => SA.S(r["PlanName"])).Where(x => x.Length > 0).Distinct().OrderBy(x => x), plan, "All Plans")).Append("</select></label>")
++          .Append("<label><span>Status</span><select name='status'>").Append(SA.Options(new[] { "Active", "Inactive", "Pending", "Suspended" }, st, "All Statuses")).Append("</select></label>")
++          .Append("<a class='sa-btn sa-btn-outline' href='SupportSubscribers.aspx'>").Append(Ic("refresh")).Append(" Clear</a><button type='button' class='sa-btn' data-sa-apply='1'>").Append(Ic("search")).Append(" Search</button></div>");
++        sb.Append("<div class='sa-table-wrap'><table class='sa-table sa-sub-list sa-rsl-subs'><thead><tr><th>#</th><th>Subscriber Name</th><th>Plan Name</th><th class='sa-c'>Businesses</th><th class='sa-c'>Employees</th><th class='sa-c'>Projects</th><th>Status</th><th class='sa-c'>Actions</th></tr></thead><tbody>");
++        int n = (page - 1) * size;
++        foreach (var r in rows.Skip((page - 1) * size).Take(size))
++        {
++            int u = Convert.ToInt32(r["UserId"]); string b = "SupportSubscribers.aspx?user=" + u, sts = StatusOf(r);
++            int[] k; try { k = Counts(c, r); } catch (SqlException) { k = new[] { 0, 0, 0 }; }
++            sb.Append("<tr><td>").Append(++n).Append("</td><td><a class='sa-link' href='").Append(b).Append("'>").Append(SA.H(Name(r))).Append("</a></td><td>").Append(SA.S(r["PlanName"]).Length > 0 ? SA.H(PlanLabel(SA.S(r["PlanName"]))) : "&mdash;")
++              .Append("</td><td class='sa-c'>").Append(k[0]).Append("</td><td class='sa-c'>").Append(k[1]).Append("</td><td class='sa-c'>").Append(k[2]).Append("</td><td>").Append(SA.Pill(sts, Tone(sts)))
++              .Append("</td><td class='sa-c sa-nowrap'><a class='sa-btn sa-btn-sm sa-btn-outline' href='").Append(b).Append("'>View</a> <details class='sa-menu'><summary class='sa-kebab' aria-label='Subscriber actions'>").Append(Ic("vmore"))
++              .Append("</summary><div class='sa-menu-pop'><h4>Subscriber Actions</h4><small>").Append(SA.H(Name(r))).Append("</small>").Append(Menu(u)).Append("</div></details></td></tr>");
++        }
++        if (rows.Count == 0) sb.Append("<tr><td colspan='8' class='sa-empty'>").Append(all.Count == 0 ? "No subscribers yet. Use + Add Subscriber to create your first subscriber." : "No subscribers found.").Append("</td></tr>");
++        sb.Append("</tbody></table></div>").Append(SA.Pager46(rows.Count, page, size, bq, "subscriber")).Append("</div>");
++        Content.Text = sb.ToString();
++    }
+     // v42 PPT 01 s3/s4 Subscriber Details; v45 laid out as on the slides: large avatar, name + status, PLAN | Subscriber since,
+     // Edit / Send Password Reset / More; Email + Phone, Address, Activation + Next Billing Date icon columns;
+     // Subscription Limits (PLAN) with Upgrade Plan + settings and the Businesses / Employees / Projects tiles.
+@@ -240,7 +295,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+             + "<div class='sa-sd-btns'><a class='sa-btn sa-btn-outline' href='" + b + "&amp;view=edit'>" + Ic("edit") + " Edit</a><a class='sa-btn sa-btn-outline' href='" + b + "&amp;view=reset'>" + Ic("mail") + " Send Password Reset</a>" + MoreMenu(r, SA.Get("view") != "bizedit" && SA.Get("view") != "access") + "</div></div>"
+             + "<div class='sa-sd-body'><div class='sa-sd-info'><div class='sa-sd-col'>" + ii("mail", "Email", SA.H(r["Email"]), false) + ii("phone", "Phone", SA.H(phone), true) + "</div><div class='sa-sd-col'>" + ii("pin", "Address", SA.H(addr), false) + "</div>"
+             + "<div class='sa-sd-col'>" + ii("cal", "Activation Date", SA.S(r["Since"]).Length > 0 ? SA.Day(r["Since"]) : "", true) + ii("cal", "Next Billing Date", SA.S(r["NextBilling"]).Length > 0 ? SA.Day(r["NextBilling"]) : "", true) + "</div></div>"
+-            + "<div class='sa-sd-limits'><div class='sa-sd-limhead'><h3>Subscription Limits" + (plan.Length > 0 ? " (" + SA.H(plan) + ")" : "") + "</h3><a class='sa-btn sa-btn-outline sa-btn-sm' href='" + b + "&amp;view=edit#plan'>Upgrade Plan</a><a class='sa-icon-btn' href='" + b + "&amp;view=edit#plan' title='Manage Custom Limits' aria-label='Manage Custom Limits'>" + Ic("gear") + "</a></div>"
++            + "<div class='sa-sd-limits'><div class='sa-sd-limhead'><h3>Subscription Limits" + (plan.Length > 0 ? " (" + SA.H(plan) + ")" : "") + "</h3>" + (NoUpgrade ? "" : "<a class='sa-btn sa-btn-outline sa-btn-sm' href='" + b + "&amp;view=edit#plan'>Upgrade Plan</a><a class='sa-icon-btn' href='" + b + "&amp;view=edit#plan' title='Manage Custom Limits' aria-label='Manage Custom Limits'>" + Ic("gear") + "</a>") + "</div>"
+             + "<div class='sa-tiles'>" + Tile("biz", "blue", "Businesses", n[0], SA.S(r["PlanBiz"])) + Tile("users", "green", "Employees", n[1], SA.S(r["PlanUsers"])) + Tile("folder", "purple", "Projects", n[2], projLimit) + "</div></div></div></div>";
+     }
+     // v50 PPT s1 (access): avatar, name, SUB-ID, email | Current Plan + View Plan Details | Subscriber Since | Active.
+@@ -274,6 +329,9 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+         int user = Convert.ToInt32(r["UserId"]); int[] n; try { n = Counts(c, r); } catch (SqlException) { n = null; }
+         Func<string, string, string, string> t = (key, label, href) => "<a href='" + href + "'" + (key == on ? " class='on' aria-current='page'" : "") + ">" + label + "</a>";
+         string u = "SupportSubscribers.aspx?user=" + user + "&amp;view="; Func<int, string> k = i => n == null ? "" : " (" + n[i] + ")";
++        if (Rsl != null) // v55 Reseller PPT s5: Businesses / Employees / Projects / Subscription & Billing / Login & Access / Activity Log
++            return "<nav class='sa-tabs sa-tabs45'>" + t("businesses", "Businesses" + k(0), u + "businesses") + t("employees", "Employees" + k(1), u + "employees") + t("projects", "Projects" + k(2), u + "projects")
++                + t("billing", "Subscription &amp; Billing", u + "billing") + t("access", "Login &amp; Access", u + "access") + t("history", "Activity Log", u + "history") + "</nav>";
+         return "<nav class='sa-tabs sa-tabs45'>" + t("businesses", "Businesses" + k(0), u + "businesses") + t("employees", "Employees" + k(1), u + "employees") + t("projects", "Projects" + k(2), u + "projects")
+             + t("billing", "Subscription &amp; Billing", u + "billing") + t("access", "Login &amp; Access", u + "access") + t("support", "Support History", u + "support") + t("history", "Login Activity History", u + "history") + "</nav>";
+     }
+@@ -293,7 +351,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+         // Support has no business-create path of its own (business creation is the owner's session flow: Sp_InsertBusiness +
+         // AssginBussiness + MappingTable + address), so Add Business explains where it is done instead of inserting half a business.
+         var sb = new StringBuilder("<div class='sa-card'><div class='sa-panel-head sa-biz-head'><div><h2>Businesses</h2><small>List of businesses under this subscriber.</small></div>")
+-            .Append("<details class='sa-menu sa-addbiz'><summary class='sa-btn'>").Append(Ic("plus")).Append(" Add Business</summary><div class='sa-menu-pop'><h4>Add Business</h4><p>New businesses are added by the subscriber from their own account (Business &rsaquo; Add Business), so ownership, address and plan limits are applied by the standard business setup.</p><p><b>Plan limit:</b> ")
++            .Append(NoBiz ? "</div><div hidden>" : "").Append("<details class='sa-menu sa-addbiz'><summary class='sa-btn'>").Append(Ic("plus")).Append(" Add Business</summary><div class='sa-menu-pop'><h4>Add Business</h4><p>New businesses are added by the subscriber from their own account (Business &rsaquo; Add Business), so ownership, address and plan limits are applied by the standard business setup.</p><p><b>Plan limit:</b> ")
+             .Append(active).Append(" of ").Append(lim.Length > 0 ? SA.H(lim) : "&mdash;").Append(" businesses used.</p><a class='sa-btn sa-btn-sm sa-btn-outline' href='").Append(b).Append("&amp;view=edit#plan'>Upgrade Plan</a></div></details></div>");
+         sb.Append("<div class='sa-table-wrap'><table class='sa-table sa-biz-table'><thead><tr><th>Sl. No.</th><th>Business Name</th><th>Industry</th><th class='sa-c'>No. of Employees</th><th class='sa-c'>No. of Projects</th><th>Status</th><th class='sa-c'>Actions</th></tr></thead><tbody>");
+         int i = 0;
+@@ -370,7 +428,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+           .Append(meta("id", "Subscriber ID", Sub(u))).Append(meta("cal", "Activation Date", SA.S(r["Since"]).Length > 0 ? SA.Day(r["Since"]) : "&mdash;")).Append(meta("cal", "Next Billing Date", SA.S(r["NextBilling"]).Length > 0 ? SA.Day(r["NextBilling"]) : "&mdash;")).Append("</div></div></div>");
+         sb.Append("<div class='sa-card'><h2>Personal Information</h2><div class='sa-grid3'>").Append(f(0, "text", " maxlength='150'", true)).Append(f(1, "text", " maxlength='50'", false)).Append(f(2, "text", " maxlength='50'", true)).Append("</div></div>")
+           .Append("<div class='sa-card'><h2>Contact Information</h2><div class='sa-grid3'>").Append(f(3, "email", " maxlength='50'", true)).Append(f(4, "tel", " maxlength='30'", true)).Append(f(5, "tel", " maxlength='30'", false)).Append("</div></div>");
+-        sb.Append("<div class='sa-card' id='plan'><div class='sa-panel-head'><h2>Subscription Plan &amp; Limits</h2>").Append(plan ? "<button type='button' class='sa-btn sa-btn-outline' data-sa-reveal='sa-plan-pick'>" + Ic("swap") + " Change Plan</button>" : "").Append("</div>");
++        sb.Append("<div class='sa-card' id='plan'><div class='sa-panel-head'><h2>Subscription Plan &amp; Limits</h2>").Append(plan && !NoUpgrade ? "<button type='button' class='sa-btn sa-btn-outline' data-sa-reveal='sa-plan-pick'>" + Ic("swap") + " Change Plan</button>" : "").Append("</div>");
+         if (!plan) sb.Append("<p class='sa-muted'>No active plan record, so plan, limits and dates cannot be changed here.</p><input type='hidden' name='ed_plan' value='").Append(SA.A(v[7])).Append("' />");
+         else
+         {
+@@ -379,14 +437,14 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+               .Append("<div class='sa-plan-use'>").Append(Tile("biz", "blue", "Businesses", n[0], v[8])).Append(Tile("users", "green", "Employees", n[1], v[9])).Append(Tile("folder", "purple", "Projects", n[2], proj)).Append("</div></div>")
+               .Append("<div class='sa-limits45' data-sa-limits='1'>").Append(f(8, "number", " min='0' max='100000' readonly data-sa-lim='b'", false)).Append(f(9, "number", " min='0' max='100000' readonly data-sa-lim='e'", false))
+               .Append("<label class='sa-field'><span>Max Projects</span><input id='ed_proj' value='").Append(SA.A(proj.Length > 0 ? proj : "Custom")).Append("' readonly /></label>")
+-              .Append("<button type='button' class='sa-btn sa-btn-outline' data-sa-unlock='1'>").Append(Ic("gear")).Append(" Manage Custom Limits</button></div>");
++              .Append(NoUpgrade ? "" : "<button type='button' class='sa-btn sa-btn-outline' data-sa-unlock='1'>" + Ic("gear") + " Manage Custom Limits</button>").Append("</div>");
+         }
+         sb.Append("</div><div class='sa-card' id='sa-status'><h2>Account Status</h2><div class='sa-status45'><label class='sa-field'><span>Status <em class='sa-req'>*</em></span><select name='ed_status' class='sa-status-sel")
+           .Append(v[6] == "Active" ? " on" : "").Append("' onchange=\"this.className='sa-status-sel'+(this.value=='Active'?' on':'')\">");
+         // v47: all four states (was Active / Inactive only, so a Pending subscriber showed "Active" and saving activated it).
+         foreach (var o in AStatus) sb.Append("<option").Append(v[6] == o ? " selected" : "").Append(">").Append(o).Append("</option>");
+         sb.Append("</select></label><div class='sa-flash sa-info'>").Append(Ic("info")).Append("<span>Suspended or inactive accounts cannot sign in to the system.<br />You can send an activation invitation to pending accounts.</span></div></div></div>")
+-          .Append("<div class='sa-card'><h2>Subscription Dates</h2>").Append(plan ? "<div class='sa-grid2'>" + f(10, "date", "", true) + f(11, "date", "", true) + "</div>" : "<p class='sa-muted'>No active plan record.</p>").Append("</div>");
++          .Append("<div class='sa-card'><h2>Subscription Dates</h2>").Append(plan ? "<div class='sa-grid2'>" + f(10, "date", NoUpgrade ? " readonly" : "", true) + f(11, "date", NoUpgrade ? " readonly" : "", true) + "</div>" : "<p class='sa-muted'>No active plan record.</p>").Append("</div>");
+         // v53 (NOTES_v53 #4, img_02 -> img_01): collapsed Address card (current address or Please Select + Manage Address);
+         // Manage Address reveals the same Address Lookup + Address Details as Edit Reseller in place (no SupportAddresses.aspx).
+         { bool aOpen = IsPostBack && AD.Opened("ed_addr"); var sa0 = SubAddr(r);
+@@ -651,6 +709,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+             var t = Subscribers(c, u); if (t.Rows.Count != 1) { SA.Flash("Subscriber not found."); Back(0, null); return; }
+             var r = t.Rows[0]; string key = u.ToString(CultureInfo.InvariantCulture), email = SA.S(r["Email"]);
+             if (op == "edit" || op == "editsave") { EditPost(c, r, op == "editsave"); return; }
++            if (op == "bizsave" && NoBiz) { SA.Flash("Your reseller account cannot edit businesses."); Back(u, ""); return; }
+             if (op == "bizsave") { Title1.Text = ""; Crumbs.Text = CrumbBar(CrumbSep("<a href='SupportSubscribers.aspx?user=" + u + "'>Subscriber Details</a>") + CrumbSep("<span>Edit Business</span>")); BizPost(c, r); return; }
+             if (op == "access")
+             {
+@@ -664,7 +723,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+                     AnyminuteTimesheetRepair.Execute(c, tx, @"IF NOT EXISTS(SELECT 1 FROM AnyminuteLoginSecurity WHERE UserId=@u) INSERT AnyminuteLoginSecurity(UserId,LoginDisabled,RequirePasswordChange,TwoFactorEnabled,UpdatedAtUTC,UpdatedBy) VALUES(@u,0,0,0,SYSUTCDATETIME(),@a);
+                         UPDATE AnyminuteLoginSecurity SET LoginDisabled=@d,UpdatedAtUTC=SYSUTCDATETIME(),UpdatedBy=@a WHERE UserId=@u", "@u", u, "@a", SA.ActorId(), "@d", !enable);
+                     if (enable) AnyminuteTimesheetRepair.Execute(c, tx, "UPDATE UserAcc SET Status=1 WHERE UserId=@u AND Status=0", "@u", u);
+-                    int ended = enable ? 0 : AnyminuteSessionGuard.Revoke(c, tx, u, "Login access disabled by Support Admin");
++                    int ended = enable ? 0 : AnyminuteSessionGuard.Revoke(c, tx, u, Rsl != null ? "Login access disabled by Reseller" : "Login access disabled by Support Admin");
+                     SA.Audit(c, tx, "Login", key, enable ? "Login Access Enabled" : "Login Access Disabled", was ? "Enabled" : "Disabled", enable ? "Enabled" : "Disabled", null, null, reason + (enable ? "" : ended >= 0 ? " [Sessions revoked: " + ended + "]" : ""));
+                     tx.Commit();
+                     if (!enable) AnyminuteSessionGuard.Revoked(u);
+@@ -769,6 +828,9 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+             bool h1 = DateTime.TryParseExact(v[11], "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out d1), h2 = DateTime.TryParseExact(v[12], "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out d2);
+             if (!h1 || !h2) errs.Add("Enter valid subscription dates."); else if (d2 <= d1) errs.Add("Next Billing Date must be after the Start Date.");
+             errs.AddRange(AnyminuteSupportAddress.Validate(AddrOf(v), false));
++            var rsl = Rsl; // v55: reseller subscriber limit (AnyminuteReseller.MaxSubscribers, NULL = unlimited)
++            if (rsl != null && rsl.MaxSubscribers.HasValue && Convert.ToInt32(SA.Q(c, "SELECT COUNT(*) FROM AnyminuteResellerSubscriber WHERE ResellerID=@r", "@r", rsl.ResellerId).Rows[0][0]) >= rsl.MaxSubscribers.Value)
++                errs.Add("Your reseller account has reached its subscriber limit (" + rsl.MaxSubscribers.Value + "). Contact AnyMinute Support to raise it.");
+             if (errs.Count > 0) { Flash.Text = "<div class='sa-flash sa-warn'>Please fix the following:<ul>" + String.Join("", errs.Select(m => "<li>" + SA.H(m) + "</li>").ToArray()) + "</ul></div>"; AddView(c, v); return; }
+             var adr = AddrOf(v); v[20] = adr.Postal;
+             string addr = AnyminuteSupportAddress.Compose(adr);
+@@ -801,6 +863,10 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+                 log4net.LogManager.GetLogger("Log").Error("Support Add Subscriber failed", ex);
+                 Flash.Text = "<div class='sa-flash sa-warn'>The subscriber could not be created: " + SA.H(ex.Message) + "</div>"; AddView(c, v); return;
+             }
++            // v55: a subscriber created by a reseller is assigned to that reseller (same row Support Admin > Resellers > Assign writes).
++            if (rsl != null)
++                try { SA.X(c, null, "IF NOT EXISTS(SELECT 1 FROM AnyminuteResellerSubscriber WHERE UserId=@u) INSERT AnyminuteResellerSubscriber(UserId,ResellerID,AssignedBy) VALUES(@u,@i,@b)", "@u", user, "@i", rsl.ResellerId, "@b", SA.ActorName()); }
++                catch (SqlException ex) { log4net.LogManager.GetLogger("Log").Error("Reseller subscriber assignment failed for user " + user, ex); }
+             string sent = null;
+             if (input.Invite) { try { sent = AnyminuteSubscriberCreate.SendInvitation(c, user, input.TempPassword); } catch (Exception ex) { sent = "The invitation email could not be sent: " + ex.Message; } }
+             // v45: the temporary password is shown once to Support (like the v44 reseller screen) and is in the welcome email.
+@@ -820,7 +886,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+     {
+         int u = Convert.ToInt32(r["UserId"]); var cur = Current(r); var nv = EF.Select(k => SA.Form(k).Trim()).ToArray(); bool plan = r["PlanRowId"] != DBNull.Value;
+         if (!AStatus.Contains(nv[6])) nv[6] = cur[6]; // v47: unknown / missing value keeps the current status (never silently Active)
+-        if (!plan) { nv[7] = cur[7]; nv[8] = cur[8]; nv[9] = cur[9]; nv[10] = cur[10]; nv[11] = cur[11]; }
++        if (!plan || NoUpgrade) { nv[7] = cur[7]; nv[8] = cur[8]; nv[9] = cur[9]; nv[10] = cur[10]; nv[11] = cur[11]; } // v55: reseller without "upgrades" keeps plan, limits and dates
+         var nAddr = AD.FromForm("ed_addr"); nv[12] = AD.Compose(nAddr);
+         if (!AD.Opened("ed_addr")) { nv[12] = cur[12]; nAddr = SubAddr(r); } // v53: Manage Address not opened = address unchanged
+         else { // untouched form = no change, even when a legacy province value has no match in the Province / State select
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportTickets.aspx b/AMV3Reseller_27Aug2022_Subscription/SupportTickets.aspx
+index eb76363..952e4bb 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportTickets.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportTickets.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="SupportTickets.aspx.cs" Inherits="AnyminuteSupportTicketsPage" Title="Support Tickets" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v54" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v54" defer="defer"></script></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v55" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v55" defer="defer"></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section class="sa-page">
+  <header class="sa-head"><div><h1>Support Tickets</h1><p>View and manage support tickets from subscribers.</p></div>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/notes/fix_20261103_v55/FIX_REPORT_v55.md b/AMV3Reseller_27Aug2022_Subscription/notes/fix_20261103_v55/FIX_REPORT_v55.md
+new file mode 100644
+index 0000000..b3b8241
+--- /dev/null
++++ b/AMV3Reseller_27Aug2022_Subscription/notes/fix_20261103_v55/FIX_REPORT_v55.md
+@@ -0,0 +1,45 @@
++# AnyMinute v55-20261103 — Fix report (local build; no CloudAgent, no push, no live smoke)
++Base: v54 `22830cc`. Meta `anyminute-build` = `v55-20261103` (Main.master, Modern.master). CSS/JS `?v=20261103v55`. Web.config untouched. **No DB schema change** (uses REQUIRED_09 AnyminuteReseller / AnyminuteResellerSubscriber). Spec: NOTES_v55.md + RESELLER_SCREENS.jpg (slides 1-9).
++
++## What a reseller login gets now
++A reseller signs in with the UserAcc login that `AnyminuteResellers.EnsureLogin` created for `AnyminuteReseller.LoginEmail`.
++- **Detection** — new `App_Code/AnyminuteResellerPortal.cs` `Current()`: not Support/SuperAdmin, session login = `RS.LoginUser(email)`, reseller row Active. Permissions CSV parsed (subscribers, businesses, plans, usage, reports, upgrades). Cached 2 min per session (keyed by UserId).
++- **Login redirect** — Login.aspx.cs: the UserTypeid 0 / Admin branch sends a reseller to `ResellerDashboard.aspx` (accountants unchanged → Dashboard.aspx). Modern.master also redirects a reseller who opens Dashboard.aspx (brand link / bookmarks).
++- **Sidebar** — `AnyminuteUiNavigation.Render`: pure reseller gets only the PPT nav: Dashboard · Subscribers · Businesses · Subscription Plans · Usage & Limits · Reports · Settings (permission-gated; Settings always). `li.am-sa-nav` reuses the pinned Support drawer, so content is never under the sidebar. No Support Admin or owner menus.
++- **Header** — AnyMinute mark + "Reseller" label; Welcome = reseller name, initials avatar; help "?" removed.
++- **Data scope** — every reseller screen only reads `AnyminuteResellerSubscriber` rows of that ResellerID.
++
++## Screen by screen
++| # | Screen | Shipped |
++|---|---|---|
++| 1 | Dashboard | `ResellerDashboard.aspx`: Total / Active / Inactive Subscribers, Total Businesses / Employees / Projects (scoped, set-based SQL) + Quick Actions Add Subscriber, View Subscribers, Subscription Plans, Usage Limits, Reports (each permission-gated). |
++| 2 | Subscriber Management | `SupportSubscribers.aspx` in reseller mode (`RList`): search, Plan / Status filters, Clear / Search; columns #, Subscriber Name, Plan Name, Businesses, Employees, Projects, Status, Actions (View + ⋮); "Showing x to y of z subscribers", per page, pager. |
++| 3 | Add Subscriber | Same Add Subscriber form/confirm/created flow; on create the subscriber is inserted into `AnyminuteResellerSubscriber` for this reseller. `MaxSubscribers` enforced. |
++| 4 | Edit Subscriber | Same Edit page (header card, Send Password Reset / More, Personal, Contact, Plan & Limits, Save + Confirm/Reason). Without `upgrades`: Change Plan / Manage Custom Limits hidden, dates read-only, and **server keeps plan, limits and dates** on save. |
++| 5 | Subscriber Details | Sticky header + tabs **Businesses · Employees · Projects · Subscription & Billing · Login & Access · Activity Log** (Support History tab removed for resellers; `view=support` falls back to Businesses). Upgrade Plan / gear hidden without `upgrades`; Add Business popover hidden without `businesses`. |
++| 6 | Login & Access | Inside the sticky shell, Login & Access selected (existing v53 view). |
++| 7 | Send Password Reset | Inside the sticky shell, Login & Access selected (v54 pattern), Cancel → access. |
++| 8 | Login Activity History | Inside the sticky shell, Activity Log tab selected. |
++| 9 | Subscription Plans | `ResellerDashboard.aspx?view=plans`: catalogue (#, Plan, Description, Monthly / Annual CAD, Businesses, Employees, Projects, Status, View) from `AnyminuteSubscriptionPlan`; View opens a read-only plan card. |
++| – | Businesses nav | `?view=businesses`: businesses under the reseller's subscribers (search, pager, View → subscriber Businesses tab). |
++| – | Usage & Limits | `?view=usage`: per subscriber Businesses / Employees / Projects used vs plan limits (read-only). |
++| – | Reports | Existing `SupportReports.aspx` reseller scope (v49), shown only with `reports`. |
++| – | Settings | `?view=settings`: reseller account summary (name, ID, permissions, subscriber limit) + My Profile, Login & Security, Change Password. |
++
++Links inside reseller subscriber screens that pointed at Support-only pages are rewritten in `Render` (SupportPlans → plans view, SupportPlans?view=usage → usage view, SupportBusinesses?q= → businesses view). Support Admin rendering untouched (`Rsl == null` → `base.Render`).
++
++## Deferred
++- **+ Add Plan** (slide 9): reseller permission is "View subscription plans" only; no reseller plan-create API — not shown.
++- Edit Business inside Details for resellers without `businesses` is blocked server-side (Edit buttons on the Businesses tab still render and fall back to Details).
++- Stripe billing, API permission, reseller self-edit of its own reseller record.
++- URL stays `SupportSubscribers.aspx` for reseller subscriber screens (same precedent as v49 `SupportReports.aspx`) to keep one code path with Support's v53/v54 fixes.
++
++## Checks
++- mcs: App_Code.dll builds (incl. AnyminuteResellerPortal.cs); ResellerDashboard.aspx, SupportSubscribers.aspx, Login.aspx, Modern.master compile against it.
++- grep: Login.aspx.cs reseller redirect → ResellerDashboard.aspx; Modern.master Dashboard→ResellerDashboard; SupportSubscribers `Page_Init` still `SA.Require()` for non-reseller; Support NavHtml path unchanged.
++
++## Risks
++- Untested against a live DB/IIS (no live smoke by brief). SQL uses existing tables/columns only (same as SupportSubscribers / AnyminuteResellers).
++- If the `AnyminuteResellerSubscriber` insert fails after Add Subscriber, the subscriber exists but is not visible to the reseller (logged; Support can assign under Resellers).
++- `Current()` cache is 2 min: permission or status changes by Support Admin take up to 2 min to apply to an open reseller session (Disable Login still revokes sessions immediately).
++- Reseller audit rows show the reseller as "Changed By" (SA.ActorName) — same tables as Support.
+diff --git a/AMV3Reseller_27Aug2022_Subscription/notes/fix_20261103_v55/NOTES_v55.md b/AMV3Reseller_27Aug2022_Subscription/notes/fix_20261103_v55/NOTES_v55.md
+new file mode 100644
+index 0000000..087caa0
+--- /dev/null
++++ b/AMV3Reseller_27Aug2022_Subscription/notes/fix_20261103_v55/NOTES_v55.md
+@@ -0,0 +1,48 @@
++# AnyMinute v55 — Reseller portal (Fix all)
++
++Source: RESELLER_SCREENS.jpg / slide_01..09.png (held 2026-11-03). Base: v54 `22830cc`.
++Local lean cumulative. NO CloudAgent. NO push. NO live smoke.
++
++## Goal
++Ship the **Reseller login portal** matching the 9 PPT mocks. Today a reseller UserAcc (MotherOrg Admin via EnsureLogin) lands on Dashboard.aspx with the normal business menu; only “Reseller Reports” is added. Build dedicated Reseller screens + nav + post-login redirect.
++
++## Auth / scope (existing)
++- Detect reseller: `AnyminuteSupportReportsScope.ResellerScope()` / LoginEmail match on Active AnyminuteReseller (extend helper if needed into `AnyminuteResellers` e.g. `Current()`).
++- Data scope: only `AnyminuteResellerSubscriber` rows for that ResellerID (+ their businesses/employees/projects).
++- Permissions CSV: `subscribers`, `businesses`, `plans`, `usage`, `reports`, `upgrades` (see PermissionList). Hide nav items the reseller lacks. Settings always OK (profile/security).
++
++## Nav (PPT sidebar)
++Dashboard · Subscribers · Businesses · Subscription Plans · Usage & Limits · Reports · Settings  
++Brand line shows **Reseller** (mock). Prefer Support-style drawer classes reused for reseller (`am-rsl-nav` or similar) so content isn’t under the sidebar. Do not show Support Admin menu or normal owner Quick Actions menu for pure reseller logins.
++
++Login.aspx (or post-login): if reseller → `ResellerDashboard.aspx` (not Dashboard.aspx).
++
++## Screens (match mocks; reuse Support CSS `sa-*` / Address lookup where useful)
++
++| # | Page | Notes |
++|---|------|--------|
++| 1 | ResellerDashboard.aspx | KPIs: Total/Active/Inactive Subscribers; Total Businesses/Employees/Projects (scoped). Quick Actions → Add Subscriber, View Subscribers, Plans, Usage, Reports (permission-gated). |
++| 2 | ResellerSubscribers.aspx list | Columns: #, Name, Plan, Businesses, Employees, Projects, Status, View+⋮. Search + Plan/Status filters + pager. |
++| 3 | Add Subscriber | Personal, Contact, Plan & Limits (Plan + Max Biz/Emp/Proj), Account Activation (Pending/Active/Inactive + Send invitation). Assign to this reseller on create. Reuse AnyminuteSubscriberCreate / SupportSubscribers add path if possible, scoped. |
++| 4 | Edit Subscriber | Header card; Send Password Reset / More; Personal, Contact, Plan & Limits; Save. Only own subscribers. |
++| 5 | Subscriber Details | Sticky header (Edit / Send Password Reset / More, contact, limits progress). Tabs: Businesses · Employees · Projects · Subscription & Billing · Login & Access · Activity Log. Businesses table + Add Business if `businesses` perm. |
++| 6 | Manage Login & Access | Current login info + Enable/Disable + Reason; Resend Invitation / Send Password Reset / View Login History. Prefer **inside sticky Details** with Login & Access selected (consistent with Support v53/v54 sticky rule) even if mock title looks standalone. |
++| 7 | Send Password Reset | Keep sticky Details + Login & Access tab (v54 pattern). Form steps as mock; Cancel → access. |
++| 8 | Login Activity History | Inside sticky shell with Activity Log tab selected (or history). Filters + table as mock. |
++| 9 | Subscription Plans | Catalogue list (from existing plans source SupportPlans uses). **+ Add Plan**: permission is “View subscription plans” — show list/View as mock; do **not** invent reseller plan-create unless upgrades+clear API exists; if Add is shown, gate or defer with note in FIX_REPORT. |
++
++Also:
++- **Businesses** nav → list of businesses under their subscribers (not SupportBusinesses admin).
++- **Usage & Limits** → per-subscriber or aggregate usage vs plan limits (read-only).
++- **Reports** → existing SupportReports.aspx Reseller scope (already v49).
++- **Settings** → MyProfile / LoginSecurity links page, or lightweight ResellerSettings.
++
++## Non-goals / defer
++- Stripe billing, creating brand-new plan products as reseller, Support Admin SupportResellers changes (already v53).
++- CloudAgent, git push, live smoke.
++
++## Ship
++- Meta `v55-20261103`; CSS/JS cache bust `20261103v55`
++- Zip `/workspace/anymin/AnyMinute_Fix_20261103_v55.zip` cumulative on v54
++- FIX_REPORT_v55.md, CHANGES_v55.diff, notes in site/notes/fix_20261103_v55/
++- mcs compile new App_Code + pages

@@ -128,6 +128,8 @@ public partial class Login : System.Web.UI.Page
         if (dt.Rows[0]["UserTypeid"].ToString() == "0" && dt.Rows[0]["UserType"].ToString() == "Admin")
         {
             Session["email_aac1"] = Session["email"];
+            // v55 (Reseller PPT collage): a reseller login (AnyminuteReseller.LoginEmail -> UserAcc via EnsureLogin) lands on the Reseller portal.
+            if (AnyminuteResellerPortal.Is()) { Response.Redirect("ResellerDashboard.aspx", false); return; }
             Response.Redirect("Dashboard.aspx", false); // v37: accountant / payroll-agency logins land on the PPT Accountant & Payroll Dashboard (was legacy Accountant_Dashboard.aspx)
         }
         //Added this email to approve the newly registered account for business owner only

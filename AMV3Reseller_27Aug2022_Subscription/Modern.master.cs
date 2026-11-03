@@ -6,7 +6,9 @@ public partial class AnyminuteModernMaster : System.Web.UI.MasterPage
 {
  private bool signingOut,accountantHeader;
  protected void Page_Init(object s,EventArgs e)
- {Response.ContentEncoding=System.Text.Encoding.UTF8;Response.HeaderEncoding=System.Text.Encoding.UTF8;Response.Charset="utf-8";if(Session["UserId"]==null) {Response.Redirect("Login.aspx");return;}AnyminuteModernScope.Login();Page.ViewStateUserKey=Session.SessionID;}
+ {Response.ContentEncoding=System.Text.Encoding.UTF8;Response.HeaderEncoding=System.Text.Encoding.UTF8;Response.Charset="utf-8";if(Session["UserId"]==null) {Response.Redirect("Login.aspx");return;}AnyminuteModernScope.Login();Page.ViewStateUserKey=Session.SessionID;
+  // v55: a pure reseller login never opens the owner Dashboard (brand link / old bookmarks) - it goes to the Reseller portal.
+  if(System.IO.Path.GetFileName(Request.Url.AbsolutePath).Equals("Dashboard.aspx",StringComparison.OrdinalIgnoreCase)&&AnyminuteResellerPortal.Is()){Response.Redirect("ResellerDashboard.aspx",true);return;}}
  protected void Page_Load(object s,EventArgs e)
  {
   var menu=AnyminuteUiNavigation.Load().ToList();
@@ -37,6 +39,10 @@ public partial class AnyminuteModernMaster : System.Web.UI.MasterPage
    HeaderHelp.Text="";
    AccountHelp.Text="<a href='"+HttpUtility.HtmlAttributeEncode(VirtualPathUtility.ToAbsolute("~/Help.aspx"))+"'><span data-am-icon='help' aria-hidden='true'></span>Help Center</a>";
   }
+  // v55 (Reseller PPT header): AnyMinute mark + "Reseller"; the help button moves into the account menu.
+  var rslCtx=AnyminuteResellerPortal.Current();
+  if(rslCtx!=null){LogoDefault.Visible=false;Brand.Text=AnyminuteResellerPortal.Brand;context="Reseller";HeaderHelp.Text="";accountantHeader=false;AccountHelp.Text="";
+   if(rslCtx.Name.Length>0){Welcome.Text=HttpUtility.HtmlEncode(rslCtx.Name);AccountAvatar.Text="<span class='am-ap-avatar' aria-hidden='true'>"+HttpUtility.HtmlEncode(AnyminuteAccountantDashboard.Initials(rslCtx.Name))+"</span><span class='am-ap-avatar-name'>"+HttpUtility.HtmlEncode(rslCtx.Name)+"</span>";}}
   if(!String.IsNullOrEmpty(context))WelcomeContext.Text="<small class='am-welcome-context' style='display:block;font-size:12px;font-weight:500;color:#5b6778;line-height:1.3'>"+HttpUtility.HtmlEncode(context)+"</small>";
 
   int business;
