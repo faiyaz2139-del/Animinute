@@ -1,145 +1,87 @@
-﻿using System;
-using System.Collections.Generic;
+using System;
 using System.Data;
-using System.Linq;
 using System.Text.RegularExpressions;
 using System.Web;
-using System.Web.UI;
-using System.Web.UI.WebControls;
+using SA = AnyminuteSupportAdmin;
 
+// 2026-11-03 v58 (Support Admin PPT s2/s3): editable Support Admin profile on Modern.master. Reads SupportAdmin by the signed-in
+// SupportAdminId (Session["EmployeeId"]) with a parameterised query and saves through the existing Sp_UpdateSupport. The login
+// email is read-only here (v39: changes go through Login & security verification) and is passed back unchanged.
 public partial class SupportAdminProfile : System.Web.UI.Page
 {
-    CommanClass Comm = new CommanClass();
-    SupportAdminCtrl SuppCtrl = new SupportAdminCtrl();
-    SupportAdminEntity SuppEntity = new SupportAdminEntity();
+    readonly SupportAdminCtrl SuppCtrl = new SupportAdminCtrl();
+    int Me { get { int id; Int32.TryParse(Convert.ToString(Session["EmployeeId"]), out id); return id; } }
+
+    protected void Page_Init(object sender, EventArgs e)
+    {
+        if (Session["UserId"] == null || Session["EmployeeId"] == null) { Response.Redirect("Login.aspx", true); return; }
+        SA.Require();
+    }
 
     protected void Page_Load(object sender, EventArgs e)
     {
-        if (Session["EmployeeId"] == null)
+        if (!IsPostBack) Bind();
+    }
+
+    DataRow Row()
+    {
+        using (var c = SA.Open())
         {
-            Response.Redirect("Login.aspx");
-        }
-        if (!Page.IsPostBack)
-        {
-            GetDetails(int.Parse(Session["EmployeeId"].ToString()));
+            var t = SA.Q(c, "SELECT TOP 1 * FROM SupportAdmin WHERE SupportAdminId=@s", "@s", Me);
+            return t.Rows.Count == 1 ? t.Rows[0] : null;
         }
     }
 
-    public void GetDetails(int AccId)
+    static void Pick(System.Web.UI.WebControls.DropDownList d, string v)
     {
-        DataTable dt = Comm.GetAllDataFromTable("SupportAdmin", "*", "SupportAdminId='" + Session["EmployeeId"].ToString() + "'", "");
-        ddlLegalName.SelectedValue = dt.Rows[0]["Title"].ToString();
-        txtFirstName.Text = dt.Rows[0]["FirstName"].ToString();
-        txtMiddleName.Text = dt.Rows[0]["MiddleName"].ToString();
-        txtLastName.Text= dt.Rows[0]["LastName"].ToString();
-        if(dt.Rows[0]["DOB"].ToString()!="")
-        {
-            txtdob.Text = DateTime.Parse(dt.Rows[0]["DOB"].ToString()).ToString("yyyy-MM-dd");
-        }
-       
-        ddlgender.SelectedValue = dt.Rows[0]["Gender"].ToString();
-        txtMainPhone.Text= dt.Rows[0]["Contact"].ToString();
-        txt_mobilenumber.Text= dt.Rows[0]["Mobile"].ToString();
-        txt_city.Text= dt.Rows[0]["CITY"].ToString();
-        txt_province.Text = dt.Rows[0]["Province"].ToString();
-        txtMainEmail.Text= dt.Rows[0]["Email"].ToString();
-        hfdemail.Value= dt.Rows[0]["Email"].ToString();
+        var item = d.Items.FindByValue(v ?? "");
+        if (item == null && !String.IsNullOrEmpty(v)) { item = new System.Web.UI.WebControls.ListItem(v, v); d.Items.Add(item); }
+        d.ClearSelection(); if (item != null) item.Selected = true;
     }
+
+    void Bind()
+    {
+        var r = Row();
+        if (r == null) { ProfileForm.Visible = false; Flash.Text = "<div class='sa-flash sa-warn' role='alert'>No Support Admin profile was found for this sign-in.</div>"; return; }
+        Pick(ddlLegalName, SA.S(r["Title"]));
+        txtFirstName.Text = SA.S(r["FirstName"]); txtMiddleName.Text = SA.S(r["MiddleName"]); txtLastName.Text = SA.S(r["LastName"]);
+        DateTime dob; txtdob.Text = r["DOB"] != DBNull.Value && DateTime.TryParse(SA.S(r["DOB"]), out dob) ? dob.ToString("yyyy-MM-dd") : "";
+        Pick(ddlgender, SA.S(r["Gender"]));
+        txtMainPhone.Text = SA.S(r["Contact"]); txt_mobilenumber.Text = SA.S(r["Mobile"]);
+        txt_city.Text = SA.S(r["CITY"]); txt_province.Text = SA.S(r["Province"]);
+        txtMainEmail.Text = SA.S(r["Email"]);
+    }
+
+    static readonly Regex Phone = new Regex(@"^[0-9+()\-\s.]{7,15}$");
 
     protected void btnsave_Click(object sender, EventArgs e)
     {
-        if(txtMainEmail.Text!= hfdemail.Value)
+        var r = Row();
+        if (r == null) { Bind(); return; }
+        string first = txtFirstName.Text.Trim(), last = txtLastName.Text.Trim(), phone = txtMainPhone.Text.Trim(), mobile = txt_mobilenumber.Text.Trim(), dob = txtdob.Text.Trim();
+        string err = first.Length == 0 ? "First Name is required." : last.Length == 0 ? "Last Name is required." : phone.Length == 0 ? "Main Phone is required."
+            : !Phone.IsMatch(phone) ? "Enter a valid Main Phone number." : mobile.Length > 0 && !Phone.IsMatch(mobile) ? "Enter a valid Mobile number." : null;
+        DateTime d;
+        if (err == null && dob.Length > 0 && (!DateTime.TryParseExact(dob, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out d) || d > DateTime.Today || d.Year < 1900)) err = "Enter a valid Date of Birth.";
+        if (err != null) { Flash.Text = "<div class='sa-flash sa-warn' role='alert'>" + HttpUtility.HtmlEncode(err) + "</div>"; return; }
+
+        var x = new SupportAdminEntity
         {
-            if (txtMainEmail.Text.Trim() != txtConLoginEmail.Text.Trim())
-            {
-                this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('warning!', 'Confirm Email Not Match', 'warning');", true);
-                return;
-
-            }
-        }
-        
-        int result = 0;
-
-        SuppEntity.SupportAdminId = int.Parse(Session["EmployeeId"].ToString());
-        SuppEntity.Title = ddlLegalName.SelectedValue;
-        SuppEntity.FirstName = txtFirstName.Text;
-        SuppEntity.MiddleName = txtMiddleName.Text;
-        SuppEntity.LastName = txtLastName.Text;
-        SuppEntity.DOB = txtdob.Text;
-        SuppEntity.Gender = ddlgender.SelectedValue;
-        SuppEntity.Contact = txtMainPhone.Text;
-        SuppEntity.Mobile = txt_mobilenumber.Text;
-        SuppEntity.CITY = txt_city.Text;
-        SuppEntity.Province = txt_province.Text;
-        SuppEntity.Email = txtMainEmail.Text;
-
-        result = SuppCtrl.Sp_UpdateSupport(SuppEntity);
-        DataTable dtChkMail = Comm.GetAllDataFromTable("SupportAdmin", "Email", "SupportAdminId='" + int.Parse(Session["EmployeeId"].ToString()) + "'", "");
-        // v39 (Change Login Email DOC): the profile contact email no longer overwrites the login email without verification;
-        // Support Admin changes the login email in My Profile > Login & Security like every other user.
-
-        if (result > 0)
-        {
-            this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('success!', 'Profile Updated Successfully', 'success');", true);
-        }
+            SupportAdminId = Me, Title = ddlLegalName.SelectedValue, FirstName = first, MiddleName = txtMiddleName.Text.Trim(), LastName = last, DOB = dob,
+            Gender = ddlgender.SelectedValue, Contact = phone, Mobile = mobile, CITY = txt_city.Text.Trim(), Province = txt_province.Text.Trim(),
+            Email = SA.S(r["Email"]) // login email unchanged here
+        };
+        SuppCtrl.Sp_UpdateSupport(x);
+        string name = AnyminuteDisplayText.Tidy(first + " " + x.MiddleName + " " + last);
+        Session["user"] = "Welcome! " + name; Session["NameOfLoggedInUser"] = name;
+        try { using (var c = SA.Open()) if (SA.Has(c, "AnyminuteSupportAudit")) SA.Audit(c, null, "SupportAdmin", Me.ToString(System.Globalization.CultureInfo.InvariantCulture), "Profile Updated", null, null, null, null, "Support Admin updated their own profile."); }
+        catch (System.Data.SqlClient.SqlException) { }
+        SA.Flash("Profile updated successfully.");
+        Response.Redirect("SupportAdminProfile.aspx", false); Context.ApplicationInstance.CompleteRequest();
     }
 
-    public bool IsValidEmail(string email)
+    protected void Page_PreRender(object sender, EventArgs e)
     {
-        var r = new Regex(@"^([0-9a-zA-Z]([-\.\w]*[0-9a-zA-Z])*@([0-9a-zA-Z][-\w]*[0-9a-zA-Z]\.)+[a-zA-Z]{2,9})$");
-
-        return !string.IsNullOrEmpty(email) && r.IsMatch(email);
-    }
-
-    protected void txtMainEmail_TextChanged(object sender, EventArgs e)
-    {
-        if (txtMainEmail.Text.Trim() != string.Empty)
-        {
-            if (IsValidEmail(txtMainEmail.Text) == true)
-            {
-                divValid.Visible = false;
-                bool ceck = false;
-                ceck = Comm.IfExistsInTable("UserAcc", "*", "Email='" + txtMainEmail.Text + "'");
-                if (ceck == false)
-                {
-                    divconfirm.Visible = true;
-                }
-                if (txtMainEmail.Text.Trim() == "")
-                {
-                    divconfirm.Visible = false;
-                }
-            }
-            else
-            {
-                divValid.Visible = true;
-            }
-        }
-        else
-        {
-            divconfirm.Visible = false;
-        }
-    }
-
-    protected void txtConLoginEmail_TextChanged(object sender, EventArgs e)
-    {
-        div1msg.Visible = false;
-        if (txtMainEmail.Text.Trim() != txtConLoginEmail.Text.Trim())
-        {
-            div2stmsg.Visible = true;
-            divtick.Visible = false;
-        }
-        else
-        {
-            div2stmsg.Visible = false;
-            divtick.Visible = true;
-        }
-    }
-
-    protected void LinkButton_Back_To_Home_Page_Click(object sender, EventArgs e)
-    {
-        if (Session["email"].ToString() == "support@anyminute.net")
-            Response.Redirect("SuperAdmin_Approve_Subscriber.aspx"); //SuperAdmin_Approve_New_Account.aspx changed by kumar
-        else
-            Response.Redirect("SuperAdmin.aspx");              
+        if (Flash.Text.Length == 0) Flash.Text = SA.TakeFlash();
     }
 }

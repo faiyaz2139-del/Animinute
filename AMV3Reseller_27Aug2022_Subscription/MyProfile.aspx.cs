@@ -16,6 +16,9 @@ public partial class MyProfile : System.Web.UI.Page
         {
             Response.Redirect("Login.aspx");
         }
+        // v58 (Support Admin PPT s2/s3): "My profile" for a Support Admin opens the editable Support Admin profile, not the
+        // business-profile list (which is always empty for that role).
+        if (AnyminuteSupportAdmin.IsSupportAdminOnly()) { Response.Redirect("SupportAdminProfile.aspx", true); return; }
         if (!IsPostBack)
         {
             string aa = Session["UserId"].ToString();

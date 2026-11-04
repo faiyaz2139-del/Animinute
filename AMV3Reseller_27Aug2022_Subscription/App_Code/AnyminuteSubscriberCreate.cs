@@ -3,6 +3,7 @@ using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
 using System.Globalization;
+using System.Text;
 using System.Web;
 using SA = AnyminuteSupportAdmin;
 
@@ -112,26 +113,42 @@ public static class AnyminuteSubscriberCreate
         }
         catch (Exception ex) { log4net.LogManager.GetLogger("Log").Error("Temporary password activation failed", ex); return false; }
     }
-    // Activation invitation (existing TemplateMaster mail). Returns null when sent, otherwise the reason it was not sent.
-    // v45: password = the temporary password to put in the template's {OldPassword} line (the email used to send "" there).
-    public static string SendInvitation(SqlConnection c, int user, string password)
+    // v58 (Support Admin PPT s5/s6): the invitation / reset email always carries a real temporary password (no more
+    // "(your current password; use Forgot Password...)" placeholder) plus the Welcome link (ResetUrl_New_Account + EmployeeId),
+    // whose page accepts exactly that temporary password and then sets the new one. Own subject + body (TemplateMaster type 3 is
+    // subject "Reset Password", which was confusing for an invitation). Returns null when sent, otherwise why it was not sent.
+    public static string SendInvitation(SqlConnection c, int user, string password) { return SendCredentials(c, user, password, false, null); }
+    public static string SendPasswordReset(SqlConnection c, int user, string password, string to) { return SendCredentials(c, user, password, true, to); }
+    static string SendCredentials(SqlConnection c, int user, string password, bool reset, string to)
     {
+        if (String.IsNullOrEmpty(password)) return "No temporary password was issued, so nothing was sent.";
         var r = SA.Q(c, "SELECT u.Email,u.uid,u.EmployeeId,ae.FirstName FROM UserAcc u LEFT JOIN AddEmployee ae ON ae.EmployeeID=u.EmployeeId WHERE u.UserId=@u", "@u", user);
         if (r.Rows.Count != 1) return "Subscriber not found.";
-        string email = SA.S(r.Rows[0]["Email"]);
+        string login = SA.S(r.Rows[0]["Email"]), email = String.IsNullOrEmpty(to) ? login : to.Trim(), first = SA.S(r.Rows[0]["FirstName"]);
         bool send; Boolean.TryParse(ConfigurationManager.AppSettings["IsSendMail"], out send);
-        if (!send) return "Email sending is turned off for this site (IsSendMail), so no invitation was sent.";
-        var tpl = SA.Q(c, "SELECT TOP 1 * FROM TemplateMaster WHERE TempType=3");
-        string host = ConfigurationManager.AppSettings["ResetUrl_New_Account"];
-        if (tpl.Rows.Count == 0 || String.IsNullOrEmpty(host)) { tpl = SA.Q(c, "SELECT TOP 1 * FROM TemplateMaster WHERE TempType=1"); host = ConfigurationManager.AppSettings["ResetUrl"]; }
-        if (tpl.Rows.Count == 0) return "The invitation email template (TemplateMaster) is missing, so no invitation was sent.";
-        var mail = new EmailSettingController();
-        string body = mail.PopulateBodyWithUrl(HttpUtility.HtmlEncode(SA.S(r.Rows[0]["FirstName"])), "Welcome", host + SA.S(r.Rows[0]["EmployeeId"]), SA.S(tpl.Rows[0]["description"]), SA.S(tpl.Rows[0]["TempName"]), email + " <br />User Id - " + SA.S(r.Rows[0]["uid"]),
-            String.IsNullOrEmpty(password) ? "(your current password; use Forgot Password on the sign-in page if needed)" : HttpUtility.HtmlEncode(password));
-        if (!String.IsNullOrEmpty(password) && body.IndexOf(HttpUtility.HtmlEncode(password), StringComparison.Ordinal) < 0)
-            body += "<p>Your AnyMinute sign-in details:<br />Email: " + HttpUtility.HtmlEncode(email) + "<br />Temporary password: <b>" + HttpUtility.HtmlEncode(password) + "</b></p><p>Sign in at <a href=\"https://anyminute.net/Login.aspx\">anyminute.net</a> and change your password after you sign in.</p>";
-        mail.SendHtmlFormattedEmail(email, SA.S(tpl.Rows[0]["Subject"]), body);
-        if (SA.Has(c, "AnyminuteSupportAudit")) SA.Audit(c, null, "Login", user.ToString(CultureInfo.InvariantCulture), "Activation Email", null, null, null, email, String.IsNullOrEmpty(password) ? "Activation invitation sent." : "Activation invitation sent with the temporary password.");
+        if (!send) return "Email sending is turned off for this site (IsSendMail), so nothing was sent.";
+        string host = ConfigurationManager.AppSettings["ResetUrl_New_Account"] ?? "";
+        string welcome = host.Length > 0 ? host + SA.S(r.Rows[0]["EmployeeId"]) : "";
+        int cut = host.IndexOf("ResetPassord", StringComparison.OrdinalIgnoreCase);
+        string signIn = cut > 0 ? host.Substring(0, cut) + "Login.aspx" : "https://anyminute.net/Login.aspx";
+        Func<string, string> H = HttpUtility.HtmlEncode; Func<string, string> A = HttpUtility.HtmlAttributeEncode;
+        string subject = reset ? "Your AnyMinute Password Has Been Reset" : "Welcome to AnyMinute - Your Account Invitation";
+        var b = new StringBuilder("<div style=\"font-family:Arial,sans-serif;font-size:14px;color:#13234b;line-height:1.5\">");
+        b.Append("<p>Hello <b>").Append(H(first.Length > 0 ? first : login)).Append("</b>,</p>");
+        b.Append(reset ? "<p>AnyMinute Support has reset the password for your AnyMinute account. Your previous password no longer works.</p>"
+                       : "<p>You have been invited to AnyMinute.net, the smart way to log your hours and minutes from anywhere, at any time.</p>");
+        b.Append("<table style=\"border-collapse:collapse;margin:8px 0 12px\"><tr><td style=\"padding:4px 12px 4px 0\">Login email</td><td><b>").Append(H(login)).Append("</b></td></tr>")
+         .Append("<tr><td style=\"padding:4px 12px 4px 0\">User ID</td><td><b>").Append(H(SA.S(r.Rows[0]["uid"]))).Append("</b></td></tr>")
+         .Append("<tr><td style=\"padding:4px 12px 4px 0\">Temporary password</td><td><b style=\"font-family:Consolas,monospace;font-size:15px;background:#eef5ff;padding:2px 6px;border-radius:4px\">").Append(H(password)).Append("</b></td></tr></table>");
+        if (welcome.Length > 0)
+            b.Append("<p>Click <b>").Append(reset ? "Set New Password" : "Welcome").Append("</b> below, enter the temporary password above, then choose your own password (at least 8 characters).</p>")
+             .Append("<p><a href=\"").Append(A(welcome)).Append("\" style=\"display:inline-block;background:#1366e8;color:#fff;text-decoration:none;padding:9px 18px;border-radius:6px;font-weight:bold\">").Append(reset ? "Set New Password" : "Welcome").Append("</a></p>");
+        b.Append("<p>You can also sign in at <a href=\"").Append(A(signIn)).Append("\">").Append(H(signIn)).Append("</a> with your login email and the temporary password, then change it from <b>Change password</b>.</p>")
+         .Append("<p>").Append(reset ? "If you did not ask for this reset, please contact AnyMinute Support." : "If you were not expecting this invitation, you can ignore this email.").Append("</p><p>Thank you,<br />AnyMinute's Support Team</p></div>");
+        new EmailSettingController().SendHtmlFormattedEmail(email, subject, b.ToString());
+        if (SA.Has(c, "AnyminuteSupportAudit"))
+            SA.Audit(c, null, "Login", user.ToString(CultureInfo.InvariantCulture), reset ? "Password Reset" : "Activation Email", null, null, null, email,
+                reset ? "Password reset by Support: new temporary password emailed (Welcome link to set a new password)." : "Activation invitation sent with a new temporary password.");
         return null;
     }
 }

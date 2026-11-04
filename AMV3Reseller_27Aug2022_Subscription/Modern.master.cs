@@ -17,7 +17,12 @@ public partial class AnyminuteModernMaster : System.Web.UI.MasterPage
   string displayName=Convert.ToString(Session["user"]).Trim();
   while(displayName.StartsWith("Welcome!",StringComparison.OrdinalIgnoreCase))displayName=displayName.Substring(8).TrimStart();
   // v22: some logins (Pandey images 4/9/10) have no Session["user"]; fall back to the signed-in person's name.
-  if(displayName.Length==0){int me;if(Int32.TryParse(Convert.ToString(Session["EmployeeId"]),out me))try{using(var c=AnyminuteTimesheetRepair.Open())displayName=Convert.ToString(AnyminuteTimesheetRepair.Query(c,null,"SELECT dbo.FN_DESC('AddEmployee',@e)","@e",me).Rows[0][0]).Trim();}catch(System.Data.SqlClient.SqlException){}}
+  // v58 (Support Admin PPT s1/s2): a Support Admin's EmployeeId is a SupportAdminId, so the AddEmployee fallback below picked an
+  // unrelated employee ("Parvin Thakor"). Support Admin always reads "Welcome! Support Admin"; Session["user"] keeps the real
+  // SupportAdmin name (audit "changed by").
+  bool supportAdmin=AnyminuteSupportAdmin.IsSupportAdminOnly();
+  if(supportAdmin&&displayName.Length==0){int sid;if(Int32.TryParse(Convert.ToString(Session["EmployeeId"]),out sid))try{using(var c=AnyminuteTimesheetRepair.Open()){var t=AnyminuteTimesheetRepair.Query(c,null,"SELECT LTRIM(RTRIM(ISNULL(FirstName,'')+' '+ISNULL(MiddleName,'')+' '+ISNULL(LastName,''))) FROM SupportAdmin WHERE SupportAdminId=@s","@s",sid);if(t.Rows.Count>0){displayName=AnyminuteDisplayText.Tidy(Convert.ToString(t.Rows[0][0]));if(displayName.Length>0)Session["user"]="Welcome! "+displayName;}}}catch(System.Data.SqlClient.SqlException){}}
+  if(!supportAdmin&&displayName.Length==0){int me;if(Int32.TryParse(Convert.ToString(Session["EmployeeId"]),out me))try{using(var c=AnyminuteTimesheetRepair.Open())displayName=Convert.ToString(AnyminuteTimesheetRepair.Query(c,null,"SELECT dbo.FN_DESC('AddEmployee',@e)","@e",me).Rows[0][0]).Trim();}catch(System.Data.SqlClient.SqlException){}}
   Welcome.Text=HttpUtility.HtmlEncode(AnyminuteDisplayText.Tidy(displayName)); // v27: no double spaces
   // v20 (Pandey images 1/3/4): employee / supervisor role and business under the welcome line.
   string context=AnyminuteRoleDashboard.HeaderContext();
@@ -43,6 +48,7 @@ public partial class AnyminuteModernMaster : System.Web.UI.MasterPage
   var rslCtx=AnyminuteResellerPortal.Current();
   if(rslCtx!=null){LogoDefault.Visible=false;Brand.Text=AnyminuteResellerPortal.Brand;context="Reseller";HeaderHelp.Text="";accountantHeader=false;AccountHelp.Text="";
    if(rslCtx.Name.Length>0){Welcome.Text=HttpUtility.HtmlEncode(rslCtx.Name);AccountAvatar.Text="<span class='am-ap-avatar' aria-hidden='true'>"+HttpUtility.HtmlEncode(AnyminuteAccountantDashboard.Initials(rslCtx.Name))+"</span><span class='am-ap-avatar-name'>"+HttpUtility.HtmlEncode(rslCtx.Name)+"</span>";}}
+  if(supportAdmin&&rslCtx==null){Welcome.Text="Support Admin";context=null;}
   if(!String.IsNullOrEmpty(context))WelcomeContext.Text="<small class='am-welcome-context' style='display:block;font-size:12px;font-weight:500;color:#5b6778;line-height:1.3'>"+HttpUtility.HtmlEncode(context)+"</small>";
 
   int business;

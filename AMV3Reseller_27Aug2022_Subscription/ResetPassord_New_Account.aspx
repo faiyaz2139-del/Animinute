@@ -194,6 +194,7 @@
                         <div class="col-md-12">
                             <div class="form-group" data-validate="Username is required">
                                 <asp:TextBox ID="txtOldPassword" placeholder="Please Enter The Temporary Password" ClientIDMode="Static" Required="true" TextMode="Password" runat="server" CssClass="form-control"></asp:TextBox>
+                                <%-- v58 (Support Admin PPT s6) --%><small style="display:block;margin-top:6px;color:#5b6778;text-align:left;">Your temporary password is in your AnyMinute invitation or password reset email ('Temporary password'). If you received more than one email, use the most recent one.</small>
                             </div>
                         </div>
                     </div>

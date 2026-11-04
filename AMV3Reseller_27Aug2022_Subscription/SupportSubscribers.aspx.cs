@@ -196,7 +196,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
         // v42 PPT 01 s2 "Recommended three-dot Actions menu" (labels / descriptions as on the slide)
         // v51 (held note): "View Subscriber Details" removed - the list has its own View button.
         return a(b + "&amp;view=edit", "&#9998;", "Edit Subscriber", "Update personal and contact information")
-            + a(b + "&amp;view=access", "&#128274;", "Manage Login &amp; Access", "Enable or disable access, send reset link") + (NoUpgrade ? "" : a(b + "&amp;view=edit&amp;up=1#plan", "&#9636;", "Change Subscription Plan", "Authorized plan upgrade or downgrade"))
+            + a(b + "&amp;view=access", "&#128274;", "Manage Login &amp; Access", "Enable or disable access, send password reset") + (NoUpgrade ? "" : a(b + "&amp;view=edit&amp;up=1#plan", "&#9636;", "Change Subscription Plan", "Authorized plan upgrade or downgrade"))
             + a(b + "&amp;view=billing", "&#128200;", "View Usage &amp; Limits", "Business, employee and project allowances") + a(b + "&amp;view=history", "&#8634;", "View Activity Log", "Account changes and support history")
             + a(b + "&amp;view=access", "&#10006;", "Suspend Subscriber", "Restricted action requiring confirmation");
     }
@@ -620,8 +620,8 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
           .Append("<div class='sa-flash sa-warn'>Disabling login will prevent this subscriber from signing in. Existing businesses, employees, projects and data will remain preserved.</div>")
           .Append("<label class='sa-field'><span>Reason for Access Change *</span><textarea name='sa_reason' rows='3' maxlength='500' placeholder='Enter reason for changing subscriber login access...' data-sa-counter='500'").Append(dis).Append("></textarea><small data-sa-count='1'>0/500</small></label></div></div>");
         sb.Append("<div class='sa-card'><h2>Additional Account Actions</h2><div class='sa-actions3'>")
-          .Append("<button type='submit' class='sa-action' name='sa_op' value='invite' data-sa-confirm='Send a new activation invitation to ").Append(SA.A(r["Email"])).Append("?'").Append(dis).Append("><b>&#9993; Resend Invitation</b><small>Send a new activation invitation to the subscriber.</small></button>")
-          .Append("<a class='sa-action' href='SupportSubscribers.aspx?user=").Append(u).Append("&amp;view=reset'><b>&#128273; Send Password Reset</b><small>Send a secure password reset link to the subscriber.</small></a>")
+          .Append("<button type='submit' class='sa-action' name='sa_op' value='invite' data-sa-confirm='Send a new activation invitation with a new temporary password to ").Append(SA.A(r["Email"])).Append("?'").Append(dis).Append("><b>&#9993; Resend Invitation</b><small>Email a new activation invitation with a new temporary password.</small></button>")
+          .Append("<a class='sa-action' href='SupportSubscribers.aspx?user=").Append(u).Append("&amp;view=reset'><b>&#128273; Send Password Reset</b><small>Email a new temporary password and a Set New Password link.</small></a>")
           .Append("<a class='sa-action' href='SupportSubscribers.aspx?user=").Append(u).Append("&amp;view=history'><b>&#8634; View Login History</b><small>View recent sign-in activity and login history.</small></a></div>")
           .Append("<div class='sa-panel-foot'><a class='sa-btn sa-btn-outline' href='SupportSubscribers.aspx?user=").Append(u).Append("'>Cancel</a><button type='submit' class='sa-btn' name='sa_op' value='access'").Append(dis).Append(">&#128190; Save Changes</button></div></div>");
         return sb.ToString();
@@ -641,9 +641,9 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
         return "<input type='hidden' name='sa_user' value='" + u + "' /><div class='sa-card sa-steps'>"
             + "<section><h2><b class='sa-step'>1</b> Subscriber Information</h2><div class='sa-subhead sa-flat'><span class='sa-avatar'>" + SA.H(Initials(Name(r))) + "</span><div class='sa-grow'><strong>" + SA.H(Name(r)) + "</strong><small>Subscriber ID: " + Sub(u) + "<br />" + SA.H(email) + "</small></div>"
             + "<div><small>Account Status</small>" + SA.Pill(StatusOf(r), Tone(StatusOf(r))) + "</div><div><small>Login Access</small>" + (Enabled(r) ? SA.Pill("Enabled", "green") : SA.Pill("Disabled", "red")) + "</div><div><small>Last Login</small><strong>" + SA.When(r["LastLoginDate"]) + "</strong></div></div></section>"
-            + "<section><h2><b class='sa-step'>2</b> Password Reset Email</h2><div class='sa-grid2'><div><label class='sa-field'><span>Send to Email Address</span><input type='email' name='sa_email' maxlength='256' required value='" + SA.A(email) + "' oninput=\"document.getElementById('saRstTo').textContent=this.value\" /></label><small class='sa-muted'>A secure password reset link will be sent to this email address.</small></div>"
-            + "<div class='sa-preview'><small>Message Preview (Email Subject and Content)</small><p><b>Subject: Reset Your AnyMinute Password</b></p><p>Hello " + SA.H(first) + ",</p><p>We received a request to reset your AnyMinute account password. Click the link below to set a new password. This link will expire in 24 hours.</p><p><span class='sa-link'>Reset Your Password</span></p><p>If you did not request this, please ignore this email.</p><p>Thank you,<br />The AnyMinute Team</p></div></div></section>"
-            + "<section><h2><b class='sa-step'>3</b> Confirm and Send</h2><div class='sa-flash sa-warn'><b>Please confirm before sending.</b><ul><li>A secure password reset link will be sent to <span id='saRstTo'>" + SA.H(email) + "</span>.</li><li>The link will expire in 24 hours.</li><li>The previous password will remain invalid after the reset.</li><li>This action will be recorded in the activity log.</li></ul></div></section>"
+            + "<section><h2><b class='sa-step'>2</b> Password Reset Email</h2><div class='sa-grid2'><div><label class='sa-field'><span>Send to Email Address</span><input type='email' name='sa_email' maxlength='256' required value='" + SA.A(email) + "' oninput=\"document.getElementById('saRstTo').textContent=this.value\" /></label><small class='sa-muted'>A new temporary password and the Set New Password link will be sent to this email address.</small></div>"
+            + "<div class='sa-preview'><small>Message Preview (Email Subject and Content)</small><p><b>Subject: Your AnyMinute Password Has Been Reset</b></p><p>Hello " + SA.H(first) + ",</p><p>AnyMinute Support has reset the password for your AnyMinute account. Your previous password no longer works.</p><p>Login email: <b>" + SA.H(email) + "</b><br />Temporary password: <b>(generated when you send)</b></p><p>Click <span class='sa-link'>Set New Password</span>, enter the temporary password, then choose your own password.</p><p>Thank you,<br />AnyMinute's Support Team</p></div></div></section>"
+            + "<section><h2><b class='sa-step'>3</b> Confirm and Send</h2><div class='sa-flash sa-warn'><b>Please confirm before sending.</b><ul><li>A new temporary password will be emailed to <span id='saRstTo'>" + SA.H(email) + "</span> (also shown to you once after sending).</li><li>The previous password stops working immediately.</li><li>The subscriber sets a new password from the Set New Password page using the temporary password.</li><li>This action will be recorded in the activity log.</li></ul></div></section>"
             + "<div class='sa-panel-foot'><a class='sa-btn sa-btn-outline' href='SupportSubscribers.aspx?user=" + u + "&amp;view=access'>Cancel</a><button type='submit' class='sa-btn' name='sa_op' value='reset'" + (ready ? "" : " disabled") + ">&#10148; Send Password Reset</button></div></div>";
     }
     string SubName = "";
@@ -747,32 +747,22 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
                 if (email.Length == 0 || email.EndsWith("blank", StringComparison.OrdinalIgnoreCase)) { SA.Flash("This subscriber has no email address."); Back(u, null); return; }
                 bool send; Boolean.TryParse(ConfigurationManager.AppSettings["IsSendMail"], out send);
                 if (!send) { SA.Flash("Email sending is turned off for this site (IsSendMail), so nothing was sent."); Back(u, op == "reset" ? "reset" : null); return; }
-                var link = SA.Q(c, "SELECT TOP 1 ae.EmployeeID FROM EmpAddress a JOIN AddEmployee ae ON a.EmpAddressId=ae.ADDRESSID WHERE a.MainEmail=@m ORDER BY ae.EmployeeID", "@m", email);
-                int linkEmployee = link.Rows.Count == 1 ? Convert.ToInt32(link.Rows[0][0]) : Convert.ToInt32(r["EmployeeId"]);
-                string url = ConfigurationManager.AppSettings["ResetUrl"] + linkEmployee, first = HttpUtility.HtmlEncode(Name(r).Split(' ')[0]);
-                var mail = new EmailSettingController();
+                // v58 (Support Admin PPT s4-s6): both actions issue a NEW temporary password, save it (SP_LOGIN MD2 format) and email it
+                // with the Welcome link (ResetPassord_New_Account.aspx accepts that temporary password, then sets the new one). Send
+                // Password Reset no longer depends on REQUIRED_08 reset tokens; Resend Invitation no longer sends a password placeholder.
+                string to = email;
                 if (op == "reset")
                 {
-                    // v50 PPT s2: "Send to Email Address" is editable; default is the subscriber's sign-in email.
-                    string to = SA.Form("sa_email").Trim();
-                    if (to.Length > 0 && !System.Text.RegularExpressions.Regex.IsMatch(to, @"^[^@\s]+@[^@\s]+\.[^@\s]+$")) { SA.Flash("Enter a valid email address to send the reset link to."); Back(u, "reset"); return; }
-                    if (to.Length > 0) email = to;
-                    // v26: one-time token, valid 24 hours (REQUIRED_08). Without the table the legacy link is refused rather than sent unprotected.
-                    if (!AnyminutePasswordReset.Ready(c)) { SA.Flash("Run DB_REQUIRED/REQUIRED_08_SupportAdminStrict.sql to enable 24-hour password reset links. Nothing was sent."); Back(u, "reset"); return; }
-                    url += "&rt=" + AnyminutePasswordReset.Issue(c, null, u, linkEmployee, email, SA.ActorId());
-                    string body = "<p>Hello " + first + ",</p><p>We received a request to reset your AnyMinute account password. Click the link below to set a new password. This link will expire in 24 hours.</p><p><a href=\"" + HttpUtility.HtmlAttributeEncode(url) + "\">Reset Your Password</a></p><p>If you did not request this, please ignore this email.</p><p>Thank you,<br />The AnyMinute Team</p>";
-                    mail.SendHtmlFormattedEmail(email, "Reset Your AnyMinute Password", body);
-                    SA.Audit(c, null, "Login", key, "Password Reset", null, null, null, email, "Password reset link sent to subscriber (expires in 24 hours, one-time use).");
-                    SA.Flash("Password reset link sent to " + email + ".");
+                    string typed = SA.Form("sa_email").Trim();
+                    if (typed.Length > 0 && !System.Text.RegularExpressions.Regex.IsMatch(typed, @"^[^@\s]+@[^@\s]+\.[^@\s]+$")) { SA.Flash("Enter a valid email address to send the password reset to."); Back(u, "reset"); return; }
+                    if (typed.Length > 0) to = typed;
                 }
-                else
-                {
-                    // v45: the invitation carries a sign-in password. A still-pending account gets a NEW temporary password (shown once here);
-                    // an active account keeps its password (the email says to use it or Forgot Password).
-                    string pw = StatusOf(r) == "Pending" ? AnyminuteSubscriberCreate.SetTempPassword(c, u, "Temporary password re-issued with the resent activation invitation.") : null;
-                    string sent = AnyminuteSubscriberCreate.SendInvitation(c, u, pw);
-                    SA.Flash((sent ?? "Invitation email sent to " + email + (pw != null ? " with a new temporary password." : ".")) + (pw != null ? " Temporary password (shown once): " + pw : ""));
-                }
+                string pw = AnyminuteSubscriberCreate.SetTempPassword(c, u, op == "reset" ? "Temporary password issued by Send Password Reset." : "Temporary password issued with the resent activation invitation.");
+                string sent;
+                try { sent = op == "reset" ? AnyminuteSubscriberCreate.SendPasswordReset(c, u, pw, to) : AnyminuteSubscriberCreate.SendInvitation(c, u, pw); }
+                catch (Exception ex) { log4net.LogManager.GetLogger("Log").Error("Support credentials email failed for user " + u, ex); sent = "The email could not be sent (" + ex.Message + ")."; }
+                SA.Flash((sent ?? (op == "reset" ? "Password reset sent to " + to + ": a new temporary password and the Set New Password link." : "Invitation sent to " + to + " with a new temporary password and the Welcome link."))
+                    + " Temporary password (shown once): " + pw);
                 Back(u, null); return;
             }
         }

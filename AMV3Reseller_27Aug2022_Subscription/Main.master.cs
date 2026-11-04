@@ -237,6 +237,8 @@ public partial class MasterPage : System.Web.UI.MasterPage
                 string username = lblwelcome.Text;
                 Session["user"] = username;
                 Session["NameOfLoggedInUser"] = AnyminuteDisplayText.Tidy(dt1.Rows[0]["FirstName"].ToString() + " " + dt1.Rows[0]["MiddleName"].ToString() + " " + dt1.Rows[0]["LastName"].ToString());
+                // v58 (Support Admin PPT s1/s2): same header on every page - Main.master and Modern.master both read "Welcome! Support Admin".
+                if (Session["UserType"].ToString() == "SupportAdmin") lblwelcome.Text = "Welcome! Support Admin";
 
                 if (Session["UserId_acc"] != null)
                 {
