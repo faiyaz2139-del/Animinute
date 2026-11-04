@@ -1,0 +1,1124 @@
+diff --git a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteSubscriberCreate.cs b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteSubscriberCreate.cs
+index f3082c0..f276b77 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteSubscriberCreate.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteSubscriberCreate.cs
+@@ -3,6 +3,7 @@ using System.Configuration;
+ using System.Data;
+ using System.Data.SqlClient;
+ using System.Globalization;
++using System.Text;
+ using System.Web;
+ using SA = AnyminuteSupportAdmin;
+ 
+@@ -112,26 +113,42 @@ public static class AnyminuteSubscriberCreate
+         }
+         catch (Exception ex) { log4net.LogManager.GetLogger("Log").Error("Temporary password activation failed", ex); return false; }
+     }
+-    // Activation invitation (existing TemplateMaster mail). Returns null when sent, otherwise the reason it was not sent.
+-    // v45: password = the temporary password to put in the template's {OldPassword} line (the email used to send "" there).
+-    public static string SendInvitation(SqlConnection c, int user, string password)
++    // v58 (Support Admin PPT s5/s6): the invitation / reset email always carries a real temporary password (no more
++    // "(your current password; use Forgot Password...)" placeholder) plus the Welcome link (ResetUrl_New_Account + EmployeeId),
++    // whose page accepts exactly that temporary password and then sets the new one. Own subject + body (TemplateMaster type 3 is
++    // subject "Reset Password", which was confusing for an invitation). Returns null when sent, otherwise why it was not sent.
++    public static string SendInvitation(SqlConnection c, int user, string password) { return SendCredentials(c, user, password, false, null); }
++    public static string SendPasswordReset(SqlConnection c, int user, string password, string to) { return SendCredentials(c, user, password, true, to); }
++    static string SendCredentials(SqlConnection c, int user, string password, bool reset, string to)
+     {
++        if (String.IsNullOrEmpty(password)) return "No temporary password was issued, so nothing was sent.";
+         var r = SA.Q(c, "SELECT u.Email,u.uid,u.EmployeeId,ae.FirstName FROM UserAcc u LEFT JOIN AddEmployee ae ON ae.EmployeeID=u.EmployeeId WHERE u.UserId=@u", "@u", user);
+         if (r.Rows.Count != 1) return "Subscriber not found.";
+-        string email = SA.S(r.Rows[0]["Email"]);
++        string login = SA.S(r.Rows[0]["Email"]), email = String.IsNullOrEmpty(to) ? login : to.Trim(), first = SA.S(r.Rows[0]["FirstName"]);
+         bool send; Boolean.TryParse(ConfigurationManager.AppSettings["IsSendMail"], out send);
+-        if (!send) return "Email sending is turned off for this site (IsSendMail), so no invitation was sent.";
+-        var tpl = SA.Q(c, "SELECT TOP 1 * FROM TemplateMaster WHERE TempType=3");
+-        string host = ConfigurationManager.AppSettings["ResetUrl_New_Account"];
+-        if (tpl.Rows.Count == 0 || String.IsNullOrEmpty(host)) { tpl = SA.Q(c, "SELECT TOP 1 * FROM TemplateMaster WHERE TempType=1"); host = ConfigurationManager.AppSettings["ResetUrl"]; }
+-        if (tpl.Rows.Count == 0) return "The invitation email template (TemplateMaster) is missing, so no invitation was sent.";
+-        var mail = new EmailSettingController();
+-        string body = mail.PopulateBodyWithUrl(HttpUtility.HtmlEncode(SA.S(r.Rows[0]["FirstName"])), "Welcome", host + SA.S(r.Rows[0]["EmployeeId"]), SA.S(tpl.Rows[0]["description"]), SA.S(tpl.Rows[0]["TempName"]), email + " <br />User Id - " + SA.S(r.Rows[0]["uid"]),
+-            String.IsNullOrEmpty(password) ? "(your current password; use Forgot Password on the sign-in page if needed)" : HttpUtility.HtmlEncode(password));
+-        if (!String.IsNullOrEmpty(password) && body.IndexOf(HttpUtility.HtmlEncode(password), StringComparison.Ordinal) < 0)
+-            body += "<p>Your AnyMinute sign-in details:<br />Email: " + HttpUtility.HtmlEncode(email) + "<br />Temporary password: <b>" + HttpUtility.HtmlEncode(password) + "</b></p><p>Sign in at <a href=\"https://anyminute.net/Login.aspx\">anyminute.net</a> and change your password after you sign in.</p>";
+-        mail.SendHtmlFormattedEmail(email, SA.S(tpl.Rows[0]["Subject"]), body);
+-        if (SA.Has(c, "AnyminuteSupportAudit")) SA.Audit(c, null, "Login", user.ToString(CultureInfo.InvariantCulture), "Activation Email", null, null, null, email, String.IsNullOrEmpty(password) ? "Activation invitation sent." : "Activation invitation sent with the temporary password.");
++        if (!send) return "Email sending is turned off for this site (IsSendMail), so nothing was sent.";
++        string host = ConfigurationManager.AppSettings["ResetUrl_New_Account"] ?? "";
++        string welcome = host.Length > 0 ? host + SA.S(r.Rows[0]["EmployeeId"]) : "";
++        int cut = host.IndexOf("ResetPassord", StringComparison.OrdinalIgnoreCase);
++        string signIn = cut > 0 ? host.Substring(0, cut) + "Login.aspx" : "https://anyminute.net/Login.aspx";
++        Func<string, string> H = HttpUtility.HtmlEncode; Func<string, string> A = HttpUtility.HtmlAttributeEncode;
++        string subject = reset ? "Your AnyMinute Password Has Been Reset" : "Welcome to AnyMinute - Your Account Invitation";
++        var b = new StringBuilder("<div style=\"font-family:Arial,sans-serif;font-size:14px;color:#13234b;line-height:1.5\">");
++        b.Append("<p>Hello <b>").Append(H(first.Length > 0 ? first : login)).Append("</b>,</p>");
++        b.Append(reset ? "<p>AnyMinute Support has reset the password for your AnyMinute account. Your previous password no longer works.</p>"
++                       : "<p>You have been invited to AnyMinute.net, the smart way to log your hours and minutes from anywhere, at any time.</p>");
++        b.Append("<table style=\"border-collapse:collapse;margin:8px 0 12px\"><tr><td style=\"padding:4px 12px 4px 0\">Login email</td><td><b>").Append(H(login)).Append("</b></td></tr>")
++         .Append("<tr><td style=\"padding:4px 12px 4px 0\">User ID</td><td><b>").Append(H(SA.S(r.Rows[0]["uid"]))).Append("</b></td></tr>")
++         .Append("<tr><td style=\"padding:4px 12px 4px 0\">Temporary password</td><td><b style=\"font-family:Consolas,monospace;font-size:15px;background:#eef5ff;padding:2px 6px;border-radius:4px\">").Append(H(password)).Append("</b></td></tr></table>");
++        if (welcome.Length > 0)
++            b.Append("<p>Click <b>").Append(reset ? "Set New Password" : "Welcome").Append("</b> below, enter the temporary password above, then choose your own password (at least 8 characters).</p>")
++             .Append("<p><a href=\"").Append(A(welcome)).Append("\" style=\"display:inline-block;background:#1366e8;color:#fff;text-decoration:none;padding:9px 18px;border-radius:6px;font-weight:bold\">").Append(reset ? "Set New Password" : "Welcome").Append("</a></p>");
++        b.Append("<p>You can also sign in at <a href=\"").Append(A(signIn)).Append("\">").Append(H(signIn)).Append("</a> with your login email and the temporary password, then change it from <b>Change password</b>.</p>")
++         .Append("<p>").Append(reset ? "If you did not ask for this reset, please contact AnyMinute Support." : "If you were not expecting this invitation, you can ignore this email.").Append("</p><p>Thank you,<br />AnyMinute's Support Team</p></div>");
++        new EmailSettingController().SendHtmlFormattedEmail(email, subject, b.ToString());
++        if (SA.Has(c, "AnyminuteSupportAudit"))
++            SA.Audit(c, null, "Login", user.ToString(CultureInfo.InvariantCulture), reset ? "Password Reset" : "Activation Email", null, null, null, email,
++                reset ? "Password reset by Support: new temporary password emailed (Welcome link to set a new password)." : "Activation invitation sent with a new temporary password.");
+         return null;
+     }
+ }
+diff --git a/AMV3Reseller_27Aug2022_Subscription/EmployeeEditor.aspx b/AMV3Reseller_27Aug2022_Subscription/EmployeeEditor.aspx
+index 1b9b045..038994d 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/EmployeeEditor.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/EmployeeEditor.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="EmployeeEditor.aspx.cs" Inherits="AnyminuteEmployeeEditorPage" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteEmployees.css?v=20261025v13" rel="stylesheet" /><link href="css/AnyminuteEmployeesV2.css?v=20261026v17" rel="stylesheet" /><link href="css/AnyminuteFlash.css?v=20261024v2" rel="stylesheet" /><link href="css/AnyminuteAddressLookup.css?v=20261103v57" rel="stylesheet" /><script src="Scripts/AnyminuteDateText.js?v=20261024v8" defer></script><script src="Scripts/AnyminuteAddressLookup.js?v=20261102v49" defer></script></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteEmployees.css?v=20261025v13" rel="stylesheet" /><link href="css/AnyminuteEmployeesV2.css?v=20261026v17" rel="stylesheet" /><link href="css/AnyminuteFlash.css?v=20261024v2" rel="stylesheet" /><link href="css/AnyminuteAddressLookup.css?v=20261103v58" rel="stylesheet" /><script src="Scripts/AnyminuteDateText.js?v=20261024v8" defer></script><script src="Scripts/AnyminuteAddressLookup.js?v=20261102v49" defer></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section id="Root" runat="server" class="am-dialog-page am-employees-v2 am-editor-v3">
+  <header class="am-dialog-head"><div><h1><asp:Literal ID="PageTitle" runat="server" /></h1><p><asp:Literal ID="PageSubtitle" runat="server" /></p></div><asp:HyperLink ID="CloseLink" runat="server" NavigateUrl="~/Users.aspx" CssClass="am-dialog-close" ToolTip="Close" aria-label="Close">&times;</asp:HyperLink></header>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/EmployeeProfile.aspx b/AMV3Reseller_27Aug2022_Subscription/EmployeeProfile.aspx
+index fc21a29..75e07b2 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/EmployeeProfile.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/EmployeeProfile.aspx
+@@ -3,7 +3,7 @@
+ 
+ <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="Server">
+     <link href="css/bootstrap.min.css" rel="stylesheet" />
+-    <link href="css/AnyminuteAddressLookup.css?v=20261103v57" rel="stylesheet" />
++    <link href="css/AnyminuteAddressLookup.css?v=20261103v58" rel="stylesheet" />
+     <%-- v37 (DOCX image1, strict): Personal / Payment Details use the same full-width 3-column grid as Address Lookup and
+          Employee Address below (they were a centred half-width column). Control IDs unchanged. --%>
+     <style>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Main.master b/AMV3Reseller_27Aug2022_Subscription/Main.master
+index 84974c5..86e02d3 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Main.master
++++ b/AMV3Reseller_27Aug2022_Subscription/Main.master
+@@ -5,7 +5,7 @@
+ <!DOCTYPE html>
+ 
+ <html>
+-<head runat="server"><meta name="anyminute-build" content="v57-20261103" />
++<head runat="server"><meta name="anyminute-build" content="v58-20261103" />
+     <title>AnyMinute | Record From Anywhere</title>
+     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Main.master.cs b/AMV3Reseller_27Aug2022_Subscription/Main.master.cs
+index 51241bb..d614c53 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Main.master.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/Main.master.cs
+@@ -237,6 +237,8 @@ public partial class MasterPage : System.Web.UI.MasterPage
+                 string username = lblwelcome.Text;
+                 Session["user"] = username;
+                 Session["NameOfLoggedInUser"] = AnyminuteDisplayText.Tidy(dt1.Rows[0]["FirstName"].ToString() + " " + dt1.Rows[0]["MiddleName"].ToString() + " " + dt1.Rows[0]["LastName"].ToString());
++                // v58 (Support Admin PPT s1/s2): same header on every page - Main.master and Modern.master both read "Welcome! Support Admin".
++                if (Session["UserType"].ToString() == "SupportAdmin") lblwelcome.Text = "Welcome! Support Admin";
+ 
+                 if (Session["UserId_acc"] != null)
+                 {
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Modern.master b/AMV3Reseller_27Aug2022_Subscription/Modern.master
+index 984d6dc..6bbfb19 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Modern.master
++++ b/AMV3Reseller_27Aug2022_Subscription/Modern.master
+@@ -1,6 +1,6 @@
+ <%@ Master Language="C#" AutoEventWireup="true" CodeFile="Modern.master.cs" Inherits="AnyminuteModernMaster" %>
+ <!DOCTYPE html>
+-<html lang="en"><head runat="server"><meta charset="utf-8" /><meta name="anyminute-build" content="v57-20261103" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>AnyMinute</title><link href="css/bootstrap.min.css" rel="stylesheet" /><script src="Assets/assets/js/core/jquery.3.2.1.min.js"></script><script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script><script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" /><script src="Assets/assets/js/plugin/datatables/datatables.min.js"></script><script src="Assets/assets/js/SweetAlert.js"></script><link href="css/AnyminuteModern.css" rel="stylesheet" /><asp:ContentPlaceHolder ID="head" runat="server" /><link href="css/AnyminuteUI2026.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUIUnified.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUiBugFixes.css?v=20261026v17" rel="stylesheet" /><link href="css/AnyminuteNavDrawer.css?v=20261101v47" rel="stylesheet" /></head>
++<html lang="en"><head runat="server"><meta charset="utf-8" /><meta name="anyminute-build" content="v58-20261103" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>AnyMinute</title><link href="css/bootstrap.min.css" rel="stylesheet" /><script src="Assets/assets/js/core/jquery.3.2.1.min.js"></script><script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script><script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" /><script src="Assets/assets/js/plugin/datatables/datatables.min.js"></script><script src="Assets/assets/js/SweetAlert.js"></script><link href="css/AnyminuteModern.css" rel="stylesheet" /><asp:ContentPlaceHolder ID="head" runat="server" /><link href="css/AnyminuteUI2026.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUIUnified.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUiBugFixes.css?v=20261026v17" rel="stylesheet" /><link href="css/AnyminuteNavDrawer.css?v=20261101v47" rel="stylesheet" /></head>
+ <body class="am-modern"><form id="frmMaster" runat="server"><asp:ScriptManager ID="ScriptManager1" runat="server" />
+ <header class="am-topbar"><button type="button" class="am-icon-button" data-toggle-sidebar aria-controls="am-main-navigation" aria-expanded="true" aria-label="Toggle navigation">&#9776;</button><a href="Dashboard.aspx" class="am-brand"><asp:PlaceHolder ID="LogoDefault" runat="server"><img src="Assets/assets/img/logo.jpg" alt="AnyMinute" class="am-logo" /></asp:PlaceHolder><asp:Literal ID="Brand" runat="server" /></a><span>Welcome! <asp:Literal ID="Welcome" runat="server" /><asp:Literal ID="WelcomeContext" runat="server" /></span><asp:Literal ID="HeaderHelp" runat="server" /><asp:Literal ID="HeaderBell" runat="server" /><details class="am-account-menu"><summary aria-label="Account menu"><asp:Literal ID="AccountAvatar" runat="server" /><span class="am-account-chevron" aria-hidden="true"></span><span class="sr-only">Account</span></summary><div class="am-account-popover"><a href="MyProfile.aspx"><span data-am-icon="profile" aria-hidden="true"></span>My profile</a><a href="LoginSecurity.aspx"><span data-am-icon="settings" aria-hidden="true"></span>Login &amp; security</a><asp:LinkButton ID="SignOut" runat="server" CausesValidation="false" OnClick="SignOut_Click"><span data-am-icon="signout" aria-hidden="true"></span>Sign out</asp:LinkButton>
+    <a href="Change%20Password.aspx"><span data-am-icon="settings" aria-hidden="true"></span>Change password</a><asp:Literal ID="AccountHelp" runat="server" /><asp:Literal ID="AccountUpgrade" runat="server" /></div></details></header>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Modern.master.cs b/AMV3Reseller_27Aug2022_Subscription/Modern.master.cs
+index 7a923f0..d16ebe7 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Modern.master.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/Modern.master.cs
+@@ -17,7 +17,12 @@ public partial class AnyminuteModernMaster : System.Web.UI.MasterPage
+   string displayName=Convert.ToString(Session["user"]).Trim();
+   while(displayName.StartsWith("Welcome!",StringComparison.OrdinalIgnoreCase))displayName=displayName.Substring(8).TrimStart();
+   // v22: some logins (Pandey images 4/9/10) have no Session["user"]; fall back to the signed-in person's name.
+-  if(displayName.Length==0){int me;if(Int32.TryParse(Convert.ToString(Session["EmployeeId"]),out me))try{using(var c=AnyminuteTimesheetRepair.Open())displayName=Convert.ToString(AnyminuteTimesheetRepair.Query(c,null,"SELECT dbo.FN_DESC('AddEmployee',@e)","@e",me).Rows[0][0]).Trim();}catch(System.Data.SqlClient.SqlException){}}
++  // v58 (Support Admin PPT s1/s2): a Support Admin's EmployeeId is a SupportAdminId, so the AddEmployee fallback below picked an
++  // unrelated employee ("Parvin Thakor"). Support Admin always reads "Welcome! Support Admin"; Session["user"] keeps the real
++  // SupportAdmin name (audit "changed by").
++  bool supportAdmin=AnyminuteSupportAdmin.IsSupportAdminOnly();
++  if(supportAdmin&&displayName.Length==0){int sid;if(Int32.TryParse(Convert.ToString(Session["EmployeeId"]),out sid))try{using(var c=AnyminuteTimesheetRepair.Open()){var t=AnyminuteTimesheetRepair.Query(c,null,"SELECT LTRIM(RTRIM(ISNULL(FirstName,'')+' '+ISNULL(MiddleName,'')+' '+ISNULL(LastName,''))) FROM SupportAdmin WHERE SupportAdminId=@s","@s",sid);if(t.Rows.Count>0){displayName=AnyminuteDisplayText.Tidy(Convert.ToString(t.Rows[0][0]));if(displayName.Length>0)Session["user"]="Welcome! "+displayName;}}}catch(System.Data.SqlClient.SqlException){}}
++  if(!supportAdmin&&displayName.Length==0){int me;if(Int32.TryParse(Convert.ToString(Session["EmployeeId"]),out me))try{using(var c=AnyminuteTimesheetRepair.Open())displayName=Convert.ToString(AnyminuteTimesheetRepair.Query(c,null,"SELECT dbo.FN_DESC('AddEmployee',@e)","@e",me).Rows[0][0]).Trim();}catch(System.Data.SqlClient.SqlException){}}
+   Welcome.Text=HttpUtility.HtmlEncode(AnyminuteDisplayText.Tidy(displayName)); // v27: no double spaces
+   // v20 (Pandey images 1/3/4): employee / supervisor role and business under the welcome line.
+   string context=AnyminuteRoleDashboard.HeaderContext();
+@@ -43,6 +48,7 @@ public partial class AnyminuteModernMaster : System.Web.UI.MasterPage
+   var rslCtx=AnyminuteResellerPortal.Current();
+   if(rslCtx!=null){LogoDefault.Visible=false;Brand.Text=AnyminuteResellerPortal.Brand;context="Reseller";HeaderHelp.Text="";accountantHeader=false;AccountHelp.Text="";
+    if(rslCtx.Name.Length>0){Welcome.Text=HttpUtility.HtmlEncode(rslCtx.Name);AccountAvatar.Text="<span class='am-ap-avatar' aria-hidden='true'>"+HttpUtility.HtmlEncode(AnyminuteAccountantDashboard.Initials(rslCtx.Name))+"</span><span class='am-ap-avatar-name'>"+HttpUtility.HtmlEncode(rslCtx.Name)+"</span>";}}
++  if(supportAdmin&&rslCtx==null){Welcome.Text="Support Admin";context=null;}
+   if(!String.IsNullOrEmpty(context))WelcomeContext.Text="<small class='am-welcome-context' style='display:block;font-size:12px;font-weight:500;color:#5b6778;line-height:1.3'>"+HttpUtility.HtmlEncode(context)+"</small>";
+ 
+   int business;
+diff --git a/AMV3Reseller_27Aug2022_Subscription/MyProfile.aspx.cs b/AMV3Reseller_27Aug2022_Subscription/MyProfile.aspx.cs
+index 856fc13..bae1c3c 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/MyProfile.aspx.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/MyProfile.aspx.cs
+@@ -16,6 +16,9 @@ public partial class MyProfile : System.Web.UI.Page
+         {
+             Response.Redirect("Login.aspx");
+         }
++        // v58 (Support Admin PPT s2/s3): "My profile" for a Support Admin opens the editable Support Admin profile, not the
++        // business-profile list (which is always empty for that role).
++        if (AnyminuteSupportAdmin.IsSupportAdminOnly()) { Response.Redirect("SupportAdminProfile.aspx", true); return; }
+         if (!IsPostBack)
+         {
+             string aa = Session["UserId"].ToString();
+diff --git a/AMV3Reseller_27Aug2022_Subscription/ResellerDashboard.aspx b/AMV3Reseller_27Aug2022_Subscription/ResellerDashboard.aspx
+index 2063475..dbf4d85 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/ResellerDashboard.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/ResellerDashboard.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="ResellerDashboard.aspx.cs" Inherits="AnyminuteResellerDashboardPage" Title="Reseller Dashboard" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v57" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v57" defer="defer"></script>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v58" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v58" defer="defer"></script>
+ <style>/* v55 Reseller PPT s1/s9 (v56 s1 strict below) */
+ .rsl-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px}.rsl-kpis .sa-kpi-icon svg{width:24px;height:24px}
+ .rsl-qa{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}.rsl-qa a{display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px 10px;border:1px solid var(--sa-line,#dfe5ee);border-radius:12px;background:#fff;color:#14233c;font-weight:600;text-align:center;text-decoration:none}
+diff --git a/AMV3Reseller_27Aug2022_Subscription/ResetPassord_New_Account.aspx b/AMV3Reseller_27Aug2022_Subscription/ResetPassord_New_Account.aspx
+index 5971366..5cae20d 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/ResetPassord_New_Account.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/ResetPassord_New_Account.aspx
+@@ -194,6 +194,7 @@
+                         <div class="col-md-12">
+                             <div class="form-group" data-validate="Username is required">
+                                 <asp:TextBox ID="txtOldPassword" placeholder="Please Enter The Temporary Password" ClientIDMode="Static" Required="true" TextMode="Password" runat="server" CssClass="form-control"></asp:TextBox>
++                                <%-- v58 (Support Admin PPT s6) --%><small style="display:block;margin-top:6px;color:#5b6778;text-align:left;">Your temporary password is in your AnyMinute invitation or password reset email ('Temporary password'). If you received more than one email, use the most recent one.</small>
+                             </div>
+                         </div>
+                     </div>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/ResetPassord_New_Account.aspx.cs b/AMV3Reseller_27Aug2022_Subscription/ResetPassord_New_Account.aspx.cs
+index c69173a..3516ca9 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/ResetPassord_New_Account.aspx.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/ResetPassord_New_Account.aspx.cs
+@@ -45,72 +45,53 @@ public partial class ResetPassord_New_Account : System.Web.UI.Page
+         }
+     }
+ 
++    // v58 (Support Admin PPT s5/s6 "If I press Welcome, Don't know how to get Temp PW"): invitation and Support password-reset
++    // emails now carry the temporary password. This page checks it with a parameterised query (the old check concatenated the
++    // typed text into SQL), remembers the matched UserAcc row, and the new password is written to that one row only
++    // (Updatepass 'EMP' updated every UserAcc row with the same EmployeeId, which can include a SupportAdmin row). First-time
++    // login is cleared so the subscriber can sign in straight away.
++    const string Decrypt = "CONVERT(nvarchar(max),DecryptByPassPhrase('MD2',CONVERT(varbinary(200),Password,2),2))";
++    string LoginType { get { return Request.QueryString["LoginType"] ?? "EMP"; } }
++    int VerifiedUser { get { return ViewState["am_vu"] == null ? 0 : (int)ViewState["am_vu"]; } set { ViewState["am_vu"] = value; } }
++    void Alert(string title, string text, string icon) { ScriptManager.RegisterStartupScript(this.Page, this.GetType(), "SweetAlert", "swal(" + HttpUtility.JavaScriptStringEncode(title, true) + ", " + HttpUtility.JavaScriptStringEncode(text, true) + ", '" + icon + "');", true); }
++
+     protected void btnReset_Click(object sender, EventArgs e)
+     {
+-        if (txtNewPass.Text.Trim() != txtConfirmPass.Text.Trim())
+-        {
+-            this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('warning!', 'Confirm password does not match with password', 'error');", true);
+-            return;
+-        }
+-        int len = txtNewPass.Text.Trim().Length;
+-        if (len < 8)
+-        {
+-            this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('warning!', 'Password Must Contain atleast 8 characters', 'error');", true);
+-            return;
+-        }
+-        string LoginType;
+-        if (Request.QueryString["LoginType"] == null)
++        int user = VerifiedUser;
++        if (user <= 0) { LoginPanel.Visible = false; OldPasswordPanel.Visible = true; Alert("warning!", "Please enter the temporary password from your email first.", "error"); return; }
++        string pw = txtNewPass.Text.Trim();
++        if (pw != txtConfirmPass.Text.Trim()) { Alert("warning!", "Confirm password does not match with password", "error"); return; }
++        if (pw.Length < 8) { Alert("warning!", "Password Must Contain atleast 8 characters", "error"); return; }
++        if (pw.Length > 50) { Alert("warning!", "Password must be 50 characters or fewer", "error"); return; }
++        using (var c = AnyminuteTimesheetRepair.Open())
+         {
+-            LoginType = "EMP";
++            AnyminuteTimesheetRepair.Execute(c, null, "UPDATE UserAcc SET Password=CONVERT(nvarchar(max),EncryptByPassPhrase('MD2',CAST(@p AS nvarchar(50))),2),Is_First_Time_Login='False' WHERE UserId=@u", "@p", pw, "@u", user);
++            if (AnyminuteEmployeeEditor.HasTable(c, null, "AnyminuteSupportAudit"))
++                AnyminuteTimesheetRepair.Execute(c, null, @"INSERT AnyminuteSupportAudit(Entity,EntityKey,Action,ChangedBy,ChangedByName,Comments,IpAddress,Success)
++                    VALUES('Login',@k,'Password Changed',@u,'Subscriber','New password set on the Welcome page with the emailed temporary password.',@ip,1)",
++                    "@k", user.ToString(System.Globalization.CultureInfo.InvariantCulture), "@u", user, "@ip", Request.UserHostAddress ?? "");
+         }
+-        else
+-        {
+-            LoginType = Request.QueryString["LoginType"].ToString();
+-        }
+-
+-        UActrl.Sp_ReSetPassword(int.Parse(Request.QueryString["empid"].ToString()), txtConfirmPass.Text, LoginType);
+-        //Response.Redirect("Login.aspx", false);   //Commented after hemal code for message
+-        ScriptManager.RegisterStartupScript(this.Page, this.GetType(), "SweetAlert", "swal('Success!', 'Password Changed Successfully', 'success').then((value) => {window.location = 'Login.aspx';});", true);
++        VerifiedUser = 0;
++        ScriptManager.RegisterStartupScript(this.Page, this.GetType(), "SweetAlert", "swal('Success!', 'Password Changed Successfully. Please sign in with your new password.', 'success').then((value) => {window.location = 'Login.aspx';});", true);
+     }
+ 
+     protected void Submit_Click(object sender, EventArgs e)
+     {
+-        if (txtOldPassword.Text.Trim() == "")
++        string temp = txtOldPassword.Text.Trim();
++        int id;
++        if (temp.Length == 0) { Alert("warning!", "Enter the temporary password from your email", "error"); return; }
++        if (!Int32.TryParse(Request.QueryString["empid"], out id)) { Alert("warning!", "This link is not valid. Please use the link from your latest AnyMinute email.", "error"); return; }
++        string where = LoginType == "Acc" ? "MotherOrgid=@e" : LoginType == "Support" ? "EmployeeId=@e AND UserType='SupportAdmin'" : "EmployeeId=@e AND ISNULL(UserType,'')<>'SupportAdmin'";
++        DataTable match;
++        using (var c = AnyminuteTimesheetRepair.Open())
++            match = AnyminuteTimesheetRepair.Query(c, null, "SELECT TOP 1 UserId FROM UserAcc WHERE " + where + " AND " + Decrypt + "=@p ORDER BY UserId DESC", "@e", id, "@p", temp);
++        if (match.Rows.Count == 0)
+         {
+-            this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('warning!', 'Enter old password', 'error');", true);
++            Alert("warning!", "The temporary password does not match. Use the temporary password from your most recent AnyMinute invitation or password reset email (each new email replaces the previous password).", "error");
+             return;
+         }
+-        string LoginType;
+-        DataTable oldcheck;
+-        if (Request.QueryString["LoginType"] == null)
+-        {
+-            LoginType = "EMP";
+-        }
+-        else
+-        {
+-            LoginType = Request.QueryString["LoginType"].ToString();
+-        }
+-        if (LoginType == "EMP")
+-        {
+-            oldcheck = comm.GetAllDataFromTable("UserAcc", "Password", "EmployeeId = '" + int.Parse(Request.QueryString["empid"].ToString()) + "' and convert(nvarchar(max),DecryptByPassPhrase('MD2',convert (varbinary(200) ,Password ,2),2 ))='" + txtOldPassword.Text + "'", "");
+-        }
+-        else if (LoginType == "Acc")
+-        {
+-            oldcheck = comm.GetAllDataFromTable("UserAcc", "Password", "MotherOrgid = '" + int.Parse(Request.QueryString["empid"].ToString()) + "' and convert(nvarchar(max),DecryptByPassPhrase('MD2',convert (varbinary(200) ,Password ,2),2 ))='" + txtOldPassword.Text + "'", "");
+-        }
+-        else
+-        {
+-            oldcheck = comm.GetAllDataFromTable("UserAcc", "Password", "EmployeeId = '" + int.Parse(Request.QueryString["empid"].ToString()) + "' and convert(nvarchar(max),DecryptByPassPhrase('MD2',convert (varbinary(200) ,Password ,2),2 ))='" + txtOldPassword.Text + "' and UserType='SupportAdmin'", "");
+-        }
+-        if (oldcheck.Rows.Count == 0)
+-        {
+-            this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('warning!', 'Old password does not match', 'error');", true);
+-            return;
+-        }
+-        if (oldcheck.Rows.Count > 0)
+-        {
+-            LoginPanel.Visible = true;
+-            OldPasswordPanel.Visible = false;
+-        }
++        VerifiedUser = Convert.ToInt32(match.Rows[0][0]);
++        LoginPanel.Visible = true;
++        OldPasswordPanel.Visible = false;
+     }
+ }
+\ No newline at end of file
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SuperAdmin.aspx b/AMV3Reseller_27Aug2022_Subscription/SuperAdmin.aspx
+index 6a00806..2d50e58 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SuperAdmin.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SuperAdmin.aspx
+@@ -3,7 +3,7 @@
+ <%-- v36 (DOCX image7, strict): Accountant List moved to the same Modern shell / Support Admin card design as the other Support Admin
+      pages: one toolbar (Search + Status + Clear), status pills, sortable headers, Previous / page / Next pager, no forced H-scroll. --%>
+ <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="Server">
+-    <link href="css/AnyminuteSupport.css?v=20261103v57" rel="stylesheet" />
++    <link href="css/AnyminuteSupport.css?v=20261103v58" rel="stylesheet" />
+     <style>
+         .am-sa-list .sa-head h1{font-size:24px;margin:0}
+         .am-sa-list .sa-table-wrap{overflow-x:visible}
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SuperAdmin_Approve_Subscriber.aspx b/AMV3Reseller_27Aug2022_Subscription/SuperAdmin_Approve_Subscriber.aspx
+index 97600a1..2347eb3 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SuperAdmin_Approve_Subscriber.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SuperAdmin_Approve_Subscriber.aspx
+@@ -161,7 +161,7 @@
+         }
+     </script>
+ 
+-    <link href="css/AnyminuteSupport.css?v=20261103v57" rel="stylesheet" />
++    <link href="css/AnyminuteSupport.css?v=20261103v58" rel="stylesheet" />
+     <style>
+         /* v37 (DOCX image4): one toolbar, no forced scrollbar, status pill, sortable headers, pager. */
+         .am-sa-subwrap{overflow-x:auto;border:1px solid #e2e8f0;border-radius:10px;background:#fff}
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx b/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx
+index 1ea28f1..4117751 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="SupportAddresses.aspx.cs" Inherits="AnyminuteSupportAddressesPage" Title="Address Verification" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v57" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v57" defer="defer"></script></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v58" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v58" defer="defer"></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section class="sa-page">
+  <header class="sa-head"><div><h1>Address Verification</h1><p>Review, correct and verify manually entered addresses.</p></div>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportAdminProfile.aspx b/AMV3Reseller_27Aug2022_Subscription/SupportAdminProfile.aspx
+index 08a65fd..51f9e18 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportAdminProfile.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportAdminProfile.aspx
+@@ -1,352 +1,31 @@
+-﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Main.master" AutoEventWireup="true" CodeFile="SupportAdminProfile.aspx.cs" Inherits="SupportAdminProfile" %>
+-<%@ Register Assembly="AjaxControlToolkit" Namespace="AjaxControlToolkit" TagPrefix="cc1" %>
+-<asp:Content ID="Content1" ContentPlaceHolderID="head" runat="Server">
+-    <style>
+-        .GridPager a, .GridPager span {
+-            display: block;
+-            height: 35px;
+-            width: 35px;
+-            font-weight: bold;
+-            text-align: center;
+-            text-decoration: none;
+-            padding: 10px;
+-        }
+-
+-        .GridPager a {
+-            background-color: #fff;
+-            color: #969696;
+-            border: 1px solid #dedede;
+-        }
+-
+-        .GridPager a:hover {
+-            color: #337ab7;
+-        }
+-
+-        .GridPager span {
+-            background-color: #337ab7;
+-            color: #fff;
+-            border: 1px solid #dedede;
+-        }
+-
+-        .buttonhyperlink {
+-            /*text-align: center;
+-            padding-top: 10px;
+-            font-family: sans-serif;
+-            font-size: medium;*/
+-            border: 1px solid #607DF2;
+-            display: block;
+-            background-color: #607DF2;
+-            border-radius: 0px;
+-            color: white;
+-            padding: 10px 25px;
+-            text-align: center;
+-            text-decoration: none;
+-            display: block;
+-            margin-top: -1px;
+-            font-family: sans-serif;
+-            font-size: medium;
+-        }
+-
+-        .buttonhyperlink:hover {
+-            border: 1px solid #607DF2;
+-            display: block;
+-            background-color: #607DF2;
+-            border-radius: 0px;
+-            color: white;
+-            padding: 10px 25px;
+-            text-align: center;
+-            text-decoration: none;
+-            display: block;
+-            margin-top: -1px;
+-            font-family: sans-serif;
+-            font-size: medium;
+-        }
+-
+-        .buttonhyperlink2 {
+-            /*text-align: center;
+-            padding-top: 10px;
+-            font-family: sans-serif;
+-            font-size: medium;*/
+-            border: 1px solid #607DF2;
+-            display: block;
+-            background-color: white;
+-            border-radius: 1px;
+-            color: #607DF2;
+-            padding: 10px 25px;
+-            text-align: center;
+-            text-decoration: none;
+-            display: block;
+-            margin-top: -1px;
+-            font-family: sans-serif;
+-            font-size: medium;
+-        }
+-
+-        .buttonhyperlink2:hover {
+-            border: 1px solid #607DF2;
+-            display: block;
+-            background-color: white;
+-            border-radius: 1px;
+-            color: #607DF2;
+-            padding: 10px 25px;
+-            text-align: center;
+-            text-decoration: none;
+-            display: block;
+-            margin-top: -1px;
+-            font-family: sans-serif;
+-            font-size: medium;
+-        }
+-    </style>
+-    <script lang="Javascript" type="text/javascript">
+-    function isNumberKey(evt) {
+-        var charCode = (evt.which) ? evt.which : evt.keyCode;
+-        if (charCode > 31 && (charCode < 48 || charCode > 57) && charCode != 189)
+-            return false;
+-
+-        return true;
+-    }
+-    </script>
+-        
+-    <script>
+-        $(document).ready(function () {
+-            $('#txtMainPhone').keyup(function (event) {
+-                addHyphen(this);
+-            });
+-        });
+-
+-        $(document).ready(function () {
+-            $('#txt_mobilenumber').keyup(function (event) {
+-                addHyphen(this);
+-            });
+-        });
+-
+-        function addHyphen(element) {
+-            let val = $(element).val().split('-').join('');   // Remove dash (-) if mistakenly entered.
+-            let n = val.length;
+-
+-            if (n <= 9) {
+-                let finalVal = val.match(/.{1,3}/g).join('-');    // Add (-) after 3rd every char.
+-                $(element).val(finalVal);		// Update the input box.
+-            }
+-        }
+-    </script>
+-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@9"></script>
+-    <script src="Assets/assets/js/SweetAlert.js"></script>
+-</asp:Content>
+-<asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="Server">
+-    <div class="panel panel-default" style="display:none;">
+-        <div class="panel-body">
+-            <div class="row">
+-                <div class="col-md-6 col-sm-6 col-xs-6">
+-                    <h2 style="float: left; margin-top: 10px;"> Support Admin Profile</h2>
+-                </div>
+-                <div class="col-md-6 col-sm-6 col-xs-6">
+-                    <a href="SuperAdmin.aspx" id="btnback_" runat="server" class="buttonhyperlink" style="margin-top: 10px;
+-                        float: right;display:none;"><i class="fa fa-angle-left" aria-hidden="true"></i> Home</a>
+-                    <a><asp:LinkButton ID="LinkButton_Back_To_Home_Page_" class="buttonhyperlink2" style="margin-top: 10px;float: right;" 
+-                        OnClick="LinkButton_Back_To_Home_Page_Click" Text="Home" runat="server" /></a>
+-                </div>
+-            </div>
+-        </div>
+-    </div>
+-
+-    <div style="position: relative">
+-        <div class="row">
+-            <div class="col-md-4">
+-                <a href="SuperAdmin.aspx" id="btnback" runat="server" style="display:none;font-size:large;">Home</a>
+-                <a><asp:LinkButton ID="LinkButton_Back_To_Home_Page" OnClick="LinkButton_Back_To_Home_Page_Click" style="font-size:large;" Text="Home" runat="server" /></a>
+-            </div>
+-            <div class="col-md-4" style="text-align: center; margin-top:-7px;">
+-                <asp:Label Font-Bold="true" Font-Size="X-Large" Text="Support Admin Profile" runat="server" />
+-            </div>
+-            <div class="col-md-4" style="text-align: right; margin-top:-5px;">
+-                <a href="SuperAdmin_Approve_Subscriber.aspx" id="A1" runat="server">
+-                    <i class="fa fa-times fa-2x" aria-hidden="true"></i>
+-                </a>
+-            </div>
+-        </div>
+-    </div>
+-
+-    <div class="row">
+-        <div class="col-md-12">
+-            <div class="panel panel-default" id="divpan" runat="server">
+-                <div class="panel-body">
+-                    <div class="col-md-3"></div>
+-                    <div class="col-md-6">
+-                     <div class="row">
+-                             <div class="col-md-6">
+-                            <div class="form-group">
+-                                <label for="Name">Title</label>
+-                                
+-                                <asp:DropDownList ID="ddlLegalName" runat="server" CssClass="form-control">
+-                                    <asp:ListItem Value="" Selected="True"> Select</asp:ListItem>
+-                                    <asp:ListItem Value="Mr.">Mr.</asp:ListItem>
+-                                    <asp:ListItem Value="Miss.">Miss.</asp:ListItem>
+-                                    <asp:ListItem Value="Ms.">Ms.</asp:ListItem>
+-                                    <asp:ListItem Value="Mx.">Mx.</asp:ListItem>
+-                                </asp:DropDownList>
+-                            </div>
+-                        </div>
+-
+-                         <div class="col-md-6">
+-                            <div class="form-group">
+-                                <label for="Name">First Name</label>&nbsp;<span style="font-weight:bold">(Required)</span>
+-                                <asp:TextBox ID="txtFirstName" required runat="server" CssClass="form-control"></asp:TextBox>
+-                            </div>
+-                        </div>
+-                        <div class="col-md-6">
+-                            <div class="form-group">
+-                                <label for="Name">Middle Name</label>
+-                                <asp:TextBox ID="txtMiddleName" runat="server" CssClass="form-control"></asp:TextBox>
+-                            </div>
+-                        </div>
+-                        <div class="col-md-6">
+-                            <div class="form-group">
+-                                <label for="Name">Last Name</label>&nbsp;<span style="font-weight:bold">(Required)</span>
+-                                <asp:TextBox ID="txtLastName" required runat="server" CssClass="form-control"></asp:TextBox>
+-                            </div>
+-                        </div>
+-                        <div class="col-md-6">
+-                            <div class="form-group">
+-                                <label for="txtdob">Date of Birth</label>
+-                                <asp:TextBox ID="txtdob" ValidationGroup="persnoldetails" runat="server" class="form-control"
+-                                    type="date" max="9999-12-31" placeholder="DD/MM/YYYY"></asp:TextBox>
+-                                <asp:RequiredFieldValidator ID="Reqtxtdob" ValidationGroup="persnoldetails" runat="server"
+-                                    ControlToValidate="txtdob" Display="None" ErrorMessage="This Field Is Requried" />
+-                                <cc1:ValidatorCalloutExtender ID="ValidatorCalloutExtender6" runat="server" TargetControlID="Reqtxtdob"
+-                                    PopupPosition="Right" HighlightCssClass="validatorCalloutHighlight">
+-                                    <Animations>
+-                                          <OnShow>
+-                                           <Sequence>
+-                                            <HideAction Visible="true" />
+-                                              <FadeIn Duration="1" MinimumOpacity="0" MaximumOpacity="1" />
+-                                           </Sequence>
+-                                          </OnShow>
+-
+-                                           <OnHide>
+-                                           <Sequence>
+-                                           <FadeOut Duration="1" MinimumOpacity="0" MaximumOpacity="1" />
+-                                           <HideAction Visible="false" />
+-                                           </Sequence>
+-                                           </OnHide>
+-                                    </Animations>
+-                                </cc1:ValidatorCalloutExtender>
+-                            </div>
+-                        </div>
+-                        <div class="col-md-6">
+-                            <div class="form-group">
+-                                <label for="title">Gender</label>
+-                                <asp:DropDownList ID="ddlgender" runat="server" CssClass="form-control"
+-                                    Width="100%">
+-                                    <asp:ListItem Value="" Selected="True"> Select</asp:ListItem>
+-                                    <asp:ListItem Value="Male">Male</asp:ListItem>
+-                                    <asp:ListItem Value="Female">Female</asp:ListItem>
+-                                    <asp:ListItem Value="Others">Others</asp:ListItem>
+-                                </asp:DropDownList>
+-                            </div>
+-                        </div>
+-                         <div class="col-md-6">
+-                            <div class="form-group">
+-                                <label for="Name">Contact Phone</label>&nbsp;<span style="font-weight:bold">(Required)</span>
+-                                <asp:TextBox ID="txtMainPhone" required TextMode="Phone"  MaxLength="12" onkeypress="return isNumberKey(event)" runat="server" ClientIDMode="Static" CssClass="form-control"></asp:TextBox>
+-                            </div>
+-                        </div>
+-
+-                        <div class="col-md-6">
+-                            <div class="form-group">
+-                                <label for="Name">Mobile</label>
+-                                <asp:TextBox ID="txt_mobilenumber"  runat="server" ClientIDMode="Static" CssClass="form-control" MaxLength="12" onkeypress="return isNumberKey(event)"></asp:TextBox>
+-                            </div>
+-                        </div>
+-
+-                        <div class="col-md-6">
+-                            <div class="form-group">
+-                                <label for="Name">City</label>
+-                                <asp:TextBox ID="txt_city" runat="server" CssClass="form-control"></asp:TextBox>
+-                            </div>
+-                        </div>
+-                        <div class="col-md-6">
+-                            <div class="form-group">
+-                                <label for="Name">Province</label>
+-                                <asp:TextBox ID="txt_province" runat="server" CssClass="form-control"></asp:TextBox>
+-                            </div>
+-                        </div>
+-
+-                       <asp:UpdatePanel ID="up11" runat="server" >
+-                                                    <ContentTemplate>
+-                        <div class="col-md-6">
+-                            <div class="form-group">
+-                                <label for="Name">Login Email</label>&nbsp;<span style="font-weight:bold">(Required)</span>
+-                                
+-                                <asp:TextBox ID="txtMainEmail" TextMode="Email" required runat="server" Enabled="false" ClientIDMode="Static" CssClass="form-control" OnTextChanged="txtMainEmail_TextChanged" AutoPostBack="true"></asp:TextBox>
+-                              
+-                                 <div id="divValid" runat="server" visible="false">
+-                                                <span class="fa fa-exclamation" aria-hidden="true" style="color: red; font-size: 14px;">
+-                                                    The email address you've entered is not vaild. Please try again
+-                                                </span>
+-                                            </div>
+-                                                        <asp:HiddenField ID="hfdemail" runat="server" />
+-                                <asp:HiddenField ID="hfdMainEmail" runat="server" />
+-                                <cc1:AutoCompleteExtender ServiceMethod="GetCompletionList"
+-                                        MinimumPrefixLength="1"
+-                                        CompletionInterval="10"
+-                                        EnableCaching="false"
+-                                        CompletionSetCount="1"
+-                                        TargetControlID="txtMainEmail"
+-                                        ID="AutoCompleteExtender1"
+-                                        runat="server"
+-                                        FirstRowSelected="false">
+-                                    </cc1:AutoCompleteExtender>
+-                                      
+-                            </div>
+-                        </div>
+-                            <div class="col-md-6" id="divconfirm" runat="server" visible="false">
+-                                        <div class="row">
+-                                            <div class="col-md-10">
+-                                                 <div class="form-group">
+-                                            <label for="Name">Confirm Email Address</label>
+-                                            <asp:TextBox ID="txtConLoginEmail" ClientIDMode="Static" runat="server" CssClass="form-control"  OnTextChanged="txtConLoginEmail_TextChanged" AutoPostBack="true"></asp:TextBox>
+-                                            <div id="div1msg" runat="server">
+-                                                <span class="fa fa-exclamation" aria-hidden="true" style="color: red; font-size: 14px;">
+-                                                Please re-enter the Contact's email address</span>
+-                                            </div>
+-                                            <div id="div2stmsg" runat="server" visible="false">
+-                                                <span class="fa fa-exclamation" aria-hidden="true" style="color: red; font-size: 14px;">
+-                                                    The email address you've entered is not vaild. Please try again
+-                                                </span>
+-                                            </div>
+-                                            
+-
+-                                        </div>
+-                                            </div>
+-                                            <div class="col-md-1">
+-                                                <div id="divtick" runat="server" visible="false" style="margin-top:20px;">
+-                                                <span class="fa fa-check fa-3x" aria-hidden="true" style="color:green"></span>
+-                                                    </div>
+-                                            </div>
+-                                        </div>
+-                                       
+-                                    </div>
+-
+-                                                        </ContentTemplate>
+-                                                    <Triggers>
+-                                                        <asp:AsyncPostBackTrigger ControlID="txtMainEmail" />
+-                                                         <asp:AsyncPostBackTrigger ControlID="txtConLoginEmail" />
+-                                                    </Triggers>
+-                                                        </asp:UpdatePanel>
+-                         
+-                    </div>
+-                        <div class="row">
+-                            <div class="col-md-12">
+-                                <center>
+-                                    <asp:Button ID="btnsave" runat="server" CssClass="buttonhyperlink" OnClick="btnsave_Click" Text="Save" />
+-                                </center>
+-                            </div>
+-                        </div>
+-                        </div>
+-                     <div class="col-md-3"></div>
+-                </div>
+-            </div>
+-        </div>
+-    </div>
+-  
+-</asp:Content>
+\ No newline at end of file
++<%@ Page Title="My Profile" Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="SupportAdminProfile.aspx.cs" Inherits="SupportAdminProfile" %>
++<%-- 2026-11-03 v58 (Support Admin PPT s2/s3 "Can't Edit the Profile"): My profile for Support Admin is a real, editable profile in the
++     Support Admin console (Modern.master), replacing the old Main.master form with its Home / Back to List links. --%>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v58" rel="stylesheet" /></asp:Content>
++<asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
++<section class="sa-page">
++ <header class="sa-head"><div><h1>My Profile</h1><p>Your Support Admin account and contact details.</p></div></header>
++ <asp:Literal ID="Flash" runat="server" />
++ <asp:Panel ID="ProfileForm" runat="server" CssClass="sa-card" DefaultButton="btnsave">
++  <h2>Personal Details</h2>
++  <div class="sa-row3">
++   <label class="sa-field"><span>Title</span><asp:DropDownList ID="ddlLegalName" runat="server"><asp:ListItem Value="">Select</asp:ListItem><asp:ListItem Value="Mr.">Mr.</asp:ListItem><asp:ListItem Value="Miss.">Miss.</asp:ListItem><asp:ListItem Value="Ms.">Ms.</asp:ListItem><asp:ListItem Value="Mrs.">Mrs.</asp:ListItem><asp:ListItem Value="Mx.">Mx.</asp:ListItem></asp:DropDownList></label>
++   <label class="sa-field"><span>First Name <i class="sa-req">*</i></span><asp:TextBox ID="txtFirstName" runat="server" MaxLength="50" required="required" /></label>
++   <label class="sa-field"><span>Middle Name</span><asp:TextBox ID="txtMiddleName" runat="server" MaxLength="50" /></label>
++   <label class="sa-field"><span>Last Name <i class="sa-req">*</i></span><asp:TextBox ID="txtLastName" runat="server" MaxLength="50" required="required" /></label>
++   <label class="sa-field"><span>Date of Birth</span><asp:TextBox ID="txtdob" runat="server" TextMode="Date" max="9999-12-31" /></label>
++   <label class="sa-field"><span>Gender</span><asp:DropDownList ID="ddlgender" runat="server"><asp:ListItem Value="">Select</asp:ListItem><asp:ListItem Value="Male">Male</asp:ListItem><asp:ListItem Value="Female">Female</asp:ListItem><asp:ListItem Value="Others">Others</asp:ListItem></asp:DropDownList></label>
++  </div>
++  <h2 style="margin-top:12px">Contact Details</h2>
++  <div class="sa-row3">
++   <label class="sa-field"><span>Main Phone <i class="sa-req">*</i></span><asp:TextBox ID="txtMainPhone" runat="server" MaxLength="15" required="required" placeholder="416-555-0100" /></label>
++   <label class="sa-field"><span>Mobile</span><asp:TextBox ID="txt_mobilenumber" runat="server" MaxLength="15" /></label>
++   <label class="sa-field"><span>Login Email</span><asp:TextBox ID="txtMainEmail" runat="server" ReadOnly="true" /></label>
++   <label class="sa-field"><span>City</span><asp:TextBox ID="txt_city" runat="server" MaxLength="50" /></label>
++   <label class="sa-field"><span>Province</span><asp:TextBox ID="txt_province" runat="server" MaxLength="50" /></label>
++  </div>
++  <p class="sa-muted sa-small">To change your sign-in email use <a class="sa-link" href="LoginSecurity.aspx">Login &amp; security</a> (the new email is verified first). To change your password use <a class="sa-link" href="Change%20Password.aspx">Change password</a>.</p>
++  <div class="sa-panel-foot"><a class="sa-btn sa-btn-outline" href="SupportSubscribers.aspx">Cancel</a><asp:Button ID="btnsave" runat="server" CssClass="sa-btn" Text="Save Changes" OnClick="btnsave_Click" /></div>
++ </asp:Panel>
++</section>
++</asp:Content>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportAdminProfile.aspx.cs b/AMV3Reseller_27Aug2022_Subscription/SupportAdminProfile.aspx.cs
+index 1f255ee..4e6b570 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportAdminProfile.aspx.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportAdminProfile.aspx.cs
+@@ -1,145 +1,87 @@
+-﻿using System;
+-using System.Collections.Generic;
+-using System.Data;
+-using System.Linq;
+-using System.Text.RegularExpressions;
+-using System.Web;
+-using System.Web.UI;
+-using System.Web.UI.WebControls;
+-
+-public partial class SupportAdminProfile : System.Web.UI.Page
+-{
+-    CommanClass Comm = new CommanClass();
+-    SupportAdminCtrl SuppCtrl = new SupportAdminCtrl();
+-    SupportAdminEntity SuppEntity = new SupportAdminEntity();
+-
+-    protected void Page_Load(object sender, EventArgs e)
+-    {
+-        if (Session["EmployeeId"] == null)
+-        {
+-            Response.Redirect("Login.aspx");
+-        }
+-        if (!Page.IsPostBack)
+-        {
+-            GetDetails(int.Parse(Session["EmployeeId"].ToString()));
+-        }
+-    }
+-
+-    public void GetDetails(int AccId)
+-    {
+-        DataTable dt = Comm.GetAllDataFromTable("SupportAdmin", "*", "SupportAdminId='" + Session["EmployeeId"].ToString() + "'", "");
+-        ddlLegalName.SelectedValue = dt.Rows[0]["Title"].ToString();
+-        txtFirstName.Text = dt.Rows[0]["FirstName"].ToString();
+-        txtMiddleName.Text = dt.Rows[0]["MiddleName"].ToString();
+-        txtLastName.Text= dt.Rows[0]["LastName"].ToString();
+-        if(dt.Rows[0]["DOB"].ToString()!="")
+-        {
+-            txtdob.Text = DateTime.Parse(dt.Rows[0]["DOB"].ToString()).ToString("yyyy-MM-dd");
+-        }
+-       
+-        ddlgender.SelectedValue = dt.Rows[0]["Gender"].ToString();
+-        txtMainPhone.Text= dt.Rows[0]["Contact"].ToString();
+-        txt_mobilenumber.Text= dt.Rows[0]["Mobile"].ToString();
+-        txt_city.Text= dt.Rows[0]["CITY"].ToString();
+-        txt_province.Text = dt.Rows[0]["Province"].ToString();
+-        txtMainEmail.Text= dt.Rows[0]["Email"].ToString();
+-        hfdemail.Value= dt.Rows[0]["Email"].ToString();
+-    }
+-
+-    protected void btnsave_Click(object sender, EventArgs e)
+-    {
+-        if(txtMainEmail.Text!= hfdemail.Value)
+-        {
+-            if (txtMainEmail.Text.Trim() != txtConLoginEmail.Text.Trim())
+-            {
+-                this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('warning!', 'Confirm Email Not Match', 'warning');", true);
+-                return;
+-
+-            }
+-        }
+-        
+-        int result = 0;
+-
+-        SuppEntity.SupportAdminId = int.Parse(Session["EmployeeId"].ToString());
+-        SuppEntity.Title = ddlLegalName.SelectedValue;
+-        SuppEntity.FirstName = txtFirstName.Text;
+-        SuppEntity.MiddleName = txtMiddleName.Text;
+-        SuppEntity.LastName = txtLastName.Text;
+-        SuppEntity.DOB = txtdob.Text;
+-        SuppEntity.Gender = ddlgender.SelectedValue;
+-        SuppEntity.Contact = txtMainPhone.Text;
+-        SuppEntity.Mobile = txt_mobilenumber.Text;
+-        SuppEntity.CITY = txt_city.Text;
+-        SuppEntity.Province = txt_province.Text;
+-        SuppEntity.Email = txtMainEmail.Text;
+-
+-        result = SuppCtrl.Sp_UpdateSupport(SuppEntity);
+-        DataTable dtChkMail = Comm.GetAllDataFromTable("SupportAdmin", "Email", "SupportAdminId='" + int.Parse(Session["EmployeeId"].ToString()) + "'", "");
+-        // v39 (Change Login Email DOC): the profile contact email no longer overwrites the login email without verification;
+-        // Support Admin changes the login email in My Profile > Login & Security like every other user.
+-
+-        if (result > 0)
+-        {
+-            this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('success!', 'Profile Updated Successfully', 'success');", true);
+-        }
+-    }
+-
+-    public bool IsValidEmail(string email)
+-    {
+-        var r = new Regex(@"^([0-9a-zA-Z]([-\.\w]*[0-9a-zA-Z])*@([0-9a-zA-Z][-\w]*[0-9a-zA-Z]\.)+[a-zA-Z]{2,9})$");
+-
+-        return !string.IsNullOrEmpty(email) && r.IsMatch(email);
+-    }
+-
+-    protected void txtMainEmail_TextChanged(object sender, EventArgs e)
+-    {
+-        if (txtMainEmail.Text.Trim() != string.Empty)
+-        {
+-            if (IsValidEmail(txtMainEmail.Text) == true)
+-            {
+-                divValid.Visible = false;
+-                bool ceck = false;
+-                ceck = Comm.IfExistsInTable("UserAcc", "*", "Email='" + txtMainEmail.Text + "'");
+-                if (ceck == false)
+-                {
+-                    divconfirm.Visible = true;
+-                }
+-                if (txtMainEmail.Text.Trim() == "")
+-                {
+-                    divconfirm.Visible = false;
+-                }
+-            }
+-            else
+-            {
+-                divValid.Visible = true;
+-            }
+-        }
+-        else
+-        {
+-            divconfirm.Visible = false;
+-        }
+-    }
+-
+-    protected void txtConLoginEmail_TextChanged(object sender, EventArgs e)
+-    {
+-        div1msg.Visible = false;
+-        if (txtMainEmail.Text.Trim() != txtConLoginEmail.Text.Trim())
+-        {
+-            div2stmsg.Visible = true;
+-            divtick.Visible = false;
+-        }
+-        else
+-        {
+-            div2stmsg.Visible = false;
+-            divtick.Visible = true;
+-        }
+-    }
+-
+-    protected void LinkButton_Back_To_Home_Page_Click(object sender, EventArgs e)
+-    {
+-        if (Session["email"].ToString() == "support@anyminute.net")
+-            Response.Redirect("SuperAdmin_Approve_Subscriber.aspx"); //SuperAdmin_Approve_New_Account.aspx changed by kumar
+-        else
+-            Response.Redirect("SuperAdmin.aspx");              
+-    }
+-}
+\ No newline at end of file
++using System;
++using System.Data;
++using System.Text.RegularExpressions;
++using System.Web;
++using SA = AnyminuteSupportAdmin;
++
++// 2026-11-03 v58 (Support Admin PPT s2/s3): editable Support Admin profile on Modern.master. Reads SupportAdmin by the signed-in
++// SupportAdminId (Session["EmployeeId"]) with a parameterised query and saves through the existing Sp_UpdateSupport. The login
++// email is read-only here (v39: changes go through Login & security verification) and is passed back unchanged.
++public partial class SupportAdminProfile : System.Web.UI.Page
++{
++    readonly SupportAdminCtrl SuppCtrl = new SupportAdminCtrl();
++    int Me { get { int id; Int32.TryParse(Convert.ToString(Session["EmployeeId"]), out id); return id; } }
++
++    protected void Page_Init(object sender, EventArgs e)
++    {
++        if (Session["UserId"] == null || Session["EmployeeId"] == null) { Response.Redirect("Login.aspx", true); return; }
++        SA.Require();
++    }
++
++    protected void Page_Load(object sender, EventArgs e)
++    {
++        if (!IsPostBack) Bind();
++    }
++
++    DataRow Row()
++    {
++        using (var c = SA.Open())
++        {
++            var t = SA.Q(c, "SELECT TOP 1 * FROM SupportAdmin WHERE SupportAdminId=@s", "@s", Me);
++            return t.Rows.Count == 1 ? t.Rows[0] : null;
++        }
++    }
++
++    static void Pick(System.Web.UI.WebControls.DropDownList d, string v)
++    {
++        var item = d.Items.FindByValue(v ?? "");
++        if (item == null && !String.IsNullOrEmpty(v)) { item = new System.Web.UI.WebControls.ListItem(v, v); d.Items.Add(item); }
++        d.ClearSelection(); if (item != null) item.Selected = true;
++    }
++
++    void Bind()
++    {
++        var r = Row();
++        if (r == null) { ProfileForm.Visible = false; Flash.Text = "<div class='sa-flash sa-warn' role='alert'>No Support Admin profile was found for this sign-in.</div>"; return; }
++        Pick(ddlLegalName, SA.S(r["Title"]));
++        txtFirstName.Text = SA.S(r["FirstName"]); txtMiddleName.Text = SA.S(r["MiddleName"]); txtLastName.Text = SA.S(r["LastName"]);
++        DateTime dob; txtdob.Text = r["DOB"] != DBNull.Value && DateTime.TryParse(SA.S(r["DOB"]), out dob) ? dob.ToString("yyyy-MM-dd") : "";
++        Pick(ddlgender, SA.S(r["Gender"]));
++        txtMainPhone.Text = SA.S(r["Contact"]); txt_mobilenumber.Text = SA.S(r["Mobile"]);
++        txt_city.Text = SA.S(r["CITY"]); txt_province.Text = SA.S(r["Province"]);
++        txtMainEmail.Text = SA.S(r["Email"]);
++    }
++
++    static readonly Regex Phone = new Regex(@"^[0-9+()\-\s.]{7,15}$");
++
++    protected void btnsave_Click(object sender, EventArgs e)
++    {
++        var r = Row();
++        if (r == null) { Bind(); return; }
++        string first = txtFirstName.Text.Trim(), last = txtLastName.Text.Trim(), phone = txtMainPhone.Text.Trim(), mobile = txt_mobilenumber.Text.Trim(), dob = txtdob.Text.Trim();
++        string err = first.Length == 0 ? "First Name is required." : last.Length == 0 ? "Last Name is required." : phone.Length == 0 ? "Main Phone is required."
++            : !Phone.IsMatch(phone) ? "Enter a valid Main Phone number." : mobile.Length > 0 && !Phone.IsMatch(mobile) ? "Enter a valid Mobile number." : null;
++        DateTime d;
++        if (err == null && dob.Length > 0 && (!DateTime.TryParseExact(dob, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out d) || d > DateTime.Today || d.Year < 1900)) err = "Enter a valid Date of Birth.";
++        if (err != null) { Flash.Text = "<div class='sa-flash sa-warn' role='alert'>" + HttpUtility.HtmlEncode(err) + "</div>"; return; }
++
++        var x = new SupportAdminEntity
++        {
++            SupportAdminId = Me, Title = ddlLegalName.SelectedValue, FirstName = first, MiddleName = txtMiddleName.Text.Trim(), LastName = last, DOB = dob,
++            Gender = ddlgender.SelectedValue, Contact = phone, Mobile = mobile, CITY = txt_city.Text.Trim(), Province = txt_province.Text.Trim(),
++            Email = SA.S(r["Email"]) // login email unchanged here
++        };
++        SuppCtrl.Sp_UpdateSupport(x);
++        string name = AnyminuteDisplayText.Tidy(first + " " + x.MiddleName + " " + last);
++        Session["user"] = "Welcome! " + name; Session["NameOfLoggedInUser"] = name;
++        try { using (var c = SA.Open()) if (SA.Has(c, "AnyminuteSupportAudit")) SA.Audit(c, null, "SupportAdmin", Me.ToString(System.Globalization.CultureInfo.InvariantCulture), "Profile Updated", null, null, null, null, "Support Admin updated their own profile."); }
++        catch (System.Data.SqlClient.SqlException) { }
++        SA.Flash("Profile updated successfully.");
++        Response.Redirect("SupportAdminProfile.aspx", false); Context.ApplicationInstance.CompleteRequest();
++    }
++
++    protected void Page_PreRender(object sender, EventArgs e)
++    {
++        if (Flash.Text.Length == 0) Flash.Text = SA.TakeFlash();
++    }
++}
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportBusinesses.aspx b/AMV3Reseller_27Aug2022_Subscription/SupportBusinesses.aspx
+index dd2fc13..2c91d41 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportBusinesses.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportBusinesses.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="SupportBusinesses.aspx.cs" Inherits="AnyminuteSupportBusinessesPage" Title="Businesses" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v57" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v57" defer="defer"></script></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v58" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v58" defer="defer"></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section class="sa-page">
+  <asp:Literal ID="Body1" runat="server" />
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportPlans.aspx b/AMV3Reseller_27Aug2022_Subscription/SupportPlans.aspx
+index b36d8c4..4b71d99 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportPlans.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportPlans.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="SupportPlans.aspx.cs" Inherits="AnyminuteSupportPlansPage" Title="Subscription Plans" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v57" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v57" defer="defer"></script></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v58" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v58" defer="defer"></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section class="sa-page">
+  <header class="sa-head"><div><h1><asp:Literal ID="Title1" runat="server" /></h1><p><asp:Literal ID="Lead" runat="server" /></p></div>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportReports.aspx b/AMV3Reseller_27Aug2022_Subscription/SupportReports.aspx
+index 005aa22..307a79d 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportReports.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportReports.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="SupportReports.aspx.cs" Inherits="AnyminuteSupportReportsPage" Title="Support Admin Reports" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v57" rel="stylesheet" /><link href="css/AnyminuteReportLayout.css?v=20261101v46" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v57" defer="defer"></script><script src="Scripts/AnyminuteReportLayout.js?v=20261101v46" defer="defer"></script></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v58" rel="stylesheet" /><link href="css/AnyminuteReportLayout.css?v=20261101v46" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v58" defer="defer"></script><script src="Scripts/AnyminuteReportLayout.js?v=20261101v46" defer="defer"></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section class="sa-page am-rl">
+  <asp:Literal ID="Head1" runat="server" />
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportResellers.aspx b/AMV3Reseller_27Aug2022_Subscription/SupportResellers.aspx
+index 6602860..997346c 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportResellers.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportResellers.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="SupportResellers.aspx.cs" Inherits="AnyminuteSupportResellersPage" Title="Resellers" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteAddressLookup.css?v=20261103v57" rel="stylesheet" /><link href="css/AnyminuteSupport.css?v=20261103v57" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v57" defer="defer"></script></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteAddressLookup.css?v=20261103v58" rel="stylesheet" /><link href="css/AnyminuteSupport.css?v=20261103v58" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v58" defer="defer"></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section class="sa-page">
+  <asp:Literal ID="Flash" runat="server" />
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx b/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx
+index 90e173d..996f2cd 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="SupportSubscribers.aspx.cs" Inherits="AnyminuteSupportSubscribersPage" Title="Subscribers" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteAddressLookup.css?v=20261103v57" rel="stylesheet" /><link href="css/AnyminuteSupport.css?v=20261103v57" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v57" defer="defer"></script></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteAddressLookup.css?v=20261103v58" rel="stylesheet" /><link href="css/AnyminuteSupport.css?v=20261103v58" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v58" defer="defer"></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section class="sa-page">
+  <asp:Literal ID="Crumbs" runat="server" />
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx.cs b/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx.cs
+index 5466715..bf91af6 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx.cs
+@@ -196,7 +196,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+         // v42 PPT 01 s2 "Recommended three-dot Actions menu" (labels / descriptions as on the slide)
+         // v51 (held note): "View Subscriber Details" removed - the list has its own View button.
+         return a(b + "&amp;view=edit", "&#9998;", "Edit Subscriber", "Update personal and contact information")
+-            + a(b + "&amp;view=access", "&#128274;", "Manage Login &amp; Access", "Enable or disable access, send reset link") + (NoUpgrade ? "" : a(b + "&amp;view=edit&amp;up=1#plan", "&#9636;", "Change Subscription Plan", "Authorized plan upgrade or downgrade"))
++            + a(b + "&amp;view=access", "&#128274;", "Manage Login &amp; Access", "Enable or disable access, send password reset") + (NoUpgrade ? "" : a(b + "&amp;view=edit&amp;up=1#plan", "&#9636;", "Change Subscription Plan", "Authorized plan upgrade or downgrade"))
+             + a(b + "&amp;view=billing", "&#128200;", "View Usage &amp; Limits", "Business, employee and project allowances") + a(b + "&amp;view=history", "&#8634;", "View Activity Log", "Account changes and support history")
+             + a(b + "&amp;view=access", "&#10006;", "Suspend Subscriber", "Restricted action requiring confirmation");
+     }
+@@ -620,8 +620,8 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+           .Append("<div class='sa-flash sa-warn'>Disabling login will prevent this subscriber from signing in. Existing businesses, employees, projects and data will remain preserved.</div>")
+           .Append("<label class='sa-field'><span>Reason for Access Change *</span><textarea name='sa_reason' rows='3' maxlength='500' placeholder='Enter reason for changing subscriber login access...' data-sa-counter='500'").Append(dis).Append("></textarea><small data-sa-count='1'>0/500</small></label></div></div>");
+         sb.Append("<div class='sa-card'><h2>Additional Account Actions</h2><div class='sa-actions3'>")
+-          .Append("<button type='submit' class='sa-action' name='sa_op' value='invite' data-sa-confirm='Send a new activation invitation to ").Append(SA.A(r["Email"])).Append("?'").Append(dis).Append("><b>&#9993; Resend Invitation</b><small>Send a new activation invitation to the subscriber.</small></button>")
+-          .Append("<a class='sa-action' href='SupportSubscribers.aspx?user=").Append(u).Append("&amp;view=reset'><b>&#128273; Send Password Reset</b><small>Send a secure password reset link to the subscriber.</small></a>")
++          .Append("<button type='submit' class='sa-action' name='sa_op' value='invite' data-sa-confirm='Send a new activation invitation with a new temporary password to ").Append(SA.A(r["Email"])).Append("?'").Append(dis).Append("><b>&#9993; Resend Invitation</b><small>Email a new activation invitation with a new temporary password.</small></button>")
++          .Append("<a class='sa-action' href='SupportSubscribers.aspx?user=").Append(u).Append("&amp;view=reset'><b>&#128273; Send Password Reset</b><small>Email a new temporary password and a Set New Password link.</small></a>")
+           .Append("<a class='sa-action' href='SupportSubscribers.aspx?user=").Append(u).Append("&amp;view=history'><b>&#8634; View Login History</b><small>View recent sign-in activity and login history.</small></a></div>")
+           .Append("<div class='sa-panel-foot'><a class='sa-btn sa-btn-outline' href='SupportSubscribers.aspx?user=").Append(u).Append("'>Cancel</a><button type='submit' class='sa-btn' name='sa_op' value='access'").Append(dis).Append(">&#128190; Save Changes</button></div></div>");
+         return sb.ToString();
+@@ -641,9 +641,9 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+         return "<input type='hidden' name='sa_user' value='" + u + "' /><div class='sa-card sa-steps'>"
+             + "<section><h2><b class='sa-step'>1</b> Subscriber Information</h2><div class='sa-subhead sa-flat'><span class='sa-avatar'>" + SA.H(Initials(Name(r))) + "</span><div class='sa-grow'><strong>" + SA.H(Name(r)) + "</strong><small>Subscriber ID: " + Sub(u) + "<br />" + SA.H(email) + "</small></div>"
+             + "<div><small>Account Status</small>" + SA.Pill(StatusOf(r), Tone(StatusOf(r))) + "</div><div><small>Login Access</small>" + (Enabled(r) ? SA.Pill("Enabled", "green") : SA.Pill("Disabled", "red")) + "</div><div><small>Last Login</small><strong>" + SA.When(r["LastLoginDate"]) + "</strong></div></div></section>"
+-            + "<section><h2><b class='sa-step'>2</b> Password Reset Email</h2><div class='sa-grid2'><div><label class='sa-field'><span>Send to Email Address</span><input type='email' name='sa_email' maxlength='256' required value='" + SA.A(email) + "' oninput=\"document.getElementById('saRstTo').textContent=this.value\" /></label><small class='sa-muted'>A secure password reset link will be sent to this email address.</small></div>"
+-            + "<div class='sa-preview'><small>Message Preview (Email Subject and Content)</small><p><b>Subject: Reset Your AnyMinute Password</b></p><p>Hello " + SA.H(first) + ",</p><p>We received a request to reset your AnyMinute account password. Click the link below to set a new password. This link will expire in 24 hours.</p><p><span class='sa-link'>Reset Your Password</span></p><p>If you did not request this, please ignore this email.</p><p>Thank you,<br />The AnyMinute Team</p></div></div></section>"
+-            + "<section><h2><b class='sa-step'>3</b> Confirm and Send</h2><div class='sa-flash sa-warn'><b>Please confirm before sending.</b><ul><li>A secure password reset link will be sent to <span id='saRstTo'>" + SA.H(email) + "</span>.</li><li>The link will expire in 24 hours.</li><li>The previous password will remain invalid after the reset.</li><li>This action will be recorded in the activity log.</li></ul></div></section>"
++            + "<section><h2><b class='sa-step'>2</b> Password Reset Email</h2><div class='sa-grid2'><div><label class='sa-field'><span>Send to Email Address</span><input type='email' name='sa_email' maxlength='256' required value='" + SA.A(email) + "' oninput=\"document.getElementById('saRstTo').textContent=this.value\" /></label><small class='sa-muted'>A new temporary password and the Set New Password link will be sent to this email address.</small></div>"
++            + "<div class='sa-preview'><small>Message Preview (Email Subject and Content)</small><p><b>Subject: Your AnyMinute Password Has Been Reset</b></p><p>Hello " + SA.H(first) + ",</p><p>AnyMinute Support has reset the password for your AnyMinute account. Your previous password no longer works.</p><p>Login email: <b>" + SA.H(email) + "</b><br />Temporary password: <b>(generated when you send)</b></p><p>Click <span class='sa-link'>Set New Password</span>, enter the temporary password, then choose your own password.</p><p>Thank you,<br />AnyMinute's Support Team</p></div></div></section>"
++            + "<section><h2><b class='sa-step'>3</b> Confirm and Send</h2><div class='sa-flash sa-warn'><b>Please confirm before sending.</b><ul><li>A new temporary password will be emailed to <span id='saRstTo'>" + SA.H(email) + "</span> (also shown to you once after sending).</li><li>The previous password stops working immediately.</li><li>The subscriber sets a new password from the Set New Password page using the temporary password.</li><li>This action will be recorded in the activity log.</li></ul></div></section>"
+             + "<div class='sa-panel-foot'><a class='sa-btn sa-btn-outline' href='SupportSubscribers.aspx?user=" + u + "&amp;view=access'>Cancel</a><button type='submit' class='sa-btn' name='sa_op' value='reset'" + (ready ? "" : " disabled") + ">&#10148; Send Password Reset</button></div></div>";
+     }
+     string SubName = "";
+@@ -747,32 +747,22 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+                 if (email.Length == 0 || email.EndsWith("blank", StringComparison.OrdinalIgnoreCase)) { SA.Flash("This subscriber has no email address."); Back(u, null); return; }
+                 bool send; Boolean.TryParse(ConfigurationManager.AppSettings["IsSendMail"], out send);
+                 if (!send) { SA.Flash("Email sending is turned off for this site (IsSendMail), so nothing was sent."); Back(u, op == "reset" ? "reset" : null); return; }
+-                var link = SA.Q(c, "SELECT TOP 1 ae.EmployeeID FROM EmpAddress a JOIN AddEmployee ae ON a.EmpAddressId=ae.ADDRESSID WHERE a.MainEmail=@m ORDER BY ae.EmployeeID", "@m", email);
+-                int linkEmployee = link.Rows.Count == 1 ? Convert.ToInt32(link.Rows[0][0]) : Convert.ToInt32(r["EmployeeId"]);
+-                string url = ConfigurationManager.AppSettings["ResetUrl"] + linkEmployee, first = HttpUtility.HtmlEncode(Name(r).Split(' ')[0]);
+-                var mail = new EmailSettingController();
++                // v58 (Support Admin PPT s4-s6): both actions issue a NEW temporary password, save it (SP_LOGIN MD2 format) and email it
++                // with the Welcome link (ResetPassord_New_Account.aspx accepts that temporary password, then sets the new one). Send
++                // Password Reset no longer depends on REQUIRED_08 reset tokens; Resend Invitation no longer sends a password placeholder.
++                string to = email;
+                 if (op == "reset")
+                 {
+-                    // v50 PPT s2: "Send to Email Address" is editable; default is the subscriber's sign-in email.
+-                    string to = SA.Form("sa_email").Trim();
+-                    if (to.Length > 0 && !System.Text.RegularExpressions.Regex.IsMatch(to, @"^[^@\s]+@[^@\s]+\.[^@\s]+$")) { SA.Flash("Enter a valid email address to send the reset link to."); Back(u, "reset"); return; }
+-                    if (to.Length > 0) email = to;
+-                    // v26: one-time token, valid 24 hours (REQUIRED_08). Without the table the legacy link is refused rather than sent unprotected.
+-                    if (!AnyminutePasswordReset.Ready(c)) { SA.Flash("Run DB_REQUIRED/REQUIRED_08_SupportAdminStrict.sql to enable 24-hour password reset links. Nothing was sent."); Back(u, "reset"); return; }
+-                    url += "&rt=" + AnyminutePasswordReset.Issue(c, null, u, linkEmployee, email, SA.ActorId());
+-                    string body = "<p>Hello " + first + ",</p><p>We received a request to reset your AnyMinute account password. Click the link below to set a new password. This link will expire in 24 hours.</p><p><a href=\"" + HttpUtility.HtmlAttributeEncode(url) + "\">Reset Your Password</a></p><p>If you did not request this, please ignore this email.</p><p>Thank you,<br />The AnyMinute Team</p>";
+-                    mail.SendHtmlFormattedEmail(email, "Reset Your AnyMinute Password", body);
+-                    SA.Audit(c, null, "Login", key, "Password Reset", null, null, null, email, "Password reset link sent to subscriber (expires in 24 hours, one-time use).");
+-                    SA.Flash("Password reset link sent to " + email + ".");
+-                }
+-                else
+-                {
+-                    // v45: the invitation carries a sign-in password. A still-pending account gets a NEW temporary password (shown once here);
+-                    // an active account keeps its password (the email says to use it or Forgot Password).
+-                    string pw = StatusOf(r) == "Pending" ? AnyminuteSubscriberCreate.SetTempPassword(c, u, "Temporary password re-issued with the resent activation invitation.") : null;
+-                    string sent = AnyminuteSubscriberCreate.SendInvitation(c, u, pw);
+-                    SA.Flash((sent ?? "Invitation email sent to " + email + (pw != null ? " with a new temporary password." : ".")) + (pw != null ? " Temporary password (shown once): " + pw : ""));
++                    string typed = SA.Form("sa_email").Trim();
++                    if (typed.Length > 0 && !System.Text.RegularExpressions.Regex.IsMatch(typed, @"^[^@\s]+@[^@\s]+\.[^@\s]+$")) { SA.Flash("Enter a valid email address to send the password reset to."); Back(u, "reset"); return; }
++                    if (typed.Length > 0) to = typed;
+                 }
++                string pw = AnyminuteSubscriberCreate.SetTempPassword(c, u, op == "reset" ? "Temporary password issued by Send Password Reset." : "Temporary password issued with the resent activation invitation.");
++                string sent;
++                try { sent = op == "reset" ? AnyminuteSubscriberCreate.SendPasswordReset(c, u, pw, to) : AnyminuteSubscriberCreate.SendInvitation(c, u, pw); }
++                catch (Exception ex) { log4net.LogManager.GetLogger("Log").Error("Support credentials email failed for user " + u, ex); sent = "The email could not be sent (" + ex.Message + ")."; }
++                SA.Flash((sent ?? (op == "reset" ? "Password reset sent to " + to + ": a new temporary password and the Set New Password link." : "Invitation sent to " + to + " with a new temporary password and the Welcome link."))
++                    + " Temporary password (shown once): " + pw);
+                 Back(u, null); return;
+             }
+         }
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportTickets.aspx b/AMV3Reseller_27Aug2022_Subscription/SupportTickets.aspx
+index 3f7faae..14fdd83 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportTickets.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportTickets.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="SupportTickets.aspx.cs" Inherits="AnyminuteSupportTicketsPage" Title="Support Tickets" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v57" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v57" defer="defer"></script></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v58" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v58" defer="defer"></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section class="sa-page">
+  <header class="sa-head"><div><h1>Support Tickets</h1><p>View and manage support tickets from subscribers.</p></div>
