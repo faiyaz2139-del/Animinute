@@ -21,7 +21,7 @@ public static class AnyminuteResellerPortal
 {
     static readonly log4net.ILog Log = log4net.LogManager.GetLogger(typeof(AnyminuteResellerPortal));
     // v61: build stamp shown in the reseller sidebar (owner asked to see the version on reseller pages).
-    public const string Build = "v61-20261104";
+    public const string Build = "v62-20261104";
     // Subscribers (UserAcc.UserId) owned by reseller @rsl.
     public const string Scope = "(SELECT rs.UserId FROM AnyminuteResellerSubscriber rs WHERE rs.ResellerID=@rsl)";
     // Signed-in pure reseller, or null (Support Admin / SuperAdmin, any other login, REQUIRED_09 not run). Cached 2 minutes per session.
@@ -142,7 +142,7 @@ public static class AnyminuteResellerPortal
         return "<svg class='am-ap-navico am-rsl-navico' viewBox='0 0 24 24' width='20' height='20' style='flex:0 0 20px;width:20px;height:20px' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'>" + d + "</svg>";
     }
     // Top bar brand: AnyMinute mark + wordmark and the "Reseller" label (PPT header).
-    public const string Brand = "<span class='am-ap-brand am-rsl-brand'><svg viewBox='0 0 40 40' width='34' height='34' aria-hidden='true' focusable='false'><circle cx='20' cy='21' r='15' fill='none' stroke='#1f6fe5' stroke-width='4'/><path d='M20 12v9.5l6 3.5' fill='none' stroke='#1f6fe5' stroke-width='3.6' stroke-linecap='round' stroke-linejoin='round'/><path d='M15 3.5h10' stroke='#1f6fe5' stroke-width='3.6' stroke-linecap='round'/></svg><span class='am-ap-brand-text'>AnyMinute</span><span class='am-rsl-brand-role' style='margin-left:18px;padding-left:18px;border-left:1px solid #dfe5ee;font-weight:700;font-size:20px;color:#14233c'>Reseller</span></span>";
+    public const string Brand = "<span class='am-ap-brand am-rsl-brand'><svg viewBox='0 0 40 40' width='34' height='34' aria-hidden='true' focusable='false'><circle cx='20' cy='21' r='15' fill='none' stroke='#1f6fe5' stroke-width='4'/><path d='M20 12v9.5l6 3.5' fill='none' stroke='#1f6fe5' stroke-width='3.6' stroke-linecap='round' stroke-linejoin='round'/><path d='M15 3.5h10' stroke='#1f6fe5' stroke-width='3.6' stroke-linecap='round'/></svg><span class='am-ap-brand-text'>AnyMinute</span><span class='am-rsl-brand-role' style='padding-left:18px;border-left:1px solid #dfe5ee;font-weight:700;font-size:20px;color:#14233c'>Reseller</span></span>";
 
     // ---- data (all scoped to AnyminuteResellerSubscriber.ResellerID = @rsl; same owner / business rules as SupportSubscribers) ----
     // s = the reseller's subscribers, biz = (subscriber, business) pairs the subscriber owns or is mapped to.
