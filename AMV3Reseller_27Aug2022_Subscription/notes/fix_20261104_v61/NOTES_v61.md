@@ -1,0 +1,15 @@
+# NOTES v61-20261104
+- Trigger: pt192u "Fix all" on held notes v61 (t191u: Bug 1 fixed, Bug 2 not fixed, clean existing test data).
+- Base v60 cc706c1/16b4433. Code commit 8dd5ce6 (24 files, +433/-47 vs cc706c1).
+- Bug 2:
+  - Hardened reseller detection, plus a visible build stamp.
+  - Reseller chrome on Main.master, and full active-nav coverage.
+  - Standalone Access/Reset/History pages, with IP and Device on History.
+  - Lean Edit (no "More subscriber settings"), and the "Activity Log" tab.
+  - Working + Add Plan (auto OPTIONAL_06 column).
+  - Permission views render a message instead of redirecting.
+- Clean Test Data: Support Admin only, at SupportSubscribers.aspx?view=clean. Flow: select, preview, then typed CLEAN <n> + reason + ack (all re-checked on the server), with opt-in account delete and a paid override. Each subscriber runs in its own transaction and is audited.
+- New files: App_Code/AnyminuteTestDataClean.cs, DB_OPTIONAL/OPTIONAL_07_CleanTestData_Preview.sql (read-only).
+- New CSS classes: sa-rsl-x, sa-rsl-page, sa-rsl-subhead, sa-rsl-edit, am-rsl-build, sa-clean*, sa-tl.
+- Bug 1 guard: the reseller Reset page emits one sa_user.
+- Not done: live smoke, rendered PNG comparison, overlays (standalone pages chosen instead).
