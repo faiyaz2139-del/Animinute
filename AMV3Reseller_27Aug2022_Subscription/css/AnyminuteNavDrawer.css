@@ -130,3 +130,6 @@ html body.am-modern .am-topbar:has(.am-rsl-brand)>.am-account-menu>summary{displ
 html body.am-modern .am-topbar:has(.am-rsl-brand)>.am-account-menu>summary::-webkit-details-marker{display:none}
 html body.am-modern .am-topbar:has(.am-rsl-brand) .am-ap-avatar,html body.am-modern .am-topbar:has(.am-rsl-brand) .am-ap-avatar-name{display:inline-flex;align-items:center;line-height:1}
 @media(max-width:720px){html body.am-modern .am-topbar:has(.am-rsl-brand) .am-rsl-brand-role,html body.am-modern .am-topbar:has(.am-rsl-brand) .am-ap-avatar-name{display:none!important}html body.am-modern .am-topbar:has(.am-rsl-brand)>span{font-size:13px!important;padding-left:10px!important}}
+/* v63: single chevron - name::after already draws one; hide span chevron when a name is shown */
+html body .am-account-menu>summary:has(.am-ap-avatar-name)>.am-account-chevron{display:none!important}
+@media(max-width:720px){html body .am-account-menu>summary:has(.am-ap-avatar-name)>.am-account-chevron{display:inline-block!important}}
