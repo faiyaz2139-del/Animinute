@@ -322,3 +322,6 @@ html body .am-al-pill.am-al-pill-none,html body .am-al-pill-none{background:#f1f
 html body .am-al-pill-ok,html body .am-al-pill-pend,html body .am-al-pill-bad,html body .am-al-pill-none{display:inline-block;border-radius:999px;padding:2px 9px;font-size:11.5px;font-weight:600;vertical-align:middle}
 /* v57 (PPT s1): Upgrade Plan highlights the Subscription Plan card. */
 html body .sa-card.sa-plan-up{box-shadow:0 0 0 2px #2563eb,0 4px 14px rgba(37,99,235,.15)!important;scroll-margin-top:90px}
+/* v59 Erase All Module Data (Support Admin > Subscriber Details) */
+.sa-erase59 h2{color:#d92d2d;display:flex;align-items:center;gap:8px}.sa-erase59 .sa-erase-warn{background:#fff0f0;border-color:#f3a5a5;color:#b42318}
+.sa-erase59 .sa-erase-tbl{margin:10px 0}.sa-erase59 .sa-erase-tbl td,.sa-erase59 .sa-erase-tbl th{padding:6px 10px}.sa-erase59 .sa-field{display:block;margin:8px 0}.sa-erase59 .sa-field textarea,.sa-erase59 .sa-field input{width:100%}

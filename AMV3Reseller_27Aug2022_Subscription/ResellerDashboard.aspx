@@ -1,5 +1,5 @@
 <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="ResellerDashboard.aspx.cs" Inherits="AnyminuteResellerDashboardPage" Title="Reseller Dashboard" %>
-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v58" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v58" defer="defer"></script>
+<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261103v59" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261103v59" defer="defer"></script>
 <style>/* v55 Reseller PPT s1/s9 (v56 s1 strict below) */
 .rsl-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px}.rsl-kpis .sa-kpi-icon svg{width:24px;height:24px}
 .rsl-qa{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}.rsl-qa a{display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px 10px;border:1px solid var(--sa-line,#dfe5ee);border-radius:12px;background:#fff;color:#14233c;font-weight:600;text-align:center;text-decoration:none}

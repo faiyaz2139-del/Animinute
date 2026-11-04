@@ -3,7 +3,7 @@
 <%-- v36 (DOCX image7, strict): Accountant List moved to the same Modern shell / Support Admin card design as the other Support Admin
      pages: one toolbar (Search + Status + Clear), status pills, sortable headers, Previous / page / Next pager, no forced H-scroll. --%>
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="Server">
-    <link href="css/AnyminuteSupport.css?v=20261103v58" rel="stylesheet" />
+    <link href="css/AnyminuteSupport.css?v=20261103v59" rel="stylesheet" />
     <style>
         .am-sa-list .sa-head h1{font-size:24px;margin:0}
         .am-sa-list .sa-table-wrap{overflow-x:visible}
