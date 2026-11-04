@@ -39,8 +39,13 @@ public partial class AnyminuteResellerDashboardPage : System.Web.UI.Page
         Flash.Text = SA.TakeFlash();
         string view = SA.Get("view");
         // Permission gates (v56: nav always shows all 7; gates stay here): businesses = businesses or subscribers, plans, usage.
+        // v61: a gated page keeps its own title + highlighted nav item and explains the missing permission (v56-v60 bounced to the Dashboard).
         if ((view == "businesses" && !rsl.Can("businesses") && !rsl.Can("subscribers")) || (view == "plans" && !rsl.Can("plans")) || (view == "usage" && !rsl.Can("usage")))
-        { Flash.Text += "<div class='sa-flash sa-warn'>Your reseller account does not have access to that page.</div>"; view = ""; }
+        {
+            string t = view == "plans" ? "Subscription Plans" : view == "usage" ? "Usage &amp; Limits" : "Businesses";
+            Crumbs.Text = Crumb(t); Title1.Text = t; Lead.Text = "";
+            Content.Text = "<div class='sa-card'><p class='sa-muted'>Your reseller account does not have the " + t + " permission. Contact AnyMinute Support to turn it on.</p></div>"; return;
+        }
         using (var c = SA.Open())
         {
             try
@@ -112,7 +117,8 @@ public partial class AnyminuteResellerDashboardPage : System.Web.UI.Page
     {
         Title1.Text = "Subscription Plans"; Lead.Text = "Create and manage subscription plans, limits, pricing and features.";
         if (!SA.Has(c, "AnyminuteSubscriptionPlan")) { Content.Text = "<div class='sa-card'><p class='sa-muted'>Subscription plans are not available yet. Contact AnyMinute Support.</p></div>"; return; }
-        bool own = RP.OwnPlans(c);
+        // v61: + Add Plan / Save applies OPTIONAL_06 on demand (RP.EnsureOwnPlans) so the button works without a manual DB step.
+        bool own = (SA.Get("add") == "1" || (IsPostBack && SA.Form("rp_op") == "save")) && rsl.Can("plans") ? RP.EnsureOwnPlans(c) : RP.OwnPlans(c);
         HeadActions.Text = "<a class='sa-btn' href='ResellerDashboard.aspx?view=plans&amp;add=1#plan-form'><b aria-hidden='true'>+</b> Add Plan</a>";
         var t = own ? SA.Q(c, "SELECT * FROM AnyminuteSubscriptionPlan WHERE ResellerID IS NULL OR ResellerID=@rsl ORDER BY PlanID", "@rsl", rsl.ResellerId) : SA.Q(c, "SELECT * FROM AnyminuteSubscriptionPlan ORDER BY PlanID");
         Func<DataRow, bool> mine = r => own && r["ResellerID"] != DBNull.Value && Convert.ToInt32(r["ResellerID"]) == rsl.ResellerId;

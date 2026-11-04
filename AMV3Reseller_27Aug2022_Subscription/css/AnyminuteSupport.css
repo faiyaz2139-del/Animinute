@@ -332,3 +332,10 @@ html body .sa-card.sa-plan-up{box-shadow:0 0 0 2px #2563eb,0 4px 14px rgba(37,99
 .sa-rsl-more>summary{cursor:pointer;font-weight:600;padding:4px 0;list-style:revert}.sa-rsl-more[open]>summary{margin-bottom:10px}
 .rsl-plan-form{scroll-margin-top:90px}.rsl-plan-form .sa-field{display:block;margin:8px 0}.rsl-plan-form .sa-field input,.rsl-plan-form .sa-field select,.rsl-plan-form .sa-field textarea{width:100%;box-sizing:border-box}
 .rsl-plan-form .sa-panel-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}.rsl-plans .sa-menu{display:inline-block}
+/* v61 (pt192u "Fix all"): Reseller PPT s4/s6-s8 standalone pages, lean Edit Subscriber, sidebar build stamp; Support Admin Clean Test Data. */
+.sa-rsl-x{font-size:28px;padding:0 6px}.sa-rsl-page>.sa-card{margin-bottom:14px}
+.sa-rsl-subhead{display:flex;align-items:center;gap:14px}.sa-rsl-subhead small{display:block;color:var(--sa-mute)}.sa-rsl-subhead h2{margin:0 0 4px}
+.sa-rsl-edit h2{font-size:16px;margin:14px 0 8px}.sa-rsl-edit h2:first-child{margin-top:0}.sa-rsl-edit .sa-field select,.sa-rsl-edit .sa-field input{width:100%;box-sizing:border-box}
+.am-rsl-build{pointer-events:none;user-select:text}
+.sa-clean .sa-table td,.sa-clean .sa-table th{vertical-align:top}.sa-clean .sa-tl{background:#fff7e6;color:#9a5b00;border-radius:10px;padding:1px 8px;font-size:12px}
+.sa-clean-confirm{border:1px solid #f3a5a5;background:#fff8f8}.sa-clean-confirm .sa-field{display:block;margin:8px 0}.sa-clean-confirm .sa-field input,.sa-clean-confirm .sa-field textarea{width:100%;box-sizing:border-box}

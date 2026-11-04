@@ -125,6 +125,10 @@ public partial class Login : System.Web.UI.Page
             Session["UserType"] = dt.Rows[0]["UserType"].ToString();
         }
 
+        // v61 (pt192u Bug 2): a reseller login lands on the Reseller portal whatever its legacy UserType row says (hardened
+        // AnyminuteResellerPortal.Current(): LoginEmail match, Active, not a subscriber owner / Support Admin).
+        Session.Remove("AmRslPortal");
+        if (dt.Rows[0]["UserType"].ToString() != "SupportAdmin" && dt.Rows[0]["UserType"].ToString() != "SuperAdmin" && AnyminuteResellerPortal.Is()) { Session["email_aac1"] = Session["email"]; Response.Redirect("ResellerDashboard.aspx", false); return; }
         if (dt.Rows[0]["UserTypeid"].ToString() == "0" && dt.Rows[0]["UserType"].ToString() == "Admin")
         {
             Session["email_aac1"] = Session["email"];

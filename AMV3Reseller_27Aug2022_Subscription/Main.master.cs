@@ -390,6 +390,15 @@ public partial class MasterPage : System.Web.UI.MasterPage
         string name = lblwelcome.Text.Trim();
         while (name.StartsWith("Welcome!", StringComparison.OrdinalIgnoreCase)) name = name.Substring(8).TrimStart();
         lblwelcome.Text = "Welcome! " + HttpUtility.HtmlEncode(HttpUtility.HtmlDecode(name));
+        // v61 (pt192u Bug 2 "every reseller page"): My Profile / Change Password (Main.master) carry the Reseller header too -
+        // AnyMinute | Reseller brand linking to the Reseller Dashboard and the reseller name (sidebar = AnyminuteUiNavigation -> RP.NavHtml).
+        var rslCtx = Session["UserId"] != null ? AnyminuteResellerPortal.Current() : null;
+        if (rslCtx != null)
+        {
+            logo.InnerHtml = AnyminuteResellerPortal.Brand; logo.HRef = "~/ResellerDashboard.aspx";
+            if (rslCtx.Name.Length > 0) lblwelcome.Text = "Welcome! " + HttpUtility.HtmlEncode(rslCtx.Name);
+            AccountUpgrade.Text = "";
+        }
     }
 
     protected void profile_Click(object sender, EventArgs e)

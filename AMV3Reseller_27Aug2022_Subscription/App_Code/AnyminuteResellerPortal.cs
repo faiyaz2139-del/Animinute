@@ -19,6 +19,9 @@ public sealed class RslCtx
 }
 public static class AnyminuteResellerPortal
 {
+    static readonly log4net.ILog Log = log4net.LogManager.GetLogger(typeof(AnyminuteResellerPortal));
+    // v61: build stamp shown in the reseller sidebar (owner asked to see the version on reseller pages).
+    public const string Build = "v61-20261104";
     // Subscribers (UserAcc.UserId) owned by reseller @rsl.
     public const string Scope = "(SELECT rs.UserId FROM AnyminuteResellerSubscriber rs WHERE rs.ResellerID=@rsl)";
     // Signed-in pure reseller, or null (Support Admin / SuperAdmin, any other login, REQUIRED_09 not run). Cached 2 minutes per session.
@@ -31,30 +34,65 @@ public static class AnyminuteResellerPortal
         if (cached != null && cached.Item1 > DateTime.UtcNow && cached.Item2 == uid) return cached.Item3;
         RslCtx s = null; int user; Int32.TryParse(uid, out user);
         string email = Convert.ToString(h.Session["email"]).Trim();
-        if (user > 0 && email.Length > 0)
+        if (user > 0)
         {
             try
             {
                 using (var c = SA.Open())
-                    if (RS.Ready(c) && RS.LoginUser(c, email) == user)
+                    if (RS.Ready(c))
                     {
-                        var t = SA.Q(c, "SELECT TOP 1 ResellerID,ResellerName,Status,Permissions,MaxSubscribers FROM AnyminuteReseller WHERE LTRIM(RTRIM(LoginEmail))=@e", "@e", email);
-                        if (t.Rows.Count == 1 && (SA.S(t.Rows[0]["Status"]).Length == 0 || SA.S(t.Rows[0]["Status"]) == "Active"))
+                        // v61 (pt192u "Fix all", Bug 2): forgiving detection. v55-v60 needed RS.LoginUser(email)==user (MotherOrg join with an
+                        // exact e-mail, UserTypeid 0 + 'Admin') and Status exactly '' / 'Active', so a reseller whose login row differed in case /
+                        // spaces / MotherOrg e-mail fell back to the owner screens. Now: the session login's own UserAcc e-mail (or the session
+                        // e-mail) matches AnyminuteReseller.LoginEmail case- and space-insensitively, Status blank or Active (any case), and the
+                        // login is not a subscriber owner (MappingTable UserTypeId 1) or a Support / Super Admin login.
+                        var ua = SA.Q(c, "SELECT TOP 1 LTRIM(RTRIM(ISNULL(Email,''))) Email,ISNULL(UserType,'') UserType,CASE WHEN EXISTS(SELECT 1 FROM MappingTable m WHERE m.USERID=u.UserId AND m.UserTypeId=1) THEN 1 ELSE 0 END Owner FROM UserAcc u WHERE u.UserId=@u", "@u", user);
+                        string ue = ua.Rows.Count == 1 ? SA.S(ua.Rows[0]["Email"]) : "", ut = ua.Rows.Count == 1 ? SA.S(ua.Rows[0]["UserType"]).Trim() : "";
+                        bool owner = ua.Rows.Count == 1 && Convert.ToInt32(ua.Rows[0]["Owner"]) == 1;
+                        bool staff = ut.Equals("SupportAdmin", StringComparison.OrdinalIgnoreCase) || ut.Equals("SuperAdmin", StringComparison.OrdinalIgnoreCase) || ut.Equals("Support Admin", StringComparison.OrdinalIgnoreCase);
+                        if (ue.Length == 0) ue = email;
+                        if (ue.Length > 0 && !staff)
                         {
-                            var r = t.Rows[0];
-                            s = new RslCtx { ResellerId = Convert.ToInt32(r["ResellerID"]), Code = RS.Rsl(r["ResellerID"]), Name = SA.S(r["ResellerName"]), MaxSubscribers = r["MaxSubscribers"] == DBNull.Value ? (int?)null : Convert.ToInt32(r["MaxSubscribers"]) };
-                            foreach (var p in SA.S(r["Permissions"]).Split(',')) if (p.Trim().Length > 0) s.Perms.Add(p.Trim());
+                            var t = SA.Q(c, @"SELECT TOP 1 ResellerID,ResellerName,Status,Permissions,MaxSubscribers FROM AnyminuteReseller
+                                WHERE LOWER(LTRIM(RTRIM(ISNULL(LoginEmail,''))))=LOWER(@e) OR (@s<>'' AND LOWER(LTRIM(RTRIM(ISNULL(LoginEmail,''))))=LOWER(@s))
+                                ORDER BY CASE WHEN LOWER(LTRIM(RTRIM(ISNULL(Status,'')))) IN ('','active') THEN 0 ELSE 1 END,ResellerID", "@e", ue, "@s", email);
+                            string st = t.Rows.Count == 1 ? SA.S(t.Rows[0]["Status"]).Trim() : "";
+                            bool active = t.Rows.Count == 1 && (st.Length == 0 || st.Equals("Active", StringComparison.OrdinalIgnoreCase));
+                            // A subscriber owner is only a reseller when it is the reseller's own EnsureLogin login (legacy rule).
+                            if (active && owner && RS.LoginUser(c, ue) != user) active = false;
+                            if (active)
+                            {
+                                var r = t.Rows[0];
+                                s = new RslCtx { ResellerId = Convert.ToInt32(r["ResellerID"]), Code = RS.Rsl(r["ResellerID"]), Name = SA.S(r["ResellerName"]), MaxSubscribers = r["MaxSubscribers"] == DBNull.Value ? (int?)null : Convert.ToInt32(r["MaxSubscribers"]) };
+                                foreach (var p in SA.S(r["Permissions"]).Split(',')) if (p.Trim().Length > 0) s.Perms.Add(p.Trim().ToLowerInvariant());
+                            }
+                            else if (t.Rows.Count == 1) Log.Info("Reseller portal: login " + user + " matches reseller " + SA.S(t.Rows[0]["ResellerID"]) + " but was not admitted (status '" + st + "', owner " + owner + ").");
                         }
                     }
             }
-            catch (SqlException) { s = null; }
-            catch (InvalidOperationException) { s = null; }
+            catch (SqlException ex) { s = null; Log.Warn("Reseller portal detection failed", ex); }
+            catch (InvalidOperationException ex) { s = null; Log.Warn("Reseller portal detection failed", ex); }
         }
         h.Session["AmRslPortal"] = Tuple.Create(DateTime.UtcNow.AddMinutes(2), uid, s); return s;
     }
     public static bool Is() { return Current() != null; }
     // v60 (Reseller PPT s9 + Add Plan): AnyminuteSubscriptionPlan.ResellerID exists (DB_OPTIONAL/OPTIONAL_06_ResellerPlans.sql).
     public static bool OwnPlans(SqlConnection c) { return SA.Has(c, "AnyminuteSubscriptionPlan") && AnyminuteEmployeeEditor.HasColumn(c, null, "AnyminuteSubscriptionPlan", "ResellerID"); }
+    // v61 (Bug 2, PPT s9 "+ Add Plan" must work): apply OPTIONAL_06 on demand - the same additive, idempotent statement (one NULLable
+    // column; existing rows stay NULL = AnyMinute catalogue). Returns OwnPlans(c); false when the app login lacks ALTER permission
+    // (the form then keeps the "run OPTIONAL_06" notice).
+    public static bool EnsureOwnPlans(SqlConnection c)
+    {
+        if (OwnPlans(c)) return true;
+        if (!SA.Has(c, "AnyminuteSubscriptionPlan")) return false;
+        try
+        {
+            using (var cmd = new SqlCommand("IF COL_LENGTH('dbo.AnyminuteSubscriptionPlan','ResellerID') IS NULL ALTER TABLE dbo.AnyminuteSubscriptionPlan ADD ResellerID int NULL;", c)) cmd.ExecuteNonQuery();
+            Log.Info("Reseller portal: applied OPTIONAL_06 (AnyminuteSubscriptionPlan.ResellerID) on first + Add Plan.");
+        }
+        catch (SqlException ex) { Log.Warn("Reseller portal: could not add AnyminuteSubscriptionPlan.ResellerID (run DB_OPTIONAL/OPTIONAL_06_ResellerPlans.sql)", ex); }
+        return OwnPlans(c);
+    }
     // Pages under Modern.master: signed-in reseller required (others get 403, not the reseller screens).
     public static RslCtx Require()
     {
@@ -78,12 +116,17 @@ public static class AnyminuteResellerPortal
             new[] { "Usage & Limits", "~/ResellerDashboard.aspx?view=usage", "usage" },
             new[] { "Reports", "~/SupportReports.aspx", "reports" },
             new[] { "Settings", "~/ResellerDashboard.aspx?view=settings", "settings" } };
-        string on = page.Equals("SupportSubscribers.aspx", StringComparison.OrdinalIgnoreCase) ? "subs" : page.Equals("SupportReports.aspx", StringComparison.OrdinalIgnoreCase) ? "reports"
-            : page.Equals("ResellerDashboard.aspx", StringComparison.OrdinalIgnoreCase) ? (view.Length == 0 ? "dash" : view) : "";
+        // v61 (Bug 2 "every reseller page"): the active item is highlighted on every page a reseller can reach - Reports, Usage, Plans,
+        // Settings and the Settings sub-pages (My Profile / Login & Security / Change Password) included.
+        Func<string, bool> pg = n => page.Equals(n, StringComparison.OrdinalIgnoreCase);
+        string on = pg("SupportSubscribers.aspx") ? "subs" : pg("SupportReports.aspx") ? "reports" : pg("SupportPlans.aspx") ? (view == "usage" ? "usage" : "plans")
+            : pg("SupportBusinesses.aspx") ? "businesses" : pg("MyProfile.aspx") || pg("LoginSecurity.aspx") || pg("Change Password.aspx") || pg("ChangePassword.aspx") ? "settings"
+            : pg("ResellerDashboard.aspx") ? (view.Length == 0 ? "dash" : view == "plan" || view == "planadd" || view == "planedit" ? "plans" : view) : "";
         var html = new StringBuilder();
         foreach (var i in items)
             html.Append("<li class='am-sa-nav am-rsl-nav'><a href='").Append(HttpUtility.HtmlAttributeEncode(VirtualPathUtility.ToAbsolute(i[1]))).Append("' data-am-primary='true'")
                 .Append(i[2] == on ? " aria-current='page' class='active'" : "").Append(">").Append(NavIcon(i[2])).Append("<span>").Append(HttpUtility.HtmlEncode(i[0])).Append("</span></a></li>");
+        html.Append("<li class='am-sa-nav am-rsl-build' style='list-style:none;margin-top:18px;padding:6px 18px;font-size:11px;color:#8a97ab' title='AnyMinute build'>Build ").Append(Build).Append("</li>");
         return html.ToString();
     }
     // v56 (PPT s1): line icons per nav item - home, users, building, paperclip, bar chart, document, gear.
