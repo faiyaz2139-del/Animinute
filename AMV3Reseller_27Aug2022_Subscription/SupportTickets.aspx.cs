@@ -193,7 +193,7 @@ public partial class AnyminuteSupportTicketsPage : System.Web.UI.Page
     }
     void Create()
     {
-        int u; Int32.TryParse(SA.Form("sa_user"), out u);
+        int u = SA.FormId("sa_user"); // v60: duplicate-safe
         string subj = SA.Form("sa_subject"), cat = SA.Form("sa_category"), pr = SA.Form("sa_priority"), who = SA.Form("sa_assignee"), stl = SA.Form("sa_status"), desc = SA.Form("sa_desc");
         Action<string> fail = m => { SA.Flash(m); Response.Redirect("SupportTickets.aspx?create=1" + (u > 0 ? "&user=" + u : ""), false); Context.ApplicationInstance.CompleteRequest(); };
         if (u <= 0) { fail("Choose the subscriber."); return; }

@@ -58,6 +58,14 @@ public static class AnyminuteSupportAdmin
     }
     public static string Day(object d) { return d == null || d == DBNull.Value ? "&mdash;" : Convert.ToDateTime(d, CultureInfo.InvariantCulture).ToString("MMM d, yyyy", CultureInfo.InvariantCulture); }
     public static string Form(string key) { return (Ctx.Request.Form[key] ?? "").Trim(); }
+    // v60 (docx t190ua0 "Subscriber not found"): first positive integer among the posted values of key - a field emitted twice
+    // ("5,5" or ",5") no longer fails the id parse.
+    public static int FormId(string key)
+    {
+        var vals = Ctx.Request.Form.GetValues(key); if (vals == null) return 0;
+        foreach (var v in vals) foreach (var part in (v ?? "").Split(',')) { int n; if (Int32.TryParse(part.Trim(), out n) && n > 0) return n; }
+        return 0;
+    }
     public static string Get(string key) { return (Ctx.Request.QueryString[key] ?? "").Trim(); }
     public static string Options(IEnumerable<string> values, string selected, string allLabel)
     {

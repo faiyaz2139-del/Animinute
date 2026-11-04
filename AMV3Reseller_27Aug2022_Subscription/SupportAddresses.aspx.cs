@@ -192,7 +192,7 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
     }
     void Act()
     {
-        string op = SA.Form("sa_op"); int id; Int32.TryParse(SA.Form("sa_id"), out id);
+        string op = SA.Form("sa_op"); int id = SA.FormId("sa_id"); // v60: duplicate-safe
         string street = SA.Form("sa_street"), city = SA.Form("sa_city"), prov = SA.Form("sa_prov"), country = SA.Form("sa_country"), postal = SA.Form("sa_postal"), notes = SA.Form("sa_notes");
         if (notes.Length > 500) notes = notes.Substring(0, 500);
         using (var c = SA.Open())

@@ -325,3 +325,10 @@ html body .sa-card.sa-plan-up{box-shadow:0 0 0 2px #2563eb,0 4px 14px rgba(37,99
 /* v59 Erase All Module Data (Support Admin > Subscriber Details) */
 .sa-erase59 h2{color:#d92d2d;display:flex;align-items:center;gap:8px}.sa-erase59 .sa-erase-warn{background:#fff0f0;border-color:#f3a5a5;color:#b42318}
 .sa-erase59 .sa-erase-tbl{margin:10px 0}.sa-erase59 .sa-erase-tbl td,.sa-erase59 .sa-erase-tbl th{padding:6px 10px}.sa-erase59 .sa-field{display:block;margin:8px 0}.sa-erase59 .sa-field textarea,.sa-erase59 .sa-field input{width:100%}
+/* v60 Reseller portal (docx t190ua0 #3, PPT s3-s9): page headers inside Details tabs, 2-column Add Subscriber, collapsed extra Edit settings, Add Plan form. */
+.sa-rsl-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:0 0 12px}.sa-rsl-head h2{margin:0 0 2px;font-size:20px}.sa-rsl-head small{color:var(--sa-mute)}
+.sa-rsl-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}.sa-rsl-add .sa-card h3{margin:0 0 10px;font-size:16px}
+@media(max-width:900px){.sa-rsl-grid{grid-template-columns:1fr}}
+.sa-rsl-more>summary{cursor:pointer;font-weight:600;padding:4px 0;list-style:revert}.sa-rsl-more[open]>summary{margin-bottom:10px}
+.rsl-plan-form{scroll-margin-top:90px}.rsl-plan-form .sa-field{display:block;margin:8px 0}.rsl-plan-form .sa-field input,.rsl-plan-form .sa-field select,.rsl-plan-form .sa-field textarea{width:100%;box-sizing:border-box}
+.rsl-plan-form .sa-panel-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}.rsl-plans .sa-menu{display:inline-block}

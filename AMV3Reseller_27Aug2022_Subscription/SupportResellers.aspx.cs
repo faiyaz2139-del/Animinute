@@ -392,7 +392,7 @@ public partial class AnyminuteSupportResellersPage : System.Web.UI.Page
             if (!RS.Ready(c)) { SA.Flash(RS.Missing); Go(""); return; }
             string op = SA.Form("sa_op");
             if (op == "create") { Create(c); return; }
-            int id; Int32.TryParse(SA.Form("sa_id"), out id);
+            int id = SA.FormId("sa_id"); // v60: duplicate-safe
             var r = SA.Q(c, "SELECT * FROM AnyminuteReseller WHERE ResellerID=@i", "@i", id);
             if (r.Rows.Count != 1) { SA.Flash("That reseller was not found."); Go(""); return; }
             string key = id.ToString(Inv), name = SA.S(r.Rows[0]["ResellerName"]), st = St(r.Rows[0]); bool off = Convert.ToBoolean(r.Rows[0]["LoginDisabled"]);

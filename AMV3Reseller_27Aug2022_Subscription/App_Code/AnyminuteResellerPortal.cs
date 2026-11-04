@@ -53,6 +53,8 @@ public static class AnyminuteResellerPortal
         h.Session["AmRslPortal"] = Tuple.Create(DateTime.UtcNow.AddMinutes(2), uid, s); return s;
     }
     public static bool Is() { return Current() != null; }
+    // v60 (Reseller PPT s9 + Add Plan): AnyminuteSubscriptionPlan.ResellerID exists (DB_OPTIONAL/OPTIONAL_06_ResellerPlans.sql).
+    public static bool OwnPlans(SqlConnection c) { return SA.Has(c, "AnyminuteSubscriptionPlan") && AnyminuteEmployeeEditor.HasColumn(c, null, "AnyminuteSubscriptionPlan", "ResellerID"); }
     // Pages under Modern.master: signed-in reseller required (others get 403, not the reseller screens).
     public static RslCtx Require()
     {

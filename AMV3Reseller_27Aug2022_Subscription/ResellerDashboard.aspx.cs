@@ -10,7 +10,7 @@ using SA = AnyminuteSupportAdmin;
 using RP = AnyminuteResellerPortal;
 
 // 2026-11-03 v55 (Reseller PPT collage): Reseller portal home. view = (none) Dashboard (s1 KPIs + Quick Actions) | businesses
-// (businesses under the reseller's subscribers) | plans (s9 Subscription Plans catalogue, read-only) | usage (Usage & Limits,
+// (businesses under the reseller's subscribers) | plans (s9 Subscription Plans; v60 + Add Plan for own plans) | usage (Usage & Limits,
 // read-only) | settings (profile / security links). Subscribers (s2-s8) live on SupportSubscribers.aspx in reseller mode.
 public partial class AnyminuteResellerDashboardPage : System.Web.UI.Page
 {
@@ -103,24 +103,39 @@ public partial class AnyminuteResellerDashboardPage : System.Web.UI.Page
     }
     static string Money(object o) { return o == null || o == DBNull.Value ? "Custom" : "$" + Convert.ToDecimal(o).ToString("#,0.00", CultureInfo.InvariantCulture); }
     static string Num(object o) { return o == null || o == DBNull.Value ? "Custom" : SA.H(o); }
-    // s9: Subscription Plans catalogue (AnyminuteSubscriptionPlan, same source as Support Admin > Subscription Plans). Read-only:
-    // the reseller permission is "View subscription plans", so + Add Plan / Edit are not offered (FIX_REPORT_v55).
+    // s9: Subscription Plans (AnyminuteSubscriptionPlan, same source as Support Admin > Subscription Plans).
+    // v60 (docx t190ua0 #3, PPT s9 strict): + Add Plan, columns #, Plan Name, Description, Monthly / Annual Price (CAD), Businesses, Employees,
+    // Projects, Status, Actions (View + three-dot), "Showing x to y of z plans" + per page + pager. A reseller with the "plans" permission
+    // creates (and edits) its OWN plans: AnyminuteSubscriptionPlan.ResellerID = this reseller (OPTIONAL_06). AnyMinute catalogue plans
+    // (ResellerID NULL) stay read-only here; other resellers' plans are never listed.
     void Plans(SqlConnection c)
     {
-        Title1.Text = "Subscription Plans"; Lead.Text = "Subscription plans, limits, pricing and features available to your subscribers.";
+        Title1.Text = "Subscription Plans"; Lead.Text = "Create and manage subscription plans, limits, pricing and features.";
         if (!SA.Has(c, "AnyminuteSubscriptionPlan")) { Content.Text = "<div class='sa-card'><p class='sa-muted'>Subscription plans are not available yet. Contact AnyMinute Support.</p></div>"; return; }
-        var t = SA.Q(c, "SELECT * FROM AnyminuteSubscriptionPlan ORDER BY PlanID"); int id; Int32.TryParse(SA.Get("plan"), out id);
-        var sb = new StringBuilder("<div class='sa-card'><div class='sa-table-wrap'><table class='sa-table'><thead><tr><th>#</th><th>Plan Name</th><th>Description</th><th>Monthly Price (CAD)</th><th>Annual Price (CAD)</th><th class='sa-c'>Businesses</th><th class='sa-c'>Employees</th><th class='sa-c'>Projects</th><th>Status</th><th class='sa-c'>Actions</th></tr></thead><tbody>");
-        int n = 0; DataRow pick = null;
-        foreach (DataRow r in t.Rows)
+        bool own = RP.OwnPlans(c);
+        HeadActions.Text = "<a class='sa-btn' href='ResellerDashboard.aspx?view=plans&amp;add=1#plan-form'><b aria-hidden='true'>+</b> Add Plan</a>";
+        var t = own ? SA.Q(c, "SELECT * FROM AnyminuteSubscriptionPlan WHERE ResellerID IS NULL OR ResellerID=@rsl ORDER BY PlanID", "@rsl", rsl.ResellerId) : SA.Q(c, "SELECT * FROM AnyminuteSubscriptionPlan ORDER BY PlanID");
+        Func<DataRow, bool> mine = r => own && r["ResellerID"] != DBNull.Value && Convert.ToInt32(r["ResellerID"]) == rsl.ResellerId;
+        string form = null;
+        if (IsPostBack && SA.Form("rp_op") == "save") form = PlanSave(c, t, own, mine);
+        int id; Int32.TryParse(SA.Get("plan"), out id); int eid; Int32.TryParse(SA.Get("edit"), out eid);
+        int page; if (!Int32.TryParse(SA.Get("page"), out page) || page < 1) page = 1; int size = SA.PageSizeArg(10);
+        var all = t.Rows.Cast<DataRow>().ToList(); int pages = Math.Max(1, (all.Count + size - 1) / size); if (page > pages) page = pages;
+        var sb = new StringBuilder("<div class='sa-card'><div class='sa-table-wrap'><table class='sa-table rsl-plans'><thead><tr><th>#</th><th>Plan Name</th><th>Description</th><th>Monthly Price (CAD)</th><th>Annual Price (CAD)</th><th class='sa-c'>Businesses</th><th class='sa-c'>Employees</th><th class='sa-c'>Projects</th><th>Status</th><th class='sa-c'>Actions</th></tr></thead><tbody>");
+        int n = (page - 1) * size; DataRow pick = null, edit = null;
+        foreach (DataRow r in all) { int pid = Convert.ToInt32(r["PlanID"]); if (pid == id) pick = r; if (pid == eid && mine(r)) edit = r; }
+        foreach (DataRow r in all.Skip((page - 1) * size).Take(size))
         {
-            bool on = r["IsActive"] == DBNull.Value || Convert.ToBoolean(r["IsActive"]); if (Convert.ToInt32(r["PlanID"]) == id) pick = r;
-            sb.Append("<tr><td>").Append(++n).Append("</td><td><b>").Append(SA.H(r["PlanName"])).Append("</b></td><td>").Append(SA.H(r["Description"])).Append("</td><td>").Append(Money(r["MonthlyPrice"])).Append("</td><td>").Append(Money(r["AnnualPrice"]))
+            bool on = r["IsActive"] == DBNull.Value || Convert.ToBoolean(r["IsActive"]); int pid = Convert.ToInt32(r["PlanID"]); string view = "ResellerDashboard.aspx?view=plans&amp;plan=" + pid + "#plan";
+            sb.Append("<tr><td>").Append(++n).Append("</td><td><b>").Append(SA.H(r["PlanName"])).Append("</b>").Append(mine(r) ? " <small class='sa-muted'>(Your plan)</small>" : "").Append("</td><td>").Append(SA.H(r["Description"])).Append("</td><td>").Append(Money(r["MonthlyPrice"])).Append("</td><td>").Append(Money(r["AnnualPrice"]))
               .Append("</td><td class='sa-c'>").Append(Num(r["MaxBusinesses"])).Append("</td><td class='sa-c'>").Append(Num(r["MaxEmployees"])).Append("</td><td class='sa-c'>").Append(Num(r["MaxProjects"])).Append("</td><td>").Append(SA.Pill(on ? "Active" : "Inactive", on ? "green" : "grey"))
-              .Append("</td><td class='sa-c'><a class='sa-btn sa-btn-sm sa-btn-outline' href='ResellerDashboard.aspx?view=plans&amp;plan=").Append(r["PlanID"]).Append("#plan'>View</a></td></tr>");
+              .Append("</td><td class='sa-c sa-nowrap'><a class='sa-btn sa-btn-sm sa-btn-outline' href='").Append(view).Append("'>View</a> <details class='sa-menu'><summary class='sa-kebab' aria-label='Plan actions'><svg class='sa-i' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' aria-hidden='true' focusable='false'><circle cx='12' cy='5' r='1'/><circle cx='12' cy='12' r='1'/><circle cx='12' cy='19' r='1'/></svg></summary><div class='sa-menu-pop'><h4>Plan Actions</h4><small>").Append(SA.H(r["PlanName"])).Append("</small>")
+              .Append("<a class='sa-menu-item' href='").Append(view).Append("'><span><b>View Plan Details</b><small>Pricing, limits and features</small></span></a>")
+              .Append(mine(r) ? "<a class='sa-menu-item' href='ResellerDashboard.aspx?view=plans&amp;edit=" + pid + "#plan-form'><span><b>Edit Plan</b><small>Description, pricing, limits and status</small></span></a>" : "")
+              .Append(rsl.Can("usage") ? "<a class='sa-menu-item' href='ResellerDashboard.aspx?view=usage'><span><b>Usage &amp; Limits</b><small>Subscribers against their plan limits</small></span></a>" : "").Append("</div></details></td></tr>");
         }
-        if (n == 0) sb.Append("<tr><td colspan='10' class='sa-empty'>No plans found.</td></tr>");
-        sb.Append("</tbody></table></div><div class='sa-pager'><span>Showing 1 to ").Append(n).Append(" of ").Append(n).Append(" plans</span></div></div>");
+        if (all.Count == 0) sb.Append("<tr><td colspan='10' class='sa-empty'>No plans found.</td></tr>");
+        sb.Append("</tbody></table></div>").Append(SA.Pager46(all.Count, page, size, "ResellerDashboard.aspx?view=plans", "plan")).Append("</div>");
         if (pick != null)
         {
             Func<string, string, string> kv = (k, v) => "<tr><th>" + k + "</th><td>" + (v.Length > 0 ? v : "&mdash;") + "</td></tr>";
@@ -128,9 +143,71 @@ public partial class AnyminuteResellerDashboardPage : System.Web.UI.Page
             sb.Append("<div class='sa-card' id='plan'><div class='sa-panel-head'><h2>").Append(SA.H(pick["PlanName"])).Append("</h2><a class='sa-btn sa-btn-outline sa-btn-sm' href='ResellerDashboard.aspx?view=plans'>Close</a></div><table class='sa-kv'>")
               .Append(kv("Description", col("Description"))).Append(kv("Monthly Price (CAD)", Money(pick["MonthlyPrice"]))).Append(kv("Annual Price (CAD)", Money(pick["AnnualPrice"]))).Append(kv("Billing Frequency", col("BillingFrequency")))
               .Append(kv("Max Businesses", Num(pick["MaxBusinesses"]))).Append(kv("Max Employees", Num(pick["MaxEmployees"]))).Append(kv("Max Projects", Num(pick["MaxProjects"]))).Append(kv("Trial Days", col("TrialDays")))
-              .Append(kv("Features", col("Features").Replace("\n", "<br />"))).Append("</table></div>");
+              .Append(kv("Features", col("Features").Replace("\n", "<br />"))).Append(kv("Owner", mine(pick) ? "Your reseller plan" : "AnyMinute catalogue")).Append("</table></div>");
         }
-        Content.Text = sb.ToString();
+        if (form == null && (SA.Get("add") == "1" || edit != null)) form = PlanForm(own, edit, null);
+        Content.Text = sb.ToString() + (form ?? "");
+    }
+    static string Raw(object o, string fmt) { return o == null || o == DBNull.Value ? "" : fmt == null ? Convert.ToString(o, CultureInfo.InvariantCulture) : Convert.ToDecimal(o).ToString(fmt, CultureInfo.InvariantCulture); }
+    // Add / Edit Plan card (Support Admin Add Subscription Plan fields). v = posted values after a failed save.
+    string PlanForm(bool own, DataRow edit, Dictionary<string, string> v)
+    {
+        bool add = edit == null && (v == null || v["rp_id"] == "0"); bool can = own && rsl.Can("plans"); string dis = can ? "" : " disabled";
+        Func<string, string, string> val = (k, col) => v != null ? (v.ContainsKey(k) ? v[k] : "") : edit == null ? (k == "rp_trial" ? "14" : "") : Raw(edit[col], col.EndsWith("Price") ? "0.00" : null);
+        Func<string, string, string, string> input = (label, k, extra) => "<label class='sa-field'><span>" + label + "</span><input name='" + k + "' value='" + SA.A(val(k, Col(k))) + "' " + extra + dis + " /></label>";
+        string freq = val("rp_freq", "BillingFrequency"), act = v != null ? (v.ContainsKey("rp_active") ? v["rp_active"] : "1") : edit == null || Convert.ToBoolean(edit["IsActive"]) ? "1" : "0";
+        var sb = new StringBuilder("<div class='sa-card rsl-plan-form' id='plan-form'><div class='sa-panel-head'><div><h2>").Append(add ? "Add Plan" : "Edit Plan").Append("</h2><small>").Append(add ? "Create a subscription plan for your subscribers with limits and pricing." : "Update your plan's description, pricing, limits and status.").Append("</small></div><a class='sa-x' href='ResellerDashboard.aspx?view=plans' aria-label='Close'>&times;</a></div>");
+        if (!own) sb.Append("<div class='sa-flash sa-warn'>Adding reseller plans needs a one-time database update (DB_OPTIONAL/OPTIONAL_06_ResellerPlans.sql). Contact AnyMinute Support.</div>");
+        else if (!rsl.Can("plans")) sb.Append("<div class='sa-flash sa-warn'>Your reseller account does not have the Subscription Plans permission. Contact AnyMinute Support to add plans.</div>");
+        sb.Append("<input type='hidden' name='rp_id' value='").Append(edit != null ? Convert.ToInt32(edit["PlanID"]) : v != null ? Convert.ToInt32(v["rp_id"]) : 0).Append("' />")
+          .Append(add ? input("Plan Name *", "rp_name", "maxlength='100' required") : "<label class='sa-field'><span>Plan Name</span><input value='" + SA.A(edit != null ? SA.S(edit["PlanName"]) : v["rp_name"]) + "' readonly /><input type='hidden' name='rp_name' value='" + SA.A(edit != null ? SA.S(edit["PlanName"]) : v["rp_name"]) + "' /></label>")
+          .Append(input("Description", "rp_desc", "maxlength='300'"))
+          .Append("<div class='sa-grid3'>").Append(input("Monthly Price (CAD)", "rp_monthly", "inputmode='decimal' placeholder='Blank = Custom'")).Append(input("Annual Price (CAD)", "rp_annual", "inputmode='decimal' placeholder='Blank = Custom'"))
+          .Append("<label class='sa-field'><span>Billing Frequency</span><select name='rp_freq'").Append(dis).Append("><option").Append(freq != "Annual" ? " selected" : "").Append(">Monthly</option><option").Append(freq == "Annual" ? " selected" : "").Append(">Annual</option></select></label></div>")
+          .Append("<div class='sa-grid3'>").Append(input("Max Businesses", "rp_biz", "type='number' min='0' max='100000' placeholder='Custom'")).Append(input("Max Employees", "rp_emp", "type='number' min='0' max='100000' placeholder='Custom'")).Append(input("Max Projects", "rp_proj", "type='number' min='0' max='100000' placeholder='Custom'")).Append("</div>")
+          .Append("<div class='sa-grid2'>").Append(input("Trial Duration (Days)", "rp_trial", "type='number' min='0' max='365'"))
+          .Append("<fieldset class='sa-field'><legend>Plan Status</legend><label class='sa-radio'><input type='radio' name='rp_active' value='1'").Append(act != "0" ? " checked" : "").Append(dis).Append(" /> Active</label> <label class='sa-radio'><input type='radio' name='rp_active' value='0'").Append(act == "0" ? " checked" : "").Append(dis).Append(" /> Inactive</label></fieldset></div>")
+          .Append("<label class='sa-field'><span>Plan Features (Optional, one per line)</span><textarea name='rp_features' rows='3'").Append(dis).Append(">").Append(SA.H(val("rp_features", "Features"))).Append("</textarea></label>")
+          .Append("<div class='sa-panel-foot'><a class='sa-btn sa-btn-outline' href='ResellerDashboard.aspx?view=plans'>Cancel</a><button type='submit' class='sa-btn' name='rp_op' value='save'").Append(dis).Append(">").Append(add ? "Save Plan" : "Save Changes").Append("</button></div></div>");
+        return sb.ToString();
+    }
+    static string Col(string k)
+    {
+        switch (k) { case "rp_name": return "PlanName"; case "rp_desc": return "Description"; case "rp_monthly": return "MonthlyPrice"; case "rp_annual": return "AnnualPrice"; case "rp_freq": return "BillingFrequency";
+            case "rp_biz": return "MaxBusinesses"; case "rp_emp": return "MaxEmployees"; case "rp_proj": return "MaxProjects"; case "rp_trial": return "TrialDays"; case "rp_features": return "Features"; default: return k; }
+    }
+    // POST rp_op=save: validate, insert (ResellerID = this reseller) or update one of this reseller's plans, audit, redirect. Returns the
+    // form with errors when the save fails.
+    string PlanSave(SqlConnection c, DataTable t, bool own, Func<DataRow, bool> mine)
+    {
+        var keys = new[] { "rp_id", "rp_name", "rp_desc", "rp_monthly", "rp_annual", "rp_freq", "rp_biz", "rp_emp", "rp_proj", "rp_trial", "rp_features", "rp_active" };
+        var v = keys.ToDictionary(k => k, k => SA.Form(k)); int id = SA.FormId("rp_id"); v["rp_id"] = id.ToString(CultureInfo.InvariantCulture);
+        var errs = new List<string>(); DataRow cur = null;
+        if (!own) errs.Add("Adding reseller plans needs a database update (OPTIONAL_06_ResellerPlans.sql).");
+        else if (!rsl.Can("plans")) errs.Add("Your reseller account does not have the Subscription Plans permission.");
+        if (id > 0) { cur = t.Rows.Cast<DataRow>().FirstOrDefault(r => Convert.ToInt32(r["PlanID"]) == id); if (cur == null || !mine(cur)) errs.Add("You can only edit plans your reseller account created."); else v["rp_name"] = SA.S(cur["PlanName"]); }
+        string name = v["rp_name"].Trim(), desc = v["rp_desc"].Trim(), feat = v["rp_features"], freq = v["rp_freq"] == "Annual" ? "Annual" : "Monthly"; bool active = v["rp_active"] != "0";
+        if (name.Length == 0) errs.Add("Plan name is required."); else if (name.Length > 100) errs.Add("Plan name is too long (100 characters).");
+        if (desc.Length > 300) errs.Add("Description is too long (300 characters).");
+        // Plan names are matched by key across PlanHistory (SA.PlanKey), so a new name must not collide with ANY existing plan (all resellers + catalogue).
+        if (id == 0 && name.Length > 0 && Convert.ToInt32(SA.Q(c, "SELECT COUNT(*) FROM AnyminuteSubscriptionPlan WHERE " + String.Format(SA.PlanKeySql, "PlanName") + "=@k", "@k", SA.PlanKey(name)).Rows[0][0]) > 0) errs.Add("A plan with this name already exists. Choose another name.");
+        Func<string, string, object> dec = (k, label) => { string s = v[k].Replace("$", "").Replace(",", "").Trim(); decimal d; if (s.Length == 0) return DBNull.Value; if (!Decimal.TryParse(s, NumberStyles.Number, CultureInfo.InvariantCulture, out d) || d < 0 || d > 1000000) { errs.Add(label + " must be blank (Custom) or a positive amount."); return DBNull.Value; } return Math.Round(d, 2); };
+        Func<string, string, object> num = (k, label) => { string s = v[k].Trim(); int i; if (s.Length == 0) return DBNull.Value; if (!Int32.TryParse(s, out i) || i < 0 || i > 100000) { errs.Add(label + " must be blank (Custom) or a whole number."); return DBNull.Value; } return i; };
+        object m = dec("rp_monthly", "Monthly price"), a = dec("rp_annual", "Annual price"), b = num("rp_biz", "Max Businesses"), e = num("rp_emp", "Max Employees"), p = num("rp_proj", "Max Projects");
+        int trial; if (!Int32.TryParse(v["rp_trial"].Trim(), out trial) || trial < 0 || trial > 365) errs.Add("Trial duration must be 0-365 days.");
+        if (errs.Count > 0) { Flash.Text += "<div class='sa-flash sa-warn' role='alert'>Please fix the following:<ul>" + String.Join("", errs.Select(x => "<li>" + SA.H(x) + "</li>").ToArray()) + "</ul></div>"; return PlanForm(own, null, v); }
+        using (var tx = c.BeginTransaction())
+        {
+            var args = new object[] { "@n", name, "@d", desc, "@m", m, "@a", a, "@b", b, "@e", e, "@p", p, "@t", trial, "@f", freq, "@ft", feat, "@ac", active, "@u", SA.ActorId(), "@r", rsl.ResellerId, "@i", id };
+            if (id == 0) id = Convert.ToInt32(AnyminuteTimesheetRepair.Query(c, tx, @"INSERT AnyminuteSubscriptionPlan(PlanName,Description,MonthlyPrice,AnnualPrice,MaxBusinesses,MaxEmployees,MaxProjects,TrialDays,BillingFrequency,Features,IsActive,UpdatedBy,ResellerID)
+                VALUES(@n,@d,@m,@a,@b,@e,@p,@t,@f,@ft,@ac,@u,@r); SELECT CAST(SCOPE_IDENTITY() AS int)", args).Rows[0][0]);
+            else AnyminuteTimesheetRepair.Execute(c, tx, @"UPDATE AnyminuteSubscriptionPlan SET Description=@d,MonthlyPrice=@m,AnnualPrice=@a,MaxBusinesses=@b,MaxEmployees=@e,MaxProjects=@p,TrialDays=@t,BillingFrequency=@f,Features=@ft,IsActive=@ac,UpdatedBy=@u,UpdatedAtUTC=SYSUTCDATETIME() WHERE PlanID=@i AND ResellerID=@r", args);
+            string summary = "Monthly " + Money(m) + "; Annual " + Money(a) + "; Businesses " + Num(b) + "; Employees " + Num(e) + "; Projects " + Num(p) + "; Trial " + trial + " days; " + (active ? "Active" : "Inactive");
+            SA.Audit(c, tx, "Plan", id.ToString(CultureInfo.InvariantCulture), cur == null ? "Plan Added (Reseller)" : "Plan Updated (Reseller)", cur == null ? null : (Convert.ToBoolean(cur["IsActive"]) ? "Active" : "Inactive"), active ? "Active" : "Inactive", cur == null ? null : SA.S(cur["PlanName"]), name + ": " + summary, "Reseller " + rsl.Code + " (" + rsl.Name + ")");
+            tx.Commit();
+        }
+        SA.Flash((cur == null ? "Plan \"" + name + "\" added." : "Plan \"" + name + "\" updated.") + " It is available to your subscribers in Add / Edit Subscriber.");
+        Response.Redirect("ResellerDashboard.aspx?view=plans&plan=" + id + "#plan", false); Context.ApplicationInstance.CompleteRequest(); return "";
     }
     // Usage & Limits (read-only): each subscriber's Businesses / Employees / Projects used against the active plan limits.
     void Usage(SqlConnection c)
