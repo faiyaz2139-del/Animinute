@@ -1,5 +1,5 @@
 <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="AccountantInvite.aspx.cs" Inherits="AnyminuteAccountantInvitePage" %>
-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteFlash.css?v=20261024v2" rel="stylesheet" /><link href="css/AnyminuteProjects.css?v=20261025v14" rel="stylesheet" /><link href="css/AnyminuteAccess.css?v=20261024v9" rel="stylesheet" /><script src="Scripts/AnyminuteDateText.js?v=20261024v9" defer></script><script src="Scripts/AnyminuteAccess.js?v=20261024v9" defer></script></asp:Content>
+<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteFlash.css?v=20261024v2" rel="stylesheet" /><link href="css/AnyminuteProjects.css?v=20261025v14" rel="stylesheet" /><link href="css/AnyminuteAccess.css?v=20261104v64" rel="stylesheet" /><script src="Scripts/AnyminuteDateText.js?v=20261104v64" defer></script><script src="Scripts/AnyminuteAccess.js?v=20261104v64" defer></script></asp:Content>
 <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
 <section class="am-projects am-pj-dialog am-access am-ac-invite-page">
  <header class="am-pj-dhead"><div><h1><asp:Literal ID="PageTitle" runat="server" Text="Invite Accountant or Payroll Administrator" /></h1><p><asp:Literal ID="PageSubtitle" runat="server" Text="Send an invitation to an external accountant or payroll administrator." /></p></div><asp:HyperLink ID="CloseLink" runat="server" NavigateUrl="~/AccountantAccess.aspx" CssClass="am-pj-close" ToolTip="Close" aria-label="Close">&times;</asp:HyperLink></header>
@@ -36,7 +36,7 @@
      <div class="am-ac-label">Select Business(es) <em class="am-pj-req">*</em></div>
      <div class="am-ac-bizbox">
       <label class="am-pj-search am-ac-bizsearch"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 20l-4-4" stroke="currentColor" stroke-width="2"/></svg><input type="search" placeholder="Search businesses..." data-ac-bizsearch="1" aria-label="Search businesses" /></label>
-      <div class="am-ac-bizlist"><asp:Repeater ID="Businesses" runat="server"><ItemTemplate><label class="am-ac-biz" data-ac-text="<%#: Eval("Value") %>"><input type="checkbox" name="biz" value="<%# Eval("Key") %>"<%# Picked((int)Eval("Key")) ? " checked=\"checked\"" : "" %> /> <%#: Eval("Value") %></label></ItemTemplate></asp:Repeater></div>
+      <div class="am-ac-bizlist"><asp:Repeater ID="Businesses" runat="server"><ItemTemplate><label class="am-ac-biz" data-ac-text="<%#: Eval("Value") %>"><input type="checkbox" name="biz" value="<%# Eval("Key") %>"<%# Picked((int)Eval("Key")) ? " checked=\"checked\"" : "" %><%# ViewOnly ? " disabled=\"disabled\"" : "" %> /> <%#: Eval("Value") %></label></ItemTemplate></asp:Repeater></div>
      </div>
      <label class="am-pj-field am-ac-expiry am-datefmt"><span>Access Expiry (Optional)</span><asp:TextBox ID="Expiry" runat="server" TextMode="Date" data-placeholder="Select expiry date..." /></label>
     </div>

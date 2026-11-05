@@ -106,6 +106,13 @@ public partial class Add_Business : System.Web.UI.Page
         {
             Response.Redirect("Login.aspx");
         }
+        // v64 (PPT s2/s3): subscriber/owner sessions can arrive without MotherOrgid (e.g. after password reset) — resolve it from the
+        // owner's own business assignment so Add/Edit Business no longer crash to the generic error page.
+        if (String.IsNullOrEmpty(Convert.ToString(Session["MotherOrgid"])))
+        {
+            var mo = comm.ExecuteQueryDataTable("select top 1 MotherOrgID from AssginBussiness with (Nolock) where EmployeeID=" + int.Parse(Session["EmployeeId"].ToString()) + " and MotherOrgID is not null order by UserTypeId");
+            Session["MotherOrgid"] = mo.Rows.Count > 0 ? mo.Rows[0][0].ToString() : "0";
+        }
         if (!IsPostBack)
         {
             string flash = AnyminuteFlash.Take("business");
@@ -117,7 +124,7 @@ public partial class Add_Business : System.Web.UI.Page
             if (Request.QueryString["BusinessIDEdit"] == null)
             {
                 var check_reseller_email = comm.GetAllDataFromTable("MotherOrg with (Nolock)", "Email", "MotherOrgID = '" + int.Parse(Session["MotherOrgid"].ToString()) + "'", "");
-                bool check_reseller_or_subscriber_email = comm.IfExistsInTable("Register_Partner with (Nolock)", "EMail_primary", "EMail_primary = '" + check_reseller_email.Rows[0]["Email"].ToString() + "' ");
+                bool check_reseller_or_subscriber_email = comm.IfExistsInTable("Register_Partner with (Nolock)", "EMail_primary", "EMail_primary = '" + (check_reseller_email.Rows.Count > 0 ? check_reseller_email.Rows[0]["Email"].ToString().Replace("'", "''") : "") + "' ") && check_reseller_email.Rows.Count > 0;
                 if (!check_reseller_or_subscriber_email)
                 {
                     var check_old_subscriber = comm.ExecuteQueryDataTable("select Business from PlanHistory with (Nolock) where EmpId='" + int.Parse(Session["EmployeeId"].ToString()) + "'" +
@@ -203,7 +210,7 @@ public partial class Add_Business : System.Web.UI.Page
                             //}
 
                             //BUSSCNT = dt.Rows.Count;
-                            //if (BUSSCNT >= int.Parse(dtBussCnt.Rows[0][0].ToString()))
+                            //if (dtBussCnt.Rows.Count > 0 && BUSSCNT >= int.Parse(dtBussCnt.Rows[0][0].ToString()))
                             //{
                             //    Label_Maximum_Limit.Text = "Please contact admin to add more business. You have reached the maximum limit.";
                             //    Label_Maximum_Limit.Attributes.Add("style", "text-decoration:blink");
@@ -221,7 +228,7 @@ public partial class Add_Business : System.Web.UI.Page
                             DataTable dt = AddBeCtrl.GetBussList_BusinessOwnerForDashBord1(int.Parse(Session["MotherOrgid"].ToString()), int.Parse(Session["EmployeeID"].ToString()), int.Parse("1"));
                             
                             BUSSCNT = dt.Rows.Count;
-                            if (BUSSCNT >= int.Parse(dtBussCnt.Rows[0][0].ToString()))
+                            if (dtBussCnt.Rows.Count > 0 && BUSSCNT >= int.Parse(dtBussCnt.Rows[0][0].ToString()))
                             {
                                 Label_Maximum_Limit.Text = "Please contact admin to add more business. You have reached the maximum limit.";
                                 Label_Maximum_Limit.Attributes.Add("style", "text-decoration:blink");
@@ -274,7 +281,7 @@ public partial class Add_Business : System.Web.UI.Page
                             //total_no_bussiness = int.Parse(No_of_business.Rows.Count.ToString());
                             //DataTable dtBussCnt = comm.ExecuteQueryDataTable("select  Business from PlanHistory GROUP BY EmpId,id,Business having EmpId='" + int.Parse(Session["MotherOrgid"].ToString()) + "' and Id=(select max(id) from PlanHistory where EmpId='" + int.Parse(Session["MotherOrgid"].ToString()) + "' and IsActive=1)");
                             //int BUSSCNT_RESELLER = 0;
-                            //BUSSCNT_RESELLER = int.Parse(dtBussCnt.Rows[0]["Business"].ToString());
+                            //BUSSCNT_RESELLER = dtBussCnt.Rows.Count > 0 ? int.Parse(dtBussCnt.Rows[0]["Business"].ToString()) : int.MaxValue;
                             //if (total_no_bussiness >= BUSSCNT_RESELLER)
                             //{
                             //    Label_Maximum_Limit.Text = "Please contact admin to add more business. You have reached the maximum limit.";
@@ -308,7 +315,7 @@ public partial class Add_Business : System.Web.UI.Page
                                 total_no_bussiness = int.Parse(No_of_business.Rows.Count.ToString());
                                 DataTable dtBussCnt = comm.ExecuteQueryDataTable("select  Business from PlanHistory with (Nolock) GROUP BY EmpId,id,Business having EmpId='" + int.Parse(Session["EmployeeID"].ToString()) + "' and Id=(select max(id) from PlanHistory where EmpId='" + int.Parse(Session["EmployeeId"].ToString()) + "' and IsActive=1)");
                                 int BUSSCNT_RESELLER = 0;
-                                BUSSCNT_RESELLER = int.Parse(dtBussCnt.Rows[0]["Business"].ToString());
+                                BUSSCNT_RESELLER = dtBussCnt.Rows.Count > 0 ? int.Parse(dtBussCnt.Rows[0]["Business"].ToString()) : int.MaxValue;
                                 if (total_no_bussiness >= BUSSCNT_RESELLER)
                                 {
                                     Label_Maximum_Limit.Text = "Please contact admin to add more business. You have reached the maximum limit.";
@@ -378,7 +385,7 @@ public partial class Add_Business : System.Web.UI.Page
                 GetDataforEditBusinessDetails(int.Parse(Request.QueryString["BusinessIDEdit"]));
                 divAdd.Attributes.Add("Style", "display:block");
                 btnUpdateAddress.Visible = false;
-                if (Session["UserTypeid"].ToString() == "0" && Session["UserType"].ToString() == "Admin")
+                if (Convert.ToString(Session["UserTypeid"]) == "0" && Convert.ToString(Session["UserType"]) == "Admin")
                 {
                     btnback.HRef = "Accountant.aspx";
                     if (Request.QueryString["BusinessIDEdit"] != null)
@@ -392,7 +399,7 @@ public partial class Add_Business : System.Web.UI.Page
             {
                 btnSaveAddres.Text = "Save";
             }
-            if (Session["UserType"].ToString() == "BUSINESS OWNER")
+            if (Convert.ToString(Session["UserType"]) == "BUSINESS OWNER")
             {
                 btnback.Visible = true;
             }
@@ -432,6 +439,7 @@ public partial class Add_Business : System.Web.UI.Page
         btnUpdateBusinessDetails.Visible = true;
         DataTable dtBusinessEdit = new DataTable();
         dtBusinessEdit = comm.GetAllDataFromTable("AddBusiness with (Nolock)", "*", "BusinessID=" + BusinessIDEdit + "", "");
+        if (dtBusinessEdit.Rows.Count == 0) { Response.Redirect("Dashboard.aspx?view=businesses", false); Context.ApplicationInstance.CompleteRequest(); return; } // v64
         txtCompanyName.Text = dtBusinessEdit.Rows[0]["CompanyName"].ToString();
         hdn_companyname.Value = dtBusinessEdit.Rows[0]["CompanyName"].ToString();
         txtOperatingName.Text = dtBusinessEdit.Rows[0]["OperatingName"].ToString();
@@ -447,8 +455,9 @@ public partial class Add_Business : System.Web.UI.Page
         }
 
         DataTable dtBusinessEdit1 = new DataTable();
-        dtBusinessEdit1 = comm.GetAllDataFromTable("MotherOrg with (Nolock)", "*", "MotherOrgID=" + dtBusinessEdit.Rows[0]["MotherOrgId"].ToString() + "", "");
-        txtaccountantmail.Text = dtBusinessEdit1.Rows[0]["Email"].ToString();
+        string editMother = dtBusinessEdit.Rows[0]["MotherOrgId"].ToString(); int editMotherId; // v64 guard: missing MotherOrg row
+        if (Int32.TryParse(editMother, out editMotherId)) dtBusinessEdit1 = comm.GetAllDataFromTable("MotherOrg with (Nolock)", "*", "MotherOrgID=" + editMotherId + "", "");
+        txtaccountantmail.Text = dtBusinessEdit1.Rows.Count > 0 ? dtBusinessEdit1.Rows[0]["Email"].ToString() : "";
         DataTable chkboisActive = comm.GetAllDataFromTable("AddBusiness with (Nolock)", "*", "BusinessID=" + BusinessIDEdit + " and APPROVED='A'", "");
         if (chkboisActive.Rows.Count == 0)
         {
@@ -459,7 +468,7 @@ public partial class Add_Business : System.Web.UI.Page
             txtaccountantmail.Enabled = true;
 
         }
-        DateBusnsAssgnDate.Text = DateTime.Parse(dtBusinessEdit.Rows[0]["BusinessAgreementDate"].ToString()).ToString("yyyy-MM-dd");
+        DateTime agreeDt; DateBusnsAssgnDate.Text = DateTime.TryParse(dtBusinessEdit.Rows[0]["BusinessAgreementDate"].ToString(), out agreeDt) ? agreeDt.ToString("yyyy-MM-dd") : ""; // v64 guard
         string storedStatus = dtBusinessEdit.Rows[0]["Status"].ToString().Trim();
         if (storedStatus == "2" && ddlClientStats.Items.FindByValue("2") == null)
             ddlClientStats.Items.Add(new ListItem("Not Active (deactivated by plan)", "2"));

@@ -12,6 +12,8 @@ public partial class BusinessAccountant : Page
         ViewStateUserKey=Session.SessionID;
         int business;if(!Int32.TryParse(Request.QueryString["BusinessId"],out business)) throw new HttpException(400,"Select a business.");
         using(var c=AnyminuteTimesheetRepair.Open()) AnyminuteApprovalAssignments.RequireOwner(c,null,business);
+        // v64 (PPT s4/s5): Assign Accountant is replaced by Accountant & Payroll Access (invite form + Invited & Active Users).
+        Response.Redirect("AccountantAccess.aspx?BusinessId="+business+"#am-ac-inviteform",false);Context.ApplicationInstance.CompleteRequest();
     }
     protected void Page_Load(object s,EventArgs e) { if(!IsPostBack) Bind(); }
     void Bind()

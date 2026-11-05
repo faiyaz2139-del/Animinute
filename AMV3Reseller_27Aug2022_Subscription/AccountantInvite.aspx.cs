@@ -10,6 +10,7 @@ public partial class AnyminuteAccountantInvitePage : System.Web.UI.Page
     int invite, user; HashSet<int> picked = new HashSet<int>(); AnyminuteAccessRow row;
     protected void Page_Init(object sender, EventArgs e) { AnyminuteModernScope.Login(); ViewStateUserKey = Session.SessionID; AnyminuteFormAccess.OwnerSomewhere(); }
     protected bool Picked(int id) { return picked.Contains(id); }
+    protected bool ViewOnly;
     bool Editing { get { return invite > 0 || user > 0; } }
     protected void Page_Load(object sender, EventArgs e)
     {
@@ -40,6 +41,13 @@ public partial class AnyminuteAccountantInvitePage : System.Web.UI.Page
             }
         }
         else picked = new HashSet<int>(Posted());
+        if (Editing && Request.QueryString["view"] == "1") // v64 (PPT s6): read-only View from the Action column
+        {
+            PageTitle.Text = "View Accountant or Payroll Access"; PageSubtitle.Text = "Access details. Use Edit Access from the menu to change them.";
+            SaveButton.Visible = false; RevokeButton.Visible = false; CancelLink.Text = "Back";
+            foreach (var t in new System.Web.UI.WebControls.WebControl[] { FullName, FirmName, Email, Phone, TypeAccountant, TypePayroll, PermPayRates, PermApprove, PermExport, PermManage, Expiry }) t.Enabled = false;
+            ViewOnly = true;
+        }
         var owned = AnyminuteAccessService.Owned();
         if (owned.Count == 1 && !Editing && !IsPostBack) picked.Add(owned[0].Key);
         Businesses.DataSource = owned; Businesses.DataBind();

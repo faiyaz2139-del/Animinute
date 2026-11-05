@@ -24,6 +24,8 @@
  function init(){
   $$('[data-ac-filter]').forEach(function(e){e.addEventListener('change',apply);});
   var s=document.querySelector('[data-ac-search]');if(s){s.addEventListener('input',apply);s.addEventListener('keydown',function(e){if(e.key==='Enter')e.preventDefault();});}
+  // v64 tabs All / Pending / Active drive the Status filter
+  $$('[data-ac-tab]').forEach(function(t){t.addEventListener('click',function(){var sel=document.querySelector('[data-ac-filter="status"]');if(sel)sel.value=t.getAttribute('data-ac-tab');$$('[data-ac-tab]').forEach(function(o){o.classList.toggle('is-on',o===t);});apply();});});
   apply();bizSearch();
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();

@@ -67,3 +67,13 @@ body.am-ui .am-ac-types .am-ac-badge+.am-ac-badge,body.am-ui .am-ac-types .am-ac
 body.am-ui .am-ac-email{max-width:200px;overflow:hidden;text-overflow:ellipsis}
 body.am-ui .am-ac-table .am-pj-actions{white-space:nowrap}
 body.am-ui .am-access .am-pj-actions .am-pj-ic:not(.am-pj-red):not(.am-pj-kebab){color:#1463f3}
+
+/* v64 (PPT s4-s6): inline invite card, section titles, tabs, View + kebab action */
+.am-ac-inline{padding:16px 18px;margin-bottom:18px}
+.am-ac-section{font-size:18px;font-weight:700;color:#1e40af;margin:4px 0 12px}
+.am-ac-inline-foot{display:flex;align-items:center;gap:10px;margin-top:14px}
+.am-ac-inline-foot .am-ac-note{flex:1;background:#eef4ff;border-radius:8px;padding:8px 12px;color:#1e3a8a;font-size:13px}
+.am-ac-tabs{display:flex;gap:18px;border-bottom:1px solid #e5e7eb;margin-bottom:10px}
+.am-ac-tabs button{background:none;border:0;padding:8px 2px;font-weight:600;color:#475569;cursor:pointer;border-bottom:2px solid transparent}
+.am-ac-tabs button.is-on{color:#1d4ed8;border-bottom-color:#1d4ed8}
+.am-pj-actions .am-ac-view{padding:4px 14px;min-height:0;font-size:13px;margin-right:6px}

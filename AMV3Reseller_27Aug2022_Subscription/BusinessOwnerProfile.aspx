@@ -151,7 +151,7 @@
                     <h2 style="float: left; margin-top: 10px;">Business Owner Profile</h2>
                 </div>
                 <div class="col-md-6 col-sm-6 col-xs-6">
-                    <a href="MyProfile.aspx" id="btnback" runat="server" class="buttonhyperlink" style="margin-top: 10px;
+                    <a href="Dashboard.aspx" id="btnback" runat="server" class="buttonhyperlink" style="margin-top: 10px;
                         float: right;">Home</a>
                 </div>
             </div>
@@ -165,7 +165,7 @@
                     Home
                 </a>
                 <br /><br />
-                <a href="MyProfile.aspx" id="A2" runat="server">
+                <a href="Dashboard.aspx" id="A2" runat="server">
                     Back
                 </a>
             </div>

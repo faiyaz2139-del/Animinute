@@ -29,6 +29,9 @@ public static class AnyminuteDirectoryScope
             int role;
             if (Int32.TryParse(Convert.ToString(identity.Rows[0][0]), out role) &&
                 (role == 1 || role == 2 || role == 5 || role == 12)) return true;
+            // v64 (PPT s2/s3 User List): an owner recorded in AssginBussiness (UserTypeId=1) can always read the directory, even
+            // when the login's UserAcc/session role is not 1 (subscriber after password reset).
+            if (AnyminuteTimesheetRepair.Query(c, null, "SELECT TOP 1 1 FROM AssginBussiness WHERE EmployeeID=@e AND UserTypeId=1", "@e", employee).Rows.Count > 0) return true;
             return AnyminuteTimesheetRepair.Query(c, null, @"
                 SELECT DISTINCT m.BusinessID FROM MappingTable m
                 JOIN AssginBussiness a ON a.BusinessID=m.BusinessID AND a.EmployeeID=m.EmployeeID AND a.UserTypeId=m.UserTypeId
@@ -53,7 +56,7 @@ public static class AnyminuteDirectoryScope
                     EXISTS (SELECT 1 FROM MappingTable m JOIN AssginBussiness a
                         ON a.BusinessID=m.BusinessID AND a.EmployeeID=m.EmployeeID AND a.UserTypeId=m.UserTypeId
                         WHERE m.USERID=@u AND m.BusinessID=b.BusinessID AND m.UserTypeId IN (1,2,5,12))
-                    OR (@r=1 AND EXISTS (SELECT 1 FROM AssginBussiness a
+                    OR (@r=@r AND EXISTS (SELECT 1 FROM AssginBussiness a
                         WHERE a.BusinessID=b.BusinessID AND a.EmployeeID=@e AND a.UserTypeId=1)))
                 ORDER BY b.CompanyName", "@u", SessionNumber("UserId"),
                 "@e", SessionNumber("EmployeeId"), "@r", SessionNumber("UserTypeid"));
@@ -62,9 +65,9 @@ public static class AnyminuteDirectoryScope
             {
                 int actor = SessionNumber("EmployeeId"), role = SessionNumber("UserTypeid");
                 AnyminuteTimesheetRepair.ResolveBusinessActor(c, null, ref actor, ref role, Convert.ToInt32(row["BusinessID"]));
-                if (role != 1 && role != 2 && role != 5 && role != 12)
-                    throw new HttpException(403, "Your business role cannot open the user directory.");
+                if (role != 1 && role != 2 && role != 5 && role != 12) row.Delete(); // v64: skip, don't fail the whole page
             }
+            candidates.AcceptChanges();
             return candidates;
         }
     }
