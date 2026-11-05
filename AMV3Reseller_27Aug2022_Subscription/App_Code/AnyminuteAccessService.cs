@@ -189,7 +189,7 @@ public static class AnyminuteAccessService
     {
         if (String.IsNullOrWhiteSpace(p.Name)) throw new InvalidOperationException("Full Name is required.");
         if (p.Name.Trim().Length > 150) throw new InvalidOperationException("Full Name can be up to 150 characters.");
-        if (String.IsNullOrWhiteSpace(p.Firm)) throw new InvalidOperationException("Firm Name is required.");
+        p.Firm = p.Firm ?? ""; // v65 (PPT s5 mock): Firm Name is optional
         if (p.Firm.Trim().Length > 150) throw new InvalidOperationException("Firm Name can be up to 150 characters.");
         if (String.IsNullOrWhiteSpace(p.Email) || !Regex.IsMatch(p.Email.Trim(), @"^[^@\s]+@[^@\s]+\.[^@\s]+$") || p.Email.Trim().Length > 200) throw new InvalidOperationException("Enter a valid Email Address.");
         if ((p.Phone ?? "").Trim().Length > 40) throw new InvalidOperationException("Phone Number can be up to 40 characters.");

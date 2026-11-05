@@ -14,7 +14,7 @@
   });
   var none=table.querySelector('.am-ac-none');if(none)none.hidden=shown>0;
   var p=document.querySelector('[data-ac-showing]');
-  if(p)p.textContent=shown?('Showing 1 to '+shown+' of '+shown+' user'+(shown===1?'':'s')):'Showing 0 users';
+  if(p)p.textContent='Showing '+shown+' user'+(shown===1?'':'s');
  }
  function bizSearch(){
   var box=document.querySelector('[data-ac-bizsearch]');if(!box)return;

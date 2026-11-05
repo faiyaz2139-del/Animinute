@@ -406,7 +406,7 @@
                                             
                                             <asp:HyperLink ID="hyAssManger" runat="server" Text=" | Assign User To Manager"
                                                 NavigateUrl='<%# "~/GridviewNewDesign.aspx?BusinessIdFromDefaultPapge=" + Eval("BusinessID")%>'></asp:HyperLink>
-                                            <asp:HyperLink ID="hyAssignAccountantInline" runat="server" Text=" | Assign Accountant" NavigateUrl='<%# "~/GridviewAssignAccountant.aspx?BusinessIdFromDefaultPapge=" + Eval("BusinessID")%>'></asp:HyperLink>
+                                            <asp:HyperLink ID="hyAssignAccountantInline" runat="server" Text=" | Accountant &amp; Payroll Access" NavigateUrl='<%# "~/AccountantAccess.aspx?BusinessId=" + Eval("BusinessID")%>'></asp:HyperLink>
                                         </ItemTemplate>
                                     </asp:TemplateField>
                                     <asp:TemplateField HeaderText="Time Sheet">

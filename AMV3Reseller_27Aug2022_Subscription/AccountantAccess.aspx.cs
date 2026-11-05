@@ -6,7 +6,7 @@ using System.Text;
 using System.Web;
 using System.Web.UI.WebControls;
 
-// 2026-10-24 v9 Deck G: Accountant & Payroll Access list.
+// 2026-10-24 v9 Deck G: Accountant & Payroll Access list. v65: strict to PPT s5 mock (invite card + Invited & Active Users) and s6 (View + kebab).
 public partial class AnyminuteAccountantAccessPage : System.Web.UI.Page
 {
     protected void Page_Init(object sender, EventArgs e) { AnyminuteModernScope.Login(); ViewStateUserKey = Session.SessionID; AnyminuteFormAccess.OwnerSomewhere(); }
@@ -52,6 +52,11 @@ public partial class AnyminuteAccountantAccessPage : System.Web.UI.Page
         }
         catch (InvalidOperationException error) { InvError.Text = HttpUtility.HtmlEncode(error.Message); InvError.Visible = true; }
     }
+    // v65 (mock image5): Role / Business Access / Status display text.
+    protected string RoleText(AnyminuteAccessRow r) { return r.Accountant && r.Payroll ? "Accountant, Payroll Administrator" : r.Payroll ? "Payroll Administrator" : "Accountant"; }
+    protected string BizText(AnyminuteAccessRow r) { if (r.AllBusinesses) return "All businesses"; int n = r.BusinessNames.Count; return n == 0 ? "\u2014" : n == 1 ? r.BusinessNames[0] : n.ToString(CultureInfo.InvariantCulture) + " businesses"; }
+    protected string StatusText(object status) { string s = Convert.ToString(status); return s == "Invited" ? "Pending" : s; }
+    protected string StatusIcon(object status) { string s = Convert.ToString(status); return s == "Invited" ? "<span class=\"am-acx-sti\" aria-hidden=\"true\">&#9719;</span>" : s == "Active" ? "<span class=\"am-acx-sti\" aria-hidden=\"true\">&#10003;</span>" : ""; }
     protected bool Live(object status) { string s = Convert.ToString(status); return s == "Active" || s == "Invited"; }
     void Bind()
     {
@@ -59,16 +64,16 @@ public partial class AnyminuteAccountantAccessPage : System.Web.UI.Page
         var owned = AnyminuteAccessService.Owned();
         var rows = AnyminuteAccessService.List();
         var live = rows.Where(r => Live(r.Status)).ToList();
-        TotalCount.Text = live.Count.ToString(CultureInfo.InvariantCulture);
-        ActiveCount.Text = live.Count(r => r.Status == "Active").ToString(CultureInfo.InvariantCulture);
-        PendingCount.Text = live.Count(r => r.Status == "Invited").ToString(CultureInfo.InvariantCulture);
-        BusinessCount.Text = live.SelectMany(r => r.BusinessIds).Distinct().Count().ToString(CultureInfo.InvariantCulture);
+        // v65: counts feed the All / Pending / Active tabs only (metric cards removed per mock image5).
+        string all = live.Count.ToString(CultureInfo.InvariantCulture);
+        string active = live.Count(r => r.Status == "Active").ToString(CultureInfo.InvariantCulture);
+        string pending = live.Count(r => r.Status == "Invited").ToString(CultureInfo.InvariantCulture);
         var sb = new StringBuilder();
         foreach (var b in owned) sb.Append("<option value=\"").Append(b.Key.ToString(CultureInfo.InvariantCulture)).Append("\">").Append(HttpUtility.HtmlEncode(b.Value)).Append("</option>");
         BusinessOptions.Text = sb.ToString();
-        TabAll.Text = TotalCount.Text; TabPending.Text = PendingCount.Text; TabActive.Text = ActiveCount.Text;
+        TabAll.Text = all; TabPending.Text = pending; TabActive.Text = active;
         Rows.DataSource = rows; Rows.DataBind();
-        Showing.Text = live.Count == 0 ? "No users yet." : "Showing 1 to " + live.Count + " of " + live.Count + " users";
+        Showing.Text = live.Count == 0 ? "No users yet." : "Showing " + live.Count + " user" + (live.Count == 1 ? "" : "s");
     }
     void Done(string message) { AnyminuteFlash.Set("access", message); Response.Redirect("~/AccountantAccess.aspx", false); Context.ApplicationInstance.CompleteRequest(); }
     protected void Rows_ItemCommand(object source, RepeaterCommandEventArgs e)

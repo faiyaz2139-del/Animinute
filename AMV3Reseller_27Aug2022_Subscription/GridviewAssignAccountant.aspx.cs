@@ -18,6 +18,8 @@ public partial class GridviewAssignAccountant : System.Web.UI.Page
         {
             Response.Redirect("Login.aspx");
         }
+        // v65 (PPT s4/s5): old Assign Accountant screen retired -> Accountant & Payroll Access.
+        { int b; Response.Redirect(Int32.TryParse(Request.QueryString["BusinessIdFromDefaultPapge"], out b) && b > 0 ? "AccountantAccess.aspx?BusinessId=" + b + "#am-ac-inviteform" : "AccountantAccess.aspx", true); return; }
         if (!IsPostBack)
         {
             GetMangerList();
@@ -429,4 +431,4 @@ public partial class GridviewAssignAccountant : System.Web.UI.Page
             }
         }
     }
-}
+}

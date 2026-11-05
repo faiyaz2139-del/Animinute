@@ -1,5 +1,5 @@
 <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="AccountantInvite.aspx.cs" Inherits="AnyminuteAccountantInvitePage" %>
-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteFlash.css?v=20261024v2" rel="stylesheet" /><link href="css/AnyminuteProjects.css?v=20261025v14" rel="stylesheet" /><link href="css/AnyminuteAccess.css?v=20261104v64" rel="stylesheet" /><script src="Scripts/AnyminuteDateText.js?v=20261104v64" defer></script><script src="Scripts/AnyminuteAccess.js?v=20261104v64" defer></script></asp:Content>
+<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteFlash.css?v=20261024v2" rel="stylesheet" /><link href="css/AnyminuteProjects.css?v=20261025v14" rel="stylesheet" /><link href="css/AnyminuteAccess.css?v=20261105v65" rel="stylesheet" /><script src="Scripts/AnyminuteDateText.js?v=20261105v65" defer></script><script src="Scripts/AnyminuteAccess.js?v=20261105v65" defer></script></asp:Content>
 <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
 <section class="am-projects am-pj-dialog am-access am-ac-invite-page">
  <header class="am-pj-dhead"><div><h1><asp:Literal ID="PageTitle" runat="server" Text="Invite Accountant or Payroll Administrator" /></h1><p><asp:Literal ID="PageSubtitle" runat="server" Text="Send an invitation to an external accountant or payroll administrator." /></p></div><asp:HyperLink ID="CloseLink" runat="server" NavigateUrl="~/AccountantAccess.aspx" CssClass="am-pj-close" ToolTip="Close" aria-label="Close">&times;</asp:HyperLink></header>
@@ -11,7 +11,7 @@
     <div class="am-ac-head"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0 2c-4 0-9 2-9 6v2h18v-2c0-4-5-6-9-6z"/></svg><h2>User Information</h2></div>
     <div class="am-ac-body">
      <label class="am-pj-field"><span>Full Name <em class="am-pj-req">*</em></span><asp:TextBox ID="FullName" runat="server" MaxLength="150" placeholder="Enter full name" /></label>
-     <label class="am-pj-field"><span>Firm Name <em class="am-pj-req">*</em></span><asp:TextBox ID="FirmName" runat="server" MaxLength="150" placeholder="Enter firm name" /></label>
+     <label class="am-pj-field"><span>Firm Name (optional)</span><asp:TextBox ID="FirmName" runat="server" MaxLength="150" placeholder="Enter firm name" /></label>
      <label class="am-pj-field"><span>Email Address <em class="am-pj-req">*</em></span><asp:TextBox ID="Email" runat="server" MaxLength="200" TextMode="Email" placeholder="name@firm.com" /></label>
      <label class="am-pj-field"><span>Phone Number</span><asp:TextBox ID="Phone" runat="server" MaxLength="40" TextMode="Phone" placeholder="Enter phone number" /></label>
     </div>

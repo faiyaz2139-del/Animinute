@@ -1,7 +1,7 @@
 <%@ Page Title="My Profile" Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="SupportAdminProfile.aspx.cs" Inherits="SupportAdminProfile" %>
 <%-- 2026-11-03 v58 (Support Admin PPT s2/s3 "Can't Edit the Profile"): My profile for Support Admin is a real, editable profile in the
      Support Admin console (Modern.master), replacing the old Main.master form with its Home / Back to List links. --%>
-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261104v64" rel="stylesheet" /></asp:Content>
+<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261105v65" rel="stylesheet" /></asp:Content>
 <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
 <section class="sa-page">
  <header class="sa-head"><div><h1>My Profile</h1><p>Your Support Admin account and contact details.</p></div></header>

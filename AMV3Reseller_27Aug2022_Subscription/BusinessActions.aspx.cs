@@ -10,6 +10,8 @@ public partial class AnyminuteBusinessActions : System.Web.UI.Page
         AnyminuteModernScope.Login(); ViewStateUserKey=Session.SessionID;
         AnyminuteFormAccess.OwnerSomewhere();
         if(Request.QueryString["action"]!="edit" && !Accountant)throw new HttpException(400,"Unknown business action.");
+        // v65 (PPT s4/s5): Assign Accountant picker retired; open Accountant & Payroll Access (it has its own Business Access checklist).
+        if(Accountant){Response.Redirect("AccountantAccess.aspx",true);return;}
     }
     protected void Page_Load(object sender, EventArgs e)
     {
@@ -27,7 +29,7 @@ public partial class AnyminuteBusinessActions : System.Web.UI.Page
         int business;
         if(!Int32.TryParse(Business.SelectedValue,out business)||business<=0){Message.Text="Select a business.";return;}
         using(var c=AnyminuteTimesheetRepair.Open())AnyminuteApprovalAssignments.RequireOwner(c,null,business);
-        string target=Accountant?"BusinessAccountant.aspx?BusinessId=":"Add_Business.aspx?BusinessIDEdit=";
+        string target=Accountant?"AccountantAccess.aspx?BusinessId=":"Add_Business.aspx?BusinessIDEdit=";
         Response.Redirect(target+business.ToString(System.Globalization.CultureInfo.InvariantCulture),false);
         Context.ApplicationInstance.CompleteRequest();
     }
