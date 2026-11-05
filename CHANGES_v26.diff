@@ -1,0 +1,1357 @@
+diff --git a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteGeoIp.cs b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteGeoIp.cs
+new file mode 100644
+index 0000000..7a4d037
+--- /dev/null
++++ b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteGeoIp.cs
+@@ -0,0 +1,56 @@
++using System;
++using System.Collections.Generic;
++using System.Configuration;
++using System.IO;
++using System.Net;
++using System.Web;
++using System.Web.Caching;
++using System.Web.Script.Serialization;
++
++// 2026-10-28 v26 (Login Activity History "Location"): best-effort IP -> "City, Region, Country".
++// No paid service and no key: private / loopback addresses are labelled locally; public addresses are looked up only
++// when web.config has <add key="GeoIpLookupUrl" value="..."/> with an {ip} placeholder (any free JSON endpoint returning
++// city / region(_code|Name) / country(Code) fields, e.g. https://ipwho.is/{ip} or http://ip-api.com/json/{ip}).
++// Results are cached for a day; each page has a small time budget so the page never hangs on the lookup service.
++public static class AnyminuteGeoIp
++{
++    public const string NotConfigured = "\u0001";
++    public static bool Configured { get { return (ConfigurationManager.AppSettings["GeoIpLookupUrl"] ?? "").Contains("{ip}"); } }
++    public static string Local(string ip)
++    {
++        IPAddress a; if (String.IsNullOrEmpty(ip) || !IPAddress.TryParse(ip, out a)) return "";
++        if (IPAddress.IsLoopback(a)) return "This server (localhost)";
++        var b = a.GetAddressBytes();
++        if (b.Length == 4 && (b[0] == 10 || (b[0] == 172 && b[1] >= 16 && b[1] <= 31) || (b[0] == 192 && b[1] == 168) || (b[0] == 169 && b[1] == 254))) return "Private network";
++        if (b.Length == 16 && ((b[0] & 0xFE) == 0xFC || (b[0] == 0xFE && (b[1] & 0xC0) == 0x80))) return "Private network";
++        return null;
++    }
++    // Returns a location, "" when it cannot be resolved, or NotConfigured when no lookup URL is set.
++    public static string Locate(string ip, ref int budgetMs)
++    {
++        string local = Local(ip); if (local != null) return local;
++        object hit = HttpRuntime.Cache["am_geo_" + ip]; if (hit is string) return (string)hit;
++        if (!Configured) return NotConfigured;
++        if (budgetMs <= 0) return "";
++        var watch = System.Diagnostics.Stopwatch.StartNew(); string result = "";
++        try
++        {
++            var req = (HttpWebRequest)WebRequest.Create(ConfigurationManager.AppSettings["GeoIpLookupUrl"].Replace("{ip}", Uri.EscapeDataString(ip)));
++            req.Timeout = Math.Min(1500, budgetMs); req.ReadWriteTimeout = req.Timeout; req.UserAgent = "AnyMinute";
++            using (var resp = req.GetResponse()) using (var r = new StreamReader(resp.GetResponseStream()))
++            {
++                var d = new JavaScriptSerializer().Deserialize<Dictionary<string, object>>(r.ReadToEnd());
++                Func<string, string> g = k => d != null && d.ContainsKey(k) && d[k] != null ? Convert.ToString(d[k]).Trim() : "";
++                string city = g("city"), region = g("region_code"), country = g("country");
++                if (region.Length == 0) region = g("region").Length > 0 && g("region").Length <= 3 ? g("region") : (g("regionName").Length > 0 ? g("regionName") : g("region"));
++                if (country.Length == 0) country = g("countryCode").Length > 0 ? g("countryCode") : g("country_code");
++                var parts = new List<string>(); foreach (var p in new[] { city, region, country }) if (p.Length > 0 && !parts.Contains(p)) parts.Add(p);
++                result = String.Join(", ", parts);
++            }
++        }
++        catch (Exception) { result = ""; }
++        budgetMs -= (int)watch.ElapsedMilliseconds;
++        HttpRuntime.Cache.Insert("am_geo_" + ip, result, null, DateTime.UtcNow.AddHours(result.Length > 0 ? 24 : 1), Cache.NoSlidingExpiration);
++        return result;
++    }
++}
+diff --git a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminutePasswordReset.cs b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminutePasswordReset.cs
+new file mode 100644
+index 0000000..2fee209
+--- /dev/null
++++ b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminutePasswordReset.cs
+@@ -0,0 +1,61 @@
++using System;
++using System.Data;
++using System.Data.SqlClient;
++using System.Security.Cryptography;
++using System.Text;
++
++// 2026-10-28 v26 (Send Password Reset deck, strict): one-time reset links that expire after 24 hours.
++// The link is ResetUrl + EmployeeId + "&rt=" + token; only the SHA-256 hash of the token is stored
++// (AnyminutePasswordResetToken, REQUIRED_08). Issuing a new link cancels the user's earlier unused links.
++// ResetPassord.aspx validates the token, skips the temporary-password step, and consumes the token on success.
++public static class AnyminutePasswordReset
++{
++    public const int Hours = 24;
++    public static bool Ready(SqlConnection c) { return AnyminuteEmployeeEditor.HasTable(c, null, "AnyminutePasswordResetToken"); }
++    static string Hash(string token)
++    {
++        using (var sha = SHA256.Create())
++        {
++            var sb = new StringBuilder(); foreach (var b in sha.ComputeHash(Encoding.UTF8.GetBytes(token ?? ""))) sb.Append(b.ToString("x2")); return sb.ToString();
++        }
++    }
++    public static string Issue(SqlConnection c, SqlTransaction tx, int userId, int employeeId, string email, int createdBy)
++    {
++        var bytes = new byte[32]; using (var rng = new RNGCryptoServiceProvider()) rng.GetBytes(bytes);
++        string token = BitConverter.ToString(bytes).Replace("-", "").ToLowerInvariant();
++        AnyminuteTimesheetRepair.Execute(c, tx, "UPDATE AnyminutePasswordResetToken SET UsedAtUTC=SYSUTCDATETIME() WHERE UserId=@u AND UsedAtUTC IS NULL", "@u", userId);
++        AnyminuteTimesheetRepair.Execute(c, tx, "INSERT AnyminutePasswordResetToken(TokenHash,UserId,EmployeeId,Email,ExpiresAtUTC,CreatedBy) VALUES(@h,@u,@e,@m,DATEADD(hour,@x,SYSUTCDATETIME()),@b)",
++            "@h", Hash(token), "@u", userId, "@e", employeeId, "@m", email ?? "", "@x", Hours, "@b", createdBy);
++        return token;
++    }
++    // userId of a live (unused, unexpired) token for this employee id; 0 when invalid.
++    public static int Check(string empid, string token)
++    {
++        int e; if (String.IsNullOrEmpty(token) || token.Length != 64 || !Int32.TryParse(empid, out e)) return 0;
++        try
++        {
++            using (var c = AnyminuteTimesheetRepair.Open())
++            {
++                if (!Ready(c)) return 0;
++                var t = AnyminuteTimesheetRepair.Query(c, null, "SELECT UserId FROM AnyminutePasswordResetToken WHERE TokenHash=@h AND EmployeeId=@e AND UsedAtUTC IS NULL AND ExpiresAtUTC>SYSUTCDATETIME()", "@h", Hash(token), "@e", e);
++                return t.Rows.Count == 1 ? Convert.ToInt32(t.Rows[0][0]) : 0;
++            }
++        }
++        catch (Exception) { return 0; }
++    }
++    public static void Consume(string token, int userId)
++    {
++        try
++        {
++            using (var c = AnyminuteTimesheetRepair.Open())
++            {
++                AnyminuteTimesheetRepair.Execute(c, null, "UPDATE AnyminutePasswordResetToken SET UsedAtUTC=SYSUTCDATETIME() WHERE TokenHash=@h AND UsedAtUTC IS NULL", "@h", Hash(token));
++                if (AnyminuteEmployeeEditor.HasTable(c, null, "AnyminuteSupportAudit"))
++                    AnyminuteTimesheetRepair.Execute(c, null, @"INSERT AnyminuteSupportAudit(Entity,EntityKey,Action,ChangedBy,ChangedByName,Comments,IpAddress,Success)
++                        VALUES('Login',@k,'Password Changed',@u,'Subscriber','New password set from the one-time reset link.',@ip,1)",
++                        "@k", userId.ToString(System.Globalization.CultureInfo.InvariantCulture), "@u", userId, "@ip", System.Web.HttpContext.Current.Request.UserHostAddress ?? "");
++            }
++        }
++        catch (Exception) { }
++    }
++}
+diff --git a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteSessionGuard.cs b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteSessionGuard.cs
+new file mode 100644
+index 0000000..ef913af
+--- /dev/null
++++ b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteSessionGuard.cs
+@@ -0,0 +1,111 @@
++using System;
++using System.Data;
++using System.Data.SqlClient;
++using System.Globalization;
++using System.Web;
++using System.Web.Caching;
++
++// 2026-10-28 v26 (Support Admin deck 4, strict): active sessions + "Active sessions will be revoked immediately".
++// Login.aspx calls SignedIn(); Global.asax calls Check() on every request after session state is loaded.
++// A session is ended when its user has LoginDisabled=1 or SessionsRevokedAtUTC later than the session's sign-in.
++// Same-server revocations are seen on the very next request (HttpRuntime.Cache); the database is re-checked at most
++// once per minute per session (covers other servers / app pool recycles). Needs REQUIRED_08; without it nothing happens.
++public static class AnyminuteSessionGuard
++{
++    const string LoginKey = "am_login_utc", NextKey = "am_sg_next", UserKey = "am_sg_uid";
++    static bool ready; static DateTime checkedAt = DateTime.MinValue; static readonly object gate = new object();
++    public static bool Ready(SqlConnection c)
++    {
++        lock (gate) { if (DateTime.UtcNow - checkedAt < TimeSpan.FromMinutes(10)) return ready; }
++        bool ok = AnyminuteEmployeeEditor.HasTable(c, null, "AnyminuteActiveSession") && AnyminuteEmployeeEditor.HasColumn(c, null, "AnyminuteLoginSecurity", "SessionsRevokedAtUTC");
++        lock (gate) { ready = ok; checkedAt = DateTime.UtcNow; }
++        return ok;
++    }
++    static string Device(HttpRequest req)
++    {
++        string d = ""; try { d = req.Browser.Browser + " " + req.Browser.MajorVersion + " / " + AnyminuteSupportAdmin.Platform(req.UserAgent); } catch (Exception) { }
++        return d.Length > 200 ? d.Substring(0, 200) : d;
++    }
++    public static void SignedIn(string userId)
++    {
++        var h = HttpContext.Current; if (h == null || h.Session == null) return;
++        h.Session[LoginKey] = DateTime.UtcNow; h.Session[NextKey] = DateTime.UtcNow.AddSeconds(60);
++        int u; if (!Int32.TryParse(userId, out u)) return;
++        h.Session[UserKey] = u; // the account that signed in (Support "login as" switches Session["UserId"] but not this)
++        try
++        {
++            using (var c = AnyminuteTimesheetRepair.Open())
++            {
++                if (!Ready(c)) return;
++                AnyminuteTimesheetRepair.Execute(c, null, @"IF EXISTS(SELECT 1 FROM AnyminuteActiveSession WHERE SessionId=@s)
++                    UPDATE AnyminuteActiveSession SET UserId=@u,StartedAtUTC=SYSUTCDATETIME(),LastSeenAtUTC=SYSUTCDATETIME(),IpAddress=@ip,Device=@d,EndedAtUTC=NULL,EndReason=NULL WHERE SessionId=@s
++                    ELSE INSERT AnyminuteActiveSession(SessionId,UserId,IpAddress,Device) VALUES(@s,@u,@ip,@d)",
++                    "@s", h.Session.SessionID, "@u", u, "@ip", h.Request.UserHostAddress ?? "", "@d", Device(h.Request));
++            }
++        }
++        catch (Exception) { }
++    }
++    // Sign out from the masters: mark this session ended (never throws).
++    public static void SignedOut()
++    {
++        var h = HttpContext.Current; if (h == null || h.Session == null) return;
++        try { using (var c = AnyminuteTimesheetRepair.Open()) if (Ready(c)) AnyminuteTimesheetRepair.Execute(c, null, "UPDATE AnyminuteActiveSession SET EndedAtUTC=SYSUTCDATETIME(),EndReason='Signed out' WHERE SessionId=@s AND EndedAtUTC IS NULL", "@s", h.Session.SessionID); }
++        catch (Exception) { }
++    }
++    public static void Check(HttpContext h)
++    {
++        if (h == null || h.Session == null) return;
++        object who = h.Session[UserKey] ?? h.Session["UserId"]; if (who == null) return;
++        int u; if (!Int32.TryParse(Convert.ToString(who), out u)) return;
++        DateTime login = h.Session[LoginKey] is DateTime ? (DateTime)h.Session[LoginKey] : DateTime.MinValue;
++        object rev = HttpRuntime.Cache["am_rev_" + u];
++        bool revoked = rev is DateTime && (DateTime)rev > login;
++        if (!revoked)
++        {
++            DateTime next = h.Session[NextKey] is DateTime ? (DateTime)h.Session[NextKey] : DateTime.MinValue;
++            if (DateTime.UtcNow < next) return;
++            h.Session[NextKey] = DateTime.UtcNow.AddSeconds(60);
++            try
++            {
++                using (var c = AnyminuteTimesheetRepair.Open())
++                {
++                    if (!Ready(c)) return;
++                    var t = AnyminuteTimesheetRepair.Query(c, null, "SELECT LoginDisabled,SessionsRevokedAtUTC FROM AnyminuteLoginSecurity WHERE UserId=@u", "@u", u);
++                    if (t.Rows.Count == 1)
++                        revoked = Convert.ToBoolean(t.Rows[0]["LoginDisabled"]) || (t.Rows[0]["SessionsRevokedAtUTC"] != DBNull.Value && DateTime.SpecifyKind(Convert.ToDateTime(t.Rows[0]["SessionsRevokedAtUTC"]), DateTimeKind.Utc) > login);
++                    if (!revoked)
++                        AnyminuteTimesheetRepair.Execute(c, null, @"IF EXISTS(SELECT 1 FROM AnyminuteActiveSession WHERE SessionId=@s)
++                            UPDATE AnyminuteActiveSession SET LastSeenAtUTC=SYSUTCDATETIME() WHERE SessionId=@s AND EndedAtUTC IS NULL
++                            ELSE INSERT AnyminuteActiveSession(SessionId,UserId,IpAddress,Device) VALUES(@s,@u,@ip,@d)",
++                            "@s", h.Session.SessionID, "@u", u, "@ip", h.Request.UserHostAddress ?? "", "@d", Device(h.Request));
++                }
++            }
++            catch (Exception) { return; }
++        }
++        if (!revoked) return;
++        try { using (var c = AnyminuteTimesheetRepair.Open()) AnyminuteTimesheetRepair.Execute(c, null, "UPDATE AnyminuteActiveSession SET EndedAtUTC=ISNULL(EndedAtUTC,SYSUTCDATETIME()),EndReason=ISNULL(EndReason,'Revoked') WHERE SessionId=@s", "@s", h.Session.SessionID); }
++        catch (Exception) { }
++        h.Session.Clear(); h.Session.Abandon();
++        if (h.Request.Path.EndsWith("/Login.aspx", StringComparison.OrdinalIgnoreCase)) return;
++        h.Response.Redirect(VirtualPathUtility.ToAbsolute("~/Login.aspx") + "?revoked=1", false);
++        h.ApplicationInstance.CompleteRequest();
++    }
++    // Support Admin "Disable Login Access": end every live session of the user (call inside the save transaction).
++    public static int Revoke(SqlConnection c, SqlTransaction tx, int userId, string reason)
++    {
++        if (!Ready(c)) return -1;
++        AnyminuteTimesheetRepair.Execute(c, tx, "UPDATE AnyminuteLoginSecurity SET SessionsRevokedAtUTC=SYSUTCDATETIME() WHERE UserId=@u", "@u", userId);
++        var n = AnyminuteTimesheetRepair.Query(c, tx, @"UPDATE AnyminuteActiveSession SET EndedAtUTC=SYSUTCDATETIME(),EndReason=@r WHERE UserId=@u AND EndedAtUTC IS NULL AND LastSeenAtUTC>DATEADD(minute,-@t,SYSUTCDATETIME()); SELECT @@ROWCOUNT",
++            "@u", userId, "@r", reason.Length > 100 ? reason.Substring(0, 100) : reason, "@t", Timeout());
++        return Convert.ToInt32(n.Rows[0][0]);
++    }
++    // After the transaction commits: same-server sessions see the revocation on their next request.
++    public static void Revoked(int userId) { HttpRuntime.Cache.Insert("am_rev_" + userId, DateTime.UtcNow, null, DateTime.UtcNow.AddHours(12), Cache.NoSlidingExpiration); }
++    public static int Timeout() { var h = HttpContext.Current; return h != null && h.Session != null ? h.Session.Timeout : 20; }
++    // Live sessions = not ended and seen within the session timeout. Returns -1 when REQUIRED_08 is missing.
++    public static DataTable Active(SqlConnection c, int userId)
++    {
++        if (!Ready(c)) return null;
++        return AnyminuteTimesheetRepair.Query(c, null, "SELECT SessionId,StartedAtUTC,LastSeenAtUTC,IpAddress,Device FROM AnyminuteActiveSession WHERE UserId=@u AND EndedAtUTC IS NULL AND LastSeenAtUTC>DATEADD(minute,-@t,SYSUTCDATETIME()) ORDER BY LastSeenAtUTC DESC", "@u", userId, "@t", Timeout());
++    }
++}
+diff --git a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteSupportAdmin.cs b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteSupportAdmin.cs
+index e7de033..86e3d5f 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteSupportAdmin.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteSupportAdmin.cs
+@@ -17,6 +17,13 @@ public static class AnyminuteSupportAdmin
+ {
+     public const string MissingTables = "Database update needed: run DB_REQUIRED/REQUIRED_07_SupportAdmin.sql to save Support Admin changes and activity history.";
+     static HttpContext Ctx { get { return HttpContext.Current; } }
++    // v26: the exact SupportAdmin role (not SuperAdmin) gets the trimmed navigation.
++    public static bool IsSupportAdminOnly()
++    {
++        var h = Ctx; if (h == null || h.Session == null) return false;
++        string t = Convert.ToString(h.Session["UserType"]).Trim();
++        return t.Equals("SupportAdmin", StringComparison.OrdinalIgnoreCase) || t.Equals("Support Admin", StringComparison.OrdinalIgnoreCase);
++    }
+     public static bool IsSupport()
+     {
+         var h = Ctx; if (h == null || h.Session == null) return false;
+@@ -130,7 +137,7 @@ public static class AnyminuteSupportAdmin
+         }
+         catch (Exception) { }
+     }
+-    static string Platform(string ua)
++    public static string Platform(string ua)
+     {
+         ua = ua ?? "";
+         if (ua.Contains("Windows NT 10")) return "Windows 10/11"; if (ua.Contains("Windows")) return "Windows";
+@@ -226,4 +233,59 @@ public static class AnyminuteSupportAdmin
+         }
+         return html.ToString();
+     }
++
++    // ---- v26: Address Verify against the existing address lookup (same sources as AnyminuteAddressLookup / SearchAddress.aspx) ----
++    public static string CompactPostal(string p) { return (p ?? "").ToUpperInvariant().Replace(" ", "").Replace("-", "").Trim(); }
++    static string Norm(string v) { return Regex.Replace((v ?? "").ToUpperInvariant(), @"[^A-Z0-9]", ""); }
++    // Known addresses for a postal code: verified AddressMaster rows (city/province ids resolved to names) and employee addresses.
++    public static DataTable KnownAddresses(SqlConnection c, string postal, int excludeId)
++    {
++        string p = CompactPostal(postal);
++        return Q(c, @"SELECT DISTINCT TOP 12 Street, City, Province, PostalCode, Source FROM (
++            SELECT UPPER(LTRIM(RTRIM(a.Street_Name))) Street, UPPER(LTRIM(RTRIM(COALESCE(ci.CityName,a.City)))) City, UPPER(LTRIM(RTRIM(COALESCE(pr.ProvinceName,a.Province)))) Province, UPPER(LTRIM(RTRIM(a.PostalCode))) PostalCode, 'Verified address' Source
++              FROM AddressMaster a LEFT JOIN CityMaster ci ON CAST(ci.CityId AS nvarchar(50))=CAST(a.City AS nvarchar(50)) LEFT JOIN ProvinceMaster pr ON CAST(pr.ProvinceId AS nvarchar(50))=CAST(a.Province AS nvarchar(50))
++             WHERE a.Verifed=1 AND a.AddressMasterId<>@id AND REPLACE(REPLACE(UPPER(a.PostalCode),' ',''),'-','')=@p
++            UNION SELECT UPPER(LTRIM(RTRIM(e.StreetName))), UPPER(LTRIM(RTRIM(e.City))), UPPER(LTRIM(RTRIM(e.Province))), UPPER(LTRIM(RTRIM(e.Postalcode))), 'Employee address'
++              FROM EmpAddress e WHERE REPLACE(REPLACE(UPPER(e.Postalcode),' ',''),'-','')=@p) x
++            WHERE ISNULL(Street,'')<>'' AND ISNULL(City,'')<>'' AND ISNULL(Province,'')<>'' ORDER BY Source DESC, Street", "@p", p, "@id", excludeId);
++    }
++    // level: "error" (format), "match" (same address already known), "partial" (postal known, address differs), "new" (valid format, postal not known yet).
++    public static string LookupVerify(SqlConnection c, int id, string street, string city, string province, string country, string postal, out string level, out DataTable known)
++    {
++        known = null;
++        string err = VerifyAddress(street ?? "", city ?? "", province ?? "", country ?? "", postal ?? "");
++        if (err != null) { level = "error"; return err; }
++        known = KnownAddresses(c, postal, id);
++        foreach (DataRow r in known.Rows)
++            if (Norm(S(r["Street"])) == Norm(street) && Norm(S(r["City"])) == Norm(city) && (Norm(S(r["Province"])) == Norm(province) || Norm(S(r["Province"])).StartsWith(Norm(province)) || Norm(province).StartsWith(Norm(S(r["Province"])))))
++            { level = "match"; return "Matches a known " + S(r["Source"]).ToLowerInvariant() + " for this postal code."; }
++        if (known.Rows.Count > 0) { level = "partial"; return "Postal code is known, but the street / city differ from " + known.Rows.Count + " known address(es). Pick a suggestion or approve as entered."; }
++        level = "new"; return "Format is valid. No existing address uses this postal code yet (new address).";
++    }
++
++    // ---- v26: plan catalogue -> PlanHistory limits ----
++    // 'BASIC PLAN' (PlanHistory) == 'Basic' / 'Basic Plan' (catalogue).
++    public static string PlanKey(string name)
++    {
++        string k = Regex.Replace((name ?? "").Trim().ToUpperInvariant(), @"\s+", " ");
++        return k.EndsWith(" PLAN") ? k.Substring(0, k.Length - 5) : k;
++    }
++    public const string PlanKeySql = "CASE WHEN UPPER(LTRIM(RTRIM({0}))) LIKE '% PLAN' THEN LEFT(UPPER(LTRIM(RTRIM({0}))),LEN(LTRIM(RTRIM({0})))-5) ELSE UPPER(LTRIM(RTRIM({0}))) END";
++    // Catalogue limits for a plan name; falls back to the defaults when the catalogue or the plan is missing or the limit is blank.
++    public static void CatalogueLimits(string planName, int defaultEmployees, int defaultBusinesses, out int employees, out int businesses)
++    {
++        employees = defaultEmployees; businesses = defaultBusinesses;
++        try
++        {
++            using (var c = Open())
++            {
++                if (!Has(c, "AnyminuteSubscriptionPlan")) return;
++                var t = Q(c, "SELECT TOP 1 MaxEmployees,MaxBusinesses FROM AnyminuteSubscriptionPlan WHERE IsActive=1 AND " + String.Format(PlanKeySql, "PlanName") + "=@k ORDER BY PlanID", "@k", PlanKey(planName));
++                if (t.Rows.Count == 0) return;
++                if (t.Rows[0]["MaxEmployees"] != DBNull.Value) employees = Convert.ToInt32(t.Rows[0]["MaxEmployees"]);
++                if (t.Rows[0]["MaxBusinesses"] != DBNull.Value) businesses = Convert.ToInt32(t.Rows[0]["MaxBusinesses"]);
++            }
++        }
++        catch (Exception) { }
++    }
+ }
+diff --git a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteUiNavigation.cs b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteUiNavigation.cs
+index 96e1dbc..afd6efd 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteUiNavigation.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteUiNavigation.cs
+@@ -248,11 +248,27 @@ public static class AnyminuteUiNavigation
+                     .Append(HttpUtility.HtmlEncode(link.Key)).Append("</span></a></li>");
+             return html.ToString();
+         }
++        // 2026-10-28 v26 (Support Admin deck, strict): the exact SupportAdmin role no longer sees legacy pages the deck pages
++        // replace; the remaining legacy tools are grouped under "More tools". SuperAdmin and all other roles are unchanged.
++        bool supportOnly = support && AnyminuteSupportAdmin.IsSupportAdminOnly();
++        Func<MenuViewModel, bool> superseded = m =>
++        {
++            string page = System.IO.Path.GetFileName((m.Href ?? "").Split('?')[0]);
++            return supportOnly && SupportSuperseded.Any(x => x.Equals(page, StringComparison.OrdinalIgnoreCase));
++        };
++        bool labelled = false;
+         foreach (var item in UiMenuGroups(menu))
+         {
+             var childrenMenu = item.SubMenu.Where(child => CanonicalRoute(UiMenuHref(child)) != CanonicalRoute(UiMenuHref(item))).ToList();
+             if (item.Name == "Dashboard") childrenMenu.Clear();
+             if (support && item.Name == "Dashboard") continue;
++            if (supportOnly)
++            {
++                bool hadChildren = childrenMenu.Count > 0;
++                childrenMenu = childrenMenu.Where(child => !superseded(child)).ToList();
++                if ((hadChildren && childrenMenu.Count == 0 && (item.Href ?? "#") == "#") || superseded(item)) continue;
++                if (!labelled) { labelled = true; html.Append("<li class='am-sa-nav-label' role='presentation' style='padding:14px 16px 4px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;opacity:.65'>More tools</li>"); }
++            }
+             bool children = childrenMenu.Count > 0;
+             html.Append("<li" + (children ? " class='am-nav-parent'" : "") + "><a href='")
+                 .Append(HttpUtility.HtmlAttributeEncode(UiMenuHref(item))).Append("'")
+@@ -270,6 +286,8 @@ public static class AnyminuteUiNavigation
+         return html.ToString();
+     }
+ 
++    // Legacy pages replaced for Support Admin by SupportTickets / SupportAddresses / SupportSubscribers / the deck Dashboard link.
++    static readonly string[] SupportSuperseded = { "Ticket_List.aspx", "Raise_Ticket_By_User.aspx", "SearchAddress.aspx", "PostalCode.aspx", "SuperAdmin.aspx", "LoginAccess.aspx" };
+     public static string PermittedHref(IEnumerable<MenuViewModel> permitted, params string[] pages)
+     {
+         var leaves=new List<MenuViewModel>();
+@@ -297,11 +315,14 @@ public static class AnyminuteUiNavigation
+         html.Append("<details class='am-header-help'><summary aria-label='Help and support'><span data-am-icon='help' aria-hidden='true'></span></summary><div class='am-account-popover'><strong>Need help using AnyMinute?</strong>");
+         HeaderLink(html,VirtualPathUtility.ToAbsolute("~/Help.aspx"),"Help Center","help");
+         string tickets=PermittedHref(items,"Ticket_List.aspx","Raise_Ticket_By_User.aspx");
++        // v26: the SupportAdmin role uses the deck ticket console instead of the legacy ticket pages.
++        bool supportOnly=AnyminuteSupportAdmin.IsSupportAdminOnly();
++        if(supportOnly&&tickets!=null)tickets=VirtualPathUtility.ToAbsolute("~/SupportTickets.aspx");
+ 
+         if(tickets!=null)HeaderLink(html,tickets,"Tickets","ticket");
+         HeaderLink(html,VirtualPathUtility.ToAbsolute("~/HelpChat.aspx"),"Chat","message");
+         string suggestion=PermittedHref(items,"Raise_Ticket_By_User.aspx");
+-        if(suggestion!=null)HeaderLink(html,suggestion,"Share suggestion","message");
++        if(suggestion!=null&&!supportOnly)HeaderLink(html,suggestion,"Share suggestion","message");
+         html.Append("</div></details>");return html.ToString();
+     }
+     // 2026-10-24 v10: one Plan Upgrade link for the sidebar Account group and the header profile menu.
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Global.asax b/AMV3Reseller_27Aug2022_Subscription/Global.asax
+index 7ebd37a..ded0b61 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Global.asax
++++ b/AMV3Reseller_27Aug2022_Subscription/Global.asax
+@@ -34,6 +34,12 @@
+     //    }
+     //}
+ 
++    // 2026-10-28 v26: end sessions revoked by Support Admin "Disable Login Access" (no-op until REQUIRED_08 is run).
++    void Application_PostAcquireRequestState(object sender, EventArgs e)
++    {
++        AnyminuteSessionGuard.Check(HttpContext.Current);
++    }
++
+     void Session_Start(object sender, EventArgs e)
+     {
+         // Code that runs when a new session is started  
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Login.aspx.cs b/AMV3Reseller_27Aug2022_Subscription/Login.aspx.cs
+index 109a416..5ff4d87 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Login.aspx.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/Login.aspx.cs
+@@ -16,7 +16,9 @@ public partial class Login : System.Web.UI.Page
+     {
+         if (!IsPostBack)
+         {
+-
++            // v26: sent here by AnyminuteSessionGuard after Support disabled login access / revoked the session.
++            if (Request.QueryString["revoked"] == "1")
++                this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('Signed out', 'Your session was ended by an administrator. Please sign in again or contact your administrator.', 'warning');", true);
+         }
+     }
+ 
+@@ -53,6 +55,7 @@ public partial class Login : System.Web.UI.Page
+                 Session["email"] = dt.Rows[0]["Email"].ToString();
+                 AnyminuteEmployeeEditor.RecordLogin(dt.Rows[0]["UserId"].ToString()); // v7 last login, never throws
+                 AnyminuteSupportAdmin.LoginEvent(txtemail.Text, dt.Rows[0]["UserId"].ToString(), true, "Signed in to AnyMinute."); // v25 Login Activity History, never throws
++                AnyminuteSessionGuard.SignedIn(dt.Rows[0]["UserId"].ToString()); // v26 active session (Disable Login Access revokes it), never throws
+                 Session["MotherOrgid"] = dt.Rows[0]["MotherOrgid"].ToString();
+                 DataTable dataTable = comm.GetAllDataFromTable("AddEmployee with (Nolock)", "MotherOrgid", "EmployeeID=" + strEmployeeID + "", "");
+                 if (dataTable.Rows.Count > 0)
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Main.master b/AMV3Reseller_27Aug2022_Subscription/Main.master
+index cf6e2a5..5fa7247 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Main.master
++++ b/AMV3Reseller_27Aug2022_Subscription/Main.master
+@@ -5,7 +5,7 @@
+ <!DOCTYPE html>
+ 
+ <html>
+-<head runat="server"><meta name="anyminute-build" content="v25-20261028" />
++<head runat="server"><meta name="anyminute-build" content="v26-20261028" />
+     <title>AnyMinute | Record From Anywhere</title>
+     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Main.master.cs b/AMV3Reseller_27Aug2022_Subscription/Main.master.cs
+index 4adc730..39d50ee 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Main.master.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/Main.master.cs
+@@ -328,6 +328,7 @@ public partial class MasterPage : System.Web.UI.MasterPage
+ 
+     protected void lnkLogout_Click(object sender, EventArgs e)
+     {
++        AnyminuteSessionGuard.SignedOut(); // v26, never throws
+         System.Web.Security.FormsAuthentication.SignOut();
+         Session.Clear();
+         Session.Abandon();
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Modern.master b/AMV3Reseller_27Aug2022_Subscription/Modern.master
+index ada33ab..4ee28fd 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Modern.master
++++ b/AMV3Reseller_27Aug2022_Subscription/Modern.master
+@@ -1,6 +1,6 @@
+ <%@ Master Language="C#" AutoEventWireup="true" CodeFile="Modern.master.cs" Inherits="AnyminuteModernMaster" %>
+ <!DOCTYPE html>
+-<html lang="en"><head runat="server"><meta charset="utf-8" /><meta name="anyminute-build" content="v25-20261028" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>AnyMinute</title><link href="css/bootstrap.min.css" rel="stylesheet" /><script src="Assets/assets/js/core/jquery.3.2.1.min.js"></script><script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script><script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" /><script src="Assets/assets/js/plugin/datatables/datatables.min.js"></script><script src="Assets/assets/js/SweetAlert.js"></script><link href="css/AnyminuteModern.css" rel="stylesheet" /><asp:ContentPlaceHolder ID="head" runat="server" /><link href="css/AnyminuteUI2026.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUIUnified.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUiBugFixes.css?v=20261026v17" rel="stylesheet" /><link href="css/AnyminuteNavDrawer.css?v=20261024v10" rel="stylesheet" /></head>
++<html lang="en"><head runat="server"><meta charset="utf-8" /><meta name="anyminute-build" content="v26-20261028" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>AnyMinute</title><link href="css/bootstrap.min.css" rel="stylesheet" /><script src="Assets/assets/js/core/jquery.3.2.1.min.js"></script><script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script><script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" /><script src="Assets/assets/js/plugin/datatables/datatables.min.js"></script><script src="Assets/assets/js/SweetAlert.js"></script><link href="css/AnyminuteModern.css" rel="stylesheet" /><asp:ContentPlaceHolder ID="head" runat="server" /><link href="css/AnyminuteUI2026.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUIUnified.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUiBugFixes.css?v=20261026v17" rel="stylesheet" /><link href="css/AnyminuteNavDrawer.css?v=20261024v10" rel="stylesheet" /></head>
+ <body class="am-modern"><form id="frmMaster" runat="server"><asp:ScriptManager ID="ScriptManager1" runat="server" />
+ <header class="am-topbar"><button type="button" class="am-icon-button" data-toggle-sidebar aria-controls="am-main-navigation" aria-expanded="true" aria-label="Toggle navigation">&#9776;</button><a href="Dashboard.aspx"><img src="Assets/assets/img/logo.jpg" alt="AnyMinute" class="am-logo" /></a><span>Welcome! <asp:Literal ID="Welcome" runat="server" /><asp:Literal ID="WelcomeContext" runat="server" /></span><asp:Literal ID="HeaderHelp" runat="server" /><details class="am-account-menu"><summary aria-label="Account menu"><img src="Assets/assets/img/profile2.jpg" alt="" class="am-account-avatar" /><span class="am-account-chevron" aria-hidden="true"></span><span class="sr-only">Account</span></summary><div class="am-account-popover"><a href="MyProfile.aspx"><span data-am-icon="profile" aria-hidden="true"></span>My profile</a><asp:LinkButton ID="SignOut" runat="server" CausesValidation="false" OnClick="SignOut_Click"><span data-am-icon="signout" aria-hidden="true"></span>Sign out</asp:LinkButton>
+    <a href="Change%20Password.aspx"><span data-am-icon="settings" aria-hidden="true"></span>Change password</a><asp:Literal ID="AccountUpgrade" runat="server" /></div></details></header>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Modern.master.cs b/AMV3Reseller_27Aug2022_Subscription/Modern.master.cs
+index 06b4543..4ddd932 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Modern.master.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/Modern.master.cs
+@@ -28,7 +28,7 @@ public partial class AnyminuteModernMaster : System.Web.UI.MasterPage
+  protected void SignOut_Click(object sender,EventArgs e)
+  {
+   signingOut=true;
+-  System.Web.Security.FormsAuthentication.SignOut();Session.Clear();Session.Abandon();
++  AnyminuteSessionGuard.SignedOut();System.Web.Security.FormsAuthentication.SignOut();Session.Clear();Session.Abandon();
+   Response.Redirect("Login.aspx",false);Context.ApplicationInstance.CompleteRequest();
+  }
+  protected void Page_PreRender(object sender,EventArgs e)
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Register_As_A_Bo.aspx.cs b/AMV3Reseller_27Aug2022_Subscription/Register_As_A_Bo.aspx.cs
+index 6d8ab83..483ee12 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Register_As_A_Bo.aspx.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/Register_As_A_Bo.aspx.cs
+@@ -277,10 +277,15 @@ public partial class Register_As_A_Bo : System.Web.UI.Page
+                     Uac.Sp_InsertMapping(Uae);
+ 
+                     if (ViewState["Enterprise_Plan"].ToString() == "")
++                    {
++                        // 2026-10-28 v26: Basic limits come from the Support Admin plan catalogue (falls back to the old 5 users / 1 business).
++                        int basicUsers, basicBusinesses;
++                        AnyminuteSupportAdmin.CatalogueLimits("BASIC PLAN", 5, 1, out basicUsers, out basicBusinesses);
+                         comm.ExecuteQuery("insert into PlanHistory(PlanId,PriceId,PlanName,StartDate,EndDate,AmountPaid,TransId,EmpId," +
+                         "EmailId,No_Of_Users,Business,IsActive)" +
+                         "values('prod_basic','prod_basic_priceid','BASIC PLAN','" + DateTime.Today + "','" + DateTime.Today.AddDays(365) + "'," +
+-                        "'0','BASIC','" + int.Parse(hfdEmpID.Value) + "','" + txtMainEmail.Text.Trim() + "','5','1','1')");
++                        "'0','BASIC','" + int.Parse(hfdEmpID.Value) + "','" + txtMainEmail.Text.Trim() + "','" + basicUsers + "','" + basicBusinesses + "','1')");
++                    }
+ 
+                     GetList();
+                     if (txtMainEmail.Text != string.Empty)
+diff --git a/AMV3Reseller_27Aug2022_Subscription/ResetPassord.aspx.cs b/AMV3Reseller_27Aug2022_Subscription/ResetPassord.aspx.cs
+index a043d46..91e24ed 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/ResetPassord.aspx.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/ResetPassord.aspx.cs
+@@ -10,10 +10,21 @@ public partial class ResetPassord : System.Web.UI.Page
+ {
+     CommanClass comm = new CommanClass();
+     UserAccController UActrl = new UserAccController();
++    // 2026-10-28 v26: links sent by Support Admin "Send Password Reset" carry &rt=<one-time token> (24 hours, AnyminutePasswordReset).
++    // A valid token skips the temporary-password step; an expired / used token shows an error. Links without rt keep the old flow.
++    string Token { get { return Request.QueryString["rt"]; } }
++    bool HasToken { get { return !String.IsNullOrEmpty(Token); } }
++    const string ExpiredJs = "swal('Link expired', 'This password reset link has expired or was already used. Please ask AnyMinute support for a new link.', 'error');";
+     protected void Page_Load(object sender, EventArgs e)
+     {
+         if (!IsPostBack)
+         {
++            if (Request.QueryString["empid"] != null && HasToken)
++            {
++                OldPasswordPanel.Visible = false;
++                LoginPanel.Visible = Request.QueryString["LoginType"] == null && AnyminutePasswordReset.Check(Request.QueryString["empid"], Token) > 0;
++                if (!LoginPanel.Visible) { this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", ExpiredJs, true); return; }
++            }
+             if (Request.QueryString["empid"] != null)
+             {
+                 if (Request.QueryString["LoginType"] == null)
+@@ -69,7 +80,14 @@ public partial class ResetPassord : System.Web.UI.Page
+             LoginType = Request.QueryString["LoginType"].ToString();
+         }
+ 
++        int tokenUser = 0;
++        if (HasToken)
++        {
++            tokenUser = LoginType == "EMP" ? AnyminutePasswordReset.Check(Request.QueryString["empid"], Token) : 0;
++            if (tokenUser <= 0) { LoginPanel.Visible = false; OldPasswordPanel.Visible = false; this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", ExpiredJs, true); return; }
++        }
+         UActrl.Sp_ReSetPassword(int.Parse(Request.QueryString["empid"].ToString()), txtConfirmPass.Text, LoginType);
++        if (tokenUser > 0) AnyminutePasswordReset.Consume(Token, tokenUser); // one-time use + activity log
+         //Response.Redirect("Login.aspx", false);   //Commented after hemal code
+         ScriptManager.RegisterStartupScript(this.Page, this.GetType(), "SweetAlert", "swal('Success!', 'Password Changed Successfully', 'success').then((value) => {window.location = 'Login.aspx';});", true);
+     }
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Scripts/AnyminuteSupport.js b/AMV3Reseller_27Aug2022_Subscription/Scripts/AnyminuteSupport.js
+index d5dd1f8..c41eb49 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Scripts/AnyminuteSupport.js
++++ b/AMV3Reseller_27Aug2022_Subscription/Scripts/AnyminuteSupport.js
+@@ -1,4 +1,5 @@
+-/* 2026-10-28 v25 Support Admin console (Shamsu decks 1-4): filters, row menus, dialogs, counters and the
++/* 2026-10-28 v26: Verify Address also queries the existing address lookup (suggestions).
++   2026-10-28 v25 Support Admin console (Shamsu decks 1-4): filters, row menus, dialogs, counters and the
+    client-side Verify Address check (the server re-verifies on Approve & Add to Database). */
+ (function () {
+   'use strict';
+@@ -61,12 +62,38 @@
+       var approve = box.querySelector('[data-sa-approve]'), out = box.querySelector('[data-sa-verify-result]'), btn = box.querySelector('[data-sa-verify]');
+       var reset = function () { if (approve) approve.disabled = true; if (out) { out.textContent = ''; out.className = 'sa-verify-result'; } };
+       $all('input,select', box).forEach(function (el) { el.addEventListener('input', reset); el.addEventListener('change', reset); });
+-      if (btn) btn.addEventListener('click', function () {
++      var field = function (n) { return box.querySelector('[name="' + n + '"]'); };
++      var show = function (text, ok) { out.textContent = text; out.className = 'sa-verify-result ' + (ok ? 'ok' : 'bad'); };
++      // v26: format check, then the existing address lookup (SupportAddresses.aspx?verify=1) with suggestions.
++      var run = function () {
+         var problem = verify(box);
+-        out.textContent = problem ? problem : 'Address verified. Review the notes, then Approve & Add to Database.';
+-        out.className = 'sa-verify-result ' + (problem ? 'bad' : 'ok');
+-        if (approve) approve.disabled = !!problem;
+-      });
++        if (problem) { show(problem, false); if (approve) approve.disabled = true; return; }
++        show('Checking the address lookup...', true);
++        var q = ['verify=1'];
++        [['id', 'sa_id'], ['street', 'sa_street'], ['city', 'sa_city'], ['prov', 'sa_prov'], ['country', 'sa_country'], ['postal', 'sa_postal']].forEach(function (p) {
++          var el = field(p[1]); q.push(p[0] + '=' + encodeURIComponent(el ? el.value.trim() : ''));
++        });
++        var xhr = new XMLHttpRequest();
++        xhr.open('GET', 'SupportAddresses.aspx?' + q.join('&'));
++        xhr.onload = function () {
++          var r = null; try { r = JSON.parse(xhr.responseText); } catch (err) { r = null; }
++          if (!r) { show('Format is valid. The address lookup could not be reached; the server checks again on Approve.', true); if (approve) approve.disabled = false; return; }
++          show(r.message, r.level !== 'error');
++          if (approve) approve.disabled = r.level === 'error';
++          (r.suggestions || []).forEach(function (sg) {
++            var b = document.createElement('button');
++            b.type = 'button'; b.className = 'sa-btn sa-btn-sm sa-btn-outline sa-suggest';
++            b.textContent = 'Use: ' + sg.street + ', ' + sg.city + ', ' + sg.province + ' ' + sg.postal + ' (' + sg.source + ')';
++            b.addEventListener('click', function () {
++              field('sa_street').value = sg.street; field('sa_city').value = sg.city; field('sa_prov').value = sg.province; field('sa_postal').value = sg.postal; run();
++            });
++            out.appendChild(document.createElement('br')); out.appendChild(b);
++          });
++        };
++        xhr.onerror = function () { show('Format is valid. The address lookup could not be reached; the server checks again on Approve.', true); if (approve) approve.disabled = false; };
++        xhr.send();
++      };
++      if (btn) btn.addEventListener('click', run);
+       if (window.location.hash === '#sa-reject') { var n = box.querySelector('[name="sa_notes"]'); if (n) n.focus(); }
+     });
+   });
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx b/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx
+index 738df75..f201d2f 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="SupportAddresses.aspx.cs" Inherits="AnyminuteSupportAddressesPage" Title="Address Verification" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261028v25" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261028v25" defer="defer"></script></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261028v26" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261028v26" defer="defer"></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section class="sa-page">
+  <header class="sa-head"><div><h1>Address Verification</h1><p>Review, correct and verify manually entered addresses.</p></div>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx.cs b/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx.cs
+index e223690..b49eb58 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx.cs
+@@ -1,5 +1,7 @@
+ using System;
++using System.Collections.Generic;
+ using System.Data;
++using System.Data.SqlClient;
+ using System.Globalization;
+ using System.Linq;
+ using System.Text;
+@@ -10,12 +12,17 @@ using SA = AnyminuteSupportAdmin;
+ // lookup table (Verifed=1 is the verified address database). Edit & Verify keeps the original submitted address in
+ // AnyminuteAddressReview (REQUIRED_07) and records corrected address, admin, date/time and reason in AnyminuteSupportAudit.
+ // Verify Address (format/province check) is separate from Approve & Add to Database, which re-verifies on the server.
++// 2026-10-28 v26 strict pass: Verify Address now also checks the existing address lookup (verified AddressMaster rows +
++// employee addresses for the same postal code, as SearchAddress / AnyminuteAddressLookup use) and offers suggestions;
++// city / province ids are shown as names and kept as ids on approve; Submitted By comes from the review row or the
++// matching employee address, Submitted Date from the review row (REQUIRED_08 trigger records it for new addresses).
+ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
+ {
+     const int PageSize = 8;
+     protected void Page_Init(object sender, EventArgs e) { SA.Require(); }
+     protected void Page_Load(object sender, EventArgs e)
+     {
++        if (SA.Get("verify") == "1") { VerifyJson(); return; }
+         if (IsPostBack && SA.Form("sa_op").Length > 0) { Act(); return; }
+         string tab = SA.Get("tab"); if (tab != "verified" && tab != "rejected") tab = "pending";
+         string q = SA.Get("q"), country = SA.Get("country"), prov = SA.Get("prov"), date = SA.Get("date");
+@@ -29,7 +36,7 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
+             string rj = ready ? " LEFT JOIN AnyminuteAddressReview r ON r.AddressMasterId=a.AddressMasterId" : "";
+             string status = ready ? "CASE WHEN a.Verifed=1 THEN 'Verified' WHEN r.Status='Rejected' THEN 'Rejected' ELSE 'Pending' END" : "CASE WHEN a.Verifed=1 THEN 'Verified' ELSE 'Pending' END";
+             string cols = ready ? ",r.SubmittedBy,r.SubmittedAtUTC,r.Country,r.ReviewedAtUTC,r.ReviewedByName,r.Notes" : ",CAST(NULL AS nvarchar(150)) SubmittedBy,CAST(NULL AS datetime2) SubmittedAtUTC,CAST(NULL AS nvarchar(60)) Country,CAST(NULL AS datetime2) ReviewedAtUTC,CAST(NULL AS nvarchar(150)) ReviewedByName,CAST(NULL AS nvarchar(500)) Notes";
+-            var all = SA.Q(c, "SELECT a.AddressMasterId,a.Street_Name,a.City,a.Province,a.PostalCode," + status + " St" + cols + " FROM AddressMaster a" + rj);
++            var all = SA.Q(c, "SELECT a.AddressMasterId,a.Street_Name," + Names + ",a.PostalCode," + status + " St" + cols + " FROM AddressMaster a" + NameJoins + rj);
+             Func<string, int> count = s => all.Rows.Cast<DataRow>().Count(r => SA.S(r["St"]) == s);
+             string wanted = tab == "verified" ? "Verified" : tab == "rejected" ? "Rejected" : "Pending";
+             var rows = all.Rows.Cast<DataRow>().Where(r => SA.S(r["St"]) == wanted).Where(r =>
+@@ -62,9 +69,10 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
+             foreach (var r in rows.Skip((page - 1) * PageSize).Take(PageSize))
+             {
+                 int rid = Convert.ToInt32(r["AddressMasterId"]); string ctry = SA.S(r["Country"]); if (ctry.Length == 0) ctry = SA.GuessCountry(SA.S(r["PostalCode"]));
++                string who = Submitter(c, r);
+                 sb.Append("<tr").Append(rid == id ? " class='sa-selected'" : "").Append("><td><input type='checkbox' aria-label='Select' /></td><td>").Append(SA.H(r["Street_Name"])).Append("</td><td>").Append(SA.H(r["City"]))
+                   .Append("</td><td>").Append(SA.H(r["Province"])).Append("</td><td>").Append(SA.H(ctry)).Append("</td><td>").Append(SA.H(r["PostalCode"])).Append("</td><td>")
+-                  .Append(SA.S(r["SubmittedBy"]).Length > 0 ? SA.H(r["SubmittedBy"]) : "<span class='sa-muted'>Manual entry</span>").Append("</td><td>").Append(SA.Day(r["SubmittedAtUTC"])).Append("</td><td class='sa-actions'>")
++                  .Append(who != null ? SA.H(who) : "<span class='sa-muted' title='No employee or subscriber address uses this address'>Not linked</span>").Append("</td><td>").Append(r["SubmittedAtUTC"] != DBNull.Value ? SA.Day(r["SubmittedAtUTC"]) : "<span class='sa-muted' title='Added before submission dates were recorded'>&mdash;</span>").Append("</td><td class='sa-actions'>")
+                   .Append("<a class='sa-btn sa-btn-sm sa-btn-outline' href='SupportAddresses.aspx?").Append(SA.A(baseQ)).Append("&amp;page=").Append(page).Append("&amp;id=").Append(rid).Append("'>").Append(tab == "pending" ? "Edit" : "View").Append("</a>");
+                 if (tab == "pending") sb.Append(" <a class='sa-btn sa-btn-sm sa-btn-danger' href='SupportAddresses.aspx?").Append(SA.A(baseQ)).Append("&amp;page=").Append(page).Append("&amp;id=").Append(rid).Append("#sa-reject'>Reject</a>");
+                 sb.Append("</td></tr>");
+@@ -76,21 +84,61 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
+             Panel.Text = pick == null ? "" : EditPanel(c, pick, ready, baseQ + "&page=" + page);
+         }
+     }
+-    string EditPanel(System.Data.SqlClient.SqlConnection c, DataRow r, bool ready, string back)
++    // City / Province hold CityMaster / ProvinceMaster ids in most rows (and names in a few): show names, keep raw values.
++    const string Names = "COALESCE(ci.CityName,a.City) City,COALESCE(pr.ProvinceName,a.Province) Province,a.City CityRaw,a.Province ProvRaw";
++    const string NameJoins = " LEFT JOIN CityMaster ci ON CAST(ci.CityId AS nvarchar(50))=CAST(a.City AS nvarchar(50)) LEFT JOIN ProvinceMaster pr ON CAST(pr.ProvinceId AS nvarchar(50))=CAST(a.Province AS nvarchar(50))";
++    // Recorded submitter, else the subscriber / employee whose own address is this address (same postal code and street).
++    static string Submitter(SqlConnection c, DataRow r)
++    {
++        if (SA.S(r["SubmittedBy"]).Length > 0) return SA.S(r["SubmittedBy"]);
++        try
++        {
++            var t = SA.Q(c, @"SELECT TOP 1 LTRIM(RTRIM(ISNULL(ae.FirstName,'')+' '+ISNULL(ae.LastName,''))) Name,ae.UserType FROM EmpAddress e JOIN AddEmployee ae ON ae.ADDRESSID=e.EmpAddressId
++                WHERE REPLACE(REPLACE(UPPER(e.Postalcode),' ',''),'-','')=@p AND UPPER(LTRIM(RTRIM(e.StreetName)))=UPPER(LTRIM(RTRIM(@s))) ORDER BY CASE WHEN ae.UserType=1 THEN 0 ELSE 1 END,ae.EmployeeID",
++                "@p", SA.CompactPostal(SA.S(r["PostalCode"])), "@s", SA.S(r["Street_Name"]));
++            if (t.Rows.Count == 1 && SA.S(t.Rows[0]["Name"]).Length > 0) return SA.S(t.Rows[0]["Name"]) + (SA.S(t.Rows[0]["UserType"]) == "1" ? " (Subscriber)" : " (Employee)");
++        }
++        catch (SqlException) { }
++        return null;
++    }
++    // GET SupportAddresses.aspx?verify=1&id=&street=&city=&prov=&country=&postal= -> {level,message,suggestions[]} for the Verify Address button.
++    void VerifyJson()
++    {
++        int id; Int32.TryParse(SA.Get("id"), out id);
++        string level, message; DataTable known;
++        using (var c = SA.Open()) message = SA.LookupVerify(c, id, SA.Get("street"), SA.Get("city"), SA.Get("prov"), SA.Get("country"), SA.Get("postal"), out level, out known);
++        var sugg = new List<Dictionary<string, string>>();
++        if (known != null) foreach (DataRow k in known.Rows) sugg.Add(new Dictionary<string, string> { { "street", SA.S(k["Street"]) }, { "city", SA.S(k["City"]) }, { "province", SA.S(k["Province"]) }, { "postal", SA.S(k["PostalCode"]) }, { "source", SA.S(k["Source"]) } });
++        Response.Clear(); Response.ContentType = "application/json"; Response.Cache.SetCacheability(HttpCacheability.NoCache);
++        Response.Write(new System.Web.Script.Serialization.JavaScriptSerializer().Serialize(new Dictionary<string, object> { { "level", level }, { "message", message }, { "suggestions", level == "match" ? new List<Dictionary<string, string>>() : sugg } }));
++        Response.Flush(); Response.SuppressContent = true; Context.ApplicationInstance.CompleteRequest();
++    }
++    // Keep CityMaster / ProvinceMaster ids when the row used ids (as AnyminuteAddressLookup joins on them); text rows stay text.
++    static string MasterValue(SqlConnection c, SqlTransaction tx, string raw, string table, string nameCol, string idCol, string name)
++    {
++        int n; if (!Int32.TryParse(raw, out n)) return name;
++        var t = AnyminuteTimesheetRepair.Query(c, tx, "IF NOT EXISTS(SELECT 1 FROM dbo." + table + " WITH(UPDLOCK,HOLDLOCK) WHERE " + nameCol + "=@n) INSERT dbo." + table + "(" + nameCol + ",Duplicate) VALUES(@n,0); SELECT TOP(1) " + idCol + " FROM dbo." + table + " WHERE " + nameCol + "=@n ORDER BY " + idCol, "@n", name.Trim().ToUpperInvariant());
++        return Convert.ToString(t.Rows[0][0], CultureInfo.InvariantCulture);
++    }
++    string EditPanel(SqlConnection c, DataRow r, bool ready, string back)
+     {
+         int id = Convert.ToInt32(r["AddressMasterId"]);
+         DataRow review = null;
+         if (ready) { var t = SA.Q(c, "SELECT * FROM AnyminuteAddressReview WHERE AddressMasterId=@i", "@i", id); if (t.Rows.Count == 1) review = t.Rows[0]; }
+         string os = review != null ? SA.S(review["OrigStreet"]) : SA.S(r["Street_Name"]), oc = review != null ? SA.S(review["OrigCity"]) : SA.S(r["City"]),
+                op = review != null ? SA.S(review["OrigProvince"]) : SA.S(r["Province"]), opc = review != null ? SA.S(review["OrigPostal"]) : SA.S(r["PostalCode"]);
++        // Original values were captured as stored (ids); show names.
++        if (oc == SA.S(r["CityRaw"])) oc = SA.S(r["City"]); else { int x; if (Int32.TryParse(oc, out x)) { var n = SA.Q(c, "SELECT CityName FROM CityMaster WHERE CityId=@i", "@i", x); if (n.Rows.Count == 1) oc = SA.S(n.Rows[0][0]); } }
++        if (op == SA.S(r["ProvRaw"])) op = SA.S(r["Province"]); else { int x; if (Int32.TryParse(op, out x)) { var n = SA.Q(c, "SELECT ProvinceName FROM ProvinceMaster WHERE ProvinceId=@i", "@i", x); if (n.Rows.Count == 1) op = SA.S(n.Rows[0][0]); } }
++        string who = Submitter(c, r);
+         string octry = review != null && SA.S(review["OrigCountry"]).Length > 0 ? SA.S(review["OrigCountry"]) : SA.GuessCountry(opc);
+         string ctry = SA.S(r["Country"]).Length > 0 ? SA.S(r["Country"]) : SA.GuessCountry(SA.S(r["PostalCode"]));
+         bool pending = SA.S(r["St"]) == "Pending";
+         string dis = pending && ready ? "" : " disabled";
+         var sb = new StringBuilder("<aside class='sa-card sa-panel' id='sa-edit' aria-label='Edit and verify address'><div class='sa-panel-head'><h2>Edit &amp; Verify Address</h2><a href='SupportAddresses.aspx?" + SA.A(back) + "' class='sa-x' aria-label='Close'>&times;</a></div>");
+         sb.Append("<h3>Original Submitted Address</h3><div class='sa-original'><p>").Append(SA.H(os + ", " + oc + ", " + op + ", " + octry + ", " + opc)).Append("</p><dl><dt>Submitted By:</dt><dd>")
+-          .Append(review != null && SA.S(review["SubmittedBy"]).Length > 0 ? SA.H(review["SubmittedBy"]) : "Manual entry").Append("</dd><dt>Submitted Date:</dt><dd>")
+-          .Append(review != null && review["SubmittedAtUTC"] != DBNull.Value ? SA.When(review["SubmittedAtUTC"]).Replace("<br />", " ") : "&mdash;").Append("</dd></dl></div>");
++          .Append(who != null ? SA.H(who) : "Not linked to a subscriber or employee address").Append("</dd><dt>Submitted Date:</dt><dd>")
++          .Append(review != null && review["SubmittedAtUTC"] != DBNull.Value ? SA.When(review["SubmittedAtUTC"]).Replace("<br />", " ") : "Not recorded (added before v26)").Append("</dd></dl></div>");
+         sb.Append("<div data-sa-address='1'><input type='hidden' name='sa_id' value='").Append(id).Append("' /><h3>Corrected Address (Edit if needed)</h3>")
+           .Append("<label class='sa-field'><span>Street Address *</span><input name='sa_street' maxlength='200' value='").Append(SA.A(r["Street_Name"])).Append("'").Append(dis).Append(" /></label>")
+           .Append("<div class='sa-row2'><label class='sa-field'><span>City *</span><input name='sa_city' maxlength='200' value='").Append(SA.A(r["City"])).Append("'").Append(dis).Append(" /></label>")
+@@ -103,7 +151,7 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
+         if (pending)
+             sb.Append("<div class='sa-panel-foot'><a class='sa-btn sa-btn-outline' href='SupportAddresses.aspx?").Append(SA.A(back)).Append("'>Cancel</a>")
+               .Append("<button type='submit' id='sa-reject' class='sa-btn sa-btn-danger' name='sa_op' value='reject' data-sa-need-notes='Enter the reason for rejecting this address in Support Notes.'").Append(dis).Append(">&#10005; Reject</button>")
+-              .Append("<button type='submit' class='sa-btn sa-btn-success' name='sa_op' value='approve' data-sa-approve='1' disabled>&#10003; Approve &amp; Add to Database</button></div><p class='sa-muted sa-small'>Verify the address first; Approve &amp; Add to Database stays off until the current values pass Verify Address.</p>");
++              .Append("<button type='submit' class='sa-btn sa-btn-success' name='sa_op' value='approve' data-sa-approve='1' disabled>&#10003; Approve &amp; Add to Database</button></div><p class='sa-muted sa-small'>Verify the address first: it checks the format and the existing address lookup for this postal code. Approve &amp; Add to Database stays off until the current values pass Verify Address.</p>");
+         else if (review != null)
+             sb.Append("<p class='sa-muted'>").Append(SA.H(SA.S(r["St"]) + " by " + SA.S(review["ReviewedByName"]))).Append(" &middot; ").Append(SA.When(review["ReviewedAtUTC"]).Replace("<br />", " ")).Append("</p>");
+         sb.Append("</div><datalist id='sa-prov-list'>");
+@@ -121,7 +169,7 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
+             if (!SA.Has(c, "AnyminuteAddressReview") || !SA.Has(c, "AnyminuteSupportAudit")) { SA.Flash(SA.MissingTables); Back(id); return; }
+             using (var tx = c.BeginTransaction(IsolationLevel.Serializable))
+             {
+-                var cur = AnyminuteTimesheetRepair.Query(c, tx, "SELECT a.*,r.Status RStatus FROM AddressMaster a WITH (UPDLOCK) LEFT JOIN AnyminuteAddressReview r ON r.AddressMasterId=a.AddressMasterId WHERE a.AddressMasterId=@i", "@i", id);
++                var cur = AnyminuteTimesheetRepair.Query(c, tx, "SELECT a.AddressMasterId,a.Street_Name,a.PostalCode,a.Verifed," + Names + ",r.Status RStatus,r.SubmittedBy FROM AddressMaster a WITH (UPDLOCK)" + NameJoins + " LEFT JOIN AnyminuteAddressReview r ON r.AddressMasterId=a.AddressMasterId WHERE a.AddressMasterId=@i", "@i", id);
+                 if (cur.Rows.Count != 1) { SA.Flash("That address was not found."); tx.Rollback(); Back(0); return; }
+                 var a = cur.Rows[0];
+                 if (SA.S(a["Verifed"]) == "1" || SA.S(a["RStatus"]) == "Rejected") { SA.Flash("This address was already reviewed by another Support Admin."); tx.Rollback(); Back(id); return; }
+@@ -130,12 +178,18 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
+                 AnyminuteTimesheetRepair.Execute(c, tx, @"IF NOT EXISTS(SELECT 1 FROM AnyminuteAddressReview WHERE AddressMasterId=@i)
+                     INSERT AnyminuteAddressReview(AddressMasterId,OrigStreet,OrigCity,OrigProvince,OrigCountry,OrigPostal,Status) VALUES(@i,@s,@c,@p,@co,@pc,'Pending')",
+                     "@i", id, "@s", SA.S(a["Street_Name"]), "@c", SA.S(a["City"]), "@p", SA.S(a["Province"]), "@co", SA.GuessCountry(SA.S(a["PostalCode"])), "@pc", SA.S(a["PostalCode"]));
++                string who = Submitter(c, a);
++                if (who != null && SA.S(a["SubmittedBy"]).Length == 0)
++                    AnyminuteTimesheetRepair.Execute(c, tx, "UPDATE AnyminuteAddressReview SET SubmittedBy=@w WHERE AddressMasterId=@i AND SubmittedBy IS NULL", "@w", who.Length > 150 ? who.Substring(0, 150) : who, "@i", id);
+                 if (op == "approve")
+                 {
+-                    string problem = SA.VerifyAddress(street, city, prov, country, postal);
+-                    if (problem != null) { tx.Rollback(); SA.Flash("Not approved: " + problem); Back(id); return; }
++                    string level; DataTable known;
++                    string verdict = SA.LookupVerify(c, id, street, city, prov, country, postal, out level, out known);
++                    if (level == "error") { tx.Rollback(); SA.Flash("Not approved: " + verdict); Back(id); return; }
+                     postal = SA.NormalizePostal(country, postal);
+-                    AnyminuteTimesheetRepair.Execute(c, tx, "UPDATE AddressMaster SET Street_Name=@s,City=@c,Province=@p,PostalCode=@pc,Verifed=1 WHERE AddressMasterId=@i", "@s", street, "@c", city, "@p", prov, "@pc", postal, "@i", id);
++                    string cityValue = MasterValue(c, tx, SA.S(a["CityRaw"]), "CityMaster", "CityName", "CityId", city), provValue = MasterValue(c, tx, SA.S(a["ProvRaw"]), "ProvinceMaster", "ProvinceName", "ProvinceId", prov);
++                    AnyminuteTimesheetRepair.Execute(c, tx, "UPDATE AddressMaster SET Street_Name=@s,City=@c,Province=@p,PostalCode=@pc,Verifed=1 WHERE AddressMasterId=@i", "@s", street, "@c", cityValue, "@p", provValue, "@pc", postal, "@i", id);
++                    notes = (notes + " [Verify: " + verdict + "]").Trim(); if (notes.Length > 500) notes = notes.Substring(0, 500);
+                     AnyminuteTimesheetRepair.Execute(c, tx, "UPDATE AnyminuteAddressReview SET Status='Verified',Country=@co,Notes=@n,ReviewedBy=@b,ReviewedByName=@bn,ReviewedAtUTC=SYSUTCDATETIME() WHERE AddressMasterId=@i",
+                         "@co", country, "@n", notes, "@b", SA.ActorId(), "@bn", SA.ActorName(), "@i", id);
+                     string after = street + ", " + city + ", " + prov + ", " + country + ", " + postal;
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportPlans.aspx b/AMV3Reseller_27Aug2022_Subscription/SupportPlans.aspx
+index 34a00be..9e886a4 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportPlans.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportPlans.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="SupportPlans.aspx.cs" Inherits="AnyminuteSupportPlansPage" Title="Subscription Plans" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261028v25" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261028v25" defer="defer"></script></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261028v26" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261028v26" defer="defer"></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section class="sa-page">
+  <header class="sa-head"><div><h1><asp:Literal ID="Title1" runat="server" /></h1><p><asp:Literal ID="Lead" runat="server" /></p></div>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportPlans.aspx.cs b/AMV3Reseller_27Aug2022_Subscription/SupportPlans.aspx.cs
+index 1ee82a1..4c1498b 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportPlans.aspx.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportPlans.aspx.cs
+@@ -68,14 +68,32 @@ public partial class AnyminuteSupportPlansPage : System.Web.UI.Page
+               .Append("</td><td>").Append(SA.Pill(p.Active ? "Active" : "Inactive", p.Active ? "green" : "grey")).Append("</td><td class='sa-actions'><a class='sa-btn sa-btn-sm sa-btn-outline' href='SupportPlans.aspx?edit=").Append(p.Id).Append("' aria-label='Edit ").Append(SA.A(p.Name)).Append("'>&#9998;</a></td></tr>");
+         return sb.Append("</tbody></table></div><div class='sa-pager'><span>Showing 1 to ").Append(plans.Count).Append(" of ").Append(plans.Count).Append(" plans</span></div>").ToString();
+     }
++    // v26: PlanHistory 'BASIC PLAN' and catalogue 'Basic Plan' / 'Basic' are the same plan (SA.PlanKey). "Limits applied" counts
++    // active subscriptions whose PlanHistory employee / business limits equal the catalogue (the values the app enforces).
+     static string Usage(SqlConnection c, List<Plan> plans)
+     {
+-        var counts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+-        foreach (DataRow r in SA.Q(c, "SELECT ISNULL(PlanName,'(unnamed)') N,COUNT(DISTINCT EmailId) C FROM PlanHistory WHERE ISNULL(IsActive,0)=1 AND ISNULL(Is_Cancelled,0)=0 GROUP BY ISNULL(PlanName,'(unnamed)')").Rows) counts[SA.S(r["N"])] = Convert.ToInt32(r["C"]);
+-        var sb = new StringBuilder("<div class='sa-table-wrap'><table class='sa-table'><thead><tr><th>Plan</th><th>Active Subscriptions</th><th>Max Businesses</th><th>Max Employees</th><th>Max Projects</th><th>Trial Days</th></tr></thead><tbody>");
+-        foreach (var p in plans) { int n; counts.TryGetValue(p.Name, out n); counts.Remove(p.Name); sb.Append("<tr><td>").Append(SA.H(p.Name)).Append("</td><td>").Append(n).Append("</td><td>").Append(Num(p.Businesses)).Append("</td><td>").Append(Num(p.Employees)).Append("</td><td>").Append(Num(p.Projects)).Append("</td><td>").Append(p.Trial).Append("</td></tr>"); }
+-        foreach (var k in counts) sb.Append("<tr><td>").Append(SA.H(k.Key)).Append(" <small class='sa-muted'>(billing plan)</small></td><td>").Append(k.Value).Append("</td><td colspan='4' class='sa-muted'>Not in the plan catalogue</td></tr>");
+-        return sb.Append("</tbody></table></div>").ToString();
++        var counts = new Dictionary<string, int[]>(StringComparer.OrdinalIgnoreCase); var names = new Dictionary<string, string>();
++        foreach (DataRow r in SA.Q(c, "SELECT " + String.Format(SA.PlanKeySql, "ISNULL(PlanName,'(unnamed)')") + " K,MIN(PlanName) N,No_Of_Users U,Business B,COUNT(DISTINCT EmailId) C FROM PlanHistory WHERE ISNULL(IsActive,0)=1 AND ISNULL(Is_Cancelled,0)=0 GROUP BY " + String.Format(SA.PlanKeySql, "ISNULL(PlanName,'(unnamed)')") + ",No_Of_Users,Business").Rows)
++        {
++            string k = SA.S(r["K"]); int[] v; if (!counts.TryGetValue(k, out v)) { v = new int[2]; counts[k] = v; names[k] = SA.S(r["N"]); }
++            v[0] += Convert.ToInt32(r["C"]);
++            var p = plans.FirstOrDefault(x => SA.PlanKey(x.Name) == k);
++            if (p != null && (p.Employees == null || SA.S(r["U"]) == Raw(p.Employees)) && (p.Businesses == null || SA.S(r["B"]) == Raw(p.Businesses))) v[1] += Convert.ToInt32(r["C"]);
++        }
++        var sb = new StringBuilder("<div class='sa-table-wrap'><table class='sa-table'><thead><tr><th>Plan</th><th>Active Subscriptions</th><th>Limits Applied</th><th>Max Businesses</th><th>Max Employees</th><th>Max Projects</th><th>Trial Days</th></tr></thead><tbody>");
++        foreach (var p in plans)
++        {
++            int[] n; string k = SA.PlanKey(p.Name); if (!counts.TryGetValue(k, out n)) n = new int[2]; counts.Remove(k);
++            sb.Append("<tr><td>").Append(SA.H(p.Name)).Append("</td><td>").Append(n[0]).Append("</td><td>").Append(n[0] == 0 ? "&mdash;" : n[1] + " of " + n[0]).Append("</td><td>").Append(Num(p.Businesses)).Append("</td><td>").Append(Num(p.Employees)).Append("</td><td>").Append(Num(p.Projects)).Append("</td><td>").Append(p.Trial).Append("</td></tr>");
++        }
++        foreach (var k in counts) sb.Append("<tr><td>").Append(SA.H(names[k.Key])).Append(" <small class='sa-muted'>(billing plan)</small></td><td>").Append(k.Value[0]).Append("</td><td colspan='5' class='sa-muted'>Not in the plan catalogue</td></tr>");
++        return sb.Append("</tbody></table></div><p class='sa-muted'>Max Businesses and Max Employees are enforced by AnyMinute through each subscription's plan record; saving a plan can apply them to active subscribers. Max Projects and Trial Days are catalogue values only (no AnyMinute page enforces them yet); Stripe prices are not changed here.</p>").ToString();
++    }
++    // Active, non-cancelled PlanHistory rows for these plan names (old and new name when renamed).
++    const string ApplyWhere = " FROM PlanHistory WHERE ISNULL(IsActive,0)=1 AND ISNULL(Is_Cancelled,0)=0 AND {0} IN(@k1,@k2)";
++    static int Subscribed(SqlConnection c, SqlTransaction tx, string oldName, string newName)
++    {
++        return Convert.ToInt32(AnyminuteTimesheetRepair.Query(c, tx, "SELECT COUNT(*)" + String.Format(ApplyWhere, String.Format(SA.PlanKeySql, "PlanName")), "@k1", SA.PlanKey(oldName), "@k2", SA.PlanKey(newName)).Rows[0][0]);
+     }
+     static string Form(Plan p, bool ready, bool add)
+     {
+@@ -127,6 +145,7 @@ public partial class AnyminuteSupportPlansPage : System.Web.UI.Page
+         var diff = Diff(before, p);
+         if (diff.Count == 0) { Flash.Text += "<div class='sa-flash' role='status'>No changes to save.</div>"; return; }
+         string reason = SA.Form("sa_reason"); if (reason.Length > 500) reason = reason.Substring(0, 500);
++        bool limits = diff.Any(d => d[0] == "Max Businesses" || d[0] == "Max Employees") && (p.Employees != null || p.Businesses != null);
+         if (save && reason.Length > 0)
+         {
+             using (var tx = c.BeginTransaction())
+@@ -137,8 +156,16 @@ public partial class AnyminuteSupportPlansPage : System.Web.UI.Page
+                 if (add) id = Convert.ToInt32(AnyminuteTimesheetRepair.Query(c, tx, @"INSERT AnyminuteSubscriptionPlan(PlanName,Description,MonthlyPrice,AnnualPrice,MaxBusinesses,MaxEmployees,MaxProjects,TrialDays,BillingFrequency,Features,IsActive,UpdatedBy)
+                     VALUES(@n,@d,@m,@a,@b,@e,@p,@t,@f,@ft,@ac,@u); SELECT CAST(SCOPE_IDENTITY() AS int)", args).Rows[0][0]);
+                 else AnyminuteTimesheetRepair.Execute(c, tx, @"UPDATE AnyminuteSubscriptionPlan SET PlanName=@n,Description=@d,MonthlyPrice=@m,AnnualPrice=@a,MaxBusinesses=@b,MaxEmployees=@e,MaxProjects=@p,TrialDays=@t,BillingFrequency=@f,Features=@ft,IsActive=@ac,UpdatedBy=@u,UpdatedAtUTC=SYSUTCDATETIME() WHERE PlanID=@i", args);
++                string applied = "";
++                if (limits && SA.Form("sa_apply") == "1" && (p.Employees != null || p.Businesses != null))
++                {
++                    var set = new List<string>(); if (p.Employees != null) set.Add("No_Of_Users=@e"); if (p.Businesses != null) set.Add("Business=@b");
++                    int n = Convert.ToInt32(AnyminuteTimesheetRepair.Query(c, tx, "UPDATE PlanHistory SET " + String.Join(",", set) + " WHERE Id IN(SELECT Id" + String.Format(ApplyWhere, String.Format(SA.PlanKeySql, "PlanName")) + "); SELECT @@ROWCOUNT",
++                        "@e", p.Employees == null ? "" : Raw(p.Employees), "@b", p.Businesses == null ? "" : Raw(p.Businesses), "@k1", SA.PlanKey(before.Name), "@k2", SA.PlanKey(p.Name)).Rows[0][0]);
++                    applied = " [Limits applied to " + n + " active subscription(s)]";
++                }
+                 SA.Audit(c, tx, "Plan", id.ToString(CultureInfo.InvariantCulture), add ? "Plan Added" : "Plan Updated", add ? null : (before.Active ? "Active" : "Inactive"), p.Active ? "Active" : "Inactive",
+-                    String.Join("; ", diff.Select(d => d[0] + ": " + d[1])), String.Join("; ", diff.Select(d => d[0] + ": " + d[2])), reason);
++                    String.Join("; ", diff.Select(d => d[0] + ": " + d[1])), String.Join("; ", diff.Select(d => d[0] + ": " + d[2])), (reason + applied).Length > 500 ? (reason + applied).Substring(0, 500) : reason + applied);
+                 tx.Commit();
+                 Response.Redirect("SupportPlans.aspx?saved=" + id, false); Context.ApplicationInstance.CompleteRequest(); return;
+             }
+@@ -148,6 +175,11 @@ public partial class AnyminuteSupportPlansPage : System.Web.UI.Page
+         foreach (var d in diff) sb.Append("<tr><td>").Append(SA.H(d[0])).Append("</td><td>").Append(d[1].Length == 0 ? "&mdash;" : SA.H(d[1])).Append("</td><td><strong>").Append(SA.H(d[2])).Append("</strong></td></tr>");
+         sb.Append("</tbody></table></div>");
+         if (save && reason.Length == 0) sb.Append("<div class='sa-flash sa-warn' role='alert'>Enter the reason for this change.</div>");
++        if (limits)
++        {
++            int n = Subscribed(c, null, before.Name, p.Name);
++            sb.Append("<label class='sa-check'><input type='checkbox' name='sa_apply' value='1'").Append(!save || SA.Form("sa_apply") == "1" ? " checked" : "").Append(" /> Apply the new employee / business limits to the ").Append(n).Append(" active subscription(s) on this plan</label><p class='sa-muted sa-small'>AnyMinute enforces these limits from each subscription's plan record (PlanHistory). Leave unchecked to change the catalogue only; new Basic sign-ups always use the catalogue.</p>");
++        }
+         sb.Append("<label class='sa-field'><span>Reason for Change *</span><textarea name='sa_reason' rows='3' maxlength='500' required data-sa-counter='500'>").Append(SA.H(reason)).Append("</textarea><small data-sa-count='1'>0/500</small></label>")
+           .Append("<div class='sa-panel-foot'><a class='sa-btn sa-btn-outline' href='SupportPlans.aspx'>Cancel</a><button type='button' class='sa-btn sa-btn-outline' data-sa-close='1'>Back</button><button type='submit' class='sa-btn' name='sa_op' value='save'>Confirm &amp; Save</button></div></div></div>");
+         Modal.Text = sb.ToString();
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx b/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx
+index 2f3df97..6094c1f 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="SupportSubscribers.aspx.cs" Inherits="AnyminuteSupportSubscribersPage" Title="Subscribers" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261028v25" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261028v25" defer="defer"></script></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261028v26" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261028v26" defer="defer"></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section class="sa-page">
+  <asp:Literal ID="Crumbs" runat="server" />
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx.cs b/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx.cs
+index ba6b139..9293c72 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx.cs
+@@ -14,6 +14,9 @@ using SA = AnyminuteSupportAdmin;
+ // the Send Password Reset confirm page and Login Activity History. Login access uses the existing
+ // AnyminuteLoginSecurity.LoginDisabled flag (REQUIRED_01, already honoured by Login.aspx); history and the
+ // sign-in / failed sign-in events (Login.aspx hook) are stored in AnyminuteSupportAudit (REQUIRED_07).
++// 2026-10-28 v26 strict pass: Businesses / Employees / Projects / Subscription & Billing tabs (read-only, same owner scoping as
++// AnyminuteModernScope), Active Sessions + session revocation on Disable (AnyminuteSessionGuard, REQUIRED_08), 24-hour one-time
++// reset links (AnyminutePasswordReset), and IP location in Login Activity History (AnyminuteGeoIp, optional GeoIpLookupUrl).
+ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+ {
+     const int PageSize = 10;
+@@ -45,10 +48,12 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+             var t = Subscribers(c, user);
+             if (t.Rows.Count != 1) { Title1.Text = "Subscriber not found"; Content.Text = "<p><a class='sa-link' href='SupportSubscribers.aspx'>Back to Subscribers</a></p>"; return; }
+             var r = t.Rows[0]; string view = SA.Get("view");
+-            Crumbs.Text = "<nav class='sa-crumbs'><a href='SupportSubscribers.aspx'>Subscribers</a> &rsaquo; <a href='SupportSubscribers.aspx?user=" + user + "'>Subscriber Details</a> &rsaquo; <span>" + (view == "history" ? "Login Activity History" : view == "reset" ? "Send Password Reset" : "Login &amp; Access") + "</span></nav>";
+-            if (view == "history") { Title1.Text = "Subscriber Login Activity History"; Lead.Text = "View sign-in activity, account changes and security events for this subscriber."; Content.Text = Header(c, r) + Tabs(user, "history", SA.S(r["Email"])) + History(c, user); }
++            string crumb = view == "history" ? "Login Activity History" : view == "reset" ? "Send Password Reset" : view == "businesses" ? "Businesses" : view == "employees" ? "Employees" : view == "projects" ? "Projects" : view == "billing" ? "Subscription &amp; Billing" : "Login &amp; Access";
++            Crumbs.Text = "<nav class='sa-crumbs'><a href='SupportSubscribers.aspx'>Subscribers</a> &rsaquo; <a href='SupportSubscribers.aspx?user=" + user + "'>Subscriber Details</a> &rsaquo; <span>" + crumb + "</span></nav>";
++            if (view == "businesses" || view == "employees" || view == "projects" || view == "billing") { Title1.Text = "Subscriber Details"; Lead.Text = "Subscriber Details &rsaquo; " + crumb + " (read-only)"; Content.Text = Header(c, r) + Tabs(c, r, view) + (view == "billing" ? Billing(c, r) : Related(c, r, view)); }
++            else if (view == "history") { Title1.Text = "Subscriber Login Activity History"; Lead.Text = "View sign-in activity, account changes and security events for this subscriber."; Content.Text = Header(c, r) + Tabs(c, r, "history") + History(c, user); }
+             else if (view == "reset") { Title1.Text = "Send Password Reset"; Lead.Text = "Send a secure password reset link to the subscriber."; Content.Text = Reset(r, ready); }
+-            else { Title1.Text = "Manage Subscriber Login &amp; Access"; Lead.Text = "Subscriber Details &rsaquo; Login &amp; Access"; Content.Text = Header(c, r) + Tabs(user, "access", SA.S(r["Email"])) + Access(c, r, ready); }
++            else { Title1.Text = "Manage Subscriber Login &amp; Access"; Lead.Text = "Subscriber Details &rsaquo; Login &amp; Access"; Content.Text = Header(c, r) + Tabs(c, r, "access") + Access(c, r, ready); }
+         }
+     }
+     void List(SqlConnection c)
+@@ -76,11 +81,96 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+             + "<div><small>Subscriber Since</small><strong>" + SA.Day(r["Since"]) + "</strong></div><div><small>Last Login</small><strong>" + SA.When(r["LastLoginDate"]) + "</strong></div>"
+             + "<div>" + (Enabled(r) ? SA.Pill("Active", "green") : SA.Pill("Disabled", "red")) + "</div></div>";
+     }
+-    static string Tabs(int user, string on, string email)
++    // Businesses the subscriber owns: the owner's own AssginBussiness rows (UserTypeId 1) or businesses mapped to the owner's login
++    // (same rule as AnyminuteModernScope). Deleted businesses (Status 2) are shown but not counted.
++    const string BizCte = @"WITH biz AS (SELECT DISTINCT a.BusinessID FROM AssginBussiness a WHERE (a.EmployeeID=@a AND a.UserTypeId=1)
++        OR EXISTS(SELECT 1 FROM MappingTable m WHERE m.USERID=@u AND m.BusinessID=a.BusinessID AND m.EmployeeID=a.EmployeeID AND m.UserTypeId=a.UserTypeId)) ";
++    static object[] ScopeArgs(DataRow r) { return new object[] { "@a", Convert.ToInt32(r["EmployeeId"]), "@u", Convert.ToInt32(r["UserId"]) }; }
++    static int[] Counts(SqlConnection c, DataRow r)
+     {
++        var t = SA.Q(c, BizCte + @"SELECT (SELECT COUNT(*) FROM AddBusiness b JOIN biz ON biz.BusinessID=b.BusinessID WHERE ISNULL(b.Status,'')<>'2'),
++            (SELECT COUNT(DISTINCT a.EmployeeID) FROM AssginBussiness a JOIN biz ON biz.BusinessID=a.BusinessID JOIN AddEmployee ae ON ae.EmployeeID=a.EmployeeID WHERE a.EmployeeID<>@a AND ae.TerminationDate IS NULL),
++            (SELECT COUNT(*) FROM AddProject p JOIN biz ON biz.BusinessID=p.BusinessID)", ScopeArgs(r));
++        return new[] { Convert.ToInt32(t.Rows[0][0]), Convert.ToInt32(t.Rows[0][1]), Convert.ToInt32(t.Rows[0][2]) };
++    }
++    static string Tabs(SqlConnection c, DataRow r, string on)
++    {
++        int user = Convert.ToInt32(r["UserId"]); string email = SA.S(r["Email"]); int[] n;
++        try { n = Counts(c, r); } catch (SqlException) { n = null; }
+         Func<string, string, string, string> t = (key, label, href) => "<a href='" + href + "'" + (key == on ? " class='on' aria-current='page'" : "") + ">" + label + "</a>";
+-        return "<nav class='sa-tabs'>" + t("profile", "Profile", "SuperAdmin_Approve_Subscriber.aspx") + t("billing", "Subscription &amp; Billing", "SupportPlans.aspx?view=usage") + t("access", "Login &amp; Access", "SupportSubscribers.aspx?user=" + user)
+-            + t("support", "Support History", "SupportTickets.aspx?q=" + HttpUtility.UrlEncode(email)) + t("history", "Login Activity History", "SupportSubscribers.aspx?user=" + user + "&amp;view=history") + "</nav>";
++        string u = "SupportSubscribers.aspx?user=" + user + "&amp;view=";
++        Func<int, string> k = i => n == null ? "" : " (" + n[i] + ")";
++        return "<nav class='sa-tabs'>" + t("profile", "Profile", "SuperAdmin_Approve_Subscriber.aspx") + t("businesses", "Businesses" + k(0), u + "businesses") + t("employees", "Employees" + k(1), u + "employees") + t("projects", "Projects" + k(2), u + "projects")
++            + t("billing", "Subscription &amp; Billing", u + "billing") + t("access", "Login &amp; Access", "SupportSubscribers.aspx?user=" + user)
++            + t("support", "Support History", "SupportTickets.aspx?q=" + HttpUtility.UrlEncode(email)) + t("history", "Login Activity History", u + "history") + "</nav>";
++    }
++    // Read-only lists for the Businesses / Employees / Projects tabs (edits stay with the subscriber's own pages).
++    static string Related(SqlConnection c, DataRow r, string view)
++    {
++        string q = SA.Get("q"); int page; if (!Int32.TryParse(SA.Get("page"), out page) || page < 1) page = 1;
++        string sql; string[] head;
++        if (view == "businesses") { head = new[] { "Business", "Operating Name", "Primary Contact", "City", "Province", "Employees", "Projects", "Status" };
++            sql = BizCte + @"SELECT b.CompanyName,b.OperatingName,b.PrimaryContactName,COALESCE(ci.CityName,b.City) City,COALESCE(pr.ProvinceName,b.Province) Province,
++                (SELECT COUNT(DISTINCT a.EmployeeID) FROM AssginBussiness a WHERE a.BusinessID=b.BusinessID AND a.EmployeeID<>@a) Employees,(SELECT COUNT(*) FROM AddProject p WHERE p.BusinessID=b.BusinessID) Projects,
++                CASE WHEN ISNULL(b.Status,'')='2' THEN 'Deleted' ELSE 'Active' END Status
++                FROM AddBusiness b JOIN biz ON biz.BusinessID=b.BusinessID LEFT JOIN CityMaster ci ON CAST(ci.CityId AS nvarchar(50))=CAST(b.City AS nvarchar(50)) LEFT JOIN ProvinceMaster pr ON CAST(pr.ProvinceId AS nvarchar(50))=CAST(b.Province AS nvarchar(50)) ORDER BY b.CompanyName"; }
++        else if (view == "employees") { head = new[] { "Employee", "Email", "Phone", "Role", "Business", "Hire Date", "Status" };
++            sql = BizCte + @"SELECT LTRIM(RTRIM(ISNULL(ae.FirstName,'')+' '+ISNULL(ae.LastName,''))) Employee,ea.MainEmail Email,ae.MobilePhone Phone,ut.UserType Role,b.CompanyName Business,ae.HireDate,
++                CASE WHEN ae.TerminationDate IS NOT NULL THEN 'Terminated' ELSE 'Active' END Status
++                FROM AssginBussiness a JOIN biz ON biz.BusinessID=a.BusinessID JOIN AddEmployee ae ON ae.EmployeeID=a.EmployeeID JOIN AddBusiness b ON b.BusinessID=a.BusinessID
++                LEFT JOIN EmpAddress ea ON ea.EmpAddressId=ae.ADDRESSID LEFT JOIN UserType ut ON ut.User_TypeId=a.UserTypeId WHERE a.EmployeeID<>@a ORDER BY Employee,b.CompanyName"; }
++        else { head = new[] { "Project", "Business", "Start Date", "End Date", "Status" };
++            sql = BizCte + @"SELECT p.ProjectName Project,b.CompanyName Business,p.startDate,p.EndDate,CASE WHEN p.EndDate IS NOT NULL AND p.EndDate<CAST(GETDATE() AS date) THEN 'Ended' ELSE 'Active' END Status
++                FROM AddProject p JOIN biz ON biz.BusinessID=p.BusinessID JOIN AddBusiness b ON b.BusinessID=p.BusinessID ORDER BY p.ProjectName"; }
++        List<DataRow> rows;
++        try { rows = SA.Q(c, sql, ScopeArgs(r)).Rows.Cast<DataRow>().ToList(); }
++        catch (SqlException ex) { return "<div class='sa-card'><p class='sa-muted'>Could not load this list: " + SA.H(ex.Message) + "</p></div>"; }
++        if (q.Length > 0) rows = rows.Where(x => String.Join(" ", x.ItemArray.Select(SA.S)).IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
++        var sb = new StringBuilder("<div class='sa-card'><div class='sa-filters' data-sa-get='SupportSubscribers.aspx'><input type='hidden' name='user' value='" + r["UserId"] + "' /><input type='hidden' name='view' value='" + view + "' />"
++            + "<label class='sa-grow'><span class='sr-only'>Search</span><input type='search' name='q' value='" + SA.A(q) + "' placeholder='Search " + view + "...' /></label><button type='button' class='sa-btn' data-sa-apply='1'>Search</button></div>"
++            + "<p class='sa-muted'>Read-only view. The subscriber manages these records from their own AnyMinute pages.</p><div class='sa-table-wrap'><table class='sa-table'><thead><tr>");
++        foreach (var h in head) sb.Append("<th>").Append(h).Append("</th>");
++        sb.Append("</tr></thead><tbody>");
++        foreach (var x in rows.Skip((page - 1) * PageSize).Take(PageSize))
++        {
++            sb.Append("<tr>");
++            for (int i = 0; i < head.Length; i++)
++            {
++                object v = x[i]; string cell = v is DateTime ? SA.Day(v) : SA.S(v).Length > 0 ? SA.H(v) : "&mdash;";
++                if (head[i] == "Status") cell = SA.Pill(SA.S(v), SA.S(v) == "Active" ? "green" : "grey");
++                sb.Append(i == 0 ? "<td><strong>" + cell + "</strong></td>" : "<td>" + cell + "</td>");
++            }
++            sb.Append("</tr>");
++        }
++        if (rows.Count == 0) sb.Append("<tr><td colspan='").Append(head.Length).Append("' class='sa-empty'>No ").Append(view).Append(" found.</td></tr>");
++        return sb.Append("</tbody></table></div>").Append(SA.Pager(rows.Count, page, PageSize, "user=" + r["UserId"] + "&view=" + view + "&q=" + HttpUtility.UrlEncode(q))).Append("</div>").ToString();
++    }
++    // Subscription & Billing: PlanHistory rows (the limits the app enforces) next to actual usage and the plan catalogue.
++    static string Billing(SqlConnection c, DataRow r)
++    {
++        var plans = SA.Q(c, "SELECT PlanName,StartDate,EndDate,AmountPaid,No_Of_Users,Business,IsActive,Is_Cancelled FROM PlanHistory WHERE EmailId=@m OR EmpId=@e ORDER BY StartDate DESC", "@m", SA.S(r["Email"]), "@e", Convert.ToInt32(r["EmployeeId"]));
++        int[] n; try { n = Counts(c, r); } catch (SqlException) { n = new[] { 0, 0, 0 }; }
++        DataRow act = plans.Rows.Cast<DataRow>().FirstOrDefault(x => SA.S(x["IsActive"]) == "1" || SA.S(x["IsActive"]) == "True");
++        string cat = "&mdash;";
++        if (act != null && SA.Has(c, "AnyminuteSubscriptionPlan"))
++        {
++            var p = SA.Q(c, "SELECT TOP 1 MaxProjects,TrialDays FROM AnyminuteSubscriptionPlan WHERE " + String.Format(SA.PlanKeySql, "PlanName") + "=@k", "@k", SA.PlanKey(SA.S(act["PlanName"])));
++            if (p.Rows.Count == 1) cat = SA.S(p.Rows[0]["MaxProjects"]).Length > 0 ? SA.S(p.Rows[0]["MaxProjects"]) : "Custom";
++        }
++        Func<string, int, string, string, string> kpi = (label, used, limit, note) => "<div class='sa-card'><small>" + label + "</small><h2>" + used + " / " + (limit.Length > 0 ? SA.H(limit) : "&mdash;") + "</h2><small class='sa-muted'>" + note + "</small></div>";
++        var sb = new StringBuilder("<div class='sa-grid3'>")
++            .Append(kpi("Businesses used / plan limit", n[0], act == null ? "" : SA.S(act["Business"]), "Enforced from PlanHistory.Business"))
++            .Append(kpi("Employees used / plan limit", n[1], act == null ? "" : SA.S(act["No_Of_Users"]), "Enforced from PlanHistory.No_Of_Users"))
++            .Append(kpi("Projects used / catalogue limit", n[2], cat == "&mdash;" ? "" : cat, "Catalogue value; not enforced by the app"))
++            .Append("</div><div class='sa-card'><h2>Plan History</h2><div class='sa-table-wrap'><table class='sa-table'><thead><tr><th>Plan</th><th>Start</th><th>End</th><th>Amount Paid</th><th>Employees Limit</th><th>Business Limit</th><th>Status</th></tr></thead><tbody>");
++        foreach (DataRow x in plans.Rows)
++        {
++            bool on = SA.S(x["IsActive"]) == "1" || SA.S(x["IsActive"]) == "True", cancelled = SA.S(x["Is_Cancelled"]) == "1" || SA.S(x["Is_Cancelled"]) == "True";
++            sb.Append("<tr><td><strong>").Append(SA.H(x["PlanName"])).Append("</strong></td><td>").Append(SA.Day(x["StartDate"])).Append("</td><td>").Append(SA.Day(x["EndDate"])).Append("</td><td>").Append(SA.S(x["AmountPaid"]).Length > 0 ? "$" + SA.H(x["AmountPaid"]) : "&mdash;")
++              .Append("</td><td>").Append(SA.H(x["No_Of_Users"])).Append("</td><td>").Append(SA.H(x["Business"])).Append("</td><td>").Append(cancelled ? SA.Pill("Cancelled", "red") : on ? SA.Pill("Active", "green") : SA.Pill("Inactive", "grey")).Append("</td></tr>");
++        }
++        if (plans.Rows.Count == 0) sb.Append("<tr><td colspan='7' class='sa-empty'>No plan history for this subscriber.</td></tr>");
++        return sb.Append("</tbody></table></div><p class='sa-muted'>Payments are processed by the existing subscription pages; Stripe billing details are not shown here. <a class='sa-link' href='SupportPlans.aspx?view=usage'>Usage &amp; Limits for all plans</a></p></div>").ToString();
+     }
+     string Access(SqlConnection c, DataRow r, bool ready)
+     {
+@@ -94,9 +184,9 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+           .Append("<tr><th>Invitation Status</th><td>").Append(first ? "Pending" : "Accepted").Append("</td></tr>")
+           .Append("<tr><th>Last Login</th><td>").Append(SA.When(r["LastLoginDate"]).Replace("<br />", " ")).Append("</td></tr>")
+           .Append("<tr><th>Last Password Reset</th><td>").Append(lastReset).Append("</td></tr>")
+-          .Append("<tr><th>Active Sessions</th><td><span class='sa-muted'>Not tracked</span></td></tr></table></div>");
++          .Append("<tr><th>Active Sessions</th><td>").Append(Sessions(c, u)).Append("</td></tr></table></div>");
+         sb.Append("<div class='sa-card'><h2>Change Login Access</h2><label class='sa-radio sa-radio-block'><input type='radio' name='sa_access' value='1'").Append(en ? " checked" : "").Append(dis).Append(" /><span><b>Enable Login Access</b><small>Allow the subscriber to sign in to AnyMinute.</small></span></label>")
+-          .Append("<label class='sa-radio sa-radio-block'><input type='radio' name='sa_access' value='0'").Append(!en ? " checked" : "").Append(dis).Append(" /><span><b>Disable Login Access</b><small>Prevent the subscriber from signing in. The next sign-in is blocked.</small></span></label>")
++          .Append("<label class='sa-radio sa-radio-block'><input type='radio' name='sa_access' value='0'").Append(!en ? " checked" : "").Append(dis).Append(" /><span><b>Disable Login Access</b><small>Prevent the subscriber from signing in. Active sessions will be revoked immediately.</small></span></label>")
+           .Append("<div class='sa-flash sa-warn'>Disabling login will prevent this subscriber from signing in. Existing businesses, employees, projects and data will remain preserved.</div>")
+           .Append("<label class='sa-field'><span>Reason for Access Change *</span><textarea name='sa_reason' rows='3' maxlength='500' placeholder='Enter reason for changing subscriber login access...' data-sa-counter='500'").Append(dis).Append("></textarea><small data-sa-count='1'>0/500</small></label></div></div>");
+         sb.Append("<div class='sa-card'><h2>Additional Account Actions</h2><div class='sa-actions3'>")
+@@ -106,6 +196,14 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+           .Append("<div class='sa-panel-foot'><a class='sa-btn sa-btn-outline' href='SupportSubscribers.aspx'>Cancel</a><button type='submit' class='sa-btn' name='sa_op' value='access'").Append(dis).Append(">&#128190; Save Changes</button></div></div>");
+         return sb.ToString();
+     }
++    static string Sessions(SqlConnection c, int u)
++    {
++        DataTable t; try { t = AnyminuteSessionGuard.Active(c, u); } catch (SqlException) { t = null; }
++        if (t == null) return "<span class='sa-muted'>Not tracked (run REQUIRED_08)</span>";
++        if (t.Rows.Count == 0) return "0";
++        var r = t.Rows[0];
++        return t.Rows.Count + " <small class='sa-muted'>(last activity " + SA.When(r["LastSeenAtUTC"]).Replace("<br />", " ") + (SA.S(r["IpAddress"]).Length > 0 ? " from " + SA.H(r["IpAddress"]) : "") + ")</small>";
++    }
+     static string Reset(DataRow r, bool ready)
+     {
+         int u = Convert.ToInt32(r["UserId"]); string email = SA.S(r["Email"]), first = Name(r).Split(' ')[0];
+@@ -113,8 +211,8 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+             + "<section><h2><b class='sa-step'>1</b> Subscriber Information</h2><div class='sa-subhead sa-flat'><span class='sa-avatar'>" + SA.H(Initials(Name(r))) + "</span><div class='sa-grow'><strong>" + SA.H(Name(r)) + "</strong><small>Subscriber ID: " + Sub(u) + "<br />" + SA.H(email) + "</small></div>"
+             + "<div><small>Account Status</small>" + SA.Pill(r["Status"] == DBNull.Value || Convert.ToBoolean(r["Status"]) ? "Active" : "Inactive", "green") + "</div><div><small>Login Access</small>" + (Enabled(r) ? SA.Pill("Enabled", "green") : SA.Pill("Disabled", "red")) + "</div><div><small>Last Login</small><strong>" + SA.When(r["LastLoginDate"]) + "</strong></div></div></section>"
+             + "<section><h2><b class='sa-step'>2</b> Password Reset Email</h2><div class='sa-grid2'><div><label class='sa-field'><span>Send to Email Address</span><input value='" + SA.A(email) + "' readonly /></label><small class='sa-muted'>A secure password reset link will be sent to this email address.</small></div>"
+-            + "<div class='sa-preview'><small>Message Preview (Email Subject and Content)</small><p><b>Subject: Reset Your AnyMinute Password</b></p><p>Hello " + SA.H(first) + ",</p><p>We received a request to reset your AnyMinute account password. Click the link below to set a new password.</p><p><span class='sa-link'>Reset Your Password</span></p><p>If you did not request this, please ignore this email.</p><p>Thank you,<br />The AnyMinute Team</p></div></div></section>"
+-            + "<section><h2><b class='sa-step'>3</b> Confirm and Send</h2><div class='sa-flash sa-warn'><b>Please confirm before sending.</b><ul><li>A secure password reset link will be sent to " + SA.H(email) + ".</li><li>The link opens the existing AnyMinute reset page (ResetPassord.aspx).</li><li>The current password keeps working until the subscriber sets a new one.</li><li>This action will be recorded in the activity log.</li></ul></div></section>"
++            + "<div class='sa-preview'><small>Message Preview (Email Subject and Content)</small><p><b>Subject: Reset Your AnyMinute Password</b></p><p>Hello " + SA.H(first) + ",</p><p>We received a request to reset your AnyMinute account password. Click the link below to set a new password. This link will expire in 24 hours and can be used once.</p><p><span class='sa-link'>Reset Your Password</span></p><p>If you did not request this, please ignore this email.</p><p>Thank you,<br />The AnyMinute Team</p></div></div></section>"
++            + "<section><h2><b class='sa-step'>3</b> Confirm and Send</h2><div class='sa-flash sa-warn'><b>Please confirm before sending.</b><ul><li>A secure password reset link will be sent to " + SA.H(email) + ".</li><li>The link will expire in 24 hours and works only once; sending a new link cancels earlier ones.</li><li>The previous password will remain invalid after the reset.</li><li>This action will be recorded in the activity log.</li></ul></div></section>"
+             + "<div class='sa-panel-foot'><a class='sa-btn sa-btn-outline' href='SupportSubscribers.aspx?user=" + u + "'>Cancel</a><button type='submit' class='sa-btn' name='sa_op' value='reset'" + (ready ? "" : " disabled") + ">&#10148; Send Password Reset</button></div></div>";
+     }
+     string History(SqlConnection c, int user)
+@@ -136,6 +234,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+             return true;
+         }).ToList();
+         var events = all.Select(r => SA.S(r["Action"])).Distinct().OrderBy(x => x);
++        bool locCol = AnyminuteEmployeeEditor.HasColumn(c, null, "AnyminuteSupportAudit", "Location"); int budget = 3000;
+         var devices = all.Select(r => SA.S(r["Device"]).Split('/')[0].Trim()).Where(x => x.Length > 0).Distinct().OrderBy(x => x);
+         var sb = new StringBuilder("<div class='sa-card'><div class='sa-filters' data-sa-get='SupportSubscribers.aspx'><input type='hidden' name='user' value='" + user + "' /><input type='hidden' name='view' value='history' />"
+             + "<label class='sa-range'><span>Date Range</span><span><input type='date' name='from' value='" + SA.A(from) + "' aria-label='From' /> &ndash; <input type='date' name='to' value='" + SA.A(to) + "' aria-label='To' /></span></label>"
+@@ -150,13 +249,25 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+             bool ok = r["Success"] == DBNull.Value || Convert.ToBoolean(r["Success"]);
+             string by = SA.S(r["ChangedByName"]); bool self = by == "Subscriber";
+             sb.Append("<tr><td>").Append(SA.When(r["ChangedAtUTC"])).Append("</td><td><strong>").Append(SA.H(r["Action"])).Append("</strong></td><td>").Append(SA.H(r["Comments"])).Append("</td><td>").Append(SA.S(r["IpAddress"]).Length > 0 ? SA.H(r["IpAddress"]) : "&mdash;")
+-              .Append("</td><td><span class='sa-muted'>&mdash;</span></td><td>").Append(SA.S(r["Device"]).Length > 0 ? SA.H(r["Device"]) : "&mdash;").Append("</td><td>").Append(self ? "Subscriber" : SA.H(by) + "<br /><small>(Support Admin)</small>")
++              .Append("</td><td>").Append(Location(c, r, locCol, ref budget)).Append("</td><td>").Append(SA.S(r["Device"]).Length > 0 ? SA.H(r["Device"]) : "&mdash;").Append("</td><td>").Append(self ? "Subscriber" : SA.H(by) + "<br /><small>(Support Admin)</small>")
+               .Append("</td><td>").Append(SA.Pill(ok ? "Success" : "Failed", ok ? "green" : "red")).Append("</td></tr>");
+         }
+         if (rows.Count == 0) sb.Append("<tr><td colspan='8' class='sa-empty'>No login activity recorded yet. Sign-ins are recorded from v25 onward.</td></tr>");
+         string baseQ = "user=" + user + "&view=history&from=" + from + "&to=" + to + "&event=" + HttpUtility.UrlEncode(ev) + "&status=" + st + "&ip=" + HttpUtility.UrlEncode(ip) + "&device=" + HttpUtility.UrlEncode(dev);
+         return sb.Append("</tbody></table></div>").Append(SA.Pager(rows.Count, page, PageSize, baseQ).Replace(" of " + rows.Count + "</span>", " of " + rows.Count + " activities</span>")).Append("</div>").ToString();
+     }
++    // Stored location, else best-effort lookup (AnyminuteGeoIp) saved back to the audit row so it is resolved once.
++    static string Location(SqlConnection c, DataRow r, bool locCol, ref int budget)
++    {
++        string ip = SA.S(r["IpAddress"]);
++        if (ip.Length == 0) return "&mdash;";
++        if (locCol && SA.S(r["Location"]).Length > 0) return SA.H(r["Location"]);
++        string loc = AnyminuteGeoIp.Locate(ip, ref budget);
++        if (loc == AnyminuteGeoIp.NotConfigured) return "<span class='sa-muted' title='Public IP locations need a lookup service: set GeoIpLookupUrl in web.config.'>Not resolved</span>";
++        if (loc.Length == 0) return "<span class='sa-muted'>Unknown</span>";
++        if (locCol) try { SA.X(c, null, "UPDATE AnyminuteSupportAudit SET Location=@l WHERE AuditID=@id AND Location IS NULL", "@l", loc.Length > 120 ? loc.Substring(0, 120) : loc, "@id", r["AuditID"]); } catch (SqlException) { }
++        return SA.H(loc);
++    }
+     void Act(int user)
+     {
+         string op = SA.Form("sa_op"); int u; Int32.TryParse(SA.Form("sa_user"), out u);
+@@ -178,10 +289,12 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+                     AnyminuteTimesheetRepair.Execute(c, tx, @"IF NOT EXISTS(SELECT 1 FROM AnyminuteLoginSecurity WHERE UserId=@u) INSERT AnyminuteLoginSecurity(UserId,LoginDisabled,RequirePasswordChange,TwoFactorEnabled,UpdatedAtUTC,UpdatedBy) VALUES(@u,0,0,0,SYSUTCDATETIME(),@a);
+                         UPDATE AnyminuteLoginSecurity SET LoginDisabled=@d,UpdatedAtUTC=SYSUTCDATETIME(),UpdatedBy=@a WHERE UserId=@u", "@u", u, "@a", SA.ActorId(), "@d", !enable);
+                     if (enable) AnyminuteTimesheetRepair.Execute(c, tx, "UPDATE UserAcc SET Status=1 WHERE UserId=@u AND Status=0", "@u", u);
+-                    SA.Audit(c, tx, "Login", key, enable ? "Login Access Enabled" : "Login Access Disabled", was ? "Enabled" : "Disabled", enable ? "Enabled" : "Disabled", null, null, reason);
++                    int ended = enable ? 0 : AnyminuteSessionGuard.Revoke(c, tx, u, "Login access disabled by Support Admin");
++                    SA.Audit(c, tx, "Login", key, enable ? "Login Access Enabled" : "Login Access Disabled", was ? "Enabled" : "Disabled", enable ? "Enabled" : "Disabled", null, null, reason + (enable ? "" : ended >= 0 ? " [Sessions revoked: " + ended + "]" : ""));
+                     tx.Commit();
++                    if (!enable) AnyminuteSessionGuard.Revoked(u);
+                 }
+-                SA.Flash(enable ? "Login access enabled." : "Login access disabled. The subscriber can no longer sign in.");
++                SA.Flash(enable ? "Login access enabled." : "Login access disabled. The subscriber can no longer sign in and active sessions were revoked.");
+                 Back(u, null); return;
+             }
+             if (op == "invite" || op == "reset")
+@@ -195,9 +308,12 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+                 var mail = new EmailSettingController();
+                 if (op == "reset")
+                 {
+-                    string body = "<p>Hello " + first + ",</p><p>We received a request to reset your AnyMinute account password. Click the link below to set a new password.</p><p><a href=\"" + HttpUtility.HtmlAttributeEncode(url) + "\">Reset Your Password</a></p><p>If you did not request this, please ignore this email.</p><p>Thank you,<br />The AnyMinute Team</p>";
++                    // v26: one-time token, valid 24 hours (REQUIRED_08). Without the table the legacy link is refused rather than sent unprotected.
++                    if (!AnyminutePasswordReset.Ready(c)) { SA.Flash("Run DB_REQUIRED/REQUIRED_08_SupportAdminStrict.sql to enable 24-hour password reset links. Nothing was sent."); Back(u, "reset"); return; }
++                    url += "&rt=" + AnyminutePasswordReset.Issue(c, null, u, linkEmployee, email, SA.ActorId());
++                    string body = "<p>Hello " + first + ",</p><p>We received a request to reset your AnyMinute account password. Click the link below to set a new password. This link will expire in 24 hours and can be used once.</p><p><a href=\"" + HttpUtility.HtmlAttributeEncode(url) + "\">Reset Your Password</a></p><p>If you did not request this, please ignore this email.</p><p>Thank you,<br />The AnyMinute Team</p>";
+                     mail.SendHtmlFormattedEmail(email, "Reset Your AnyMinute Password", body);
+-                    SA.Audit(c, null, "Login", key, "Password Reset", null, null, null, email, "Password reset link sent to subscriber.");
++                    SA.Audit(c, null, "Login", key, "Password Reset", null, null, null, email, "Password reset link sent to subscriber (expires in 24 hours, one-time use).");
+                     SA.Flash("Password reset link sent to " + email + ".");
+                 }
+                 else
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportTickets.aspx b/AMV3Reseller_27Aug2022_Subscription/SupportTickets.aspx
+index 1a138f7..c83626e 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportTickets.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportTickets.aspx
+@@ -1,9 +1,9 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="SupportTickets.aspx.cs" Inherits="AnyminuteSupportTicketsPage" Title="Support Tickets" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261028v25" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261028v25" defer="defer"></script></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261028v26" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261028v26" defer="defer"></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section class="sa-page">
+  <header class="sa-head"><div><h1>Support Tickets</h1><p>View and manage support tickets from subscribers.</p></div>
+-  <a class="sa-btn" href="Raise_Ticket_By_User.aspx">+ Create Ticket</a></header>
++  <a class="sa-btn" href="SupportTickets.aspx?create=1">+ Create Ticket</a></header>
+  <asp:Literal ID="Flash" runat="server" />
+  <div class="sa-kpis"><asp:Literal ID="Kpis" runat="server" /></div>
+  <div class="sa-split">
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportTickets.aspx.cs b/AMV3Reseller_27Aug2022_Subscription/SupportTickets.aspx.cs
+index 5aa885b..8391205 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportTickets.aspx.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportTickets.aspx.cs
+@@ -13,6 +13,8 @@ using SA = AnyminuteSupportAdmin;
+ // Uses the existing Ticket / Ticket_Comments tables and legacy StatusType codes (Ticket_List.aspx keeps working);
+ // subject/category/priority/assignee/archive live in AnyminuteTicketMeta and every action is written to
+ // AnyminuteSupportAudit (Ticket Activity History). Both tables come from REQUIRED_07.
++// 2026-10-28 v26: Create Ticket on behalf of a subscriber (?create=1): writes Ticket, the first Ticket_Comments row,
++// AnyminuteTicketMeta and a "Created" audit row in one transaction (direct insert: Sp_InsertTicket cuts the description).
+ public partial class AnyminuteSupportTicketsPage : System.Web.UI.Page
+ {
+     const int PageSize = 10;
+@@ -104,6 +106,7 @@ public partial class AnyminuteSupportTicketsPage : System.Web.UI.Page
+                 var one = Load(c, ready, id);
+                 if (one.Rows.Count == 1) Panel.Text = TicketPanel(c, one.Rows[0], panel, ready, here);
+             }
++            else if (SA.Get("create") == "1") Panel.Text = CreatePanel(c, ready);
+         }
+     }
+     static string Pager(int total, int page, string baseQ)
+@@ -141,8 +144,7 @@ public partial class AnyminuteSupportTicketsPage : System.Web.UI.Page
+               .Append(field("Comments (reason)", "<textarea name='sa_comment' rows='2' maxlength='1000'" + dis + "></textarea>")).Append(Foot(back, "edit", "Save Changes", dis));
+         else if (panel == "assign")
+         {
+-            var admins = SA.Q(c, "SELECT LTRIM(RTRIM(ISNULL(FirstName,'')+' '+ISNULL(LastName,''))) N FROM SupportAdmin WHERE ISNULL(Status,'') NOT IN('0','Inactive','False') ORDER BY 1").Rows.Cast<DataRow>().Select(x => SA.S(x[0])).Where(x => x.Length > 0).Distinct().ToList();
+-            if (!admins.Contains(SA.ActorName())) admins.Insert(0, SA.ActorName());
++            var admins = Admins(c);
+             sb.Append(field("Assign To", "<select name='sa_assignee'" + dis + ">" + SA.Options(admins, SA.S(r["AssignedTo"]), "Unassigned") + "</select>"))
+               .Append(field("Comments", "<textarea name='sa_comment' rows='3' maxlength='1000'" + dis + "></textarea>")).Append(Foot(back, "assign", "Save Assignment", dis));
+         }
+@@ -159,12 +161,76 @@ public partial class AnyminuteSupportTicketsPage : System.Web.UI.Page
+             sb.Append(SA.HistoryTable(ready ? SA.History(c, "Ticket", tid.ToString(CultureInfo.InvariantCulture)) : null, "No support actions recorded for this ticket yet."));
+         return sb.Append("</aside>").ToString();
+     }
++    static DataTable Subscribers(SqlConnection c, int user)
++    {
++        return SA.Q(c, @"SELECT u.UserId,u.EmployeeId,u.Email,u.MotherOrgid,ae.MotherOrgID AeOrg,ae.MobilePhone,LTRIM(RTRIM(ISNULL(ae.FirstName,'')+' '+ISNULL(ae.LastName,''))) Name
++            FROM UserAcc u LEFT JOIN AddEmployee ae ON ae.EmployeeID=u.EmployeeId WHERE EXISTS(SELECT 1 FROM MappingTable m WHERE m.USERID=u.UserId AND m.UserTypeId=1)" + (user > 0 ? " AND u.UserId=@u" : "") + " ORDER BY Name,u.Email", "@u", user);
++    }
++    static List<string> Admins(SqlConnection c)
++    {
++        var admins = SA.Q(c, "SELECT LTRIM(RTRIM(ISNULL(FirstName,'')+' '+ISNULL(LastName,''))) N FROM SupportAdmin WHERE ISNULL(Status,'') NOT IN('0','Inactive','False') ORDER BY 1").Rows.Cast<DataRow>().Select(x => SA.S(x[0])).Where(x => x.Length > 0).Distinct().ToList();
++        if (!admins.Contains(SA.ActorName())) admins.Insert(0, SA.ActorName());
++        return admins;
++    }
++    string CreatePanel(SqlConnection c, bool ready)
++    {
++        string dis = ready ? "" : " disabled"; int pre; Int32.TryParse(SA.Get("user"), out pre);
++        var sb = new StringBuilder("<aside class='sa-card sa-panel' aria-label='Create Ticket'><div class='sa-panel-head'><div><h2>Create Ticket</h2><small>On behalf of a subscriber</small></div><a class='sa-x' aria-label='Close' href='SupportTickets.aspx'>&times;</a></div>");
++        sb.Append("<label class='sa-field'><span>Subscriber *</span><select name='sa_user' required").Append(dis).Append("><option value=''>Select subscriber</option>");
++        foreach (DataRow r in Subscribers(c, 0).Rows)
++        {
++            int u = Convert.ToInt32(r["UserId"]); string n = SA.S(r["Name"]);
++            sb.Append("<option value='").Append(u).Append("'").Append(u == pre ? " selected" : "").Append(">").Append(SA.H((n.Length > 0 ? n + " - " : "") + SA.S(r["Email"]))).Append("</option>");
++        }
++        sb.Append("</select></label><label class='sa-field'><span>Subject *</span><input name='sa_subject' maxlength='200' required").Append(dis).Append(" /></label>")
++          .Append("<div class='sa-row2'><label class='sa-field'><span>Category</span><select name='sa_category'").Append(dis).Append(">").Append(SA.Options(SA.Categories, "Other", null)).Append("</select></label>")
++          .Append("<label class='sa-field'><span>Priority</span><select name='sa_priority'").Append(dis).Append(">").Append(SA.Options(SA.Priorities, "Medium", null)).Append("</select></label></div>")
++          .Append("<div class='sa-row2'><label class='sa-field'><span>Assign To</span><select name='sa_assignee'").Append(dis).Append(">").Append(SA.Options(Admins(c), SA.ActorName(), "Unassigned")).Append("</select></label>")
++          .Append("<label class='sa-field'><span>Status</span><select name='sa_status'").Append(dis).Append(">").Append(SA.Options(SA.TicketStatuses.Where(x => x != "Resolved"), "Open", null)).Append("</select></label></div>")
++          .Append("<label class='sa-field'><span>Description *</span><textarea name='sa_desc' rows='6' maxlength='4000' required").Append(dis).Append("></textarea></label>")
++          .Append("<div class='sa-panel-foot'><a class='sa-btn sa-btn-outline' href='SupportTickets.aspx'>Cancel</a><button type='submit' class='sa-btn' name='sa_op' value='create'").Append(dis).Append(">Create Ticket</button></div>");
++        return sb.Append("</aside>").ToString();
++    }
++    void Create()
++    {
++        int u; Int32.TryParse(SA.Form("sa_user"), out u);
++        string subj = SA.Form("sa_subject"), cat = SA.Form("sa_category"), pr = SA.Form("sa_priority"), who = SA.Form("sa_assignee"), stl = SA.Form("sa_status"), desc = SA.Form("sa_desc");
++        Action<string> fail = m => { SA.Flash(m); Response.Redirect("SupportTickets.aspx?create=1" + (u > 0 ? "&user=" + u : ""), false); Context.ApplicationInstance.CompleteRequest(); };
++        if (u <= 0) { fail("Choose the subscriber."); return; }
++        if (subj.Length == 0 || desc.Length == 0) { fail("Enter a subject and a description."); return; }
++        if (!SA.Categories.Contains(cat) || !SA.Priorities.Contains(pr) || !SA.TicketStatuses.Contains(stl) || stl == "Resolved") { fail("Choose a valid category, priority and status."); return; }
++        if (subj.Length > 200) subj = subj.Substring(0, 200); if (desc.Length > 4000) desc = desc.Substring(0, 4000);
++        int tid;
++        using (var c = SA.Open())
++        {
++            if (!SA.Has(c, "AnyminuteTicketMeta") || !SA.Has(c, "AnyminuteSupportAudit")) { fail(SA.MissingTables); return; }
++            var t = Subscribers(c, u); if (t.Rows.Count != 1) { fail("Subscriber not found."); return; }
++            var r = t.Rows[0]; string name = SA.S(r["Name"]).Length > 0 ? SA.S(r["Name"]) : SA.S(r["Email"]);
++            int org; if (!Int32.TryParse(SA.S(r["MotherOrgid"]), out org)) Int32.TryParse(SA.S(r["AeOrg"]), out org);
++            using (var tx = c.BeginTransaction())
++            {
++                tid = Convert.ToInt32(AnyminuteTimesheetRepair.Query(c, tx, @"INSERT Ticket(MotherOrgId,EmpId,Name,EmailId,PhoneNO,ProblemType,Module,FileUploadName,Description,StatusType,TicketSeverity,TicketRaiseDate)
++                    VALUES(@o,@e,@n,@m,@p,'4','1','No_attachment.png',@d,@s,@pr,CAST(GETDATE() AS date)); SELECT CAST(SCOPE_IDENTITY() AS int)",
++                    "@o", org, "@e", Convert.ToInt32(r["EmployeeId"]), "@n", name, "@m", SA.S(r["Email"]), "@p", SA.S(r["MobilePhone"]), "@d", desc, "@s", SA.StatusCode(stl), "@pr", pr).Rows[0][0]);
++                AnyminuteTimesheetRepair.Execute(c, tx, "UPDATE Ticket SET TicketNo=@no WHERE TicketId=@i", "@no", "TK-" + tid, "@i", tid);
++                AnyminuteTimesheetRepair.Execute(c, tx, "INSERT Ticket_Comments(TicketId,EmpId,Name,EmailId,CommentsBy,Comments,CommentsDate) VALUES(@i,@e,@n,@m,@b,@c,GETDATE())",
++                    "@i", tid, "@e", Convert.ToInt32(r["EmployeeId"]), "@n", name, "@m", SA.S(r["Email"]), "@b", name + " (created by " + SA.ActorName() + ", Support Admin)", "@c", desc);
++                AnyminuteTimesheetRepair.Execute(c, tx, "INSERT AnyminuteTicketMeta(TicketId,Subject,Category,Priority,AssignedTo,UpdatedAtUTC) VALUES(@i,@s,@c,@p,@a,SYSUTCDATETIME())",
++                    "@i", tid, "@s", subj, "@c", cat, "@p", pr, "@a", who.Length == 0 ? (object)DBNull.Value : who);
++                SA.Audit(c, tx, "Ticket", tid.ToString(CultureInfo.InvariantCulture), "Created", null, stl, null, subj, "Created on behalf of " + name + " (" + SA.S(r["Email"]) + ")" + (who.Length > 0 ? "; assigned to " + who : ""));
++                tx.Commit();
++            }
++        }
++        SA.Flash("Ticket TK-" + tid + " created on behalf of the subscriber.");
++        Back(tid, "details");
++    }
+     static string Foot(string back, string op, string label, string dis)
+     {
+         return "<div class='sa-panel-foot'><a class='sa-btn sa-btn-outline' href='SupportTickets.aspx?" + SA.A(back) + "'>Cancel</a><button type='submit' class='sa-btn' name='sa_op' value='" + op + "'" + dis + ">" + label + "</button></div>";
+     }
+     void Act()
+     {
++        if (SA.Form("sa_op") == "create") { Create(); return; }
+         string op = SA.Form("sa_op"); int tid; Int32.TryParse(SA.Form(op == "archive" ? "sa_id" : "sa_tid"), out tid); // archive comes from the row menu
+         string comment = SA.Form("sa_comment"); if (comment.Length > 1000) comment = comment.Substring(0, 1000);
+         using (var c = SA.Open())
+diff --git a/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteSupport.css b/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteSupport.css
+index 24cd8bc..d6bbb63 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteSupport.css
++++ b/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteSupport.css
+@@ -118,3 +118,5 @@
+ .sa-step{display:inline-flex;width:26px;height:26px;border-radius:50%;background:var(--sa-blue);color:#fff;align-items:center;justify-content:center;font-size:13px;margin-right:6px}
+ .sa-preview{background:#f3f7ff;border:1px solid #c9dcff;border-radius:8px;padding:10px 12px}.sa-preview p{margin:0 0 6px}
+ @media (max-width:1100px){.sa-flow{grid-template-columns:1fr 1fr}.sa-flow>li::after{display:none}.sa-split{flex-direction:column}.sa-panel{width:100%;position:static;max-height:none}.sa-kpis{grid-template-columns:1fr 1fr}.sa-grid2,.sa-actions3{grid-template-columns:1fr}}
++.sa-grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.sa-grid3 .sa-card h2{margin:6px 0}@media(max-width:800px){.sa-grid3{grid-template-columns:1fr}}
++.sa-suggest{margin-top:6px;text-align:left;white-space:normal}
+diff --git a/DB_REQUIRED/REQUIRED_08_SupportAdminStrict.sql b/DB_REQUIRED/REQUIRED_08_SupportAdminStrict.sql
+new file mode 100644
+index 0000000..21c2e77
+--- /dev/null
++++ b/DB_REQUIRED/REQUIRED_08_SupportAdminStrict.sql
+@@ -0,0 +1,47 @@
++/* AnyMinute - Support Admin strict deck pass (2026-10-28 v26). Run AFTER REQUIRED_01 and REQUIRED_07.
++   Additive and idempotent: adds 2 nullable columns, 2 new tables and 1 AFTER INSERT trigger. No existing column,
++   procedure or row is changed or deleted. Safe to run more than once.
++   - AnyminuteLoginSecurity.SessionsRevokedAtUTC : Disable Login Access ends live sessions (checked on the next request).
++   - AnyminuteSupportAudit.Location               : resolved IP location for Login Activity History.
++   - AnyminuteActiveSession                       : Active Sessions count on Login & Access.
++   - AnyminutePasswordResetToken                  : 24-hour, one-time password reset links (only a SHA-256 hash is stored).
++   - TR_AnyminuteAddressMaster_Submitted          : records the submitted date + original values of every new AddressMaster row
++                                                    in AnyminuteAddressReview (Address Verification "Submitted Date"). */
++SET XACT_ABORT ON;
++BEGIN TRANSACTION;
++IF OBJECT_ID('dbo.AnyminuteLoginSecurity','U') IS NOT NULL AND COL_LENGTH('dbo.AnyminuteLoginSecurity','SessionsRevokedAtUTC') IS NULL
++    ALTER TABLE dbo.AnyminuteLoginSecurity ADD SessionsRevokedAtUTC datetime2(0) NULL;
++IF OBJECT_ID('dbo.AnyminuteSupportAudit','U') IS NOT NULL AND COL_LENGTH('dbo.AnyminuteSupportAudit','Location') IS NULL
++    ALTER TABLE dbo.AnyminuteSupportAudit ADD Location nvarchar(120) NULL;
++IF OBJECT_ID('dbo.AnyminuteActiveSession','U') IS NULL
++CREATE TABLE dbo.AnyminuteActiveSession(
++    SessionId varchar(100) NOT NULL CONSTRAINT PK_AnyminuteActiveSession PRIMARY KEY,
++    UserId int NOT NULL,
++    StartedAtUTC datetime2(0) NOT NULL CONSTRAINT DF_AnyminuteActiveSession_Start DEFAULT SYSUTCDATETIME(),
++    LastSeenAtUTC datetime2(0) NOT NULL CONSTRAINT DF_AnyminuteActiveSession_Seen DEFAULT SYSUTCDATETIME(),
++    IpAddress varchar(45) NULL, Device nvarchar(200) NULL,
++    EndedAtUTC datetime2(0) NULL, EndReason nvarchar(100) NULL);
++IF NOT EXISTS(SELECT 1 FROM sys.indexes WHERE name='IX_AnyminuteActiveSession_User')
++CREATE INDEX IX_AnyminuteActiveSession_User ON dbo.AnyminuteActiveSession(UserId,EndedAtUTC,LastSeenAtUTC);
++IF OBJECT_ID('dbo.AnyminutePasswordResetToken','U') IS NULL
++CREATE TABLE dbo.AnyminutePasswordResetToken(
++    TokenHash char(64) NOT NULL CONSTRAINT PK_AnyminutePasswordResetToken PRIMARY KEY,
++    UserId int NOT NULL, EmployeeId int NOT NULL, Email nvarchar(200) NULL,
++    CreatedAtUTC datetime2(0) NOT NULL CONSTRAINT DF_AnyminutePasswordResetToken_Created DEFAULT SYSUTCDATETIME(),
++    ExpiresAtUTC datetime2(0) NOT NULL, UsedAtUTC datetime2(0) NULL, CreatedBy int NULL);
++IF NOT EXISTS(SELECT 1 FROM sys.indexes WHERE name='IX_AnyminutePasswordResetToken_User')
++CREATE INDEX IX_AnyminutePasswordResetToken_User ON dbo.AnyminutePasswordResetToken(UserId,UsedAtUTC);
++COMMIT TRANSACTION;
++GO
++IF OBJECT_ID('dbo.AnyminuteAddressReview','U') IS NOT NULL AND OBJECT_ID('dbo.TR_AnyminuteAddressMaster_Submitted','TR') IS NULL
++EXEC(N'CREATE TRIGGER dbo.TR_AnyminuteAddressMaster_Submitted ON dbo.AddressMaster AFTER INSERT AS
++BEGIN
++    SET NOCOUNT ON;
++    INSERT dbo.AnyminuteAddressReview(AddressMasterId,SubmittedAtUTC,OrigStreet,OrigCity,OrigProvince,OrigPostal,Status)
++    SELECT i.AddressMasterId,SYSUTCDATETIME(),LEFT(CONVERT(nvarchar(400),i.Street_Name),200),LEFT(CONVERT(nvarchar(400),i.City),200),LEFT(CONVERT(nvarchar(400),i.Province),200),LEFT(CONVERT(nvarchar(400),i.PostalCode),200),CASE WHEN i.Verifed=1 THEN ''Verified'' ELSE ''Pending'' END
++    FROM inserted i WHERE NOT EXISTS(SELECT 1 FROM dbo.AnyminuteAddressReview r WHERE r.AddressMasterId=i.AddressMasterId);
++END');
++GO
++SELECT name AS created_or_present FROM sys.objects WHERE name IN('AnyminuteActiveSession','AnyminutePasswordResetToken','TR_AnyminuteAddressMaster_Submitted')
++UNION ALL SELECT 'AnyminuteLoginSecurity.SessionsRevokedAtUTC' WHERE COL_LENGTH('dbo.AnyminuteLoginSecurity','SessionsRevokedAtUTC') IS NOT NULL
++UNION ALL SELECT 'AnyminuteSupportAudit.Location' WHERE COL_LENGTH('dbo.AnyminuteSupportAudit','Location') IS NOT NULL;
+diff --git a/FIX_REPORT_v26.md b/FIX_REPORT_v26.md
+new file mode 100644
+index 0000000..e113cb2
+--- /dev/null
++++ b/FIX_REPORT_v26.md
+@@ -0,0 +1,64 @@
++# AnyMinute v26 Fix Report (2026-10-28): Support Admin strict deck pass
++
++v26 builds on v25 (f0a6107). It keeps every fix from v18 to v25 and closes the gaps between the v25 Support Admin console and Shamsu's decks.
++
++## Deploying v26
++1. Copy the whole `site/` folder over the live site, **including App_Code/ and Global.asax**. Web.config is not shipped.
++2. Run **DB_REQUIRED/REQUIRED_08_SupportAdminStrict.sql**. Run REQUIRED_07 first if it has not been run yet.
++3. Recycle the app pool.
++- **Deploy check:** the page source shows `<meta name="anyminute-build" content="v26-20261028" />`.
++- **Cache bust:** `css/AnyminuteSupport.css` and `Scripts/AnyminuteSupport.js` changed, so the 4 Support pages now load them with `?v=20261028v26`. No other CSS or JS changed.
++- **Global.asax is new in this package.** It is the repository copy with one handler added (`Application_PostAcquireRequestState`, which calls `AnyminuteSessionGuard.Check`). If the live Global.asax differs from the repository copy, add only that handler to it instead of overwriting the file.
++- **REQUIRED_08 is additive and idempotent:**
++  - New nullable columns `AnyminuteLoginSecurity.SessionsRevokedAtUTC` and `AnyminuteSupportAudit.Location`.
++  - New tables `AnyminuteActiveSession` and `AnyminutePasswordResetToken` (stores only the SHA-256 of each token).
++  - An AFTER INSERT trigger on `AddressMaster` that records the submitted date and the original values in `AnyminuteAddressReview`.
++  - No existing rows, columns or procedures are changed.
++  - Until the script has been run, the new features turn themselves off: no session checks, and the reset email is refused with a notice naming REQUIRED_08.
++
++## Gaps closed
++1. **Address Verification: Verify and submitter/date.**
++   - "Verify Address" runs the format check, then calls `SupportAddresses.aspx?verify=1`. That endpoint compares the address with the existing lookup data (verified `AddressMaster` rows with the same postal code, plus subscriber and employee addresses).
++   - It returns one of four results:
++     - **match:** the postal code and street match.
++     - **partial:** shown with "Use: …" suggestion buttons that fill the fields and verify again.
++     - **new:** the postal code is not in the lookup.
++     - **error:** this result blocks Approve.
++   - Approve re-runs the check on the server and appends `[Verify: …]` to the notes. City and Province keep their ID values in the master tables.
++   - Names are now resolved in the list and the editor; missing values show as "Not linked" or "—". "Submitted By" comes from the review row or from the linked subscriber or employee.
++   - "Submitted Date" is recorded for every new address (trigger). Addresses created before v26 show "Not recorded (added before v26)".
++2. **Login Activity: Location.**
++   - Private and loopback IPs are labelled with no network call.
++   - Public IPs are looked up only when the appSetting `GeoIpLookupUrl` is set (for example `https://ipapi.co/{ip}/json/`). The lookup has a 1.5 s timeout and caches results for 24 h.
++   - Each resolved location is stored in `AnyminuteSupportAudit.Location`. When the setting is missing, the column shows "Not resolved" (the tooltip names the setting).
++3. **Disable Login Access ends live sessions.**
++   - Disabling a user stamps `SessionsRevokedAtUTC` and closes their active-session rows in the same transaction.
++   - On the user's next request (checked from cache at once, and from the DB at most every 60 s), the session is cleared and they are sent to `Login.aspx?revoked=1`, which explains why.
++   - The audit records how many sessions were revoked. "Active Sessions" on Login & Access is now a real count.
++4. **24-hour one-time reset link.**
++   - "Send Password Reset Link" issues a random token, valid for 24 hours and usable once. Earlier unused tokens for that user are invalidated.
++   - `ResetPassord.aspx?…&rt=` shows the new-password form only for a valid token. It re-checks the token on submit and then marks it used ('Password Changed' audit).
++   - The old reset flow without `rt` (invitations) is unchanged.
++5. **Plan catalogue drives the limits.**
++   - Saving a plan whose Max Businesses or Max Employees changed offers "Apply the new employee / business limits to the N active subscription(s) on this plan" (checked by default).
++   - That option updates `PlanHistory.No_Of_Users/Business` in the same transaction and records the row count in the audit.
++   - New Basic sign-ups (`Register_As_A_Bo`) take their limits from the catalogue.
++   - Usage & Limits now matches plan names regardless of case or a " PLAN" suffix, and shows "Limits applied: x of y".
++6. **Subscribers: Businesses, Employees, Projects and Billing tabs** in deck order, each with a count. The lists are read-only with search and pages. Billing shows the plan history, usage against limits and catalogue Max Projects.
++7. **Create Ticket on behalf of a subscriber** (`SupportTickets.aspx?create=1`):
++   - Fields: subscriber, subject, category, priority, assignee, status and description.
++   - It writes the Ticket (`TK-<id>`), the first comment ("created by …, Support Admin"), the ticket meta row and a "Created" audit row.
++8. **Navigation for the SupportAdmin role.** The deck menu comes first. Legacy pages the deck replaces are hidden: Ticket_List, Raise_Ticket_By_User, SearchAddress, PostalCode, SuperAdmin and LoginAccess. The remaining legacy tools appear under "More tools". Header Help → Tickets opens SupportTickets. **SuperAdmin navigation is unchanged.**
++
++## Known limits (please read)
++- **Location** needs `GeoIpLookupUrl` in Web.config (not shipped). Pick the provider and check its terms and quota.
++- **Stripe** prices and products are not linked. Plan edits change AnyMinute limits only.
++- **Max Projects and Trial Days** are stored in the catalogue only. No AnyMinute page enforces them yet.
++- **Basic sign-up limit:** the seeded catalogue Basic plan is 10 employees / 1 business, so new Basic sign-ups now get 10 employees instead of the hard-coded 5. Edit the Basic plan in Subscription Plans if 5 is wanted.
++- **Session revocation** relies on the web server and DB clocks agreeing (UTC). Sessions that started before v26 are tracked from their first request after deploy.
++- **Pre-existing build note (not new in v26):** `Register_As_A_Bo.aspx.cs` line 638 uses `DateTimeOffset.ToUnixTimeSeconds`, which requires .NET Framework 4.6 or later on the server.
++
++## Verification
++- App_Code and every changed page and master compile with mcs at `-langversion:5`. Exception: the pre-existing 4.6 API above, which fails only against the 4.5 reference profile.
++- `AnyminuteSupport.js` passes a `node --check` syntax check.
++- No live DB or browser test was possible from the build box. Please smoke-test on staging after running REQUIRED_08.

@@ -1,0 +1,7 @@
+# NOTES v64-20261104
+Cumulative on v63. Build stamp v64-20261104; cache-bust ?v=20261104v64. Code commit 38ed15d.
+1. Subscriber My Profile: MyProfile.aspx redirects business owners (AssginBussiness UserTypeId=1) to BusinessOwnerProfile.aspx?ProfileEmployeeId=<own id> (personal + contact). Its Back links now go to Dashboard (no loop).
+2. Businesses actions: Add_Business resolves missing Session MotherOrgid from AssginBussiness, guards empty MotherOrg / PlanHistory rows, null session strings, missing business on edit, bad agreement date. User List: AnyminuteDirectoryScope lets AssginBussiness owners read the directory regardless of session/UserAcc role and skips (not 403s) businesses outside role.
+3. Accountant & Payroll Access: AccountantAccess.aspx now has inline Invite form (User Information | Access & Permissions | Business Access, Clear form / Send Invitation, "Access starts only after the invitation is accepted") + "Invited & Active Users" with All/Pending/Active tabs + existing filters. BusinessAccountant.aspx (old Assign Accountant) redirects there with ?BusinessId preselected; Dashboard link renamed "Accountant & Payroll".
+4. Action column: primary View (AccountantInvite.aspx?...&view=1 read-only); kebab holds Edit Access, Resend Invitation (pending), Cancel Invitation / Delete-Remove Access.
+Not live-tested (no smoke against subscribe.anyminute.net). Root cause of error page for #2 inferred from code, not server logs.
