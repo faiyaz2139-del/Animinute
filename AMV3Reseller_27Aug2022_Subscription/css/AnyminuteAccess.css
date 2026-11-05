@@ -78,7 +78,7 @@ body.am-ui .am-access .am-pj-actions .am-pj-ic:not(.am-pj-red):not(.am-pj-kebab)
 .am-ac-tabs button.is-on{color:#1d4ed8;border-bottom-color:#1d4ed8}
 .am-pj-actions .am-ac-view{padding:4px 14px;min-height:0;font-size:13px;margin-right:6px}
 
-/* v65-20261105 (PPT s5 strict to mock image5, s6 View + kebab): .am-acx layout */
+/* v66-20261105 (Action column: status-aware inline + kebab Edit/Delete/Reset); base v65 .am-acx layout */
 body .am-acx{max-width:1280px;color:#1f2937}
 body .am-acx .am-acx-top{display:flex;align-items:center;gap:16px;margin:4px 0 16px}
 body .am-acx .am-acx-topicon{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:10px;background:#e8f0fe;color:#1d4ed8;flex:0 0 44px}
@@ -139,8 +139,13 @@ body .am-acx .am-acx-st-active{background:#dcf6e7;color:#15803d}
 body .am-acx .am-acx-st-expired{background:#f1f5f9;color:#475569}
 body .am-acx .am-acx-st-revoked{background:#fde8e8;color:#b42318}
 body .am-acx .am-acx-actions{white-space:nowrap}
-body .am-acx .am-acx-view{height:30px;padding:0 16px;background:#fff;border:1px solid #1463f3;color:#1463f3;margin-right:6px;vertical-align:middle}
-body .am-acx .am-acx-more{position:relative;display:inline-block;vertical-align:middle}
+body .am-acx .am-acx-actions .am-acx-btn,body .am-acx .am-acx-actions .am-acx-link-danger{margin-right:6px;vertical-align:middle}
+body .am-acx .am-acx-actions .am-acx-btn{height:30px;padding:0 12px;font-size:12.5px}
+body .am-acx .am-acx-ghost{background:#fff;border:1px solid #94a3b8;color:#334155}
+body .am-acx .am-acx-ghost:hover{background:#f8fafc;border-color:#64748b}
+body .am-acx .am-acx-link-danger{display:inline-flex;align-items:center;height:30px;padding:0 4px;border:0;background:transparent;color:#dc2626;font-size:12.5px;font-weight:600;text-decoration:none;cursor:pointer;box-shadow:none}
+body .am-acx .am-acx-link-danger:hover{color:#b91c1c;text-decoration:underline}
+body .am-acx .am-acx-more{position:relative;display:inline-block;vertical-align:middle;margin-left:2px}
 body .am-acx .am-acx-kebab{width:30px;height:30px;border:1px solid #cbd5e1;border-radius:6px;background:#fff;color:#334155;font-size:18px;line-height:1;cursor:pointer;padding:0}
 body .am-acx .am-acx-more.am-pj-open .am-acx-kebab{background:#e5eefc}
 body .am-acx .am-acx-menu{display:none;position:absolute;right:0;top:34px;z-index:50;min-width:180px;padding:6px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;box-shadow:0 10px 28px rgba(16,24,40,.16);text-align:left}

@@ -323,6 +323,30 @@ public static class AnyminuteAccessService
         if (Installed()) return Provision(invite);
         return SendNotice(invite);
     }
+
+    // v66: Reset is non-destructive. Pending invitations re-run SendEmail (same as Resend). Active invitation
+    // records re-email current sign-in details (User ID + password reminder + set-password link when configured).
+    // Legacy Active rows without an InviteId are not wiped; they get a clear error instead.
+    public static string Reset(AnyminuteAccessRow row)
+    {
+        if (row == null) throw new InvalidOperationException("This access record was not found.");
+        if (row.Status == "Invited")
+        {
+            if (row.InviteId <= 0) throw new InvalidOperationException("Only invitation records can be reset.");
+            return SendEmail(row.InviteId);
+        }
+        if (row.Status != "Active") throw new InvalidOperationException("Only pending or active access can be reset.");
+        if (row.InviteId <= 0 || row.UserId <= 0)
+            throw new InvalidOperationException("Reset needs an activated invitation with a login. Open Edit for legacy accountants without an invitation.");
+        int employee;
+        using (var c = AnyminuteTimesheetRepair.Open())
+        {
+            var t = Q(c, null, "SELECT TOP 1 EmployeeID FROM MappingTable WHERE USERID=@u AND UserTypeId=12 ORDER BY EmployeeID", "@u", row.UserId);
+            if (t.Rows.Count == 0) throw new InvalidOperationException("No accountant login was found for this user.");
+            employee = Convert.ToInt32(t.Rows[0][0]);
+        }
+        return "Access reset: " + SendCredentials(row.InviteId, row.UserId, employee, false);
+    }
     static string SendNotice(int invite)
     {
         bool send; Boolean.TryParse(ConfigurationManager.AppSettings["IsSendMail"], out send);

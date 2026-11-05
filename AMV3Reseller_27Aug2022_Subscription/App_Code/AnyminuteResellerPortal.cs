@@ -21,7 +21,7 @@ public static class AnyminuteResellerPortal
 {
     static readonly log4net.ILog Log = log4net.LogManager.GetLogger(typeof(AnyminuteResellerPortal));
     // v61: build stamp shown in the reseller sidebar (owner asked to see the version on reseller pages).
-    public const string Build = "v65-20261105";
+    public const string Build = "v66-20261105";
     // Subscribers (UserAcc.UserId) owned by reseller @rsl.
     public const string Scope = "(SELECT rs.UserId FROM AnyminuteResellerSubscriber rs WHERE rs.ResellerID=@rsl)";
     // Signed-in pure reseller, or null (Support Admin / SuperAdmin, any other login, REQUIRED_09 not run). Cached 2 minutes per session.

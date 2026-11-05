@@ -6,7 +6,7 @@ using System.Text;
 using System.Web;
 using System.Web.UI.WebControls;
 
-// 2026-10-24 v9 Deck G: Accountant & Payroll Access list. v65: strict to PPT s5 mock (invite card + Invited & Active Users) and s6 (View + kebab).
+// 2026-10-24 v9 Deck G: Accountant & Payroll Access list. v66: Actions = status-aware inline + kebab (Edit/Delete/Reset).
 public partial class AnyminuteAccountantAccessPage : System.Web.UI.Page
 {
     protected void Page_Init(object sender, EventArgs e) { AnyminuteModernScope.Login(); ViewStateUserKey = Session.SessionID; AnyminuteFormAccess.OwnerSomewhere(); }
@@ -76,19 +76,29 @@ public partial class AnyminuteAccountantAccessPage : System.Web.UI.Page
         Showing.Text = live.Count == 0 ? "No users yet." : "Showing " + live.Count + " user" + (live.Count == 1 ? "" : "s");
     }
     void Done(string message) { AnyminuteFlash.Set("access", message); Response.Redirect("~/AccountantAccess.aspx", false); Context.ApplicationInstance.CompleteRequest(); }
+    static bool ParseKey(string arg, out int invite, out int user)
+    {
+        invite = 0; user = 0; if (String.IsNullOrEmpty(arg)) return false;
+        var parts = arg.Split('='); if (parts.Length != 2) return false;
+        if (parts[0] == "InviteId") Int32.TryParse(parts[1], out invite); else if (parts[0] == "UserId") Int32.TryParse(parts[1], out user);
+        return invite > 0 || user > 0;
+    }
     protected void Rows_ItemCommand(object source, RepeaterCommandEventArgs e)
     {
         try
         {
             string arg = Convert.ToString(e.CommandArgument);
             if (e.CommandName == "Resend") { int id; if (!Int32.TryParse(arg, out id) || id <= 0) return; AnyminuteAccessService.Find(id, 0); Done(AnyminuteAccessService.SendEmail(id)); return; }
+            int invite, user;
             if (e.CommandName == "Revoke")
             {
-                int invite = 0, user = 0; var parts = arg.Split('=');
-                if (parts.Length != 2) return;
-                if (parts[0] == "InviteId") Int32.TryParse(parts[1], out invite); else if (parts[0] == "UserId") Int32.TryParse(parts[1], out user);
-                if (invite <= 0 && user <= 0) return;
-                Done(AnyminuteAccessService.Revoke(AnyminuteAccessService.Find(invite, user)));
+                if (!ParseKey(arg, out invite, out user)) return;
+                Done(AnyminuteAccessService.Revoke(AnyminuteAccessService.Find(invite, user))); return;
+            }
+            if (e.CommandName == "Reset")
+            {
+                if (!ParseKey(arg, out invite, out user)) return;
+                Done(AnyminuteAccessService.Reset(AnyminuteAccessService.Find(invite, user))); return;
             }
         }
         catch (InvalidOperationException error) { PageError.Text = HttpUtility.HtmlEncode(error.Message); PageError.Visible = true; Bind(); }

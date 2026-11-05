@@ -1,8 +1,8 @@
 <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="AccountantAccess.aspx.cs" Inherits="AnyminuteAccountantAccessPage" %>
-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteFlash.css?v=20261024v2" rel="stylesheet" /><link href="css/AnyminuteProjects.css?v=20261025v14" rel="stylesheet" /><link href="css/AnyminuteAccess.css?v=20261105v65" rel="stylesheet" /><script src="Scripts/AnyminuteProjects.js?v=20261024v8" defer></script><script src="Scripts/AnyminuteAccess.js?v=20261105v65" defer></script></asp:Content>
+<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteFlash.css?v=20261024v2" rel="stylesheet" /><link href="css/AnyminuteProjects.css?v=20261025v14" rel="stylesheet" /><link href="css/AnyminuteAccess.css?v=20261105v66" rel="stylesheet" /><script src="Scripts/AnyminuteProjects.js?v=20261024v8" defer></script><script src="Scripts/AnyminuteAccess.js?v=20261105v66" defer></script></asp:Content>
 <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
-<%-- v65 (PPT s5 strict, mock image5): Accountant & Payroll Access = page header, Invite card (3 columns + note/Clear/Send), Invited & Active Users card (tabs + search + filters + 6-column table). Old metric cards / 9-column table / Assign Accountant UI removed. --%>
-<section class="am-projects am-access am-acx" data-build="v65-20261105">
+<%-- v66 (Action column): status-aware inline + kebab Edit/Delete/Reset. Base v65 PPT s5: Accountant & Payroll Access = page header, Invite card (3 columns + note/Clear/Send), Invited & Active Users card (tabs + search + filters + 6-column table). Old metric cards / 9-column table / Assign Accountant UI removed. --%>
+<section class="am-projects am-access am-acx" data-build="v66-20261105">
  <asp:Panel ID="Flash" runat="server" Visible="false" CssClass="am-flash" role="status"><span class="am-flash-icon" aria-hidden="true">&#10003;</span><asp:Literal ID="FlashText" runat="server" /></asp:Panel>
  <asp:Label ID="PageError" runat="server" Visible="false" CssClass="am-flash am-flash-error" role="alert" />
  <asp:Label ID="ModuleNote" runat="server" Visible="false" CssClass="am-pj-info">Invitations, firm names, roles, permissions and expiry dates need the database update DB_REQUIRED/REQUIRED_04_AccountantAccess.sql. Existing accountants are listed below.</asp:Label>
@@ -81,16 +81,21 @@
       <td><span class="am-acx-pill am-acx-st-<%# Convert.ToString(Eval("Status")).ToLowerInvariant() %>"><%# StatusIcon(Eval("Status")) %><%#: StatusText(Eval("Status")) %></span></td>
       <td><%# Eval("InvitedText") %></td>
       <td class="am-acx-actions">
-       <%-- v65 (PPT s6): Action = View button; everything else (Edit access, Resend, Cancel invitation, Remove / Delete) under the three-dot menu. No pencil/trash/PDF icons. --%>
-       <a class="am-acx-btn am-acx-view" href="<%# ResolveUrl("~/AccountantInvite.aspx?" + Eval("Key") + "&view=1") %>">View</a>
+       <%-- v66: status-aware inline buttons (reference) + kebab with Edit / Delete / Reset only. No View. --%>
+       <asp:PlaceHolder runat="server" Visible='<%# Convert.ToString(Eval("Status")) == "Invited" %>'>
+        <asp:LinkButton runat="server" CssClass="am-acx-btn am-acx-outline" CommandName="Resend" CommandArgument='<%# Eval("InviteId") %>' CausesValidation="false">Resend</asp:LinkButton>
+        <asp:LinkButton runat="server" CssClass="am-acx-btn am-acx-ghost" CommandName="Revoke" CommandArgument='<%# Eval("Key") %>' CausesValidation="false" OnClientClick="return confirm('Cancel this invitation?');">Cancel invitation</asp:LinkButton>
+       </asp:PlaceHolder>
+       <asp:PlaceHolder runat="server" Visible='<%# Convert.ToString(Eval("Status")) == "Active" %>'>
+        <a class="am-acx-btn am-acx-outline" href="<%# ResolveUrl("~/AccountantInvite.aspx?" + Eval("Key")) %>">Edit access</a>
+        <asp:LinkButton runat="server" CssClass="am-acx-link-danger" CommandName="Revoke" CommandArgument='<%# Eval("Key") %>' CausesValidation="false" OnClientClick="return confirm('Remove this person\'s access to your businesses? Their existing records are kept.');">Remove access</asp:LinkButton>
+       </asp:PlaceHolder>
        <asp:PlaceHolder runat="server" Visible='<%# Live(Eval("Status")) %>'>
        <span class="am-pj-more am-acx-more"><button type="button" class="am-pj-kebab am-acx-kebab" aria-haspopup="true" aria-expanded="false" title="More actions" aria-label="More actions">&#8942;</button>
         <span class="am-pj-menu am-acx-menu" role="menu">
-         <a role="menuitem" href="<%# ResolveUrl("~/AccountantInvite.aspx?" + Eval("Key")) %>">Edit access</a>
-         <asp:LinkButton runat="server" role="menuitem" CommandName="Resend" CommandArgument='<%# Eval("InviteId") %>' CausesValidation="false" Visible='<%# Convert.ToString(Eval("Status")) == "Invited" %>'>Resend invitation</asp:LinkButton>
-         <asp:LinkButton runat="server" role="menuitem" CssClass="am-acx-danger" CommandName="Revoke" CommandArgument='<%# Eval("Key") %>' CausesValidation="false" Visible='<%# Convert.ToString(Eval("Status")) == "Invited" %>' OnClientClick="return confirm('Cancel this invitation?');">Cancel invitation</asp:LinkButton>
-         <asp:LinkButton runat="server" role="menuitem" CssClass="am-acx-danger" CommandName="Revoke" CommandArgument='<%# Eval("Key") %>' CausesValidation="false" Visible='<%# Convert.ToString(Eval("Status")) == "Active" %>' OnClientClick="return confirm('Remove this person\'s access to your businesses? Their existing records are kept.');">Remove access</asp:LinkButton>
+         <a role="menuitem" href="<%# ResolveUrl("~/AccountantInvite.aspx?" + Eval("Key")) %>">Edit</a>
          <asp:LinkButton runat="server" role="menuitem" CssClass="am-acx-danger" CommandName="Revoke" CommandArgument='<%# Eval("Key") %>' CausesValidation="false" OnClientClick="return confirm('Delete this user\'s access? Their existing records are kept.');">Delete</asp:LinkButton>
+         <asp:LinkButton runat="server" role="menuitem" CommandName="Reset" CommandArgument='<%# Eval("Key") %>' CausesValidation="false" OnClientClick="return confirm('Reset sign-in details for this user? They will receive a credentials / invitation email. Nothing is deleted.');">Reset</asp:LinkButton>
         </span></span>
        </asp:PlaceHolder>
       </td></tr>
