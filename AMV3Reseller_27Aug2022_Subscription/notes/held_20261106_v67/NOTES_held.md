@@ -1,0 +1,7 @@
+# v67 PPT notes (Nov 6, 2026) — Fix all — Reseller portal (Soft Services LLC login) — SHIPPED v67-20261106 (code 8276955)
+Base: v66 (ca9ada2, meta v66-20261105). Images: x/ppt/media/image1..5.png
+1. s1 Reseller Dashboard top-right: red box on "SL avatar + Soft Services LLC ▾" — text "Remove". Remove the company-name text beside the avatar in the top-right account menu (keep avatar + single chevron menu, like the Settings/My Profile header in image2). Apply to all Reseller pages. — SHIPPED v67
+2. s2 Help (?) icon in top header "is not on all pages". Dashboard/Subscribers/Businesses (image1/4/5) lack it; My Profile (image2) has it. Help icon must appear on every Reseller page (and check Subscriber/Support/Accountant masters for the same). — SHIPPED v67
+3. s3 Reseller My Profile (Settings) shows a generic list "SEARCH THIS LIST / No records found / Back to List". Must be a real profile page: reseller can Add, Edit and View their profile (company, contact name, email, phone, address etc.) — form with View mode + Edit + Save. — SHIPPED v67
+4. s4 Reseller Edit Subscriber has no Address module — add an Address section (Address line 1/2, City, Province/State, Postal/ZIP, Country — reuse the existing Subscriber/Reseller address pattern) on both Add Subscriber and Edit Subscriber, saved + loaded. — SHIPPED v67
+5. s5 Reseller Businesses list: Reseller can Add and Edit business too — add "Add Business" button + Edit in Actions (View+⋮ pattern), with Add/Edit business form scoped to the reseller's subscribers (pick subscriber). — SHIPPED v67
