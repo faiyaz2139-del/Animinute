@@ -1,8 +1,8 @@
 <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="AccountantAccess.aspx.cs" Inherits="AnyminuteAccountantAccessPage" %>
-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteFlash.css?v=20261024v2" rel="stylesheet" /><link href="css/AnyminuteProjects.css?v=20261025v14" rel="stylesheet" /><link href="css/AnyminuteAccess.css?v=20261105v66" rel="stylesheet" /><script src="Scripts/AnyminuteProjects.js?v=20261024v8" defer></script><script src="Scripts/AnyminuteAccess.js?v=20261105v66" defer></script></asp:Content>
+<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteFlash.css?v=20261024v2" rel="stylesheet" /><link href="css/AnyminuteProjects.css?v=20261025v14" rel="stylesheet" /><link href="css/AnyminuteAccess.css?v=20261106v67" rel="stylesheet" /><script src="Scripts/AnyminuteProjects.js?v=20261024v8" defer></script><script src="Scripts/AnyminuteAccess.js?v=20261106v67" defer></script></asp:Content>
 <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
 <%-- v66 (Action column): status-aware inline + kebab Edit/Delete/Reset. Base v65 PPT s5: Accountant & Payroll Access = page header, Invite card (3 columns + note/Clear/Send), Invited & Active Users card (tabs + search + filters + 6-column table). Old metric cards / 9-column table / Assign Accountant UI removed. --%>
-<section class="am-projects am-access am-acx" data-build="v66-20261105">
+<section class="am-projects am-access am-acx" data-build="v67-20261106">
  <asp:Panel ID="Flash" runat="server" Visible="false" CssClass="am-flash" role="status"><span class="am-flash-icon" aria-hidden="true">&#10003;</span><asp:Literal ID="FlashText" runat="server" /></asp:Panel>
  <asp:Label ID="PageError" runat="server" Visible="false" CssClass="am-flash am-flash-error" role="alert" />
  <asp:Label ID="ModuleNote" runat="server" Visible="false" CssClass="am-pj-info">Invitations, firm names, roles, permissions and expiry dates need the database update DB_REQUIRED/REQUIRED_04_AccountantAccess.sql. Existing accountants are listed below.</asp:Label>

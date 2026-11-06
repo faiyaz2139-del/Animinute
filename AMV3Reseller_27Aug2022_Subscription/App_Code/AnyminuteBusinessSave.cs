@@ -15,6 +15,12 @@ public static class AnyminuteBusinessSave
     }
     public static int Save(int business, IDictionary<string,object> details, IDictionary<string,object> address,
         string country, bool imageChanged, string ownerEmail)
+    { return Save(business, details, address, country, imageChanged, ownerEmail, 0); }
+    // v67 (Reseller PPT s5): ownerEmployee > 0 = the Reseller portal saves a business for one of ITS subscribers (that subscriber's
+    // owner EmployeeID). The caller (ResellerDashboard BizSave) has already enforced the reseller scope; the session-owner checks
+    // (RequireOwner / Subscriber) do not apply because the signed-in login is the reseller, not the subscriber. Same SPs, same transaction.
+    public static int Save(int business, IDictionary<string,object> details, IDictionary<string,object> address,
+        string country, bool imageChanged, string ownerEmail, int ownerEmployee)
     {
         AnyminuteModernScope.Login();
         using (var c = AnyminuteTimesheetRepair.Open())
@@ -27,7 +33,8 @@ public static class AnyminuteBusinessSave
             using (var schema = new SqlCommand("SELECT COL_LENGTH('dbo.BusinessAddress','Country')", c, tx))
                 countryColumn = schema.ExecuteScalar() != DBNull.Value;
             bool creating = business == 0;
-            if (!creating) AnyminuteApprovalAssignments.RequireOwner(c, tx, business);
+            if (ownerEmployee > 0) { }
+            else if (!creating) AnyminuteApprovalAssignments.RequireOwner(c, tx, business);
             else AnyminuteFormAccess.Subscriber();
             if (!creating)
             {
@@ -62,10 +69,11 @@ public static class AnyminuteBusinessSave
             if (creating)
             {
                 int owner;
-                using (var cmd = new SqlCommand("SELECT DISTINCT ad.EmployeeID FROM dbo.AddEmployee ad JOIN dbo.EmpAddress ea ON ad.ADDRESSID=ea.EmpAddressId WHERE ea.MainEmail=@email AND ad.EmployeeID=@actor AND ad.UserType=1", c, tx))
+                using (var cmd = new SqlCommand(ownerEmployee > 0 ? "SELECT ad.EmployeeID FROM dbo.AddEmployee ad WHERE ad.EmployeeID=@actor AND ad.UserType=1"
+                    : "SELECT DISTINCT ad.EmployeeID FROM dbo.AddEmployee ad JOIN dbo.EmpAddress ea ON ad.ADDRESSID=ea.EmpAddressId WHERE ea.MainEmail=@email AND ad.EmployeeID=@actor AND ad.UserType=1", c, tx))
                 {
-                    cmd.Parameters.AddWithValue("@email", ownerEmail);
-                    cmd.Parameters.AddWithValue("@actor", Convert.ToInt32(System.Web.HttpContext.Current.Session["EmployeeId"]));
+                    cmd.Parameters.AddWithValue("@email", ownerEmail ?? "");
+                    cmd.Parameters.AddWithValue("@actor", ownerEmployee > 0 ? ownerEmployee : Convert.ToInt32(System.Web.HttpContext.Current.Session["EmployeeId"]));
                     using (var reader = cmd.ExecuteReader())
                     {
                         if (!reader.Read()) throw new InvalidOperationException("The authenticated subscriber has no business owner employee record.");

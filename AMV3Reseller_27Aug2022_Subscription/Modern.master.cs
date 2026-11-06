@@ -44,10 +44,12 @@ public partial class AnyminuteModernMaster : System.Web.UI.MasterPage
    HeaderHelp.Text="";
    AccountHelp.Text="<a href='"+HttpUtility.HtmlAttributeEncode(VirtualPathUtility.ToAbsolute("~/Help.aspx"))+"'><span data-am-icon='help' aria-hidden='true'></span>Help Center</a>";
   }
-  // v55 (Reseller PPT header): AnyMinute mark + "Reseller"; the help button moves into the account menu.
+  // v55 (Reseller PPT header): AnyMinute mark + "Reseller".
+  // v67 (PPT s2): the "?" help button stays in the header on every Reseller page (left of the avatar, as on My Profile).
+  // v67 (PPT s1 "Remove"): the account menu shows only the initials avatar + one chevron (no company name beside it).
   var rslCtx=AnyminuteResellerPortal.Current();
-  if(rslCtx!=null){LogoDefault.Visible=false;Brand.Text=AnyminuteResellerPortal.Brand;context="Reseller";HeaderHelp.Text="";accountantHeader=false;AccountHelp.Text="";
-   if(rslCtx.Name.Length>0){Welcome.Text=HttpUtility.HtmlEncode(rslCtx.Name);AccountAvatar.Text="<span class='am-ap-avatar' aria-hidden='true'>"+HttpUtility.HtmlEncode(AnyminuteAccountantDashboard.Initials(rslCtx.Name))+"</span><span class='am-ap-avatar-name'>"+HttpUtility.HtmlEncode(rslCtx.Name)+"</span>";}}
+  if(rslCtx!=null){LogoDefault.Visible=false;Brand.Text=AnyminuteResellerPortal.Brand;context="Reseller";HeaderHelp.Text=AnyminuteUiNavigation.HeaderHelp(menu);accountantHeader=false;AccountHelp.Text="";
+   if(rslCtx.Name.Length>0){Welcome.Text=HttpUtility.HtmlEncode(rslCtx.Name);AccountAvatar.Text="<span class='am-ap-avatar' title='"+HttpUtility.HtmlAttributeEncode(rslCtx.Name)+"' aria-hidden='true'>"+HttpUtility.HtmlEncode(AnyminuteAccountantDashboard.Initials(rslCtx.Name))+"</span>";}}
   if(supportAdmin&&rslCtx==null){Welcome.Text="Support Admin";context=null;}
   if(!String.IsNullOrEmpty(context))WelcomeContext.Text="<small class='am-welcome-context' style='display:block;font-size:12px;font-weight:500;color:#5b6778;line-height:1.3'>"+HttpUtility.HtmlEncode(context)+"</small>";
 

@@ -161,7 +161,7 @@
         }
     </script>
 
-    <link href="css/AnyminuteSupport.css?v=20261105v66" rel="stylesheet" />
+    <link href="css/AnyminuteSupport.css?v=20261106v67" rel="stylesheet" />
     <style>
         /* v37 (DOCX image4): one toolbar, no forced scrollbar, status pill, sortable headers, pager. */
         .am-sa-subwrap{overflow-x:auto;border:1px solid #e2e8f0;border-radius:10px;background:#fff}

@@ -78,7 +78,7 @@ body.am-ui .am-access .am-pj-actions .am-pj-ic:not(.am-pj-red):not(.am-pj-kebab)
 .am-ac-tabs button.is-on{color:#1d4ed8;border-bottom-color:#1d4ed8}
 .am-pj-actions .am-ac-view{padding:4px 14px;min-height:0;font-size:13px;margin-right:6px}
 
-/* v66-20261105 (Action column: status-aware inline + kebab Edit/Delete/Reset); base v65 .am-acx layout */
+/* v67-20261106 (Action column: status-aware inline + kebab Edit/Delete/Reset); base v65 .am-acx layout */
 body .am-acx{max-width:1280px;color:#1f2937}
 body .am-acx .am-acx-top{display:flex;align-items:center;gap:16px;margin:4px 0 16px}
 body .am-acx .am-acx-topicon{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:10px;background:#e8f0fe;color:#1d4ed8;flex:0 0 44px}

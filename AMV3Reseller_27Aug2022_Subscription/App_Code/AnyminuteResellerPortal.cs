@@ -21,7 +21,7 @@ public static class AnyminuteResellerPortal
 {
     static readonly log4net.ILog Log = log4net.LogManager.GetLogger(typeof(AnyminuteResellerPortal));
     // v61: build stamp shown in the reseller sidebar (owner asked to see the version on reseller pages).
-    public const string Build = "v66-20261105";
+    public const string Build = "v67-20261106";
     // Subscribers (UserAcc.UserId) owned by reseller @rsl.
     public const string Scope = "(SELECT rs.UserId FROM AnyminuteResellerSubscriber rs WHERE rs.ResellerID=@rsl)";
     // Signed-in pure reseller, or null (Support Admin / SuperAdmin, any other login, REQUIRED_09 not run). Cached 2 minutes per session.
@@ -121,7 +121,7 @@ public static class AnyminuteResellerPortal
         Func<string, bool> pg = n => page.Equals(n, StringComparison.OrdinalIgnoreCase);
         string on = pg("SupportSubscribers.aspx") ? "subs" : pg("SupportReports.aspx") ? "reports" : pg("SupportPlans.aspx") ? (view == "usage" ? "usage" : "plans")
             : pg("SupportBusinesses.aspx") ? "businesses" : pg("MyProfile.aspx") || pg("LoginSecurity.aspx") || pg("Change Password.aspx") || pg("ChangePassword.aspx") ? "settings"
-            : pg("ResellerDashboard.aspx") ? (view.Length == 0 ? "dash" : view == "plan" || view == "planadd" || view == "planedit" ? "plans" : view) : "";
+            : pg("ResellerDashboard.aspx") ? (view.Length == 0 ? "dash" : view == "plan" || view == "planadd" || view == "planedit" ? "plans" : view == "profile" ? "settings" : view) : "";
         var html = new StringBuilder();
         foreach (var i in items)
             html.Append("<li class='am-sa-nav am-rsl-nav'><a href='").Append(HttpUtility.HtmlAttributeEncode(VirtualPathUtility.ToAbsolute(i[1]))).Append("' data-am-primary='true'")

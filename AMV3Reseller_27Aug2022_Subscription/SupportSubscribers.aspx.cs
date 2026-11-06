@@ -500,6 +500,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
           .Append(planName).Append("<span class='sa-vsep' aria-hidden='true'></span>Subscriber since ").Append(SA.Day(r["Since"])).Append("</div></div></div></div>");
         sb.Append("<div class='sa-card sa-rsl-edit' id='plan'><h2>Personal Information</h2><div class='sa-grid3'>").Append(f(0, "text", " maxlength='150'", true)).Append(f(1, "text", " maxlength='50'", false)).Append(f(2, "text", " maxlength='50'", true)).Append("</div>")
           .Append("<h2>Contact Information</h2><div class='sa-grid2'>").Append(f(3, "email", " maxlength='50'", true)).Append(f(4, "tel", " maxlength='30'", true)).Append("</div>")
+          .Append(RAddress(c, r))
           .Append("<h2>Subscription Plan &amp; Limits</h2><div class='sa-grid3'>")
           .Append("<label class='sa-field'><span>Plan Name <em class='sa-req'>*</em></span><select ").Append(lockPlan ? "disabled" : "name='ed_plan' data-sa-plan='1' data-sa-proj='ed_proj'").Append(">")
           .Append(plan ? PlanOptions(plans, v[7], null) : "<option>No active plan</option>").Append("</select></label>")
@@ -509,6 +510,15 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
           .Append(hid(5)).Append(hid(6)).Append(hid(8)).Append(hid(10)).Append(hid(11))
           .Append("<div class='sa-panel-foot sa-ed-foot'><a class='sa-btn sa-btn-outline' href='").Append(b).Append("'>Cancel</a><button type='submit' class='sa-btn' name='sa_op' value='edit'>").Append(Ic("save")).Append(" Save Changes</button></div></div>");
         return sb.ToString();
+    }
+    // v67 (Reseller PPT s4): Address module between Contact Information and Subscription Plan & Limits on the reseller Edit Subscriber
+    // - the same collapsed Address card + Manage Address -> Address Lookup / Address Details as Support Admin Edit Subscriber (ed_addr),
+    // saved by EditPost to the subscriber's EmpAddress row (not opened = address unchanged).
+    string RAddress(SqlConnection c, DataRow r)
+    {
+        bool aOpen = IsPostBack && AD.Opened("ed_addr"); var sa0 = SubAddr(r); string ast = null;
+        try { ast = AD.Status(c, null, sa0, AD.ReviewReady(c)); } catch (SqlException) { }
+        return "<div class='sa-rsl-addr-sec'>" + AD.Gate("ed_addr", AD.Compose(sa0), aOpen, "<div class='sa-sub-addr'>" + AD.Render("ed_addr", aOpen ? AD.FromForm("ed_addr") : sa0, false, "SupportSubscribers.aspx?lookup=1&postal=", "Search for the subscriber address using a postal or ZIP code, select a result, or enter the address manually.", ast, true) + "</div>", ast == null ? null : " " + AD.Pill(ast, false)) + "</div>";
     }
     string Edit(SqlConnection c, DataRow r, string[] vals)
     {
@@ -886,7 +896,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
     }
     // v60 (docx t190ua0 #3, Reseller PPT s3 strict): Personal Information | Contact Information (Email, Contact Phone), Subscription Plan &
     // Limits (Plan Name, Max Businesses / Employees / Projects) | Account Activation (Pending Activation / Active / Inactive + Send Activation
-    // Invitation), Cancel + Save Subscriber. Mobile phone and subscription dates ride along as hidden fields (today / +1 year); no address block.
+    // Invitation), Cancel + Save Subscriber. Mobile phone and subscription dates ride along as hidden fields (today / +1 year). v67: + Address module (full width).
     static readonly string[] RStatus = { "Pending Activation", "Active", "Inactive" };
     string RAddView(DataTable plans, string[] v)
     {
@@ -896,6 +906,8 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
         foreach (int i in new[] { 5, 11, 12 }) sb.Append("<input type='hidden' name='").Append(AF[i]).Append("' value='").Append(SA.A(v[i])).Append("' />");
         sb.Append("<div class='sa-rsl-grid'><div class='sa-card'><h2>Personal Information</h2><div class='sa-grid3'>").Append(f("First Name", 0, "text", " maxlength='50' placeholder='First name'", true)).Append(f("Middle Name", 1, "text", " maxlength='50' placeholder='Middle name'", false)).Append(f("Last Name", 2, "text", " maxlength='50' placeholder='Last name'", true)).Append("</div></div>")
           .Append("<div class='sa-card'><h2>Contact Information</h2><div class='sa-grid2'>").Append(f("Email Address", 3, "email", " maxlength='50' placeholder='name@example.com'", true)).Append(f("Contact Phone", 4, "tel", " maxlength='30' placeholder='519-707-3000'", true)).Append("</div></div>")
+          // v67 (Reseller PPT s4): Address module (same as Support Admin Add Subscriber, ad_addr) between Contact Information and Plan & Limits.
+          .Append("<div class='sa-card sa-sub-addr sa-rsl-addcard'><h2>Address <span class='sa-muted sa-small'>(Optional)</span></h2>").Append(AD.Render("ad_addr", AddrOf(v), false, "SupportSubscribers.aspx?lookup=1&postal=", "Search for the subscriber address using a postal or ZIP code, select a result, or enter the address manually.", "", true)).Append("</div>")
           .Append("<div class='sa-card'><h2>Subscription Plan &amp; Limits</h2><label class='sa-field'><span>Plan Name <em class='sa-req'>*</em></span><select name='ad_plan' required data-sa-plan='1' data-sa-proj='ad_proj'>").Append(PlanOptions(plans, v[6], "Select plan")).Append("</select></label>")
           .Append("<div class='sa-grid3' data-sa-limits='1'><label class='sa-field'><span>Max Businesses <em class='sa-req'>*</em></span><input type='number' name='ad_biz' min='0' max='100000' data-sa-lim='b' value='").Append(SA.A(custom ? v[7] : pb)).Append("'").Append(custom ? "" : " readonly").Append(" /></label>")
           .Append("<label class='sa-field'><span>Max Employees <em class='sa-req'>*</em></span><input type='number' name='ad_users' min='0' max='100000' data-sa-lim='e' value='").Append(SA.A(custom ? v[8] : pe)).Append("'").Append(custom ? "" : " readonly").Append(" /></label>")
@@ -936,11 +948,11 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
     {
         string op = SA.Form("sa_op"); var v = AF.Select(k => SA.Form(k).Trim()).ToArray();
         if (!AStatus.Contains(v[9]) || (Rsl != null && !RStatus.Contains(v[9]))) v[9] = AStatus[0]; v[10] = v[10] == "1" ? "1" : "0";
-        if (Rsl != null) // v60: reseller form has no date / address inputs - default the dates, never take an address from the post
+        if (Rsl != null) // v60: reseller form has no date inputs - default the dates. v67 (PPT s4): the reseller form has the Address module, so keep the posted address.
         {
             DateTime dx; if (!DateTime.TryParseExact(v[11], "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out dx)) v[11] = DateTime.Today.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
             if (!DateTime.TryParseExact(v[12], "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out dx)) v[12] = DateTime.Today.AddYears(1).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
-            for (int i = 13; i <= 20; i++) v[i] = ""; v[21] = "Canada";
+            if (v[21] != "United States") v[21] = "Canada";
         }
         using (var c = SA.Open())
         {

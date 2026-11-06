@@ -8,6 +8,7 @@ using System.Text;
 using System.Web;
 using SA = AnyminuteSupportAdmin;
 using RP = AnyminuteResellerPortal;
+using AD = AnyminuteSupportAddress;
 
 // 2026-11-03 v55 (Reseller PPT collage): Reseller portal home. view = (none) Dashboard (s1 KPIs + Quick Actions) | businesses
 // (businesses under the reseller's subscribers) | plans (s9 Subscription Plans; v60 + Add Plan for own plans) | usage (Usage & Limits,
@@ -36,6 +37,8 @@ public partial class AnyminuteResellerDashboardPage : System.Web.UI.Page
     static string Crumb(string label) { return "<nav class='sa-crumbs' aria-label='Breadcrumb'><a href='ResellerDashboard.aspx'>Dashboard</a> &rsaquo; <span>" + label + "</span></nav>"; }
     protected void Page_Load(object sender, EventArgs e)
     {
+        // v67: JSON postal lookup for the Address module (My Profile, Add / Edit Business).
+        if (SA.Get("lookup") == "1") { Response.Clear(); Response.ContentType = "application/json"; Response.Write(AD.LookupJson(SA.Get("postal"))); Response.Flush(); Response.SuppressContent = true; Context.ApplicationInstance.CompleteRequest(); return; }
         Flash.Text = SA.TakeFlash();
         string view = SA.Get("view");
         // Permission gates (v56: nav always shows all 7; gates stay here): businesses = businesses or subscribers, plans, usage.
@@ -54,6 +57,7 @@ public partial class AnyminuteResellerDashboardPage : System.Web.UI.Page
                 else if (view == "plans") Plans(c);
                 else if (view == "usage") Usage(c);
                 else if (view == "settings") Settings();
+                else if (view == "profile") Profile(c);
                 else Dashboard(c);
             }
             catch (SqlException ex)
@@ -82,28 +86,236 @@ public partial class AnyminuteResellerDashboardPage : System.Web.UI.Page
             .Append(a("SupportReports.aspx", "report", "Reports")).Append("</div></div>");
         Content.Text = sb.ToString();
     }
-    // Businesses nav: businesses under this reseller's subscribers (search + pager); View opens the subscriber's Businesses tab.
+    // Businesses nav: businesses under this reseller's subscribers (search + pager).
+    // v67 (Reseller PPT s5): + Add Business (header), Actions = View + kebab (Edit Business, View Subscriber), Add / Edit Business form
+    // scoped to the reseller's own subscribers (subscriber picker on Add). Saves through AnyminuteBusinessSave (same SPs as the subscriber
+    // Add_Business page). A business id outside RP.Businesses(c, rsl) is never shown, edited or saved.
     void Businesses(SqlConnection c)
     {
         Crumbs.Text = Crumb("Businesses"); Title1.Text = "Businesses"; Lead.Text = "Businesses under your subscribers.";
+        HeadActions.Text = "<a class='sa-btn' href='ResellerDashboard.aspx?view=businesses&amp;add=1#biz-form'><b aria-hidden='true'>+</b> Add Business</a>";
         string q = SA.Get("q"); int page; if (!Int32.TryParse(SA.Get("page"), out page) || page < 1) page = 1; int size = SA.PageSizeArg(10);
         var all = RP.Businesses(c, rsl).Rows.Cast<DataRow>().ToList();
+        string form = null;
+        if (IsPostBack && SA.Form("rp_op") == "biz") { form = BizSave(c, all); if (form == "") return; }
+        int eid; Int32.TryParse(SA.Get("edit"), out eid); int vid; Int32.TryParse(SA.Get("biz"), out vid);
+        if (form == null && SA.Get("add") == "1") form = BizForm(c, null, null);
+        else if (form == null && eid > 0)
+        {
+            var own = all.FirstOrDefault(r => Convert.ToInt32(r["BusinessID"]) == eid && SA.S(r["St"]) != "Deleted");
+            form = own == null ? "<div class='sa-card' id='biz-form'><p class='sa-muted'>This business is not under one of your subscribers, so it cannot be edited here.</p></div>" : BizForm(c, own, null);
+        }
         var rows = all.Where(r => q.Length == 0 || (SA.S(r["CompanyName"]) + " " + SA.S(r["Name"]) + " " + SA.S(r["Email"])).IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
         int pages = Math.Max(1, (rows.Count + size - 1) / size); if (page > pages) page = pages;
         var sb = new StringBuilder("<div class='sa-card'><div class='sa-filters' data-sa-get='ResellerDashboard.aspx'><input type='hidden' name='view' value='businesses' /><input type='hidden' name='size' value='").Append(size)
             .Append("' /><label class='sa-grow sa-search'><span class='sr-only'>Search</span><i aria-hidden='true'>").Append(Ic("search")).Append("</i><input type='search' name='q' value='").Append(SA.A(q)).Append("' placeholder='Search by business or subscriber...' /></label>")
             .Append("<a class='sa-btn sa-btn-outline' href='ResellerDashboard.aspx?view=businesses'>Clear</a><button type='button' class='sa-btn' data-sa-apply='1'>Search</button></div>")
-            .Append("<div class='sa-table-wrap'><table class='sa-table'><thead><tr><th>#</th><th>Business Name</th><th>Subscriber</th><th class='sa-c'>Employees</th><th class='sa-c'>Projects</th><th>Status</th><th class='sa-c'>Actions</th></tr></thead><tbody>");
-        int n = (page - 1) * size;
+            .Append("<div class='sa-table-wrap' style='overflow:visible'><table class='sa-table'><thead><tr><th>#</th><th>Business Name</th><th>Subscriber</th><th class='sa-c'>Employees</th><th class='sa-c'>Projects</th><th>Status</th><th class='sa-c'>Actions</th></tr></thead><tbody>");
+        int n = (page - 1) * size; DataRow pick = null;
+        foreach (var r in all) if (Convert.ToInt32(r["BusinessID"]) == vid) pick = r;
         foreach (var r in rows.Skip((page - 1) * size).Take(size))
         {
+            int bid = Convert.ToInt32(r["BusinessID"]);
             string sub = "SupportSubscribers.aspx?user=" + Convert.ToInt32(r["UserId"]), st = SA.S(r["St"]); bool open = rsl.Can("subscribers");
+            string viewHref = "ResellerDashboard.aspx?view=businesses&amp;biz=" + bid + "#biz";
             sb.Append("<tr><td>").Append(++n).Append("</td><td>").Append(SA.H(r["CompanyName"])).Append("</td><td>").Append(open ? "<a class='sa-link' href='" + sub + "'>" + SA.H(SA.S(r["Name"]).Length > 0 ? r["Name"] : r["Email"]) + "</a>" : SA.H(SA.S(r["Name"]).Length > 0 ? r["Name"] : r["Email"]))
-              .Append("</td><td class='sa-c'>").Append(r["Employees"]).Append("</td><td class='sa-c'>").Append(r["Projects"]).Append("</td><td>").Append(SA.Pill(st, st == "Active" ? "green" : "grey")).Append("</td><td class='sa-c'>")
-              .Append(open ? "<a class='sa-btn sa-btn-sm sa-btn-outline' href='" + sub + "&amp;view=businesses'>View</a>" : "&mdash;").Append("</td></tr>");
+              .Append("</td><td class='sa-c'>").Append(r["Employees"]).Append("</td><td class='sa-c'>").Append(r["Projects"]).Append("</td><td>").Append(SA.Pill(st, st == "Active" ? "green" : "grey")).Append("</td><td class='sa-c sa-nowrap'>")
+              .Append("<a class='sa-btn sa-btn-sm sa-btn-outline' href='").Append(viewHref).Append("'>View</a> <details class='sa-menu'><summary class='sa-kebab' aria-label='Business actions'><svg class='sa-i' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' aria-hidden='true' focusable='false'><circle cx='12' cy='5' r='1'/><circle cx='12' cy='12' r='1'/><circle cx='12' cy='19' r='1'/></svg></summary><div class='sa-menu-pop'><h4>Business Actions</h4><small>").Append(SA.H(r["CompanyName"])).Append("</small>")
+              .Append("<a class='sa-menu-item' href='").Append(viewHref).Append("'><span><b>View Business</b><small>Business details and address</small></span></a>")
+              .Append(st != "Deleted" ? "<a class='sa-menu-item' href='ResellerDashboard.aspx?view=businesses&amp;edit=" + bid + "#biz-form'><span><b>Edit Business</b><small>Name, contact, status and address</small></span></a>" : "")
+              .Append(open ? "<a class='sa-menu-item' href='" + sub + "&amp;view=businesses'><span><b>View Subscriber</b><small>The subscriber's businesses tab</small></span></a>" : "").Append("</div></details></td></tr>");
         }
         if (rows.Count == 0) sb.Append("<tr><td colspan='7' class='sa-empty'>No businesses found.</td></tr>");
         sb.Append("</tbody></table></div>").Append(SA.Pager46(rows.Count, page, size, "ResellerDashboard.aspx?view=businesses&q=" + HttpUtility.UrlEncode(q), "business")).Append("</div>");
+        if (pick != null) sb.Append(BizView(c, pick));
+        Content.Text = sb.ToString() + (form ?? "");
+    }
+    static readonly string[] Legal = { "Sole Proprietorships", "Partnerships", "Corporations", "S Corporations", "Limited Liability Company (LLC)" };
+    static DataRow BizRow(SqlConnection c, int id) { var t = SA.Q(c, "SELECT * FROM AddBusiness WHERE BusinessID=@b", "@b", id); return t.Rows.Count == 1 ? t.Rows[0] : null; }
+    static DataRow BizAddr(SqlConnection c, DataRow b) { int a; if (b == null || !Int32.TryParse(SA.S(b["ADDRESSID"]), out a) || a <= 0) return null; var t = SA.Q(c, "SELECT * FROM BusinessAddress WHERE BusinessAddressId=@a", "@a", a); return t.Rows.Count == 1 ? t.Rows[0] : null; }
+    static string Col(DataRow r, string k) { return r != null && r.Table.Columns.Contains(k) ? SA.S(r[k]).Trim() : ""; }
+    static string Pick(string v) { v = (v ?? "").Trim(); return v.Equals("Please Select", StringComparison.OrdinalIgnoreCase) || v == "0" ? "" : v; }
+    static AD.Addr BizAd(DataRow a)
+    {
+        string country = Col(a, "Country").Equals("United States", StringComparison.OrdinalIgnoreCase) ? "United States" : "Canada", prov = Col(a, "Province");
+        var x = new AD.Addr { StreetNo = Col(a, "StreetNo"), Line1 = Col(a, "StreetName"), Line2 = Col(a, "StreetType"), SuiteType = AD.SuiteTypes.FirstOrDefault(z => z.Equals(Pick(Col(a, "SuitType")), StringComparison.OrdinalIgnoreCase)) ?? "",
+            SuiteNo = Col(a, "SuiteNumber"), City = Col(a, "City"), Province = (country == "United States" ? AD.States : AD.Canada).FirstOrDefault(z => z.Equals(prov, StringComparison.OrdinalIgnoreCase)) ?? prov, Country = country };
+        x.Postal = AD.NormalPostal(Col(a, "Postalcode"), country); return x;
+    }
+    // View Business card (read-only).
+    string BizView(SqlConnection c, DataRow r)
+    {
+        var b = BizRow(c, Convert.ToInt32(r["BusinessID"])); var a = BizAddr(c, b);
+        Func<string, string, string> kv = (k, v) => "<tr><th>" + k + "</th><td>" + (v.Length > 0 ? SA.H(v) : "&mdash;") + "</td></tr>";
+        string st = Col(b, "Status"); bool del = SA.S(r["St"]) == "Deleted";
+        return "<div class='sa-card' id='biz'><div class='sa-panel-head'><h2>" + SA.H(r["CompanyName"]) + "</h2><div>" + (!del ? "<a class='sa-btn sa-btn-sm' href='ResellerDashboard.aspx?view=businesses&amp;edit=" + Convert.ToInt32(r["BusinessID"]) + "#biz-form'>Edit</a> " : "")
+            + "<a class='sa-btn sa-btn-outline sa-btn-sm' href='ResellerDashboard.aspx?view=businesses'>Close</a></div></div><table class='sa-kv'>"
+            + kv("Subscriber", SA.S(r["Name"]).Length > 0 ? SA.S(r["Name"]) + " (" + SA.S(r["Email"]) + ")" : SA.S(r["Email"])) + kv("Operating Name", Col(b, "OperatingName")) + kv("Business Number", Col(b, "BusinessNumber"))
+            + kv("Legal Entity Type", Pick(Col(b, "LegalEntityType")) == "Select" ? "" : Pick(Col(b, "LegalEntityType"))) + kv("Primary Contact", Col(b, "PrimaryContactName")) + kv("Contact Number", Col(b, "PrimaryContactNumber")) + kv("Primary Email", Col(a, "MainEmail"))
+            + kv("Status", del ? "Deleted" : st == "0" ? "Not Active" : st == "2" ? "Not Active (deactivated by plan)" : "Active") + kv("Address", a == null ? "" : AD.Compose(BizAd(a))) + "</table></div>";
+    }
+    // Add / Edit Business card. own = RP.Businesses row (edit) or null (add); v = posted values after a failed save.
+    string BizForm(SqlConnection c, DataRow own, Dictionary<string, string> v)
+    {
+        bool add = own == null && (v == null || v["bz_id"] == "0"); bool can = rsl.Can("businesses"); string dis = can ? "" : " disabled";
+        int id = own != null ? Convert.ToInt32(own["BusinessID"]) : v != null ? Convert.ToInt32(v["bz_id"]) : 0;
+        DataRow b = id > 0 ? BizRow(c, id) : null, a = BizAddr(c, b);
+        Func<string, string, string> val = (k, col) => v != null ? (v.ContainsKey(k) ? v[k] : "") : b == null ? "" : k == "bz_email" ? Col(a, "MainEmail") : Col(b, col);
+        Func<string, string, string, string, string> input = (label, k, col, extra) => "<label class='sa-field'><span>" + label + "</span><input name='" + k + "' value='" + SA.A(val(k, col)) + "' " + extra + dis + " /></label>";
+        string legal = val("bz_legal", "LegalEntityType").Trim(), st = v != null ? v["bz_status"] : b == null ? "1" : Col(b, "Status");
+        var sb = new StringBuilder("<div class='sa-card rsl-bizform' id='biz-form'><div class='sa-panel-head'><div><h2>").Append(add ? "Add Business" : "Edit Business").Append("</h2><small>")
+            .Append(add ? "Create a business for one of your subscribers." : "Update the business details, status and address.").Append("</small></div><a class='sa-x' href='ResellerDashboard.aspx?view=businesses' aria-label='Close'>&times;</a></div>");
+        if (!can) sb.Append("<div class='sa-flash sa-warn'>Your reseller account does not have the Businesses permission. Contact AnyMinute Support to add or edit businesses.</div>");
+        sb.Append("<input type='hidden' name='bz_id' value='").Append(id).Append("' />");
+        if (add)
+        {
+            string sel = v != null ? v["bz_sub"] : SA.Get("sub");
+            sb.Append("<label class='sa-field'><span>Subscriber <em class='sa-req'>*</em></span><select name='bz_sub' required").Append(dis).Append("><option value=''>Select subscriber</option>");
+            foreach (DataRow s in RP.Subscribers(c, rsl).Rows)
+            {
+                string u = Convert.ToInt32(s["UserId"]).ToString(CultureInfo.InvariantCulture), nm = SA.S(s["Name"]).Length > 0 ? SA.S(s["Name"]) + " (" + SA.S(s["Email"]) + ")" : SA.S(s["Email"]);
+                sb.Append("<option value='").Append(u).Append("'").Append(u == sel ? " selected" : "").Append(">").Append(SA.H(nm)).Append("</option>");
+            }
+            sb.Append("</select></label>");
+        }
+        else sb.Append("<label class='sa-field'><span>Subscriber</span><input value='").Append(SA.A(own != null ? (SA.S(own["Name"]).Length > 0 ? own["Name"] : own["Email"]) : v.ContainsKey("bz_subname") ? v["bz_subname"] : "")).Append("' readonly /></label>");
+        sb.Append("<h2>Business Information</h2><div class='sa-grid2'>").Append(input("Company Name <em class='sa-req'>*</em>", "bz_name", "CompanyName", "maxlength='100' required")).Append(input("Operating Name", "bz_oper", "OperatingName", "maxlength='100'"))
+          .Append(input("Business Number", "bz_num", "BusinessNumber", "maxlength='50'"))
+          .Append("<label class='sa-field'><span>Legal Entity Type</span><select name='bz_legal'").Append(dis).Append("><option value='Select'>Select legal entity type</option>");
+        var opts = Legal.ToList(); if (legal.Length > 0 && legal != "Select" && !opts.Any(o => o.Equals(legal, StringComparison.OrdinalIgnoreCase))) opts.Add(legal);
+        foreach (var o in opts) sb.Append("<option").Append(o.Equals(legal, StringComparison.OrdinalIgnoreCase) ? " selected" : "").Append(">").Append(SA.H(o)).Append("</option>");
+        sb.Append("</select></label>").Append(input("Business Registration Date", "bz_reg", "BusinessRegistrationDate", "maxlength='30' placeholder='yyyy-mm-dd'"))
+          .Append("<label class='sa-field'><span>Status</span><select name='bz_status'").Append(dis).Append("><option value='1'").Append(st != "0" && st != "2" ? " selected" : "").Append(">Active</option><option value='0'").Append(st == "0" ? " selected" : "").Append(">Not Active</option>")
+          .Append(st == "2" ? "<option value='2' selected>Not Active (deactivated by plan)</option>" : "").Append("</select></label></div>")
+          .Append("<h2>Primary Contact</h2><div class='sa-grid3'>").Append(input("Primary Contact Name <em class='sa-req'>*</em>", "bz_cname", "PrimaryContactName", "maxlength='100' required"))
+          .Append(input("Primary Contact Number <em class='sa-req'>*</em>", "bz_cnum", "PrimaryContactNumber", "type='tel' maxlength='20' required placeholder='10 digits'")).Append(input("Primary Email <em class='sa-req'>*</em>", "bz_email", "", "type='email' maxlength='100' required")).Append("</div>");
+        // Address module (same Address Lookup + Address Details as Support Admin / Reseller); Edit = collapsed card + Manage Address.
+        const string sub = "Search for the business address using a postal or ZIP code, select a result, or enter the address manually.", lk = "ResellerDashboard.aspx?lookup=1&postal=";
+        if (add) sb.Append("<h2>Address</h2>").Append(AD.Render("bz_addr", v != null ? AD.FromForm("bz_addr") : new AD.Addr(), true, lk, sub));
+        else { bool open = IsPostBack && AD.Opened("bz_addr"); var cur = a == null ? new AD.Addr() : BizAd(a); sb.Append(AD.Gate("bz_addr", cur.Any ? AD.Compose(cur) : "", open, AD.Render("bz_addr", open ? AD.FromForm("bz_addr") : cur, true, lk, sub))); }
+        sb.Append("<div class='sa-panel-foot'><a class='sa-btn sa-btn-outline' href='ResellerDashboard.aspx?view=businesses'>Cancel</a><button type='submit' class='sa-btn' name='rp_op' value='biz'").Append(dis).Append(">").Append(add ? "Save Business" : "Save Changes").Append("</button></div></div>");
+        return sb.ToString();
+    }
+    // POST rp_op=biz: validate, scope-check, save through AnyminuteBusinessSave (Sp_InsertBusiness / SP_UpdateBusinessDetailsWithoutImage +
+    // Sp_InsertBusinessAddress), audit, redirect. Returns "" after a redirect, or the form with errors.
+    string BizSave(SqlConnection c, List<DataRow> all)
+    {
+        var keys = new[] { "bz_id", "bz_sub", "bz_name", "bz_oper", "bz_num", "bz_legal", "bz_reg", "bz_status", "bz_cname", "bz_cnum", "bz_email" };
+        var v = keys.ToDictionary(k => k, k => SA.Form(k)); int id = SA.FormId("bz_id"); v["bz_id"] = id.ToString(CultureInfo.InvariantCulture);
+        var errs = new List<string>(); DataRow own = null, subRow = null; bool add = id == 0;
+        if (!rsl.Can("businesses")) errs.Add("Your reseller account does not have the Businesses permission.");
+        if (!add) { own = all.FirstOrDefault(r => Convert.ToInt32(r["BusinessID"]) == id && SA.S(r["St"]) != "Deleted"); if (own == null) { errs.Add("You can only edit businesses of your own subscribers."); id = 0; v["bz_id"] = "0"; add = true; } else v["bz_subname"] = SA.S(own["Name"]).Length > 0 ? SA.S(own["Name"]) : SA.S(own["Email"]); }
+        int subUser = own != null ? Convert.ToInt32(own["UserId"]) : 0;
+        if (add) { int u; Int32.TryParse(v["bz_sub"], out u); subRow = RP.Subscribers(c, rsl).Rows.Cast<DataRow>().FirstOrDefault(r => Convert.ToInt32(r["UserId"]) == u); if (subRow == null) errs.Add("Select one of your subscribers."); else subUser = u; }
+        string name = v["bz_name"], cname = v["bz_cname"], email = v["bz_email"], digits = System.Text.RegularExpressions.Regex.Replace(v["bz_cnum"], @"\D", "");
+        if (name.Length == 0) errs.Add("Company name is required."); else if (name.Length > 100) errs.Add("Company name is too long (100 characters).");
+        if (cname.Length == 0) errs.Add("Primary contact name is required.");
+        if (digits.Length != 10) errs.Add("Enter a valid 10-digit primary contact number.");
+        if (!System.Text.RegularExpressions.Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$")) errs.Add("Enter a valid primary email address.");
+        if (name.Length > 0 && Convert.ToInt32(SA.Q(c, "SELECT COUNT(*) FROM AddBusiness WHERE CompanyName=@n AND BusinessID<>@b", "@n", name, "@b", id).Rows[0][0]) > 0) errs.Add("Business name already exists.");
+        string status = v["bz_status"] == "0" ? "0" : v["bz_status"] == "2" && own != null ? "2" : "1";
+        DataRow b = own != null ? BizRow(c, id) : null, a = BizAddr(c, b);
+        bool opened = add || AD.Opened("bz_addr"); var ad = opened ? AD.FromForm("bz_addr") : (a == null ? new AD.Addr() : BizAd(a));
+        if (opened) errs.AddRange(AD.Validate(ad, true)); else if (a == null) errs.Add("Address is required. Click Manage Address to enter it.");
+        // Plan / reseller business limits on Add (Add_Business blocks the same way through Label_Maximum_Limit).
+        if (add && subRow != null)
+        {
+            int used = Convert.ToInt32(subRow["Businesses"]), lim;
+            if (Int32.TryParse(SA.S(subRow["PlanBiz"]), out lim) && lim > 0 && used >= lim) errs.Add("This subscriber has reached the plan's business limit (" + lim + ").");
+            var mb = SA.Q(c, "SELECT MaxBusinessesPerSubscriber FROM AnyminuteReseller WHERE ResellerID=@r", "@r", rsl.ResellerId);
+            if (mb.Rows.Count == 1 && mb.Rows[0][0] != DBNull.Value && used >= Convert.ToInt32(mb.Rows[0][0])) errs.Add("Your reseller account allows " + Convert.ToInt32(mb.Rows[0][0]) + " businesses per subscriber.");
+        }
+        int ownerEmp = 0, mother = 4;
+        if (errs.Count == 0)
+        {
+            var ua = SA.Q(c, "SELECT EmployeeId,MotherOrgid FROM UserAcc WHERE UserId=@u", "@u", subUser);
+            if (ua.Rows.Count == 1) { Int32.TryParse(SA.S(ua.Rows[0]["EmployeeId"]), out ownerEmp); Int32.TryParse(SA.S(ua.Rows[0]["MotherOrgid"]), out mother); }
+            if (b != null) Int32.TryParse(Col(b, "MotherOrgId"), out mother);
+            if (ownerEmp <= 0) errs.Add("The subscriber has no business owner record, so a business cannot be saved for it.");
+        }
+        if (errs.Count > 0) { Flash.Text += "<div class='sa-flash sa-warn' role='alert'>Please fix the following:<ul>" + String.Join("", errs.Select(x => "<li>" + SA.H(x) + "</li>").ToArray()) + "</ul></div>"; return BizForm(c, add ? null : own, v); }
+        var details = new Dictionary<string, object> {
+            {"CompanyName", name}, {"OperatingName", v["bz_oper"]}, {"BusinessNumber", v["bz_num"]}, {"LegalEntityType", Legal.Contains(v["bz_legal"]) || (b != null && v["bz_legal"] == Col(b, "LegalEntityType")) ? v["bz_legal"] : "Select"},
+            {"BusinessRegistrationDate", v["bz_reg"]}, {"PrimaryContactName", cname}, {"PrimaryContactNumber", v["bz_cnum"]}, {"BusinessAgreementDate", DateTime.Now},
+            {"Status", status}, {"MotherOrgId", mother}, {"CareOf", b != null ? Col(b, "CareOf") : ""} };
+        Func<string, string, string> keep = (k, dflt) => a != null ? Col(a, k) : dflt;
+        var address = new Dictionary<string, object> {
+            {"Postalcode", AnyminuteBusinessAddressInput.Postal(ad.Postal)}, {"NumberSuffix", keep("NumberSuffix", "Please Select")}, {"StreetName", ad.Line1}, {"StreetType", ad.Line2}, {"StreetDirection", keep("StreetDirection", "")},
+            {"SuitType", ad.SuiteType.Length > 0 ? ad.SuiteType : "Please Select"}, {"SuiteNumber", ad.SuiteNo}, {"SuitSuffix", keep("SuitSuffix", "Please Select")}, {"City", ad.City}, {"Province", ad.Province},
+            {"WorkPhone", keep("WorkPhone", "")}, {"MainPhone", a != null && Col(a, "MainPhone").Length > 0 ? Col(a, "MainPhone") : v["bz_cnum"]}, {"Mobile", keep("Mobile", "")}, {"Fax", keep("Fax", "")},
+            {"MainEmail", email}, {"CCEmail", keep("CCEmail", "")}, {"Website", keep("Website", "")}, {"Other1", keep("Other1", "")}, {"StreetNo", ad.StreetNo} };
+        int saved;
+        try { saved = AnyminuteBusinessSave.Save(id, details, address, ad.Country, false, "", ownerEmp); }
+        catch (InvalidOperationException ex) { Flash.Text += "<div class='sa-flash sa-warn' role='alert'>" + SA.H(ex.Message) + " No changes were saved.</div>"; return BizForm(c, add ? null : own, v); }
+        try { using (var tx = c.BeginTransaction()) { SA.Audit(c, tx, "Business", saved.ToString(CultureInfo.InvariantCulture), add ? "Business Added (Reseller)" : "Business Updated (Reseller)", b == null ? null : Col(b, "Status"), status, b == null ? null : Col(b, "CompanyName"), name, "Reseller " + rsl.Code + " (" + rsl.Name + ") for subscriber " + subUser); tx.Commit(); } }
+        catch (SqlException ex) { log4net.LogManager.GetLogger("Log").Warn("Reseller business audit skipped", ex); }
+        SA.Flash(add ? "Business \"" + name + "\" added." : "Business \"" + name + "\" updated.");
+        Response.Redirect("ResellerDashboard.aspx?view=businesses&biz=" + saved + "#biz", false); Context.ApplicationInstance.CompleteRequest(); return "";
+    }
+    // v67 (Reseller PPT s3): My Profile - View (default) / Edit (Add when the details are still empty) the reseller's own
+    // AnyminuteReseller row: company (ResellerName), contact first / last (ContactPerson), Email, Phone, Alternate Phone and the Address
+    // module (stored as one composed line in Address, like Support Admin > Edit Reseller). No schema change.
+    void Profile(SqlConnection c)
+    {
+        Crumbs.Text = "<nav class='sa-crumbs' aria-label='Breadcrumb'><a href='ResellerDashboard.aspx'>Dashboard</a> &rsaquo; <a href='ResellerDashboard.aspx?view=settings'>Settings</a> &rsaquo; <span>My Profile</span></nav>";
+        Title1.Text = "My Profile"; Lead.Text = "Your reseller company, contact and address details.";
+        var t = SA.Q(c, "SELECT TOP 1 * FROM AnyminuteReseller WHERE ResellerID=@r", "@r", rsl.ResellerId);
+        if (t.Rows.Count == 0) { Content.Text = "<div class='sa-card'><p class='sa-muted'>Your reseller profile could not be found. Contact AnyMinute Support.</p></div>"; return; }
+        var r = t.Rows[0];
+        string cp = Col(r, "ContactPerson"); int sp = cp.IndexOf(' '); string first = sp > 0 ? cp.Substring(0, sp) : cp, last = sp > 0 ? cp.Substring(sp + 1).Trim() : "";
+        string stored = Col(r, "Address");
+        bool empty = (Col(r, "Phone") + stored).Trim().Length == 0 || cp.Length == 0;
+        var v = new Dictionary<string, string> { { "pf_name", Col(r, "ResellerName") }, { "pf_first", first }, { "pf_last", last }, { "pf_email", Col(r, "Email") }, { "pf_phone", Col(r, "Phone") }, { "pf_alt", Col(r, "AltPhone") } };
+        bool edit = SA.Get("edit") == "1"; List<string> errs = null;
+        if (IsPostBack && SA.Form("rp_op") == "profile")
+        {
+            foreach (var k in v.Keys.ToList()) v[k] = SA.Form(k);
+            errs = new List<string>(); edit = true;
+            var ad = AD.FromForm("pf_addr"); string addr = AD.Compose(ad);
+            var shown = AD.Parse(stored); if (addr == AD.Compose(shown)) addr = stored; else if (ad.Any) errs.AddRange(AD.Validate(ad, false)); else addr = "";
+            if (v["pf_name"].Length == 0) errs.Add("Company name is required."); else if (v["pf_name"].Length > 150) errs.Add("Company name is too long (150 characters).");
+            if (v["pf_first"].Length == 0) errs.Add("Contact first name is required.");
+            string contact = (v["pf_first"] + " " + v["pf_last"]).Trim(); if (contact.Length > 150) errs.Add("Contact name is too long (150 characters).");
+            if (!System.Text.RegularExpressions.Regex.IsMatch(v["pf_email"], @"^[^@\s]+@[^@\s]+\.[^@\s]+$") || v["pf_email"].Length > 150) errs.Add("Enter a valid email address.");
+            if (!System.Text.RegularExpressions.Regex.IsMatch(v["pf_phone"], @"^[0-9+()\-.\s]{7,30}$")) errs.Add("Enter a valid phone number.");
+            if (v["pf_alt"].Length > 0 && !System.Text.RegularExpressions.Regex.IsMatch(v["pf_alt"], @"^[0-9+()\-.\s]{7,30}$")) errs.Add("Alternate phone is not valid.");
+            if (addr.Length > 400) errs.Add("Address is too long.");
+            if (errs.Count == 0)
+            {
+                using (var tx = c.BeginTransaction())
+                {
+                    AnyminuteTimesheetRepair.Execute(c, tx, "UPDATE AnyminuteReseller SET ResellerName=@n,ContactPerson=@cp,Email=@e,Phone=@p,AltPhone=@a,Address=@ad,UpdatedAtUTC=SYSUTCDATETIME(),UpdatedBy=@by WHERE ResellerID=@r",
+                        "@n", v["pf_name"], "@cp", contact, "@e", v["pf_email"], "@p", v["pf_phone"], "@a", v["pf_alt"].Length > 0 ? (object)v["pf_alt"] : DBNull.Value, "@ad", addr.Length > 0 ? (object)addr : DBNull.Value, "@by", SA.ActorName(), "@r", rsl.ResellerId);
+                    SA.Audit(c, tx, "Reseller", rsl.ResellerId.ToString(CultureInfo.InvariantCulture), "Profile Updated (Reseller)", null, null, Col(r, "ResellerName") + " | " + cp + " | " + Col(r, "Email") + " | " + Col(r, "Phone") + " | " + stored, v["pf_name"] + " | " + contact + " | " + v["pf_email"] + " | " + v["pf_phone"] + " | " + addr, "Reseller " + rsl.Code + " (My Profile)");
+                    tx.Commit();
+                }
+                Session.Remove("AmRslPortal"); // header / welcome name refresh
+                SA.Flash("Your profile was saved.");
+                Response.Redirect("ResellerDashboard.aspx?view=profile", false); Context.ApplicationInstance.CompleteRequest(); return;
+            }
+            Flash.Text += "<div class='sa-flash sa-warn' role='alert'>Please fix the following:<ul>" + String.Join("", errs.Select(x => "<li>" + SA.H(x) + "</li>").ToArray()) + "</ul></div>";
+        }
+        var sb = new StringBuilder("<div class='sa-card rsl-prof'><div class='rsl-prof-head'><span class='sa-avatar'>").Append(SA.H(AnyminuteAccountantDashboard.Initials(v["pf_name"].Length > 0 ? v["pf_name"] : rsl.Name))).Append("</span><div><h2 style='margin:0'>").Append(SA.H(v["pf_name"]))
+            .Append("</h2><small class='sa-muted'>Reseller ID ").Append(SA.H(rsl.Code)).Append(" &middot; Sign-in ").Append(SA.H(Col(r, "LoginEmail"))).Append("</small></div></div>");
+        if (!edit)
+        {
+            HeadActions.Text = "<a class='sa-btn' href='ResellerDashboard.aspx?view=profile&amp;edit=1'>" + (empty ? "<b aria-hidden='true'>+</b> Add Profile Details" : "&#9998; Edit Profile") + "</a>";
+            Func<string, string, string> kv = (k, x) => "<tr><th>" + k + "</th><td>" + (x.Length > 0 ? SA.H(x) : "&mdash;") + "</td></tr>";
+            sb.Append("<h2>Company &amp; Contact</h2><table class='sa-kv'>").Append(kv("Company Name", v["pf_name"])).Append(kv("Contact First Name", first)).Append(kv("Contact Last Name", last)).Append(kv("Email", v["pf_email"]))
+              .Append(kv("Phone", v["pf_phone"])).Append(kv("Alternate Phone", v["pf_alt"])).Append("</table><h2>Address</h2><table class='sa-kv'>");
+            var pa = AD.Parse(stored);
+            if (stored.Length == 0) sb.Append("<tr><td class='sa-muted'>No address yet. <a class='sa-link' href='ResellerDashboard.aspx?view=profile&amp;edit=1'>Add address</a></td></tr>");
+            else sb.Append(kv("Address Line 1", (pa.StreetNo + " " + pa.Line1).Trim())).Append(kv("Address Line 2", (pa.Line2 + (pa.SuiteNo.Length > 0 ? " " + pa.SuiteType + " " + pa.SuiteNo : "")).Trim())).Append(kv("City", pa.City)).Append(kv("Province / State", pa.Province)).Append(kv("Postal / ZIP Code", pa.Postal)).Append(kv("Country", pa.Country)).Append(kv("Full Address", stored));
+            sb.Append("</table></div>");
+            Content.Text = sb.ToString(); return;
+        }
+        Func<string, string, string, string> input = (label, k, extra) => "<label class='sa-field'><span>" + label + "</span><input name='" + k + "' value='" + SA.A(v[k]) + "' " + extra + " /></label>";
+        sb.Append("<h2>Company &amp; Contact</h2>").Append(input("Company Name <em class='sa-req'>*</em>", "pf_name", "maxlength='150' required")).Append("<div class='sa-grid2'>")
+          .Append(input("Contact First Name <em class='sa-req'>*</em>", "pf_first", "maxlength='75' required")).Append(input("Contact Last Name", "pf_last", "maxlength='75'"))
+          .Append(input("Email <em class='sa-req'>*</em>", "pf_email", "type='email' maxlength='150' required")).Append(input("Phone <em class='sa-req'>*</em>", "pf_phone", "type='tel' maxlength='30' required"))
+          .Append(input("Alternate Phone", "pf_alt", "type='tel' maxlength='30'")).Append("</div><h2>Address</h2>")
+          .Append(AD.Render("pf_addr", IsPostBack ? AD.FromForm("pf_addr") : AD.Parse(stored), false, "ResellerDashboard.aspx?lookup=1&postal=", "Search for your business address using a postal or ZIP code, select a result, or enter the address manually."))
+          .Append("<div class='sa-panel-foot'><a class='sa-btn sa-btn-outline' href='ResellerDashboard.aspx?view=profile'>Cancel</a><button type='submit' class='sa-btn' name='rp_op' value='profile'>Save</button></div></div>");
         Content.Text = sb.ToString();
     }
     static string Money(object o) { return o == null || o == DBNull.Value ? "Custom" : "$" + Convert.ToDecimal(o).ToString("#,0.00", CultureInfo.InvariantCulture); }
@@ -243,7 +455,7 @@ public partial class AnyminuteResellerDashboardPage : System.Web.UI.Page
         string perms = AnyminuteResellers.PermissionText(String.Join(",", rsl.Perms.ToArray()));
         Content.Text = "<div class='sa-card'><h2>Reseller Account</h2><table class='sa-kv'>" + kv("Reseller", SA.H(rsl.Name)) + kv("Reseller ID", SA.H(rsl.Code)) + kv("Permissions", SA.H(perms))
             + kv("Subscriber Limit", rsl.MaxSubscribers.HasValue ? rsl.MaxSubscribers.Value.ToString(CultureInfo.InvariantCulture) : "Unlimited") + "</table><p class='sa-muted'>Contact AnyMinute Support to change your reseller details or permissions.</p></div>"
-            + "<div class='rsl-set'><a href='MyProfile.aspx'><b>My Profile</b><span class='sa-muted'>Name, contact details and photo</span></a><a href='LoginSecurity.aspx'><b>Login &amp; Security</b><span class='sa-muted'>Sign-in email, password and two-step verification</span></a>"
+            + "<div class='rsl-set'><a href='ResellerDashboard.aspx?view=profile'><b>My Profile</b><span class='sa-muted'>Company, contact details and address</span></a><a href='LoginSecurity.aspx'><b>Login &amp; Security</b><span class='sa-muted'>Sign-in email, password and two-step verification</span></a>"
             + "<a href='Change%20Password.aspx'><b>Change Password</b><span class='sa-muted'>Set a new sign-in password</span></a></div>";
     }
 }

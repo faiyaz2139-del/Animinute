@@ -133,3 +133,7 @@ html body.am-modern .am-topbar:has(.am-rsl-brand) .am-ap-avatar,html body.am-mod
 /* v63: single chevron - name::after already draws one; hide span chevron when a name is shown */
 html body .am-account-menu>summary:has(.am-ap-avatar-name)>.am-account-chevron{display:none!important}
 @media(max-width:720px){html body .am-account-menu>summary:has(.am-ap-avatar-name)>.am-account-chevron{display:inline-block!important}}
+/* v67 (Reseller PPT s1/s2): "?" help button on every Reseller page, left of the initials avatar; avatar + one chevron (no name) */
+html body.am-modern .am-topbar:has(.am-rsl-brand)>.am-header-help{display:block!important;order:4!important;margin:0 10px 0 auto!important}
+html body.am-modern .am-topbar:has(.am-rsl-brand):has(>.am-header-help)>.am-account-menu{margin-left:0!important}
+html body.am-modern .am-topbar:has(.am-rsl-brand)>.am-account-menu>summary>.am-account-chevron{display:inline-block!important;margin-left:4px}
