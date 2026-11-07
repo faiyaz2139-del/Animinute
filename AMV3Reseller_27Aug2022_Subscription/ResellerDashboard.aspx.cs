@@ -57,7 +57,7 @@ public partial class AnyminuteResellerDashboardPage : System.Web.UI.Page
                 else if (view == "plans") Plans(c);
                 else if (view == "usage") Usage(c);
                 else if (view == "settings") Settings();
-                else if (view == "profile") Profile(c);
+                else if (view == "profile") ShowMyProfile(c);
                 else Dashboard(c);
             }
             catch (SqlException ex)
@@ -255,7 +255,7 @@ public partial class AnyminuteResellerDashboardPage : System.Web.UI.Page
     // v67 (Reseller PPT s3): My Profile - View (default) / Edit (Add when the details are still empty) the reseller's own
     // AnyminuteReseller row: company (ResellerName), contact first / last (ContactPerson), Email, Phone, Alternate Phone and the Address
     // module (stored as one composed line in Address, like Support Admin > Edit Reseller). No schema change.
-    void Profile(SqlConnection c)
+    void ShowMyProfile(SqlConnection c)
     {
         Crumbs.Text = "<nav class='sa-crumbs' aria-label='Breadcrumb'><a href='ResellerDashboard.aspx'>Dashboard</a> &rsaquo; <a href='ResellerDashboard.aspx?view=settings'>Settings</a> &rsaquo; <span>My Profile</span></nav>";
         Title1.Text = "My Profile"; Lead.Text = "Your reseller company, contact and address details.";
