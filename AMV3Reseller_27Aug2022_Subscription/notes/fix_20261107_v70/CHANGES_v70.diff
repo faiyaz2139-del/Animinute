@@ -1,0 +1,381 @@
+diff --git a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteSupportAddress.cs b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteSupportAddress.cs
+index 44046ca..578d056 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteSupportAddress.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteSupportAddress.cs
+@@ -133,14 +133,19 @@ public static class AnyminuteSupportAddress
+     public static string Render(string prefix, Addr a, bool required, string lookupUrl, string sub) { return Render(prefix, a, required, lookupUrl, sub, null, false); }
+     // v57 (PPT s4): verify = this form queues unverified addresses for Address Verification on save; status = the stored
+     // address status (Verified / Pending / Rejected / "" = not in the verification table) shown in the Address Details pill.
+-    public static string Render(string prefix, Addr a, bool required, string lookupUrl, string sub, string status, bool verify)
++    public static string Render(string prefix, Addr a, bool required, string lookupUrl, string sub, string status, bool verify) { return Render(prefix, a, required, lookupUrl, sub, status, verify, null); }
++    // v70 (Pandey docx s1/s2): std = title of a separate Address Details card (the standard Employee Editor / Employee Profile
++    // layout, .am-emp-al46): Address Lookup card, then "<std>" card with the "Address Details" pill, 3-column grid and the
++    // "City, State/Province and Country" band. Same field names / JS hooks, so posting and validation are unchanged.
++    public static string Render(string prefix, Addr a, bool required, string lookupUrl, string sub, string status, bool verify, string std)
+     {
++        bool sd = std != null;
+         if (a == null) a = new Addr();
+         bool us = a.Country == "United States";
+         string req = "<b class='am-al-req'>*</b>", opt = "<span class='am-al-opt'>(Optional)</span>", rq = required ? " required" : "";
+         Func<string, string, string, string, string, string, string> fld = (label, key, val, ph, extra, cls) =>
+             "<div class='am-al-f" + cls + "'><label for='" + prefix + key + "'>" + label + "</label><input type='text' id='" + prefix + key + "' name='" + prefix + key + "' value='" + A(val) + "' placeholder='" + A(ph) + "'" + extra + " /></div>";
+-        var sb = new StringBuilder("<div class='am-emp-al sa-addrmod' data-sa-addrmod='").Append(A(lookupUrl)).Append("' data-sa-addr-prefix='").Append(prefix).Append("'").Append(verify ? " data-al-verify='1'" : "").Append(">")
++        var sb = new StringBuilder(sd ? "<div class='am-emp-al am-emp-al46 sa-addrmod sa-addr-std' data-sa-addrmod='" : "<div class='am-emp-al sa-addrmod' data-sa-addrmod='").Append(A(lookupUrl)).Append("' data-sa-addr-prefix='").Append(prefix).Append("'").Append(verify ? " data-al-verify='1'" : "").Append(">")
+             .Append("<input type='hidden' name='").Append(prefix).Append("_src' id='").Append(prefix).Append("_src' value='").Append(A(F(prefix, "_src"))).Append("' data-al-lsrc='1' />")
+             .Append("<div class='am-al-layout am-al-single'><section class='am-al-main' aria-labelledby='").Append(prefix).Append("_h'>")
+             .Append("<h2 id='").Append(prefix).Append("_h'>Address Lookup</h2><p class='am-al-sub'>").Append(H(sub ?? "Search for an address using a postal or ZIP code, select a result, or enter the address manually.")).Append("</p>")
+@@ -152,19 +157,19 @@ public static class AnyminuteSupportAddress
+             .Append("<div class='am-al-info' data-al-lhint='1'><span class='am-al-i' aria-hidden='true'>i</span><span data-al-lhinttext='1'>").Append(us ? "Enter a valid US ZIP code (e.g. 33185) or Canadian postal code (e.g. M1B 2W1)." : "Enter a valid Canadian postal code (e.g. M1B 2W1) or US ZIP code (e.g. 33185).").Append("</span></div>")
+             .Append("<div class='am-al-nf' data-al-lnf='1' role='alert' hidden><div class='am-al-nf-head'><span class='am-al-nf-i' aria-hidden='true'>!</span><strong>Address Not Found</strong></div><p>No matching address was found for postal code <b data-al-lnfcode='1'></b>. Please verify the postal code and search again, or enter the address manually.</p></div>")
+             .Append("<div class='am-al-results'><label for='").Append(prefix).Append("_hits'>Select Address from Search Results</label><select id='").Append(prefix).Append("_hits' data-al-lhits='1' disabled><option value=''>Select an address from the list below</option></select></div>")
+-            .Append("<div class='am-al-details'><div class='am-al-details-head'><h3>Address Details</h3>").Append(verify ? Pill(a.Any ? (F(prefix, "_src") == "manual" ? "Pending" : status ?? "") : null, true) : "<span class='am-al-pill' data-al-lmode='1'>" + (a.Any ? "Selected Address" : "Manual Entry") + "</span>").Append("</div><div class='am-al-grid'>")
+-            .Append(fld("Street Number " + req, "_no", a.StreetNo, "e.g. 3112", " maxlength='20'" + rq, ""))
+-            .Append(fld("Address Line 1 " + req, "_line1", a.Line1, "e.g. Krome Ave", " maxlength='100' autocomplete='address-line1'" + rq, " am-al-span2"))
+-            .Append(fld("Address Line 2 " + opt, "_line2", a.Line2, "e.g. Unit, Floor, Building, etc.", " maxlength='100' autocomplete='address-line2'", ""))
+-            .Append("<div class='am-al-f'><label for='").Append(prefix).Append("_suitetype'>Suite Type ").Append(opt).Append("</label><select id='").Append(prefix).Append("_suitetype' name='").Append(prefix).Append("_suitetype'>").Append(Opts(SuiteTypes, a.SuiteType, "Please Select")).Append("</select></div>")
+-            .Append(fld("Suite Number " + opt, "_suiteno", a.SuiteNo, "e.g. 200", " maxlength='20'", ""))
++            .Append(sd ? "</section></div>" : "").Append("<div class='am-al-details'><div class='am-al-details-head'><h3>").Append(sd ? H(std) : "Address Details").Append("</h3>").Append(sd && !verify ? "<span class='am-al-pill'>Address Details</span>" : verify ? Pill(a.Any ? (F(prefix, "_src") == "manual" ? "Pending" : status ?? "") : null, true) : "<span class='am-al-pill' data-al-lmode='1'>" + (a.Any ? "Selected Address" : "Manual Entry") + "</span>").Append("</div><div class='am-al-grid'>")
++            .Append(fld("Street Number " + req, "_no", a.StreetNo, sd ? "Enter street number" : "e.g. 3112", " maxlength='20'" + rq, ""))
++            .Append(fld("Address Line 1 " + req, "_line1", a.Line1, sd ? "Enter address line 1" : "e.g. Krome Ave", " maxlength='100' autocomplete='address-line1'" + rq, " am-al-span2"))
++            .Append(fld("Address Line 2 " + opt, "_line2", a.Line2, sd ? "Enter address line 2 (e.g. Unit, Floor, etc.)" : "e.g. Unit, Floor, Building, etc.", " maxlength='100' autocomplete='address-line2'", ""))
++            .Append("<div class='am-al-f'><label for='").Append(prefix).Append("_suitetype'>Suite Type ").Append(opt).Append("</label><select id='").Append(prefix).Append("_suitetype' name='").Append(prefix).Append("_suitetype'>").Append(Opts(SuiteTypes, a.SuiteType, sd ? "Select" : "Please Select")).Append("</select></div>")
++            .Append(fld("Suite Number " + opt, "_suiteno", a.SuiteNo, sd ? "Enter suite number" : "e.g. 200", " maxlength='20'", ""))
+             .Append("<div class='am-al-subhead' role='heading' aria-level='4'>City, State/Province and Country</div>")
+-            .Append(fld("City " + req, "_city", a.City, us ? "e.g. Miami" : "e.g. Mississauga", " maxlength='50' autocomplete='address-level2'" + rq, ""))
++            .Append(fld("City " + req, "_city", a.City, sd ? "Enter city" : us ? "e.g. Miami" : "e.g. Mississauga", " maxlength='50' autocomplete='address-level2'" + rq, ""))
+             .Append("<div class='am-al-f'><label for='").Append(prefix).Append("_prov'>Province / State ").Append(req).Append("</label><select id='").Append(prefix).Append("_prov' name='").Append(prefix).Append("_prov' data-al-lprov='1'").Append(rq).Append(">")
+-            .Append(Opts(us ? States : Canada, a.Province, us ? "Select state" : "Select province")).Append("</select></div>")
+-            .Append(fld("Postal / ZIP Code " + req, "_postal", a.Postal, us ? "e.g. 33185" : "e.g. L5W 0A2", " maxlength='10' autocomplete='postal-code'" + rq, ""))
++            .Append(Opts(us ? States : Canada, a.Province, sd ? "Select" : us ? "Select state" : "Select province")).Append("</select></div>")
++            .Append(fld("Postal / ZIP Code " + req, "_postal", a.Postal, sd ? "Enter postal code" : us ? "e.g. 33185" : "e.g. L5W 0A2", " maxlength='10' autocomplete='postal-code'" + rq, ""))
+             .Append("<div class='am-al-f am-al-span2 am-al-countryf'><label for='").Append(prefix).Append("_country'>Country ").Append(req).Append("</label><select id='").Append(prefix).Append("_country' name='").Append(prefix).Append("_country' data-al-dcountry='1'>").Append(Opts(new[] { "Canada", "United States" }, a.Country, null)).Append("</select></div>")
+-            .Append("</div></div></section></div></div>");
++            .Append(sd ? "</div></div></div>" : "</div></div></section></div></div>");
+         return sb.ToString();
+     }
+     // ---- v57 (PPT s4): Address Verification status + pending queue (AddressMaster Verifed=0 + AnyminuteAddressReview Pending) ----
+diff --git a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteUiNavigation.cs b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteUiNavigation.cs
+index 3eaa962..c170ece 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteUiNavigation.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteUiNavigation.cs
+@@ -126,7 +126,7 @@ public static class AnyminuteUiNavigation
+             {
+                 string page = route.Split('?')[0];
+                 if (page.EndsWith("employeeeditor.aspx") || page.EndsWith("add_employeev2.aspx")) { item.Name="Add Employee"; item.Href="EmployeeEditor.aspx"; }
+-                else if (route.Contains("users.aspx?action=edit") || page.EndsWith("addeditrole_add_employee.aspx")) item.Name="Edit Employee";
++                else if (route.Contains("users.aspx?action=edit") || page.EndsWith("addeditrole_add_employee.aspx")) { item.Name="Edit Employee"; item.Href="EmployeeSelect.aspx"; } // v70 (docx s3): employee picker -> EmployeeEditor.aspx
+                 else if (label != "assign user") { if (employeesFallback == null) employeesFallback = item; continue; }
+             }
+             // v8 Deck F: legacy Add_Project routes open the new Projects UI.
+@@ -140,7 +140,7 @@ public static class AnyminuteUiNavigation
+             if (!labels.Add(group + "|" + item.Name.Trim())) continue;
+             groups[group].SubMenu.Add(item);
+         }
+-        if (!groups[GEmployees].SubMenu.Any(m => m.Name == "Edit Employee") && employeesFallback != null) { employeesFallback.Name = "Edit Employee"; groups[GEmployees].SubMenu.Add(employeesFallback); }
++        if (!groups[GEmployees].SubMenu.Any(m => m.Name == "Edit Employee") && employeesFallback != null) { employeesFallback.Name = "Edit Employee"; employeesFallback.Href = "EmployeeSelect.aspx"; groups[GEmployees].SubMenu.Add(employeesFallback); }
+         // v16: Edit Business always sits under Businesses next to Add Business. Owners get the Edit Business picker
+         // (BusinessActions.aspx?action=edit); otherwise it opens the Businesses list, whose rows carry the per-business Edit.
+         if (groups[GBusinesses].SubMenu.Any(m => (m.Name ?? "").Trim() == "Add Business") && !groups[GBusinesses].SubMenu.Any(m => (m.Name ?? "").Trim() == "Edit Business"))
+diff --git a/AMV3Reseller_27Aug2022_Subscription/EmployeeSelect.aspx b/AMV3Reseller_27Aug2022_Subscription/EmployeeSelect.aspx
+new file mode 100644
+index 0000000..6641baa
+--- /dev/null
++++ b/AMV3Reseller_27Aug2022_Subscription/EmployeeSelect.aspx
+@@ -0,0 +1,40 @@
++<%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="EmployeeSelect.aspx.cs" Inherits="AnyminuteEmployeeSelectPage" Title="Edit Employee" %>
++<%-- 2026-11-07 v70 (docx s3): Employees > Edit Employee opens this picker (subscriber's own employees only); the selected
++     employee opens in the new EmployeeEditor.aspx?EmployeeId=... instead of the old AddEditRole_Add_Employee.aspx page. --%>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteEmployees.css?v=20261025v13" rel="stylesheet" /><link href="css/AnyminuteEmployeesV2.css?v=20261026v17" rel="stylesheet" />
++<style>
++.am-empsel{max-width:760px}
++.am-empsel .am-empsel-f{display:flex;flex-direction:column;gap:6px;margin:0 0 16px}
++.am-empsel .am-empsel-f>label{font-weight:700;font-size:14px;color:#0f172a}
++.am-empsel .am-empsel-f .am-req{color:#e5282a}
++.am-empsel input[type=search],.am-empsel select{width:100%;height:42px;border:1px solid #cfd8e3;border-radius:8px;padding:0 12px;font-size:14px;background:#fff;box-sizing:border-box}
++.am-empsel input:focus,.am-empsel select:focus{border-color:#1a5fd6;outline:0;box-shadow:0 0 0 3px rgba(26,95,214,.15)}
++.am-empsel .am-empsel-count{color:#5f7389;font-size:13px}
++.am-empsel .am-empsel-empty{padding:18px;border:1px dashed #cfd8e3;border-radius:10px;color:#5f7389;text-align:center}
++.am-empsel .am-empsel-err{display:block;margin:0 0 14px;padding:10px 14px;border:1px solid #f5c2c0;background:#fdecea;color:#9b1c1c;border-radius:8px}
++.am-empsel .am-dialog-foot .am-button[disabled]{opacity:.55;cursor:not-allowed}
++</style></asp:Content>
++<asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
++<section class="am-dialog-page am-employees-v2 am-empsel">
++ <header class="am-dialog-head"><div><h1>Edit Employee</h1><p>Select an employee to open and update their details.</p></div><asp:HyperLink runat="server" NavigateUrl="~/Users.aspx" CssClass="am-dialog-close" ToolTip="Close" aria-label="Close">&times;</asp:HyperLink></header>
++ <div class="am-dialog-body">
++  <asp:Label ID="PageError" runat="server" Visible="false" CssClass="am-empsel-err" role="alert" />
++  <asp:Panel ID="PickPanel" runat="server">
++   <div class="am-empsel-f"><label for="amEmpSelSearch">Search Employee</label><input type="search" id="amEmpSelSearch" placeholder="Search by name, email or phone" autocomplete="off" /></div>
++   <div class="am-empsel-f"><label for="EmployeeList">Select Employee <span class="am-req">*</span></label>
++    <asp:DropDownList ID="EmployeeList" runat="server" ClientIDMode="Static" />
++    <span class="am-empsel-count" id="amEmpSelCount"><asp:Literal ID="CountText" runat="server" /></span></div>
++  </asp:Panel>
++  <asp:Panel ID="EmptyPanel" runat="server" Visible="false" CssClass="am-empsel-empty">No employees found for your businesses. <a href="EmployeeEditor.aspx">Add Employee</a></asp:Panel>
++ </div>
++ <div class="am-dialog-foot"><a class="am-button secondary" href="Users.aspx">Cancel</a><asp:Button ID="EditSelected" runat="server" Text="Edit Employee" CssClass="am-button" OnClick="EditSelected_Click" ClientIDMode="Static" /></div>
++</section>
++<script>
++(function(){var sel=document.getElementById('EmployeeList'),q=document.getElementById('amEmpSelSearch'),btn=document.getElementById('EditSelected'),cnt=document.getElementById('amEmpSelCount');if(!sel||!q)return;
++var all=[].slice.call(sel.options).map(function(o){return{v:o.value,t:o.text,k:(o.getAttribute('data-k')||o.text).toLowerCase()};});
++function sync(){if(btn)btn.disabled=!sel.value;}
++function draw(){var term=q.value.trim().toLowerCase(),keep=sel.value,n=0;sel.innerHTML='';all.forEach(function(a){if(a.v&&term&&a.k.indexOf(term)<0)return;var o=new Option(a.t,a.v);if(a.v){n++;}sel.add(o);});
++if([].some.call(sel.options,function(o){return o.value===keep;}))sel.value=keep;else sel.value='';if(cnt)cnt.textContent=n+(n===1?' employee':' employees')+(term?' match your search':'');sync();}
++q.addEventListener('input',draw);sel.addEventListener('change',sync);sel.addEventListener('dblclick',function(){if(sel.value&&btn)btn.click();});sync();})();
++</script>
++</asp:Content>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/EmployeeSelect.aspx.cs b/AMV3Reseller_27Aug2022_Subscription/EmployeeSelect.aspx.cs
+new file mode 100644
+index 0000000..f46ed06
+--- /dev/null
++++ b/AMV3Reseller_27Aug2022_Subscription/EmployeeSelect.aspx.cs
+@@ -0,0 +1,41 @@
++using System;
++using System.Collections.Generic;
++using System.Globalization;
++using System.Linq;
++using System.Web;
++using System.Web.UI.WebControls;
++// 2026-11-07 v70 (docx s3): Employees > Edit Employee picker. Lists only employees the signed-in subscriber owns (every
++// assignment manageable, the same rule EmployeeEditor enforces) and redirects to EmployeeEditor.aspx?EmployeeId=<id>.
++public partial class AnyminuteEmployeeSelectPage : System.Web.UI.Page
++{
++    private List<AnyminuteEmployeeCardView> cards = new List<AnyminuteEmployeeCardView>();
++    protected void Page_Init(object sender, EventArgs e)
++    {
++        AnyminuteModernScope.Login(); AnyminuteFormAccess.OwnerSomewhere(); ViewStateUserKey = Session.SessionID;
++        try { cards = AnyminuteEmployeesView.Load().Where(c => c.Manage).ToList(); }
++        catch (HttpException) { cards = new List<AnyminuteEmployeeCardView>(); }
++    }
++    protected void Page_Load(object sender, EventArgs e)
++    {
++        if (IsPostBack) return;
++        EmployeeList.Items.Clear();
++        EmployeeList.Items.Add(new ListItem("Select an employee", ""));
++        foreach (var c in cards)
++        {
++            string text = (c.Name ?? "").Trim() + (String.IsNullOrWhiteSpace(c.Email) ? "" : " - " + c.Email.Trim()) + " (" + c.BusinessLabel + ")";
++            var li = new ListItem(text, c.EmployeeId.ToString(CultureInfo.InvariantCulture));
++            li.Attributes["data-k"] = String.Join(" ", new[] { c.Name, c.Email, c.Phone, String.Join(" ", c.Assignments.Select(a => a.Mobile + " " + a.Business)) }).ToLowerInvariant();
++            EmployeeList.Items.Add(li);
++        }
++        CountText.Text = cards.Count + (cards.Count == 1 ? " employee" : " employees");
++        bool any = cards.Count > 0; PickPanel.Visible = any; EmptyPanel.Visible = !any; EditSelected.Visible = any;
++    }
++    protected void EditSelected_Click(object sender, EventArgs e)
++    {
++        int id;
++        if (!Int32.TryParse(EmployeeList.SelectedValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out id) || id <= 0 || !cards.Any(c => c.EmployeeId == id))
++        { PageError.Text = "Select an employee from the list."; PageError.Visible = true; return; }
++        Response.Redirect("EmployeeEditor.aspx?EmployeeId=" + id.ToString(CultureInfo.InvariantCulture), false);
++        Context.ApplicationInstance.CompleteRequest();
++    }
++}
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Main.master b/AMV3Reseller_27Aug2022_Subscription/Main.master
+index eba91be..32aab98 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Main.master
++++ b/AMV3Reseller_27Aug2022_Subscription/Main.master
+@@ -5,7 +5,7 @@
+ <!DOCTYPE html>
+ 
+ <html>
+-<head runat="server"><meta name="anyminute-build" content="v69-20261107" />
++<head runat="server"><meta name="anyminute-build" content="v70-20261107" />
+     <title>AnyMinute | Record From Anywhere</title>
+     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Modern.master b/AMV3Reseller_27Aug2022_Subscription/Modern.master
+index 4a7ab94..6241966 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Modern.master
++++ b/AMV3Reseller_27Aug2022_Subscription/Modern.master
+@@ -1,6 +1,6 @@
+ <%@ Master Language="C#" AutoEventWireup="true" CodeFile="Modern.master.cs" Inherits="AnyminuteModernMaster" %>
+ <!DOCTYPE html>
+-<html lang="en"><head runat="server"><meta charset="utf-8" /><meta name="anyminute-build" content="v69-20261107" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>AnyMinute</title><link href="css/bootstrap.min.css" rel="stylesheet" /><script src="Assets/assets/js/core/jquery.3.2.1.min.js"></script><script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script><script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" /><script src="Assets/assets/js/plugin/datatables/datatables.min.js"></script><script src="Assets/assets/js/SweetAlert.js"></script><link href="css/AnyminuteModern.css" rel="stylesheet" /><asp:ContentPlaceHolder ID="head" runat="server" /><link href="css/AnyminuteUI2026.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUIUnified.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUiBugFixes.css?v=20261026v17" rel="stylesheet" /><link href="css/AnyminuteNavDrawer.css?v=20261106v67" rel="stylesheet" /></head>
++<html lang="en"><head runat="server"><meta charset="utf-8" /><meta name="anyminute-build" content="v70-20261107" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>AnyMinute</title><link href="css/bootstrap.min.css" rel="stylesheet" /><script src="Assets/assets/js/core/jquery.3.2.1.min.js"></script><script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script><script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" /><script src="Assets/assets/js/plugin/datatables/datatables.min.js"></script><script src="Assets/assets/js/SweetAlert.js"></script><link href="css/AnyminuteModern.css" rel="stylesheet" /><asp:ContentPlaceHolder ID="head" runat="server" /><link href="css/AnyminuteUI2026.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUIUnified.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUiBugFixes.css?v=20261026v17" rel="stylesheet" /><link href="css/AnyminuteNavDrawer.css?v=20261106v67" rel="stylesheet" /></head>
+ <body class="am-modern"><form id="frmMaster" runat="server"><asp:ScriptManager ID="ScriptManager1" runat="server" />
+ <header class="am-topbar"><button type="button" class="am-icon-button" data-toggle-sidebar aria-controls="am-main-navigation" aria-expanded="true" aria-label="Toggle navigation">&#9776;</button><a href="Dashboard.aspx" class="am-brand"><asp:PlaceHolder ID="LogoDefault" runat="server"><img src="Assets/assets/img/logo.jpg" alt="AnyMinute" class="am-logo" /></asp:PlaceHolder><asp:Literal ID="Brand" runat="server" /></a><span>Welcome! <asp:Literal ID="Welcome" runat="server" /><asp:Literal ID="WelcomeContext" runat="server" /></span><asp:Literal ID="HeaderHelp" runat="server" /><asp:Literal ID="HeaderBell" runat="server" /><details class="am-account-menu"><summary aria-label="Account menu"><asp:Literal ID="AccountAvatar" runat="server" /><span class="am-account-chevron" aria-hidden="true"></span><span class="sr-only">Account</span></summary><div class="am-account-popover"><a href="MyProfile.aspx"><span data-am-icon="profile" aria-hidden="true"></span>My profile</a><a href="LoginSecurity.aspx"><span data-am-icon="settings" aria-hidden="true"></span>Login &amp; security</a><asp:LinkButton ID="SignOut" runat="server" CausesValidation="false" OnClick="SignOut_Click"><span data-am-icon="signout" aria-hidden="true"></span>Sign out</asp:LinkButton>
+    <a href="Change%20Password.aspx"><span data-am-icon="settings" aria-hidden="true"></span>Change password</a><asp:Literal ID="AccountHelp" runat="server" /><asp:Literal ID="AccountUpgrade" runat="server" /></div></details></header>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/ResellerDashboard.aspx b/AMV3Reseller_27Aug2022_Subscription/ResellerDashboard.aspx
+index 2992b52..6b516c0 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/ResellerDashboard.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/ResellerDashboard.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="ResellerDashboard.aspx.cs" Inherits="AnyminuteResellerDashboardPage" Title="Reseller Dashboard" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261106v67" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261106v67" defer="defer"></script>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteAddressLookup.css?v=20261107v70" rel="stylesheet" /><link href="css/AnyminuteSupport.css?v=20261107v70" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261107v70" defer="defer"></script>
+ <style>/* v55 Reseller PPT s1/s9 (v56 s1 strict below) */
+ .rsl-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px}.rsl-kpis .sa-kpi-icon svg{width:24px;height:24px}
+ .rsl-qa{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}.rsl-qa a{display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px 10px;border:1px solid var(--sa-line,#dfe5ee);border-radius:12px;background:#fff;color:#14233c;font-weight:600;text-align:center;text-decoration:none}
+diff --git a/AMV3Reseller_27Aug2022_Subscription/ResellerDashboard.aspx.cs b/AMV3Reseller_27Aug2022_Subscription/ResellerDashboard.aspx.cs
+index 3e652ac..a411beb 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/ResellerDashboard.aspx.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/ResellerDashboard.aspx.cs
+@@ -191,8 +191,9 @@ public partial class AnyminuteResellerDashboardPage : System.Web.UI.Page
+           .Append(input("Primary Contact Number <em class='sa-req'>*</em>", "bz_cnum", "PrimaryContactNumber", "type='tel' maxlength='20' required placeholder='10 digits'")).Append(input("Primary Email <em class='sa-req'>*</em>", "bz_email", "", "type='email' maxlength='100' required")).Append("</div>");
+         // Address module (same Address Lookup + Address Details as Support Admin / Reseller); Edit = collapsed card + Manage Address.
+         const string sub = "Search for the business address using a postal or ZIP code, select a result, or enter the address manually.", lk = "ResellerDashboard.aspx?lookup=1&postal=";
+-        if (add) sb.Append("<h2>Address</h2>").Append(AD.Render("bz_addr", v != null ? AD.FromForm("bz_addr") : new AD.Addr(), true, lk, sub));
+-        else { bool open = IsPostBack && AD.Opened("bz_addr"); var cur = a == null ? new AD.Addr() : BizAd(a); sb.Append(AD.Gate("bz_addr", cur.Any ? AD.Compose(cur) : "", open, AD.Render("bz_addr", open ? AD.FromForm("bz_addr") : cur, true, lk, sub))); }
++        // v70 (docx s1): standard Address format (Address Lookup card + separate "Business Address" details card, as EmployeeEditor).
++        if (add) sb.Append(AD.Render("bz_addr", v != null ? AD.FromForm("bz_addr") : new AD.Addr(), true, lk, sub, null, false, "Business Address"));
++        else { bool open = IsPostBack && AD.Opened("bz_addr"); var cur = a == null ? new AD.Addr() : BizAd(a); sb.Append(AD.Gate("bz_addr", cur.Any ? AD.Compose(cur) : "", open, AD.Render("bz_addr", open ? AD.FromForm("bz_addr") : cur, true, lk, sub, null, false, "Business Address"))); }
+         sb.Append("<div class='sa-panel-foot'><a class='sa-btn sa-btn-outline' href='ResellerDashboard.aspx?view=businesses'>Cancel</a><button type='submit' class='sa-btn' name='rp_op' value='biz'").Append(dis).Append(">").Append(add ? "Save Business" : "Save Changes").Append("</button></div></div>");
+         return sb.ToString();
+     }
+@@ -313,8 +314,9 @@ public partial class AnyminuteResellerDashboardPage : System.Web.UI.Page
+         sb.Append("<h2>Company &amp; Contact</h2>").Append(input("Company Name <em class='sa-req'>*</em>", "pf_name", "maxlength='150' required")).Append("<div class='sa-grid2'>")
+           .Append(input("Contact First Name <em class='sa-req'>*</em>", "pf_first", "maxlength='75' required")).Append(input("Contact Last Name", "pf_last", "maxlength='75'"))
+           .Append(input("Email <em class='sa-req'>*</em>", "pf_email", "type='email' maxlength='150' required")).Append(input("Phone <em class='sa-req'>*</em>", "pf_phone", "type='tel' maxlength='30' required"))
+-          .Append(input("Alternate Phone", "pf_alt", "type='tel' maxlength='30'")).Append("</div><h2>Address</h2>")
+-          .Append(AD.Render("pf_addr", IsPostBack ? AD.FromForm("pf_addr") : AD.Parse(stored), false, "ResellerDashboard.aspx?lookup=1&postal=", "Search for your business address using a postal or ZIP code, select a result, or enter the address manually."))
++          .Append(input("Alternate Phone", "pf_alt", "type='tel' maxlength='30'")).Append("</div>")
++          // v70 (docx s2): standard Address format (Address Lookup card + separate "Address" details card).
++          .Append(AD.Render("pf_addr", IsPostBack ? AD.FromForm("pf_addr") : AD.Parse(stored), false, "ResellerDashboard.aspx?lookup=1&postal=", "Search for your business address using a postal or ZIP code, select a result, or enter the address manually.", null, false, "Address"))
+           .Append("<div class='sa-panel-foot'><a class='sa-btn sa-btn-outline' href='ResellerDashboard.aspx?view=profile'>Cancel</a><button type='submit' class='sa-btn' name='rp_op' value='profile'>Save</button></div></div>");
+         Content.Text = sb.ToString();
+     }
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Scripts/AnyminuteSupport.js b/AMV3Reseller_27Aug2022_Subscription/Scripts/AnyminuteSupport.js
+index f4edf86..dc54c10 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Scripts/AnyminuteSupport.js
++++ b/AMV3Reseller_27Aug2022_Subscription/Scripts/AnyminuteSupport.js
+@@ -190,7 +190,7 @@
+         else mode.textContent = m === 'manual' ? 'Manual Entry' : 'Selected Address';
+       };
+       var fillProv = function (country, keep) {
+-        var list = REG[country] || REG.Canada, v = keep || '', html = '<option value="">' + (country === 'United States' ? 'Select state' : 'Select province') + '</option>', hit = false;
++        var list = REG[country] || REG.Canada, v = keep || '', html = '<option value="">' + (box.classList.contains('sa-addr-std') ? 'Select' : country === 'United States' ? 'Select state' : 'Select province') + '</option>', hit = false;
+         list.forEach(function (n) { var on = n.toLowerCase() === v.toLowerCase(); hit = hit || on; html += '<option' + (on ? ' selected' : '') + '>' + n + '</option>'; });
+         if (v && !hit) html += '<option selected>' + v.replace(/</g, '&lt;') + '</option>';
+         prov.innerHTML = html;
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SuperAdmin.aspx b/AMV3Reseller_27Aug2022_Subscription/SuperAdmin.aspx
+index 0347c0c..8045cd9 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SuperAdmin.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SuperAdmin.aspx
+@@ -3,7 +3,7 @@
+ <%-- v36 (DOCX image7, strict): Accountant List moved to the same Modern shell / Support Admin card design as the other Support Admin
+      pages: one toolbar (Search + Status + Clear), status pills, sortable headers, Previous / page / Next pager, no forced H-scroll. --%>
+ <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="Server">
+-    <link href="css/AnyminuteSupport.css?v=20261106v67" rel="stylesheet" />
++    <link href="css/AnyminuteSupport.css?v=20261107v70" rel="stylesheet" />
+     <style>
+         .am-sa-list .sa-head h1{font-size:24px;margin:0}
+         .am-sa-list .sa-table-wrap{overflow-x:visible}
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SuperAdmin_Approve_Subscriber.aspx b/AMV3Reseller_27Aug2022_Subscription/SuperAdmin_Approve_Subscriber.aspx
+index 9aad449..e25b17a 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SuperAdmin_Approve_Subscriber.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SuperAdmin_Approve_Subscriber.aspx
+@@ -161,7 +161,7 @@
+         }
+     </script>
+ 
+-    <link href="css/AnyminuteSupport.css?v=20261106v67" rel="stylesheet" />
++    <link href="css/AnyminuteSupport.css?v=20261107v70" rel="stylesheet" />
+     <style>
+         /* v37 (DOCX image4): one toolbar, no forced scrollbar, status pill, sortable headers, pager. */
+         .am-sa-subwrap{overflow-x:auto;border:1px solid #e2e8f0;border-radius:10px;background:#fff}
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx b/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx
+index 64bfce3..0118d67 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="SupportAddresses.aspx.cs" Inherits="AnyminuteSupportAddressesPage" Title="Address Verification" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261106v67" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261106v67" defer="defer"></script></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261107v70" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261107v70" defer="defer"></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section class="sa-page">
+  <header class="sa-head"><div><h1>Address Verification</h1><p>Review, correct and verify manually entered addresses.</p></div>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportAdminProfile.aspx b/AMV3Reseller_27Aug2022_Subscription/SupportAdminProfile.aspx
+index 53150a2..839b0e0 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportAdminProfile.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportAdminProfile.aspx
+@@ -1,7 +1,7 @@
+ <%@ Page Title="My Profile" Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="SupportAdminProfile.aspx.cs" Inherits="SupportAdminProfile" %>
+ <%-- 2026-11-03 v58 (Support Admin PPT s2/s3 "Can't Edit the Profile"): My profile for Support Admin is a real, editable profile in the
+      Support Admin console (Modern.master), replacing the old Main.master form with its Home / Back to List links. --%>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261106v67" rel="stylesheet" /></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261107v70" rel="stylesheet" /></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section class="sa-page">
+  <header class="sa-head"><div><h1>My Profile</h1><p>Your Support Admin account and contact details.</p></div></header>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportBusinesses.aspx b/AMV3Reseller_27Aug2022_Subscription/SupportBusinesses.aspx
+index 4c52ef0..4574f4d 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportBusinesses.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportBusinesses.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="SupportBusinesses.aspx.cs" Inherits="AnyminuteSupportBusinessesPage" Title="Businesses" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261106v67" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261106v67" defer="defer"></script></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261107v70" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261107v70" defer="defer"></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section class="sa-page">
+  <asp:Literal ID="Body1" runat="server" />
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportPlans.aspx b/AMV3Reseller_27Aug2022_Subscription/SupportPlans.aspx
+index da96067..929766f 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportPlans.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportPlans.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="SupportPlans.aspx.cs" Inherits="AnyminuteSupportPlansPage" Title="Subscription Plans" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261106v67" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261106v67" defer="defer"></script></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261107v70" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261107v70" defer="defer"></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section class="sa-page">
+  <header class="sa-head"><div><h1><asp:Literal ID="Title1" runat="server" /></h1><p><asp:Literal ID="Lead" runat="server" /></p></div>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportReports.aspx b/AMV3Reseller_27Aug2022_Subscription/SupportReports.aspx
+index 44f71ff..534ebff 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportReports.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportReports.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="SupportReports.aspx.cs" Inherits="AnyminuteSupportReportsPage" Title="Support Admin Reports" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261106v67" rel="stylesheet" /><link href="css/AnyminuteReportLayout.css?v=20261101v46" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261106v67" defer="defer"></script><script src="Scripts/AnyminuteReportLayout.js?v=20261101v46" defer="defer"></script></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261107v70" rel="stylesheet" /><link href="css/AnyminuteReportLayout.css?v=20261101v46" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261107v70" defer="defer"></script><script src="Scripts/AnyminuteReportLayout.js?v=20261101v46" defer="defer"></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section class="sa-page am-rl">
+  <asp:Literal ID="Head1" runat="server" />
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportResellers.aspx b/AMV3Reseller_27Aug2022_Subscription/SupportResellers.aspx
+index bba308f..53dc5e6 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportResellers.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportResellers.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="SupportResellers.aspx.cs" Inherits="AnyminuteSupportResellersPage" Title="Resellers" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteAddressLookup.css?v=20261106v67" rel="stylesheet" /><link href="css/AnyminuteSupport.css?v=20261106v67" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261106v67" defer="defer"></script></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteAddressLookup.css?v=20261106v67" rel="stylesheet" /><link href="css/AnyminuteSupport.css?v=20261107v70" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261107v70" defer="defer"></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section class="sa-page">
+  <asp:Literal ID="Flash" runat="server" />
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx b/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx
+index aa3feee..8e2e930 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="SupportSubscribers.aspx.cs" Inherits="AnyminuteSupportSubscribersPage" Title="Subscribers" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteAddressLookup.css?v=20261106v67" rel="stylesheet" /><link href="css/AnyminuteSupport.css?v=20261106v67" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261106v67" defer="defer"></script></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteAddressLookup.css?v=20261106v67" rel="stylesheet" /><link href="css/AnyminuteSupport.css?v=20261107v70" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261107v70" defer="defer"></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section class="sa-page">
+  <asp:Literal ID="Crumbs" runat="server" />
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportTickets.aspx b/AMV3Reseller_27Aug2022_Subscription/SupportTickets.aspx
+index 55e7d35..09b84ee 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportTickets.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportTickets.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="SupportTickets.aspx.cs" Inherits="AnyminuteSupportTicketsPage" Title="Support Tickets" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261106v67" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261106v67" defer="defer"></script></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261107v70" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261107v70" defer="defer"></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section class="sa-page">
+  <header class="sa-head"><div><h1>Support Tickets</h1><p>View and manage support tickets from subscribers.</p></div>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteSupport.css b/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteSupport.css
+index c97f8d9..6454bb5 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteSupport.css
++++ b/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteSupport.css
+@@ -344,3 +344,12 @@ html body .sa-card.sa-plan-up{box-shadow:0 0 0 2px #2563eb,0 4px 14px rgba(37,99
+ .sa-rsl-edit .sa-rsl-addr-sec{margin:14px 0 4px}.sa-rsl-edit .sa-rsl-addr-sec .sa-addr-gate{box-shadow:none;margin:0}.sa-rsl-edit .sa-rsl-addr-sec .sa-addr-gate h2{margin:0 0 4px}
+ .rsl-prof .sa-kv th{width:220px}.rsl-prof-head{display:flex;align-items:center;gap:14px;margin-bottom:6px}.rsl-prof-head .sa-avatar{width:56px;height:56px;font-size:20px}
+ .rsl-bizform .sa-grid2,.rsl-bizform .sa-grid3{margin-bottom:4px}.rsl-bizform h2{font-size:16px;margin:16px 0 8px}.rsl-bizform h2:first-of-type{margin-top:0}
++
++/* v70 (docx s1/s2): Reseller Add / Edit Business and My Profile use the standard Address format (.sa-addr-std = EmployeeEditor
++   .am-emp-al46): Address Lookup card, then a separate details card with the "Address Details" pill and 3-column grid. */
++.sa-page .sa-addr-std{margin:16px 0}
++.sa-page .sa-addr-std>.am-al-layout{margin:0 0 14px}
++.sa-page .sa-addr-std .am-al-main>h2,.rsl-bizform .sa-addr-std .am-al-main>h2{font-size:20px;margin:0 0 4px}
++.sa-page .sa-addr-std .am-al-details-head h3{margin:0}
++.sa-page .sa-addr-std .am-al-results select{width:100%!important;max-width:none!important}
++.sa-page .sa-addr-std>.am-al-details .am-al-subhead{margin:6px -18px 0;padding:10px 18px}
