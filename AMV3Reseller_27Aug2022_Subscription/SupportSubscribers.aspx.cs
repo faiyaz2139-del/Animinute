@@ -147,6 +147,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
         if (SA.Get("lookup") == "1") { Lookup(); return; }
         string op0 = SA.Form("sa_op");
         if (IsPostBack && (op0 == "add" || op0 == "addsave" || op0 == "addback")) { AddPost(); return; }
+        if (IsPostBack && op0 == "eraseallrun") { EraseAllPost(); return; }
         if (IsPostBack && (op0 == "cleanprev" || op0 == "cleanrun")) { CleanPost(op0); return; } // v61 Clean Test Data (Support Admin only)
         if (IsPostBack && op0.Length > 0) { Act(user); return; }
         Flash.Text = SA.TakeFlash();
@@ -154,7 +155,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
         {
             bool ready = SA.Has(c, "AnyminuteSupportAudit") && SA.Has(c, "AnyminuteLoginSecurity");
             if (!ready) Flash.Text += SA.Notice(c, "AnyminuteSupportAudit", "AnyminuteLoginSecurity");
-            if (user <= 0) { if (SA.Get("view") == "add") AddView(c, null); else if (SA.Get("view") == "clean" && CleanAllowed()) CleanView(c); else List(c); return; }
+            if (user <= 0) { if (SA.Get("view") == "add") AddView(c, null); else if (SA.Get("view") == "eraseall" && CleanAllowed()) EraseAllView(); else if (SA.Get("view") == "clean" && CleanAllowed()) CleanView(c); else List(c); return; }
             var t = Subscribers(c, user);
             if (t.Rows.Count != 1) { Title1.Text = "Subscriber not found"; Content.Text = "<p><a class='sa-link' href='SupportSubscribers.aspx'>Back to Subscribers</a></p>"; return; }
             var r = t.Rows[0]; string view = SA.Get("view");
@@ -240,7 +241,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
         if (key != null) rows = (dir == "desc" ? rows.OrderByDescending(key) : rows.OrderBy(key)).ToList();
         string bq0 = "SupportSubscribers.aspx?q=" + HttpUtility.UrlEncode(q) + "&plan=" + HttpUtility.UrlEncode(plan) + "&status=" + HttpUtility.UrlEncode(st), bq = bq0 + (sort.Length > 0 ? "&sort=" + sort + "&dir=" + dir : "");
         Func<string, string, string> th = (label, k) => "<th><a class='sa-sort" + (sort == k ? " on" : "") + "' href='" + SA.A(bq0 + "&size=" + size + "&sort=" + k + "&dir=" + (sort == k && dir == "asc" ? "desc" : "asc")) + "'>" + label + " <i aria-hidden='true'>" + (sort == k ? (dir == "asc" ? "&#9650;" : "&#9660;") : "&#8661;") + "</i></a></th>";
-        HeadActions.Text = (CleanAllowed() ? "<a class='sa-btn sa-btn-outline' href='SupportSubscribers.aspx?view=clean'>Clean Test Data</a> " : "") + "<a class='sa-btn' href='SupportSubscribers.aspx?view=add'>+ Add Subscriber</a>";
+        HeadActions.Text = (CleanAllowed() ? "<a class='sa-btn sa-btn-outline' href='SupportSubscribers.aspx?view=clean'>Clean Test Data</a> <a class='sa-btn sa-btn-danger' href='SupportSubscribers.aspx?view=eraseall'>Erase All Subscribers&#39; Data</a> " : "") + "<a class='sa-btn' href='SupportSubscribers.aspx?view=add'>+ Add Subscriber</a>";
         int pages = Math.Max(1, (rows.Count + size - 1) / size); if (page > pages) page = pages;
         Func<string, string, string, int, string> kpi = (icon, label, tone, cnt) => "<div class='sa-kpi'><i class='sa-kpi-icon sa-" + tone + "' aria-hidden='true'>" + icon + "</i><div><span>" + label + "</span><strong>" + cnt + "</strong></div></div>";
         var sb = new StringBuilder("<div class='sa-kpis'>").Append(kpi("&#128101;", "Total Subscribers", "blue", all.Count)).Append(kpi("&#10004;", "Active Subscribers", "green", all.Count(r => StatusOf(r) == "Active")))
@@ -1165,6 +1166,63 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
     // the v59 erase preview) -> typed "CLEAN <n>" + reason + "cannot be undone" + optional "also delete the account" / paid override
     // -> Run (cleanrun: everything re-checked on the server, one transaction per subscriber, results table). Resellers are refused.
     static bool CleanAllowed() { return Rsl == null && SA.IsSupport(); }
+    // v69: global wipe is deliberately separate from test cleanup/account deletion.
+    void EraseAllView()
+    {
+        Title1.Text = "Erase All Subscribers' Data";
+        Lead.Text = "Every subscriber, including paid and inactive subscribers. Logins, plans and billing are kept.";
+        HeadActions.Text = "";
+        string token = Guid.NewGuid().ToString("N"); Session["EraseAllToken"] = token;
+        Content.Text = "<div class='sa-card sa-clean-confirm'><div class='sa-flash sa-warn'><b>Back up the database first.</b> Permanently erase business/module data for ALL subscribers. Includes shared-owner businesses. This cannot be undone. Login/profile shells, plans, billing, resellers and support admins remain. Each subscriber commits separately; failures are reported and can be retried.</div>"
+            + "<input type='hidden' name='sa_erase_token' value='" + token + "' /><label class='sa-field'><span>Type <b>ERASE ALL</b></span><input name='sa_confirm' autocomplete='off' /></label><label class='sa-field'><span>Reason (required)</span><textarea name='sa_reason' maxlength='500'></textarea></label>"
+            + "<div class='sa-panel-foot'><a class='sa-btn sa-btn-outline' href='SupportSubscribers.aspx'>Cancel</a><button type='submit' name='sa_op' value='eraseallrun' class='sa-btn sa-btn-danger' formnovalidate='formnovalidate' data-sa-confirm='Permanently erase ALL subscribers business data? Backups are required. This cannot be undone.'>Erase All Subscribers&#39; Data</button></div></div>";
+    }
+    void EraseAllPost()
+    {
+        if (!CleanAllowed()) { Response.StatusCode = 403; return; }
+        string token = Session["EraseAllToken"] as string;
+        Session.Remove("EraseAllToken"); // single use, no refresh/double-submit replay
+        string reason = SA.Form("sa_reason").Trim();
+        if (String.IsNullOrEmpty(token) || token != SA.Form("sa_erase_token") || SA.Form("sa_confirm").Trim() != "ERASE ALL" || reason.Length == 0)
+        { EraseAllView(); Flash.Text = "<div class='sa-flash sa-warn'>Type ERASE ALL and enter a reason on this confirmation page. Nothing was erased.</div>"; return; }
+        if (reason.Length > 500) reason = reason.Substring(0, 500);
+        Server.ScriptTimeout = 3600;
+        using (var c = SA.Open())
+        {
+            if (!SA.Has(c, "AnyminuteSupportAudit")) { Flash.Text = SA.Notice(c, "AnyminuteSupportAudit"); return; }
+            var all = Subscribers(c, 0).Rows.Cast<DataRow>().ToList();
+            var prot = AnyminuteTestDataClean.Protected(c, all);
+            int ok = 0, fail = 0, skipped = 0;
+            var sb = new StringBuilder("<div class='sa-card'><div class='sa-table-wrap'><table class='sa-table'><thead><tr><th>Subscriber</th><th>Result</th></tr></thead><tbody>");
+            SA.Audit(c, null, "Login", "erase-all", "All Subscribers Erase Started", null, null, null, all.Count + " subscriber accounts found", reason);
+            foreach (var row in all)
+            {
+                int u = Convert.ToInt32(row["UserId"]);
+                sb.Append("<tr><td>").Append(SA.H(Name(row))).Append(" (" + u + ")</td><td>");
+                if (prot.Contains(u) || u == SA.ActorId()) { skipped++; sb.Append("Protected admin/reseller account kept"); }
+                else
+                {
+                    try
+                    {
+                        var result = AnyminuteSubscriberErase.Erase(c, Convert.ToInt32(row["EmployeeId"]), u, SA.S(row["Email"]), Name(row), SA.S(row["FirstName"]), "All Subscribers: " + reason, true);
+                        ok++; sb.Append("Erased: ").Append(SA.H(result.Summary()));
+                    }
+                    catch (Exception ex)
+                    {
+                        fail++; sb.Append("FAILED: rolled back this subscriber; see server log.");
+                        log4net.LogManager.GetLogger("Log").Error("Global erase failed for subscriber " + u, ex);
+                        SA.Audit(c, null, "Login", u.ToString(CultureInfo.InvariantCulture), "All Subscribers Erase Failed", null, null, null, "Subscriber transaction rolled back", reason);
+                    }
+                }
+                sb.Append("</td></tr>");
+            }
+            string summary = ok + " subscribers processed, " + fail + " failed, " + skipped + " protected accounts skipped. Logins, plans and billing kept.";
+            SA.Audit(c, null, "Login", "erase-all", "All Subscribers Erase Completed", null, null, null, summary, reason);
+            Title1.Text = "Erase All Subscribers: Results"; Lead.Text = summary;
+            HeadActions.Text = "<a class='sa-btn sa-btn-outline' href='SupportSubscribers.aspx'>Back to Subscribers</a>";
+            Content.Text = sb.Append("</tbody></table></div></div>").ToString();
+        }
+    }
     void CleanView(SqlConnection c)
     {
         Title1.Text = "Clean Test Data"; Lead.Text = "Select test subscribers, preview what will be removed, then confirm. Each subscriber is cleaned in its own transaction.";
