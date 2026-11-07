@@ -191,8 +191,9 @@ public partial class AnyminuteResellerDashboardPage : System.Web.UI.Page
           .Append(input("Primary Contact Number <em class='sa-req'>*</em>", "bz_cnum", "PrimaryContactNumber", "type='tel' maxlength='20' required placeholder='10 digits'")).Append(input("Primary Email <em class='sa-req'>*</em>", "bz_email", "", "type='email' maxlength='100' required")).Append("</div>");
         // Address module (same Address Lookup + Address Details as Support Admin / Reseller); Edit = collapsed card + Manage Address.
         const string sub = "Search for the business address using a postal or ZIP code, select a result, or enter the address manually.", lk = "ResellerDashboard.aspx?lookup=1&postal=";
-        if (add) sb.Append("<h2>Address</h2>").Append(AD.Render("bz_addr", v != null ? AD.FromForm("bz_addr") : new AD.Addr(), true, lk, sub));
-        else { bool open = IsPostBack && AD.Opened("bz_addr"); var cur = a == null ? new AD.Addr() : BizAd(a); sb.Append(AD.Gate("bz_addr", cur.Any ? AD.Compose(cur) : "", open, AD.Render("bz_addr", open ? AD.FromForm("bz_addr") : cur, true, lk, sub))); }
+        // v70 (docx s1): standard Address format (Address Lookup card + separate "Business Address" details card, as EmployeeEditor).
+        if (add) sb.Append(AD.Render("bz_addr", v != null ? AD.FromForm("bz_addr") : new AD.Addr(), true, lk, sub, null, false, "Business Address"));
+        else { bool open = IsPostBack && AD.Opened("bz_addr"); var cur = a == null ? new AD.Addr() : BizAd(a); sb.Append(AD.Gate("bz_addr", cur.Any ? AD.Compose(cur) : "", open, AD.Render("bz_addr", open ? AD.FromForm("bz_addr") : cur, true, lk, sub, null, false, "Business Address"))); }
         sb.Append("<div class='sa-panel-foot'><a class='sa-btn sa-btn-outline' href='ResellerDashboard.aspx?view=businesses'>Cancel</a><button type='submit' class='sa-btn' name='rp_op' value='biz'").Append(dis).Append(">").Append(add ? "Save Business" : "Save Changes").Append("</button></div></div>");
         return sb.ToString();
     }
@@ -313,8 +314,9 @@ public partial class AnyminuteResellerDashboardPage : System.Web.UI.Page
         sb.Append("<h2>Company &amp; Contact</h2>").Append(input("Company Name <em class='sa-req'>*</em>", "pf_name", "maxlength='150' required")).Append("<div class='sa-grid2'>")
           .Append(input("Contact First Name <em class='sa-req'>*</em>", "pf_first", "maxlength='75' required")).Append(input("Contact Last Name", "pf_last", "maxlength='75'"))
           .Append(input("Email <em class='sa-req'>*</em>", "pf_email", "type='email' maxlength='150' required")).Append(input("Phone <em class='sa-req'>*</em>", "pf_phone", "type='tel' maxlength='30' required"))
-          .Append(input("Alternate Phone", "pf_alt", "type='tel' maxlength='30'")).Append("</div><h2>Address</h2>")
-          .Append(AD.Render("pf_addr", IsPostBack ? AD.FromForm("pf_addr") : AD.Parse(stored), false, "ResellerDashboard.aspx?lookup=1&postal=", "Search for your business address using a postal or ZIP code, select a result, or enter the address manually."))
+          .Append(input("Alternate Phone", "pf_alt", "type='tel' maxlength='30'")).Append("</div>")
+          // v70 (docx s2): standard Address format (Address Lookup card + separate "Address" details card).
+          .Append(AD.Render("pf_addr", IsPostBack ? AD.FromForm("pf_addr") : AD.Parse(stored), false, "ResellerDashboard.aspx?lookup=1&postal=", "Search for your business address using a postal or ZIP code, select a result, or enter the address manually.", null, false, "Address"))
           .Append("<div class='sa-panel-foot'><a class='sa-btn sa-btn-outline' href='ResellerDashboard.aspx?view=profile'>Cancel</a><button type='submit' class='sa-btn' name='rp_op' value='profile'>Save</button></div></div>");
         Content.Text = sb.ToString();
     }

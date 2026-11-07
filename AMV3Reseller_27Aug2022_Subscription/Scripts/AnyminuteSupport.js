@@ -190,7 +190,7 @@
         else mode.textContent = m === 'manual' ? 'Manual Entry' : 'Selected Address';
       };
       var fillProv = function (country, keep) {
-        var list = REG[country] || REG.Canada, v = keep || '', html = '<option value="">' + (country === 'United States' ? 'Select state' : 'Select province') + '</option>', hit = false;
+        var list = REG[country] || REG.Canada, v = keep || '', html = '<option value="">' + (box.classList.contains('sa-addr-std') ? 'Select' : country === 'United States' ? 'Select state' : 'Select province') + '</option>', hit = false;
         list.forEach(function (n) { var on = n.toLowerCase() === v.toLowerCase(); hit = hit || on; html += '<option' + (on ? ' selected' : '') + '>' + n + '</option>'; });
         if (v && !hit) html += '<option selected>' + v.replace(/</g, '&lt;') + '</option>';
         prov.innerHTML = html;

@@ -133,14 +133,19 @@ public static class AnyminuteSupportAddress
     public static string Render(string prefix, Addr a, bool required, string lookupUrl, string sub) { return Render(prefix, a, required, lookupUrl, sub, null, false); }
     // v57 (PPT s4): verify = this form queues unverified addresses for Address Verification on save; status = the stored
     // address status (Verified / Pending / Rejected / "" = not in the verification table) shown in the Address Details pill.
-    public static string Render(string prefix, Addr a, bool required, string lookupUrl, string sub, string status, bool verify)
+    public static string Render(string prefix, Addr a, bool required, string lookupUrl, string sub, string status, bool verify) { return Render(prefix, a, required, lookupUrl, sub, status, verify, null); }
+    // v70 (Pandey docx s1/s2): std = title of a separate Address Details card (the standard Employee Editor / Employee Profile
+    // layout, .am-emp-al46): Address Lookup card, then "<std>" card with the "Address Details" pill, 3-column grid and the
+    // "City, State/Province and Country" band. Same field names / JS hooks, so posting and validation are unchanged.
+    public static string Render(string prefix, Addr a, bool required, string lookupUrl, string sub, string status, bool verify, string std)
     {
+        bool sd = std != null;
         if (a == null) a = new Addr();
         bool us = a.Country == "United States";
         string req = "<b class='am-al-req'>*</b>", opt = "<span class='am-al-opt'>(Optional)</span>", rq = required ? " required" : "";
         Func<string, string, string, string, string, string, string> fld = (label, key, val, ph, extra, cls) =>
             "<div class='am-al-f" + cls + "'><label for='" + prefix + key + "'>" + label + "</label><input type='text' id='" + prefix + key + "' name='" + prefix + key + "' value='" + A(val) + "' placeholder='" + A(ph) + "'" + extra + " /></div>";
-        var sb = new StringBuilder("<div class='am-emp-al sa-addrmod' data-sa-addrmod='").Append(A(lookupUrl)).Append("' data-sa-addr-prefix='").Append(prefix).Append("'").Append(verify ? " data-al-verify='1'" : "").Append(">")
+        var sb = new StringBuilder(sd ? "<div class='am-emp-al am-emp-al46 sa-addrmod sa-addr-std' data-sa-addrmod='" : "<div class='am-emp-al sa-addrmod' data-sa-addrmod='").Append(A(lookupUrl)).Append("' data-sa-addr-prefix='").Append(prefix).Append("'").Append(verify ? " data-al-verify='1'" : "").Append(">")
             .Append("<input type='hidden' name='").Append(prefix).Append("_src' id='").Append(prefix).Append("_src' value='").Append(A(F(prefix, "_src"))).Append("' data-al-lsrc='1' />")
             .Append("<div class='am-al-layout am-al-single'><section class='am-al-main' aria-labelledby='").Append(prefix).Append("_h'>")
             .Append("<h2 id='").Append(prefix).Append("_h'>Address Lookup</h2><p class='am-al-sub'>").Append(H(sub ?? "Search for an address using a postal or ZIP code, select a result, or enter the address manually.")).Append("</p>")
@@ -152,19 +157,19 @@ public static class AnyminuteSupportAddress
             .Append("<div class='am-al-info' data-al-lhint='1'><span class='am-al-i' aria-hidden='true'>i</span><span data-al-lhinttext='1'>").Append(us ? "Enter a valid US ZIP code (e.g. 33185) or Canadian postal code (e.g. M1B 2W1)." : "Enter a valid Canadian postal code (e.g. M1B 2W1) or US ZIP code (e.g. 33185).").Append("</span></div>")
             .Append("<div class='am-al-nf' data-al-lnf='1' role='alert' hidden><div class='am-al-nf-head'><span class='am-al-nf-i' aria-hidden='true'>!</span><strong>Address Not Found</strong></div><p>No matching address was found for postal code <b data-al-lnfcode='1'></b>. Please verify the postal code and search again, or enter the address manually.</p></div>")
             .Append("<div class='am-al-results'><label for='").Append(prefix).Append("_hits'>Select Address from Search Results</label><select id='").Append(prefix).Append("_hits' data-al-lhits='1' disabled><option value=''>Select an address from the list below</option></select></div>")
-            .Append("<div class='am-al-details'><div class='am-al-details-head'><h3>Address Details</h3>").Append(verify ? Pill(a.Any ? (F(prefix, "_src") == "manual" ? "Pending" : status ?? "") : null, true) : "<span class='am-al-pill' data-al-lmode='1'>" + (a.Any ? "Selected Address" : "Manual Entry") + "</span>").Append("</div><div class='am-al-grid'>")
-            .Append(fld("Street Number " + req, "_no", a.StreetNo, "e.g. 3112", " maxlength='20'" + rq, ""))
-            .Append(fld("Address Line 1 " + req, "_line1", a.Line1, "e.g. Krome Ave", " maxlength='100' autocomplete='address-line1'" + rq, " am-al-span2"))
-            .Append(fld("Address Line 2 " + opt, "_line2", a.Line2, "e.g. Unit, Floor, Building, etc.", " maxlength='100' autocomplete='address-line2'", ""))
-            .Append("<div class='am-al-f'><label for='").Append(prefix).Append("_suitetype'>Suite Type ").Append(opt).Append("</label><select id='").Append(prefix).Append("_suitetype' name='").Append(prefix).Append("_suitetype'>").Append(Opts(SuiteTypes, a.SuiteType, "Please Select")).Append("</select></div>")
-            .Append(fld("Suite Number " + opt, "_suiteno", a.SuiteNo, "e.g. 200", " maxlength='20'", ""))
+            .Append(sd ? "</section></div>" : "").Append("<div class='am-al-details'><div class='am-al-details-head'><h3>").Append(sd ? H(std) : "Address Details").Append("</h3>").Append(sd && !verify ? "<span class='am-al-pill'>Address Details</span>" : verify ? Pill(a.Any ? (F(prefix, "_src") == "manual" ? "Pending" : status ?? "") : null, true) : "<span class='am-al-pill' data-al-lmode='1'>" + (a.Any ? "Selected Address" : "Manual Entry") + "</span>").Append("</div><div class='am-al-grid'>")
+            .Append(fld("Street Number " + req, "_no", a.StreetNo, sd ? "Enter street number" : "e.g. 3112", " maxlength='20'" + rq, ""))
+            .Append(fld("Address Line 1 " + req, "_line1", a.Line1, sd ? "Enter address line 1" : "e.g. Krome Ave", " maxlength='100' autocomplete='address-line1'" + rq, " am-al-span2"))
+            .Append(fld("Address Line 2 " + opt, "_line2", a.Line2, sd ? "Enter address line 2 (e.g. Unit, Floor, etc.)" : "e.g. Unit, Floor, Building, etc.", " maxlength='100' autocomplete='address-line2'", ""))
+            .Append("<div class='am-al-f'><label for='").Append(prefix).Append("_suitetype'>Suite Type ").Append(opt).Append("</label><select id='").Append(prefix).Append("_suitetype' name='").Append(prefix).Append("_suitetype'>").Append(Opts(SuiteTypes, a.SuiteType, sd ? "Select" : "Please Select")).Append("</select></div>")
+            .Append(fld("Suite Number " + opt, "_suiteno", a.SuiteNo, sd ? "Enter suite number" : "e.g. 200", " maxlength='20'", ""))
             .Append("<div class='am-al-subhead' role='heading' aria-level='4'>City, State/Province and Country</div>")
-            .Append(fld("City " + req, "_city", a.City, us ? "e.g. Miami" : "e.g. Mississauga", " maxlength='50' autocomplete='address-level2'" + rq, ""))
+            .Append(fld("City " + req, "_city", a.City, sd ? "Enter city" : us ? "e.g. Miami" : "e.g. Mississauga", " maxlength='50' autocomplete='address-level2'" + rq, ""))
             .Append("<div class='am-al-f'><label for='").Append(prefix).Append("_prov'>Province / State ").Append(req).Append("</label><select id='").Append(prefix).Append("_prov' name='").Append(prefix).Append("_prov' data-al-lprov='1'").Append(rq).Append(">")
-            .Append(Opts(us ? States : Canada, a.Province, us ? "Select state" : "Select province")).Append("</select></div>")
-            .Append(fld("Postal / ZIP Code " + req, "_postal", a.Postal, us ? "e.g. 33185" : "e.g. L5W 0A2", " maxlength='10' autocomplete='postal-code'" + rq, ""))
+            .Append(Opts(us ? States : Canada, a.Province, sd ? "Select" : us ? "Select state" : "Select province")).Append("</select></div>")
+            .Append(fld("Postal / ZIP Code " + req, "_postal", a.Postal, sd ? "Enter postal code" : us ? "e.g. 33185" : "e.g. L5W 0A2", " maxlength='10' autocomplete='postal-code'" + rq, ""))
             .Append("<div class='am-al-f am-al-span2 am-al-countryf'><label for='").Append(prefix).Append("_country'>Country ").Append(req).Append("</label><select id='").Append(prefix).Append("_country' name='").Append(prefix).Append("_country' data-al-dcountry='1'>").Append(Opts(new[] { "Canada", "United States" }, a.Country, null)).Append("</select></div>")
-            .Append("</div></div></section></div></div>");
+            .Append(sd ? "</div></div></div>" : "</div></div></section></div></div>");
         return sb.ToString();
     }
     // ---- v57 (PPT s4): Address Verification status + pending queue (AddressMaster Verifed=0 + AnyminuteAddressReview Pending) ----

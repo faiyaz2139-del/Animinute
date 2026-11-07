@@ -126,7 +126,7 @@ public static class AnyminuteUiNavigation
             {
                 string page = route.Split('?')[0];
                 if (page.EndsWith("employeeeditor.aspx") || page.EndsWith("add_employeev2.aspx")) { item.Name="Add Employee"; item.Href="EmployeeEditor.aspx"; }
-                else if (route.Contains("users.aspx?action=edit") || page.EndsWith("addeditrole_add_employee.aspx")) item.Name="Edit Employee";
+                else if (route.Contains("users.aspx?action=edit") || page.EndsWith("addeditrole_add_employee.aspx")) { item.Name="Edit Employee"; item.Href="EmployeeSelect.aspx"; } // v70 (docx s3): employee picker -> EmployeeEditor.aspx
                 else if (label != "assign user") { if (employeesFallback == null) employeesFallback = item; continue; }
             }
             // v8 Deck F: legacy Add_Project routes open the new Projects UI.
@@ -140,7 +140,7 @@ public static class AnyminuteUiNavigation
             if (!labels.Add(group + "|" + item.Name.Trim())) continue;
             groups[group].SubMenu.Add(item);
         }
-        if (!groups[GEmployees].SubMenu.Any(m => m.Name == "Edit Employee") && employeesFallback != null) { employeesFallback.Name = "Edit Employee"; groups[GEmployees].SubMenu.Add(employeesFallback); }
+        if (!groups[GEmployees].SubMenu.Any(m => m.Name == "Edit Employee") && employeesFallback != null) { employeesFallback.Name = "Edit Employee"; employeesFallback.Href = "EmployeeSelect.aspx"; groups[GEmployees].SubMenu.Add(employeesFallback); }
         // v16: Edit Business always sits under Businesses next to Add Business. Owners get the Edit Business picker
         // (BusinessActions.aspx?action=edit); otherwise it opens the Businesses list, whose rows carry the per-business Edit.
         if (groups[GBusinesses].SubMenu.Any(m => (m.Name ?? "").Trim() == "Add Business") && !groups[GBusinesses].SubMenu.Any(m => (m.Name ?? "").Trim() == "Edit Business"))

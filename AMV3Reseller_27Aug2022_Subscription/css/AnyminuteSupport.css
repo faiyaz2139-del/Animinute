@@ -344,3 +344,12 @@ html body .sa-card.sa-plan-up{box-shadow:0 0 0 2px #2563eb,0 4px 14px rgba(37,99
 .sa-rsl-edit .sa-rsl-addr-sec{margin:14px 0 4px}.sa-rsl-edit .sa-rsl-addr-sec .sa-addr-gate{box-shadow:none;margin:0}.sa-rsl-edit .sa-rsl-addr-sec .sa-addr-gate h2{margin:0 0 4px}
 .rsl-prof .sa-kv th{width:220px}.rsl-prof-head{display:flex;align-items:center;gap:14px;margin-bottom:6px}.rsl-prof-head .sa-avatar{width:56px;height:56px;font-size:20px}
 .rsl-bizform .sa-grid2,.rsl-bizform .sa-grid3{margin-bottom:4px}.rsl-bizform h2{font-size:16px;margin:16px 0 8px}.rsl-bizform h2:first-of-type{margin-top:0}
+
+/* v70 (docx s1/s2): Reseller Add / Edit Business and My Profile use the standard Address format (.sa-addr-std = EmployeeEditor
+   .am-emp-al46): Address Lookup card, then a separate details card with the "Address Details" pill and 3-column grid. */
+.sa-page .sa-addr-std{margin:16px 0}
+.sa-page .sa-addr-std>.am-al-layout{margin:0 0 14px}
+.sa-page .sa-addr-std .am-al-main>h2,.rsl-bizform .sa-addr-std .am-al-main>h2{font-size:20px;margin:0 0 4px}
+.sa-page .sa-addr-std .am-al-details-head h3{margin:0}
+.sa-page .sa-addr-std .am-al-results select{width:100%!important;max-width:none!important}
+.sa-page .sa-addr-std>.am-al-details .am-al-subhead{margin:6px -18px 0;padding:10px 18px}
