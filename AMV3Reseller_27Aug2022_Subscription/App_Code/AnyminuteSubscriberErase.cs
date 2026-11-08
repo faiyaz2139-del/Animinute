@@ -49,10 +49,11 @@ public static class AnyminuteSubscriberErase
             DELETE b FROM #eb b JOIN #sk s ON s.BusinessID=b.BusinessID;
             INSERT #ae SELECT DISTINCT a.EmployeeID FROM AssginBussiness a JOIN #eb b ON b.BusinessID=a.BusinessID WHERE a.EmployeeID IS NOT NULL AND a.EmployeeID<>@a;
             INSERT #ee SELECT e.EmployeeID FROM #ae e WHERE NOT EXISTS(SELECT 1 FROM AssginBussiness x WHERE x.EmployeeID=e.EmployeeID AND (x.BusinessID IS NULL OR x.BusinessID NOT IN (SELECT BusinessID FROM #eb)))
-                AND NOT EXISTS(SELECT 1 FROM UserAcc ux JOIN MappingTable mx ON mx.USERID=ux.UserId WHERE ux.EmployeeId=e.EmployeeID AND ISNULL(ux.UserType,'')<>'SupportAdmin' AND mx.UserTypeId=1);
+                AND NOT EXISTS(SELECT 1 FROM UserAcc ux WHERE ux.EmployeeId=e.EmployeeID AND LOWER(REPLACE(ISNULL(ux.UserType,''),' ','')) IN('supportadmin','superadmin','support'))
+                AND NOT EXISTS(SELECT 1 FROM UserAcc ux JOIN MappingTable mx ON mx.USERID=ux.UserId WHERE ux.EmployeeId=e.EmployeeID AND (mx.UserTypeId=1 OR (ISNULL(mx.BusinessID,0)<>0 AND mx.BusinessID NOT IN(SELECT BusinessID FROM #eb))));
             INSERT #ep SELECT DISTINCT p.ProjectID FROM AddProject p JOIN #eb b ON b.BusinessID=p.BusinessID;
             INSERT #et SELECT DISTINCT t.TicketId FROM Ticket t WHERE t.BusinessId IN (SELECT BusinessID FROM #eb) OR t.EmpId IN (SELECT EmployeeID FROM #ee) OR (@m<>'' AND LTRIM(RTRIM(t.EmailId))=@m);
-            INSERT #eu SELECT DISTINCT ux.UserId FROM UserAcc ux JOIN #ee e ON e.EmployeeID=ux.EmployeeId WHERE ux.UserId<>@u AND ISNULL(ux.UserType,'')<>'SupportAdmin'
+            INSERT #eu SELECT DISTINCT ux.UserId FROM UserAcc ux JOIN #ee e ON e.EmployeeID=ux.EmployeeId WHERE ux.UserId<>@u AND LOWER(REPLACE(ISNULL(ux.UserType,''),' ','')) NOT IN('supportadmin','superadmin','support')
                 AND NOT EXISTS(SELECT 1 FROM MappingTable mx WHERE mx.USERID=ux.UserId AND (mx.UserTypeId=1 OR (ISNULL(mx.BusinessID,0)<>0 AND mx.BusinessID NOT IN (SELECT BusinessID FROM #eb))));" +
             (rv ? @" INSERT #ea SELECT DISTINCT r.AddressMasterId FROM AnyminuteAddressReview r WHERE ISNULL(r.Status,'Pending')<>'Verified' AND (r.SubmittedBy IN (SELECT LEFT(b.CompanyName+' (Business)',150) FROM AddBusiness b JOIN #eb e ON e.BusinessID=b.BusinessID)
                 OR r.SubmittedBy IN (SELECT LEFT(LTRIM(RTRIM(ISNULL(ae.FirstName,'')+' '+ISNULL(ae.LastName,'')))+' (Employee)',150) FROM AddEmployee ae JOIN #ee e ON e.EmployeeID=ae.EmployeeID));" : ""),
@@ -101,7 +102,8 @@ public static class AnyminuteSubscriberErase
                 Run(c, tx, "INSERT #eb SELECT BusinessID FROM #sk; DELETE FROM #sk; DELETE FROM #eu;");
                 // Rebuild dependent scope after shared businesses were included.
                 Run(c, tx, @"INSERT #ae SELECT DISTINCT a.EmployeeID FROM AssginBussiness a JOIN #eb b ON b.BusinessID=a.BusinessID WHERE a.EmployeeID IS NOT NULL AND a.EmployeeID<>@a AND a.EmployeeID NOT IN (SELECT EmployeeID FROM #ae);
-                    INSERT #ee SELECT e.EmployeeID FROM #ae e WHERE e.EmployeeID NOT IN (SELECT EmployeeID FROM #ee) AND NOT EXISTS(SELECT 1 FROM AssginBussiness x WHERE x.EmployeeID=e.EmployeeID AND (x.BusinessID IS NULL OR x.BusinessID NOT IN (SELECT BusinessID FROM #eb))) AND NOT EXISTS(SELECT 1 FROM UserAcc ux JOIN MappingTable m ON m.USERID=ux.UserId WHERE ux.EmployeeId=e.EmployeeID AND m.UserTypeId=1);
+                    INSERT #ee SELECT e.EmployeeID FROM #ae e WHERE e.EmployeeID NOT IN (SELECT EmployeeID FROM #ee) AND NOT EXISTS(SELECT 1 FROM AssginBussiness x WHERE x.EmployeeID=e.EmployeeID AND (x.BusinessID IS NULL OR x.BusinessID NOT IN (SELECT BusinessID FROM #eb))) AND NOT EXISTS(SELECT 1 FROM UserAcc ux JOIN MappingTable m ON m.USERID=ux.UserId WHERE ux.EmployeeId=e.EmployeeID AND m.UserTypeId=1)
+                    AND NOT EXISTS(SELECT 1 FROM UserAcc ux WHERE ux.EmployeeId=e.EmployeeID AND LOWER(REPLACE(ISNULL(ux.UserType,''),' ','')) IN('supportadmin','superadmin','support'));
                     INSERT #ep SELECT p.ProjectID FROM AddProject p JOIN #eb b ON b.BusinessID=p.BusinessID WHERE p.ProjectID NOT IN (SELECT ProjectID FROM #ep);
                     INSERT #et SELECT t.TicketId FROM Ticket t WHERE t.BusinessId IN (SELECT BusinessID FROM #eb) AND t.TicketId NOT IN (SELECT TicketId FROM #et);", "@a", owner);
             }
@@ -109,6 +111,16 @@ public static class AnyminuteSubscriberErase
                 Run(c, tx, @"INSERT #ea SELECT DISTINCT r.AddressMasterId FROM AnyminuteAddressReview r WHERE ISNULL(r.Status,'Pending')<>'Verified' AND r.AddressMasterId NOT IN (SELECT AddressMasterId FROM #ea) AND
                     (r.SubmittedBy IN (SELECT LEFT(b.CompanyName+' (Business)',150) FROM AddBusiness b JOIN #eb e ON e.BusinessID=b.BusinessID)
                     OR r.SubmittedBy IN (SELECT LEFT(LTRIM(RTRIM(ISNULL(a.FirstName,'')+' '+ISNULL(a.LastName,'')))+' (Employee)',150) FROM AddEmployee a JOIN #ee e ON e.EmployeeID=a.EmployeeID));");
+            // v72: snapshot parent-owned addresses/rates before deleting profiles/businesses.
+            // Detach nullable rate references first; legacy databases may have both RateDetails.EmployeeId
+            // and AddEmployee.Rateid foreign keys. Never delete a shared rate/address still in use.
+            Run(c, tx, @"IF OBJECT_ID('tempdb..#erate') IS NOT NULL DROP TABLE #erate;
+                IF OBJECT_ID('tempdb..#eaddr') IS NOT NULL DROP TABLE #eaddr;
+                IF OBJECT_ID('tempdb..#baddr') IS NOT NULL DROP TABLE #baddr;
+                SELECT DISTINCT Rateid INTO #erate FROM AddEmployee WHERE EmployeeID IN(SELECT EmployeeID FROM #ee) AND Rateid IS NOT NULL;
+                SELECT DISTINCT ADDRESSID INTO #eaddr FROM AddEmployee WHERE EmployeeID IN(SELECT EmployeeID FROM #ee) AND ADDRESSID IS NOT NULL;
+                SELECT DISTINCT ADDRESSID INTO #baddr FROM AddBusiness WHERE BusinessID IN(SELECT BusinessID FROM #eb) AND ADDRESSID IS NOT NULL;
+                UPDATE AddEmployee SET Rateid=NULL WHERE EmployeeID IN(SELECT EmployeeID FROM #ee);");
             res.Skipped = Num(c, tx, "SELECT COUNT(*) FROM #sk");
             var bucket = new Dictionary<string, int>();
             add = (k, sql) => { int n = Run(c, tx, sql); bucket[k] = (bucket.ContainsKey(k) ? bucket[k] : 0) + Math.Max(0, n); return n; };
@@ -133,19 +145,22 @@ public static class AnyminuteSubscriberErase
                 del("Activity, approvals, schedules and permissions", t[0], t[1], B);
             // Projects
             foreach (var t in new[] { new[] { "ASSIGNPROJECT", "BUSINESSID" }, new[] { "AnyminuteProjectAssignment", "BusinessID" }, new[] { "AnyminuteProjectAssignmentLog", "BusinessID" } }) del("Project assignments", t[0], t[1], B);
+            foreach (var table in new[] { "AnyminuteProjectAssignmentLog", "AnyminuteProjectAssignment", "ASSIGNPROJECT" }) del("Project assignments", table, "ProjectID", P);
             del("Project assignments", "AnyminuteProjectDetail", "ProjectID", P);
             del("Projects", "AddProject", "ProjectID", P);
             // Tickets (business, erased employees, and the subscriber's own email)
             del("Support tickets", "Ticket_Comments", "TicketId", T); del("Support tickets", "AnyminuteTicketMeta", "TicketId", T); del("Support tickets", "Ticket", "TicketId", T);
+            if (Col(c, tx, "AnyminuteAccessLog", "UserId")) del("Employee logins", "AnyminuteAccessLog", "UserId", U);
+            if (Col(c, tx, "EmailChangeAudit", "UserId")) del("Employee logins", "EmailChangeAudit", "UserId", U);
             // Employee logins (only employees working solely for this subscriber; never SupportAdmin or subscriber logins)
             foreach (var t in new[] { "AnyminuteLoginSecurity", "AnyminuteActiveSession", "AnyminutePasswordResetToken", "ExternalLogins" }) del("Employee logins", t, "UserId", U);
             if (Col(c, tx, "EmailChangeRequests", "UserId")) del("Employee logins", "EmailChangeRequests", "UserId", U);
             add("Employee logins", "DELETE FROM dbo.MappingTable WHERE USERID IN (SELECT " + U + ")");
             add("Employee logins", "DELETE FROM dbo.UserAcc WHERE UserId IN (SELECT " + U + ")");
             // Employees: DeleteAllDetails pattern for #ee (record, rate, address, image, status); links for every employee in these businesses
-            del("Employees", "RateDetails", "EmployeeId", E);
-            add("Employees", "DELETE r FROM dbo.RateDetails r JOIN dbo.AddEmployee ae ON ae.Rateid=r.RateId JOIN #ee e ON e.EmployeeID=ae.EmployeeID");
-            add("Addresses", "DELETE ea FROM dbo.EmpAddress ea JOIN dbo.AddEmployee ae ON ae.ADDRESSID=ea.EmpAddressId JOIN #ee e ON e.EmployeeID=ae.EmployeeID WHERE ea.EmpAddressId NOT IN (SELECT ISNULL(o.ADDRESSID,-1) FROM dbo.AddEmployee o WHERE o.EmployeeID=" + owner.ToString(CultureInfo.InvariantCulture) + ")" + (keepLogins ? " AND ea.EmpAddressId NOT IN (SELECT ISNULL(a.ADDRESSID,-1) FROM AddEmployee a JOIN UserAcc u ON u.EmployeeId=a.EmployeeID)" : ""));
+            if (Col(c, tx, "AnyminuteRateChangeReason", "RateId")) add("Employees", "DELETE FROM dbo.AnyminuteRateChangeReason WHERE (RateId IN(SELECT Rateid FROM #erate) OR RateId IN(SELECT RateId FROM RateDetails WHERE EmployeeId IN(SELECT EmployeeID FROM #ee))) AND NOT EXISTS(SELECT 1 FROM AddEmployee a WHERE a.Rateid=AnyminuteRateChangeReason.RateId)");
+            if (Col(c, tx, "RateDetails", "EmployeeId")) add("Employees", "DELETE FROM dbo.RateDetails WHERE EmployeeId IN(SELECT EmployeeID FROM #ee) AND NOT EXISTS(SELECT 1 FROM AddEmployee a WHERE a.Rateid=RateDetails.RateId)");
+            add("Employees", "DELETE r FROM dbo.RateDetails r WHERE r.RateId IN(SELECT Rateid FROM #erate) AND NOT EXISTS(SELECT 1 FROM AddEmployee a WHERE a.Rateid=r.RateId)");
             foreach (var t in new[] { new[] { "EmpImage", "Empid" }, new[] { "Emp_Active_Inactive_Status", "EmpId" }, new[] { "AnyminuteEmployeeRoleHistory", "EmployeeId" } }) del("Employees", t[0], t[1], E);
             if (keepLogins) Run(c, tx, "UPDATE dbo.MappingTable SET BusinessID=0 WHERE UserTypeId=1 AND BusinessID IN (SELECT BusinessID FROM #eb)");
             add("Employees", "DELETE FROM dbo.MappingTable WHERE BusinessID IN (SELECT " + B + ") AND ISNULL(USERID,0)<>" + user.ToString(CultureInfo.InvariantCulture));
@@ -154,16 +169,18 @@ public static class AnyminuteSubscriberErase
                 DELETE m FROM dbo.MappingTable m WHERE m.USERID=@u AND m.BusinessID=0 AND EXISTS(SELECT 1 FROM dbo.MappingTable k WHERE k.USERID=m.USERID AND k.UserTypeId=m.UserTypeId AND ISNULL(k.EmployeeID,0)=ISNULL(m.EmployeeID,0) AND k.BusinessID=0 AND k.MappingId<m.MappingId);", "@u", user);
             add("Employees", "DELETE FROM dbo.AssginBussiness WHERE BusinessID IN (SELECT " + B + ")");
             Run(c, tx, "IF NOT EXISTS(SELECT 1 FROM dbo.AssginBussiness WHERE EmployeeID=@a AND UserTypeId=1) INSERT INTO dbo.AssginBussiness(EmployeeID,EmployeeName,UserTypeId) VALUES(@a,@n,1)", "@a", owner, "@n", (ownerFirst ?? "").Length > 50 ? ownerFirst.Substring(0, 50) : (ownerFirst ?? ""));
-            int emps = Num(c, tx, "SELECT COUNT(*) FROM #ee" + (keepLogins ? " WHERE EmployeeID NOT IN (SELECT EmployeeId FROM UserAcc WHERE EmployeeId IS NOT NULL)" : ""));
-            add("Employees", "DELETE FROM dbo.AddEmployee WHERE EmployeeID IN (SELECT " + E + ") AND EmployeeID<>" + owner.ToString(CultureInfo.InvariantCulture) + (keepLogins ? " AND EmployeeID NOT IN (SELECT EmployeeId FROM UserAcc WHERE EmployeeId IS NOT NULL)" : ""));
+            int emps = Num(c, tx, "SELECT COUNT(*) FROM #ee WHERE EmployeeID NOT IN (SELECT EmployeeId FROM UserAcc WHERE EmployeeId IS NOT NULL)");
+            add("Employees", "DELETE FROM dbo.AddEmployee WHERE EmployeeID IN (SELECT " + E + ") AND EmployeeID<>" + owner.ToString(CultureInfo.InvariantCulture) + " AND EmployeeID NOT IN (SELECT EmployeeId FROM UserAcc WHERE EmployeeId IS NOT NULL)");
+            add("Addresses", "DELETE a FROM dbo.EmpAddress a WHERE a.EmpAddressId IN(SELECT ADDRESSID FROM #eaddr) AND NOT EXISTS(SELECT 1 FROM AddEmployee e WHERE e.ADDRESSID=a.EmpAddressId)");
             // Address verification queue rows submitted for these businesses / employees (unverified only), then the businesses.
             if (AnyminuteEmployeeEditor.HasTable(c, tx, "AnyminuteAddressReview"))
             {
                 add("Addresses", "DELETE FROM dbo.AnyminuteAddressReview WHERE AddressMasterId IN (SELECT AddressMasterId FROM #ea)");
                 add("Addresses", "DELETE FROM dbo.AddressMaster WHERE ISNULL(Verifed,0)=0 AND AddressMasterId IN (SELECT AddressMasterId FROM #ea)");
             }
-            add("Addresses", "DELETE ba FROM dbo.BusinessAddress ba JOIN dbo.AddBusiness b ON b.ADDRESSID=ba.BusinessAddressId JOIN #eb e ON e.BusinessID=b.BusinessID");
             int biz = add("Businesses", "DELETE FROM dbo.AddBusiness WHERE BusinessID IN (SELECT " + B + ")");
+            add("Addresses", "DELETE a FROM dbo.BusinessAddress a WHERE a.BusinessAddressId IN(SELECT ADDRESSID FROM #baddr) AND NOT EXISTS(SELECT 1 FROM AddBusiness b WHERE b.ADDRESSID=a.BusinessAddressId)");
+            Run(c, tx, "DROP TABLE #erate; DROP TABLE #eaddr; DROP TABLE #baddr;");
             int proj = bucket.ContainsKey("Projects") ? bucket["Projects"] : 0;
             res.Rows.Add(new KeyValuePair<string, int>("Businesses", biz)); res.Rows.Add(new KeyValuePair<string, int>("Employees erased", emps));
             res.Rows.Add(new KeyValuePair<string, int>("Projects", proj));

@@ -254,7 +254,7 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
     {
         string dis = ready ? "" : " disabled";
         var sb = new StringBuilder("<div class='sa-modal sa-modal45' data-sa-modal='1'><div class='sa-modal-box sa-av71' role='dialog' aria-modal='true' aria-labelledby='sa-av-h'><a class='sa-x sa-x-abs' href='" + Back71 + "' aria-label='Close'>&times;</a>")
-            .Append("<h2 id='sa-av-h'>Add Address</h2><p class='sa-muted'>The address is added to the Verified Address Database.</p>")
+            .Append("<h2 id='sa-av-h'>Add Address</h2>" + TakeModalMessage() + "<p class='sa-muted'>The address is added to the Verified Address Database.</p>")
             .Append(Inp("Street Name (Address) *", "av_street", V(0), " maxlength='200' required" + dis))
             .Append("<div class='sa-row2'>").Append(Inp("City *", "av_city", V(1), " maxlength='200' required" + dis))
             .Append(Inp("Prov/State *", "av_prov", V(2), " maxlength='200' list='sa-av-prov' required" + dis)).Append("</div>")
@@ -268,7 +268,7 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
     {
         string dis = ready ? "" : " disabled";
         return "<div class='sa-modal sa-modal45' data-sa-modal='1'><div class='sa-modal-box sa-av71' role='dialog' aria-modal='true' aria-labelledby='sa-ai-h'><a class='sa-x sa-x-abs' href='" + Back71 + "' aria-label='Close'>&times;</a>"
-            + "<h2 id='sa-ai-h'>Import Address</h2><p class='sa-muted'>Upload a CSV or Excel (.xlsx) file with the columns <b>Address, City, Prov/State, Country, Postal Code/PIN</b> (first row = header). "
+            + "<h2 id='sa-ai-h'>Import Address</h2>" + TakeModalMessage() + "<p class='sa-muted'>Upload a CSV or Excel (.xlsx) file with the columns <b>Address, City, Prov/State, Country, Postal Code/PIN</b> (first row = header; all worksheets are read). "
             + "Valid rows are added to the Verified Address Database; blank rows and addresses already verified (same address, city and postal code) are skipped. Max 2 MB / " + AnyminuteAddressImport.MaxRows.ToString("#,0", CultureInfo.InvariantCulture) + " rows.</p>"
             + "<p><a class='sa-link' href='SupportAddresses.aspx?template=1'>&#8595; Download template (CSV)</a></p>"
             + "<label class='sa-field'><span>File *</span><input type='file' name='av_file' accept='.csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' required" + dis + " /></label>"
@@ -282,78 +282,97 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
         Response.Flush(); Response.SuppressContent = true; Context.ApplicationInstance.CompleteRequest();
     }
     void Go(string url) { Response.Redirect(url, false); Context.ApplicationInstance.CompleteRequest(); }
+    string TakeModalMessage() { string m = Session["sa_av_message"] as string; Session.Remove("sa_av_message"); return String.IsNullOrEmpty(m) ? "" : "<div class='sa-flash sa-warn' role='alert'>" + SA.H(m) + "</div>"; }
+    void ModalError(string message, string modal) { Session["sa_av_message"] = message; Go(Back71 + "&" + modal + "=1"); }
     void AddAddress()
     {
         string street = SA.Form("av_street"), city = SA.Form("av_city"), prov = SA.Form("av_prov"), country = SA.Form("av_country"), postal = SA.Form("av_postal");
-        using (var c = SA.Open())
+        Session["sa_av_vals"] = new[] { street, city, prov, country, postal };
+        try
         {
-            if (!SA.Has(c, "AnyminuteAddressReview") || !SA.Has(c, "AnyminuteSupportAudit")) { SA.Flash(SA.MissingTables); Go(Back71); return; }
-            using (var tx = c.BeginTransaction(IsolationLevel.Serializable))
+            using (var c = SA.Open())
             {
-                int id; string err = AnyminuteAddressImport.AddVerified(c, tx, street, city, prov, country, postal, "Added by Support (" + SA.ActorName() + ")", "Added by Support Admin", out id);
-                if (err != null)
+                if (!SA.Has(c, "AnyminuteAddressReview") || !SA.Has(c, "AnyminuteSupportAudit")) { ModalError(SA.MissingTables, "add"); return; }
+                using (var tx = c.BeginTransaction(IsolationLevel.Serializable))
                 {
-                    tx.Rollback();
-                    SA.Flash(err == "duplicate" ? "This address is already in the Verified Address Database." : "Address not added: " + err);
-                    Session["sa_av_vals"] = new[] { street, city, prov, country, postal };
-                    Go(Back71 + "&add=1");
-                    return;
+                    int id; string err = AnyminuteAddressImport.AddVerified(c, tx, street, city, prov, country, postal, "Added by Support (" + SA.ActorName() + ")", "Added by Support Admin", out id);
+                    if (err != null) { tx.Rollback(); ModalError(err == "duplicate" ? "This address is already in the Verified Address Database." : "Address not added: " + err, "add"); return; }
+                    string after = street + ", " + city + ", " + prov + ", " + AnyminuteAddressImport.Country(country) + ", " + postal;
+                    SA.Audit(c, tx, "Address", id.ToString(CultureInfo.InvariantCulture), "Added (Verified)", null, "Verified", null, after, "Added by Support Admin");
+                    tx.Commit();
                 }
-                string after = street + ", " + city + ", " + prov + ", " + AnyminuteAddressImport.Country(country) + ", " + postal;
-                SA.Audit(c, tx, "Address", id.ToString(CultureInfo.InvariantCulture), "Added (Verified)", null, "Verified", null, after, "Added by Support Admin");
-                tx.Commit();
             }
         }
+        catch (SqlException ex) { log4net.LogManager.GetLogger("Log").Error("Add address failed", ex); ModalError("Address not added: database error. Nothing was saved; please retry.", "add"); return; }
+        Session.Remove("sa_av_vals"); Session.Remove("sa_av_message");
         SA.Flash("Address added to the Verified Address Database.");
         Go(Back71);
     }
     void ImportAddress()
     {
         var f = Request.Files["av_file"];
-        if (f == null || f.ContentLength == 0) { SA.Flash("Choose a CSV or .xlsx file to import."); Go(Back71 + "&import=1"); return; }
-        if (f.ContentLength > AnyminuteAddressImport.MaxBytes) { SA.Flash("The file is larger than 2 MB."); Go(Back71 + "&import=1"); return; }
-        var data = new byte[f.ContentLength]; int read = 0; while (read < data.Length) { int n = f.InputStream.Read(data, read, data.Length - read); if (n <= 0) break; read += n; }
-        List<string[]> rows;
-        try { rows = AnyminuteAddressImport.Read(f.FileName, data); }
-        catch (System.IO.InvalidDataException ex) { SA.Flash(ex.Message); Go(Back71 + "&import=1"); return; }
-        catch (System.Xml.XmlException) { SA.Flash("The .xlsx file could not be read."); Go(Back71 + "&import=1"); return; }
-        catch (IndexOutOfRangeException) { SA.Flash("The .xlsx file could not be read."); Go(Back71 + "&import=1"); return; }
-        catch (ArgumentException) { SA.Flash("The .xlsx file could not be read."); Go(Back71 + "&import=1"); return; }
-        if (rows.Count == 0) { SA.Flash("The file is empty."); Go(Back71 + "&import=1"); return; }
-        int[] map = AnyminuteAddressImport.Map(rows[0]); int start = 1;
-        if (map == null) { map = new[] { 0, 1, 2, 3, 4 }; start = 0; } // no header row: columns in template order
-        if (rows.Count - start > AnyminuteAddressImport.MaxRows) { SA.Flash("The file has more than " + AnyminuteAddressImport.MaxRows + " rows. Split it and import again."); Go(Back71 + "&import=1"); return; }
-        int added = 0, dups = 0, blanks = 0; var errors = new List<string>(); var seen = new HashSet<string>();
+        if (f == null || f.ContentLength == 0) { ModalError("Choose a CSV or .xlsx file to import.", "import"); return; }
+        if (f.ContentLength > AnyminuteAddressImport.MaxBytes) { ModalError("The file is larger than 2 MB. Nothing was imported.", "import"); return; }
+        var data = new byte[f.ContentLength]; int read = 0;
+        while (read < data.Length) { int n = f.InputStream.Read(data, read, data.Length - read); if (n <= 0) break; read += n; }
+        if (read != data.Length) { ModalError("The upload was incomplete. Nothing was imported.", "import"); return; }
+        List<string[]> rows; string sheets;
+        try { rows = AnyminuteAddressImport.Read(f.FileName, data, out sheets); }
+        catch (System.IO.InvalidDataException ex) { ModalError(ex.Message, "import"); return; }
+        catch (System.Xml.XmlException) { ModalError("The .xlsx file could not be read. Nothing was imported.", "import"); return; }
+        catch (IndexOutOfRangeException) { ModalError("The .xlsx file could not be read. Nothing was imported.", "import"); return; }
+        catch (ArgumentException) { ModalError("The .xlsx file could not be read. Nothing was imported.", "import"); return; }
+        if (rows.Count == 0) { ModalError("The file has no data rows.", "import"); return; }
+        int added = 0, verified = 0, fileDups = 0, blanks = 0, failed = 0;
+        bool rolledBack = false;
+        var errors = new List<string>(); var reasons = new Dictionary<string, int>(); var seen = new HashSet<string>();
         Func<string[], int, string> cell = (r, i) => i >= 0 && i < r.Length ? (r[i] ?? "").Trim() : "";
+        try
+        {
         using (var c = SA.Open())
         {
-            if (!SA.Has(c, "AnyminuteAddressReview") || !SA.Has(c, "AnyminuteSupportAudit")) { SA.Flash(SA.MissingTables); Go(Back71); return; }
+            if (!SA.Has(c, "AnyminuteAddressReview") || !SA.Has(c, "AnyminuteSupportAudit")) { ModalError(SA.MissingTables, "import"); return; }
             using (var tx = c.BeginTransaction(IsolationLevel.Serializable))
             {
                 try
                 {
                     string by = "Imported by Support (" + SA.ActorName() + ")", note = "Imported from " + System.IO.Path.GetFileName(f.FileName ?? "");
-                    for (int i = start; i < rows.Count; i++)
+                    for (int i = 0; i < rows.Count; i++)
                     {
-                        var r = rows[i]; string s = cell(r, map[0]), ci = cell(r, map[1]), pr = cell(r, map[2]), co = cell(r, map[3]), pc = cell(r, map[4]);
-                        if ((s + ci + pr + co + pc).Length == 0) { blanks++; continue; }
-                        string key = SA.CompactPostal(pc) + "|" + s.ToUpperInvariant() + "|" + ci.ToUpperInvariant();
-                        if (!seen.Add(key)) { dups++; continue; }
-                        int id; string err = AnyminuteAddressImport.AddVerified(c, tx, s, ci, pr, co, pc, by, note, out id);
-                        if (err == null) added++; else if (err == "duplicate") dups++; else errors.Add("Row " + (i + 1) + ": " + err);
+                        var r = rows[i]; string street = cell(r, 0), city = cell(r, 1), prov = cell(r, 2), country = cell(r, 3), postal = cell(r, 4);
+                        if ((street + city + prov + country + postal).Length == 0) { blanks++; continue; }
+                        string key = SA.CompactPostal(postal) + "|" + System.Text.RegularExpressions.Regex.Replace(street, @"\s+", " ").ToUpperInvariant() + "|" + System.Text.RegularExpressions.Regex.Replace(city, @"\s+", " ").ToUpperInvariant();
+                        if (!seen.Add(key)) { fileDups++; continue; }
+                        int id; string err = AnyminuteAddressImport.AddVerified(c, tx, street, city, prov, country, postal, by, note, out id);
+                        if (err == null) added++;
+                        else if (err == "duplicate") verified++;
+                        else { errors.Add("Data row " + (i + 1) + ": " + err); reasons[err] = (reasons.ContainsKey(err) ? reasons[err] : 0) + 1; }
                     }
-                    SA.Audit(c, tx, "Address", "import", "Imported (Verified)", null, "Verified", null, added + " added, " + dups + " duplicate(s) skipped, " + blanks + " blank, " + errors.Count + " error(s)", note);
+                    SA.Audit(c, tx, "Address", "import", "Imported (Verified)", null, "Verified", null,
+                        rows.Count + " read, " + added + " added, " + verified + " already verified, " + fileDups + " within-file duplicates, " + blanks + " blank, " + errors.Count + " invalid, 0 failed", note);
                     tx.Commit();
                 }
                 catch (SqlException ex)
                 {
                     try { tx.Rollback(); } catch (InvalidOperationException) { }
                     log4net.LogManager.GetLogger("Log").Error("Address import failed", ex);
-                    SA.Flash("Import failed and nothing was added: database error."); Go(Back71 + "&import=1"); return;
+                    rolledBack = true; added = 0; failed = rows.Count - verified - fileDups - blanks - errors.Count;
                 }
             }
         }
-        var sb = new StringBuilder("<div class='sa-flash' role='status'><strong>Import complete:</strong> ").Append(added).Append(" imported, ").Append(dups).Append(" duplicate(s) skipped, ").Append(blanks).Append(" blank row(s) skipped, ").Append(errors.Count).Append(" error(s).");
+        }
+        catch (SqlException ex)
+        {
+            log4net.LogManager.GetLogger("Log").Error("Address import connection/transaction failed", ex);
+            rolledBack = true; added = 0; failed = rows.Count - verified - fileDups - blanks - errors.Count;
+        }
+        var sb = new StringBuilder("<div class='sa-flash' role='status'><strong>" + (rolledBack ? "Import rolled back: nothing added." : "Import complete.") + "</strong>");
+        sb.Append("<p>Source: ").Append(SA.H(sheets)).Append(" (data rows, excluding headers; Excel row-number gaps are not records).</p><ul>")
+            .Append("<li>Total rows read: ").Append(rows.Count).Append("</li><li>Added: ").Append(added)
+            .Append("</li><li>Skipped — already verified: ").Append(verified).Append("</li><li>Skipped — duplicates within file: ").Append(fileDups)
+            .Append("</li><li>Skipped — blank/invalid: ").Append(blanks + errors.Count).Append(" (blank: ").Append(blanks).Append(", invalid: ").Append(errors.Count)
+            .Append(")</li><li>Failed: ").Append(failed).Append(rolledBack ? " (database failure: includes rolled-back additions and unprocessed rows)" : "").Append("</li></ul>");
+        if (reasons.Count > 0) { sb.Append("<p>Invalid reason counts:</p><ul>"); foreach (var reason in reasons) sb.Append("<li>").Append(SA.H(reason.Key)).Append(": ").Append(reason.Value).Append("</li>"); sb.Append("</ul>"); }
         if (errors.Count > 0) { sb.Append("<ul class='sa-av-errs'>"); foreach (var e in errors.Take(50)) sb.Append("<li>").Append(SA.H(e)).Append("</li>"); if (errors.Count > 50) sb.Append("<li>... and ").Append(errors.Count - 50).Append(" more.</li>"); sb.Append("</ul>"); }
         Session["sa_av_import"] = sb.Append("</div>").ToString();
         Go(Back71);

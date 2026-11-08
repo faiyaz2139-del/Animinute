@@ -147,6 +147,8 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
         if (SA.Get("lookup") == "1") { Lookup(); return; }
         string op0 = SA.Form("sa_op");
         if (IsPostBack && (op0 == "add" || op0 == "addsave" || op0 == "addback")) { AddPost(); return; }
+        if (IsPostBack && op0 == "wipeeverythingrun") { WipeEverythingPost(); return; }
+        if (SA.Get("view") == "wipeeverything") { if (!WipeAllowed()) { Response.StatusCode = 403; return; } WipeEverythingView(); return; }
         if (IsPostBack && op0 == "eraseallrun") { EraseAllPost(); return; }
         if (IsPostBack && (op0 == "cleanprev" || op0 == "cleanrun")) { CleanPost(op0); return; } // v61 Clean Test Data (Support Admin only)
         if (IsPostBack && op0.Length > 0) { Act(user); return; }
@@ -241,7 +243,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
         if (key != null) rows = (dir == "desc" ? rows.OrderByDescending(key) : rows.OrderBy(key)).ToList();
         string bq0 = "SupportSubscribers.aspx?q=" + HttpUtility.UrlEncode(q) + "&plan=" + HttpUtility.UrlEncode(plan) + "&status=" + HttpUtility.UrlEncode(st), bq = bq0 + (sort.Length > 0 ? "&sort=" + sort + "&dir=" + dir : "");
         Func<string, string, string> th = (label, k) => "<th><a class='sa-sort" + (sort == k ? " on" : "") + "' href='" + SA.A(bq0 + "&size=" + size + "&sort=" + k + "&dir=" + (sort == k && dir == "asc" ? "desc" : "asc")) + "'>" + label + " <i aria-hidden='true'>" + (sort == k ? (dir == "asc" ? "&#9650;" : "&#9660;") : "&#8661;") + "</i></a></th>";
-        HeadActions.Text = (CleanAllowed() ? "<a class='sa-btn sa-btn-outline' href='SupportSubscribers.aspx?view=clean'>Clean Test Data</a> <a class='sa-btn sa-btn-danger' href='SupportSubscribers.aspx?view=eraseall'>Erase All Subscribers&#39; Data</a> " : "") + "<a class='sa-btn' href='SupportSubscribers.aspx?view=add'>+ Add Subscriber</a>";
+        HeadActions.Text = (CleanAllowed() ? "<a class='sa-btn sa-btn-outline' href='SupportSubscribers.aspx?view=clean'>Clean Test Data</a> <a class='sa-btn sa-btn-danger' href='SupportSubscribers.aspx?view=eraseall'>Erase All Subscribers&#39; Data</a> " : "") + (WipeAllowed() ? "<a class='sa-btn sa-btn-danger' href='SupportSubscribers.aspx?view=wipeeverything'>Wipe Everything</a> " : "") + "<a class='sa-btn' href='SupportSubscribers.aspx?view=add'>+ Add Subscriber</a>";
         int pages = Math.Max(1, (rows.Count + size - 1) / size); if (page > pages) page = pages;
         Func<string, string, string, int, string> kpi = (icon, label, tone, cnt) => "<div class='sa-kpi'><i class='sa-kpi-icon sa-" + tone + "' aria-hidden='true'>" + icon + "</i><div><span>" + label + "</span><strong>" + cnt + "</strong></div></div>";
         var sb = new StringBuilder("<div class='sa-kpis'>").Append(kpi("&#128101;", "Total Subscribers", "blue", all.Count)).Append(kpi("&#10004;", "Active Subscribers", "green", all.Count(r => StatusOf(r) == "Active")))
@@ -1167,6 +1169,45 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
     // -> Run (cleanrun: everything re-checked on the server, one transaction per subscriber, results table). Resellers are refused.
     static bool CleanAllowed() { return Rsl == null && SA.IsSupport(); }
     // v69: global wipe is deliberately separate from test cleanup/account deletion.
+    // v72: a separate, explicitly destructive tool. Never called by the existing erase actions.
+    static bool WipeAllowed() { return Rsl == null && SA.IsSupportAdminOnly(); }
+    void WipeEverythingView()
+    {
+        Title1.Text = "Wipe Everything"; Lead.Text = "Support Admin only — permanent full database data reset"; HeadActions.Text = "";
+        string token = Guid.NewGuid().ToString("N"); Session["WipeEverythingToken"] = token; Session["WipeEverythingExpiry"] = DateTime.UtcNow.AddMinutes(15);
+        Content.Text = "<div class='sa-card'><div class='sa-flash sa-warn'><b>Take a fresh, verified database backup first. This cannot be undone.</b> Deletes ALL subscribers, resellers, businesses, employees, other logins, billing/payment/invoice records stored locally, all module data, archives and ALL pending/verified/rejected addresses. Keeps Support Admin/support-role logins and their minimal login/role shells, subscription plan definitions, shared configuration masters and Support audit history. External payment subscriptions and physical files are not changed. One transaction: any failure rolls back the entire wipe.</div>"
+            + "<input type='hidden' name='sa_wipe_token' value='" + token + "' /><label class='sa-field'><span>Type <b>WIPE EVERYTHING</b> exactly</span><input name='sa_confirm' autocomplete='off' /></label>"
+            + "<label class='sa-field'><span>Reason (required)</span><textarea name='sa_reason' maxlength='500'></textarea></label>"
+            + "<div class='sa-panel-foot'><a class='sa-btn sa-btn-outline' href='SupportSubscribers.aspx'>Cancel</a><button type='submit' name='sa_op' value='wipeeverythingrun' class='sa-btn sa-btn-danger' formnovalidate='formnovalidate' data-sa-confirm='WIPE EVERYTHING? All non-support logins, billing and addresses will be permanently deleted. Confirm that you have a verified backup. This cannot be undone.'>Wipe Everything</button></div></div>";
+    }
+    void WipeEverythingPost()
+    {
+        if (!WipeAllowed()) { Response.StatusCode = 403; return; }
+        string token = Session["WipeEverythingToken"] as string; object expiry = Session["WipeEverythingExpiry"];
+        Session.Remove("WipeEverythingToken"); Session.Remove("WipeEverythingExpiry");
+        string reason = SA.Form("sa_reason").Trim(); if (reason.Length > 500) reason = reason.Substring(0, 500);
+        if (String.IsNullOrEmpty(token) || token != SA.Form("sa_wipe_token") || !(expiry is DateTime) || (DateTime)expiry < DateTime.UtcNow || SA.Form("sa_confirm").Trim() != "WIPE EVERYTHING" || reason.Length == 0)
+        { WipeEverythingView(); Flash.Text = "<div class='sa-flash sa-warn'>Type WIPE EVERYTHING and enter a reason on this confirmation page. The confirmation expires after 15 minutes and can only be used once. Nothing was deleted.</div>"; return; }
+        Server.ScriptTimeout = 660;
+        try
+        {
+            using (var c = SA.Open())
+            {
+                DataTable result = AnyminuteEverythingWipe.Run(c, reason);
+                Title1.Text = "Wipe Everything: Results"; Lead.Text = "Completed. Support logins and subscription plan definitions were kept."; HeadActions.Text = "";
+                var sb = new StringBuilder("<div class='sa-card'><p><a class='sa-link' href='SupportSubscribers.aspx'>Back to Subscribers</a></p><table class='sa-table'><thead><tr><th>Table</th><th>Rows deleted</th></tr></thead><tbody>");
+                foreach (DataRow row in result.Rows) sb.Append("<tr><td>").Append(SA.H(row["TableName"])).Append("</td><td>").Append(SA.H(row["DeletedRows"])).Append("</td></tr>");
+                Content.Text = sb.Append("</tbody></table><p>Counts are also recorded in Support audit history. Missing optional tables show zero.</p></div>").ToString();
+            }
+        }
+        catch (SqlException ex)
+        {
+            log4net.LogManager.GetLogger("Log").Error("Wipe Everything rolled back", ex);
+            WipeEverythingView(); Flash.Text = "<div class='sa-flash sa-warn'>Wipe failed and was rolled back. Nothing was deleted. Check the server log for the database constraint or schema issue before retrying.</div>";
+            try { using (var c = SA.Open()) SA.Audit(c, null, "Login", "wipe-everything", "Wipe Everything Failed", null, null, null, "Transaction rolled back; SQL error " + ex.Number, reason); } catch (SqlException) { }
+        }
+    }
+
     void EraseAllView()
     {
         Title1.Text = "Erase All Subscribers' Data";

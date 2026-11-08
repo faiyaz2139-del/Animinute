@@ -15,7 +15,7 @@ using SA = AnyminuteSupportAdmin;
 // (Status=Verified, SubmittedBy = "Added by Support (<name>)" / "Imported by Support (<name>)", submitted/reviewed now), so they
 // show in the Verified Addresses list. Same validation as Approve (SA.VerifyAddress: street, city, prov/state, country,
 // postal format per country). Duplicate = an already verified row with the same street + city + postal code.
-// Import reads CSV or .xlsx (first worksheet; minimal zip reader on DeflateStream from System.dll - no new assembly / package).
+// Import reads CSV or .xlsx (all worksheets; minimal zip reader on DeflateStream from System.dll - no new assembly / package).
 public static class AnyminuteAddressImport
 {
     public const int MaxBytes = 2 * 1024 * 1024, MaxRows = 5000;
@@ -66,12 +66,32 @@ public static class AnyminuteAddressImport
     }
 
     // ---- file reading: rows of cells (header row included) ----
-    public static List<string[]> Read(string fileName, byte[] data)
+    // v72: returns data rows in template order, excluding each worksheet's header.
+    public static List<string[]> Read(string fileName, byte[] data) { string sheets; return Read(fileName, data, out sheets); }
+    public static List<string[]> Read(string fileName, byte[] data, out string sheets)
     {
+        if (data == null || data.Length > MaxBytes) throw new InvalidDataException("The file exceeds the 2 MB limit. Nothing was imported.");
+        sheets = "CSV";
         string ext = Path.GetExtension(fileName ?? "").ToLowerInvariant();
-        if (ext == ".xlsx") return Xlsx(data);
-        if (ext == ".csv" || ext == ".txt") return Csv(Decode(data));
+        if (ext == ".xlsx") return Xlsx(data, out sheets);
+        if (ext == ".csv" || ext == ".txt") return Prepare(Csv(Decode(data)));
         throw new InvalidDataException("Upload a .csv or .xlsx file.");
+    }
+    static List<string[]> Prepare(List<string[]> raw)
+    {
+        var rows = new List<string[]>();
+        int first = raw.FindIndex(r => r.Any(v => !String.IsNullOrWhiteSpace(v)));
+        if (first < 0)
+        {
+            if (raw.Count > MaxRows) throw new InvalidDataException("The file exceeds 5,000 data rows. Nothing was imported.");
+            return raw.Select(r => new string[5]).ToList();
+        }
+        int[] map = Map(raw[first]);
+        if (map == null) map = new[] { 0, 1, 2, 3, 4 };
+        else raw.RemoveAt(first);
+        foreach (var r in raw) rows.Add(map.Select(i => i < r.Length ? r[i] : "").ToArray());
+        if (rows.Count > MaxRows) throw new InvalidDataException("The file has more than 5,000 data rows. Split it and import again. Nothing was imported.");
+        return rows;
     }
     static string Decode(byte[] d)
     {
@@ -95,9 +115,10 @@ public static class AnyminuteAddressImport
             else cell.Append(ch);
         }
         if (cell.Length > 0 || cur.Count > 0) { cur.Add(cell.ToString()); rows.Add(cur.ToArray()); }
+        if (q) throw new InvalidDataException("The CSV has an unclosed quoted field. Nothing was imported.");
         return rows;
     }
-    // Minimal .xlsx reader: zip central directory -> sharedStrings + first worksheet.
+    // Minimal .xlsx reader: zip central directory -> sharedStrings + every worksheet in workbook order.
     static Dictionary<string, byte[]> Unzip(byte[] z)
     {
         var files = new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase);
@@ -105,24 +126,25 @@ public static class AnyminuteAddressImport
         for (int i = z.Length - 22; i >= Math.Max(0, z.Length - 65557); i--) if (BitConverter.ToUInt32(z, i) == 0x06054b50) { eocd = i; break; }
         if (eocd < 0) throw new InvalidDataException("The .xlsx file could not be read.");
         int n = BitConverter.ToUInt16(z, eocd + 10), p = (int)BitConverter.ToUInt32(z, eocd + 16);
+        long expanded = 0;
         for (int k = 0; k < n; k++)
         {
             if (BitConverter.ToUInt32(z, p) != 0x02014b50) throw new InvalidDataException("The .xlsx file could not be read.");
             int method = BitConverter.ToUInt16(z, p + 10), csize = (int)BitConverter.ToUInt32(z, p + 20), usize = (int)BitConverter.ToUInt32(z, p + 24);
             int fl = BitConverter.ToUInt16(z, p + 28), el = BitConverter.ToUInt16(z, p + 30), cl = BitConverter.ToUInt16(z, p + 32), off = (int)BitConverter.ToUInt32(z, p + 42);
             string name = Encoding.UTF8.GetString(z, p + 46, fl); p += 46 + fl + el + cl;
-            bool want = name.Equals("xl/sharedStrings.xml", StringComparison.OrdinalIgnoreCase) || name.Equals("xl/workbook.xml", StringComparison.OrdinalIgnoreCase) || name.Equals("xl/_rels/workbook.xml.rels", StringComparison.OrdinalIgnoreCase) || name.StartsWith("xl/worksheets/sheet", StringComparison.OrdinalIgnoreCase);
+            bool want = name.Equals("xl/sharedStrings.xml", StringComparison.OrdinalIgnoreCase) || name.Equals("xl/workbook.xml", StringComparison.OrdinalIgnoreCase) || name.Equals("xl/_rels/workbook.xml.rels", StringComparison.OrdinalIgnoreCase) || name.StartsWith("xl/worksheets/", StringComparison.OrdinalIgnoreCase);
             if (!want) continue;
             if (usize > 50 * 1024 * 1024) throw new InvalidDataException("The .xlsx file is too large.");
             int data = off + 30 + BitConverter.ToUInt16(z, off + 26) + BitConverter.ToUInt16(z, off + 28);
-            if (method == 0) { var b = new byte[csize]; Buffer.BlockCopy(z, data, b, 0, csize); files[name] = b; }
-            else if (method == 8) using (var ds = new DeflateStream(new MemoryStream(z, data, csize), CompressionMode.Decompress)) using (var ms = new MemoryStream()) { ds.CopyTo(ms); files[name] = ms.ToArray(); }
+            if (method == 0) { expanded += csize; if (expanded > 50 * 1024 * 1024) throw new InvalidDataException("The expanded workbook exceeds 50 MB."); var b = new byte[csize]; Buffer.BlockCopy(z, data, b, 0, csize); files[name] = b; }
+            else if (method == 8) using (var ds = new DeflateStream(new MemoryStream(z, data, csize), CompressionMode.Decompress)) using (var ms = new MemoryStream()) { byte[] buf = new byte[8192]; int got; while ((got = ds.Read(buf, 0, buf.Length)) > 0) { expanded += got; if (expanded > 50 * 1024 * 1024) throw new InvalidDataException("The expanded workbook exceeds 50 MB."); ms.Write(buf, 0, got); } files[name] = ms.ToArray(); }
             else throw new InvalidDataException("The .xlsx file uses an unsupported format.");
         }
         return files;
     }
     static XmlDocument Xml(byte[] b) { var d = new XmlDocument { XmlResolver = null }; using (var r = XmlReader.Create(new MemoryStream(b), new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit, XmlResolver = null })) d.Load(r); return d; }
-    static List<string[]> Xlsx(byte[] data)
+    static List<string[]> Xlsx(byte[] data, out string sheetNames)
     {
         Dictionary<string, byte[]> f;
         try { f = Unzip(data); } catch (ArgumentException) { throw new InvalidDataException("The .xlsx file could not be read."); }
@@ -133,24 +155,33 @@ public static class AnyminuteAddressImport
             var d = Xml(f["xl/sharedStrings.xml"]); var ns = new XmlNamespaceManager(d.NameTable); ns.AddNamespace("m", M);
             foreach (XmlNode si in d.SelectNodes("//m:si", ns)) ss.Add(String.Concat(si.SelectNodes(".//m:t", ns).Cast<XmlNode>().Select(t => t.InnerText)));
         }
-        // First sheet in workbook order (via rels), else the lowest sheetN.xml.
-        string sheet = null;
-        try
+        var sheets = new List<KeyValuePair<string, string>>();
+        if (!f.ContainsKey("xl/workbook.xml") || !f.ContainsKey("xl/_rels/workbook.xml.rels")) throw new InvalidDataException("Workbook sheet information is missing.");
+        var wb = Xml(f["xl/workbook.xml"]); var ns2 = new XmlNamespaceManager(wb.NameTable); ns2.AddNamespace("m", M);
+        var rels = Xml(f["xl/_rels/workbook.xml.rels"]);
+        foreach (XmlElement ws in wb.SelectNodes("//m:sheets/m:sheet", ns2))
         {
-            var wb = Xml(f["xl/workbook.xml"]); var ns = new XmlNamespaceManager(wb.NameTable); ns.AddNamespace("m", M);
-            var s1 = wb.SelectSingleNode("//m:sheets/m:sheet", ns) as XmlElement;
-            string rid = s1 == null ? null : s1.GetAttribute("id", "http://schemas.openxmlformats.org/officeDocument/2006/relationships");
-            var rels = Xml(f["xl/_rels/workbook.xml.rels"]);
-            foreach (XmlElement r in rels.GetElementsByTagName("Relationship")) if (r.GetAttribute("Id") == rid) { string t = r.GetAttribute("Target").TrimStart('/'); sheet = t.StartsWith("xl/") ? t : "xl/" + t; }
+            string rid = ws.GetAttribute("id", "http://schemas.openxmlformats.org/officeDocument/2006/relationships");
+            foreach (XmlElement rel in rels.GetElementsByTagName("Relationship"))
+                if (rel.GetAttribute("Id") == rid && rel.GetAttribute("Type").EndsWith("/worksheet"))
+                {
+                    if (rel.GetAttribute("TargetMode") == "External") throw new InvalidDataException("External worksheets cannot be imported.");
+                    string target = new Uri(new Uri("http://xlsx/xl/workbook.xml"), rel.GetAttribute("Target")).AbsolutePath.TrimStart('/');
+                    if (!f.ContainsKey(target)) throw new InvalidDataException("A worksheet is missing: " + ws.GetAttribute("name"));
+                    sheets.Add(new KeyValuePair<string, string>(ws.GetAttribute("name"), target));
+                }
         }
-        catch (Exception) { sheet = null; }
-        if (sheet == null || !f.ContainsKey(sheet)) sheet = f.Keys.Where(k => k.StartsWith("xl/worksheets/sheet", StringComparison.OrdinalIgnoreCase)).OrderBy(k => k.Length).ThenBy(k => k).FirstOrDefault();
-        if (sheet == null) throw new InvalidDataException("The .xlsx file has no worksheet.");
+        if (sheets.Count == 0) throw new InvalidDataException("The .xlsx file has no worksheet.");
+        sheetNames = String.Join(", ", sheets.Select(x => x.Key).ToArray());
+        var combined = new List<string[]>();
+        foreach (var ws in sheets)
+        {
+        string sheet = ws.Value;
         var doc = Xml(f[sheet]); var nm = new XmlNamespaceManager(doc.NameTable); nm.AddNamespace("m", M);
         var rows = new List<string[]>();
         foreach (XmlElement row in doc.SelectNodes("//m:sheetData/m:row", nm))
         {
-            int rn; if (Int32.TryParse(row.GetAttribute("r"), out rn)) while (rows.Count < rn - 1) rows.Add(new string[0]);
+            // Sparse row numbers are positions, not missing address records.
             var cells = new List<string>();
             foreach (XmlElement cel in row.SelectNodes("m:c", nm))
             {
@@ -165,9 +196,12 @@ public static class AnyminuteAddressImport
                 if (cells.Count == col) cells.Add(v); else cells[col] = v;
             }
             rows.Add(cells.ToArray());
-            if (rows.Count > MaxRows + 1) break;
+            if (rows.Count > MaxRows + 1) throw new InvalidDataException("A worksheet exceeds 5,000 data rows. Nothing was imported.");
         }
-        return rows;
+        combined.AddRange(Prepare(rows));
+        if (combined.Count > MaxRows) throw new InvalidDataException("All worksheets together exceed 5,000 data rows. Nothing was imported.");
+        }
+        return combined;
     }
 
     // Column positions from the header row (Address/Street, City, Prov/State/Province, Country, Postal/ZIP/PIN); null = no header.
@@ -178,11 +212,14 @@ public static class AnyminuteAddressImport
         {
             string k = Regex.Replace((h[i] ?? "").ToUpperInvariant(), @"[^A-Z]", "");
             if (k.Length == 0) continue;
-            int slot = k.StartsWith("POSTAL") || k.StartsWith("ZIP") || k == "PIN" || k.StartsWith("PINCODE") || k == "POSTCODE" ? 4
-                : k.StartsWith("PROV") || k.StartsWith("STATE") ? 2 : k.StartsWith("COUNTRY") ? 3 : k.StartsWith("CITY") ? 1
-                : k.StartsWith("ADDRESS") || k.StartsWith("STREET") ? 0 : -1;
+            int slot = new[] { "POSTAL", "POSTALCODE", "POSTALCODEPIN", "POSTALZIPCODE", "ZIP", "ZIPCODE", "PIN", "PINCODE", "POSTCODE" }.Contains(k) ? 4
+                : new[] { "PROV", "PROVINCE", "STATE", "PROVSTATE", "PROVINCESTATE", "STATEPROVINCE" }.Contains(k) ? 2
+                : k == "COUNTRY" ? 3 : k == "CITY" ? 1
+                : new[] { "ADDRESS", "STREET", "STREETNAME", "STREETADDRESS", "STREETNAMEADDRESS" }.Contains(k) ? 0 : -1;
             if (slot >= 0 && idx[slot] < 0) idx[slot] = i;
         }
-        return idx.Count(x => x >= 0) >= 3 ? idx : null;
+        int found = idx.Count(x => x >= 0);
+        if (found > 0 && found < 5) throw new InvalidDataException("The header must contain all five required columns: Address, City, Prov/State, Country, Postal Code/PIN.");
+        return found == 5 ? idx : null;
     }
 }
