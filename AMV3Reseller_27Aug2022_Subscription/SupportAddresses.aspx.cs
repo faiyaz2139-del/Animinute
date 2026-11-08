@@ -23,12 +23,15 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
     protected void Page_Load(object sender, EventArgs e)
     {
         if (SA.Get("verify") == "1") { VerifyJson(); return; }
+        if (SA.Get("template") == "1") { Template(); return; }
+        if (Form != null) Form.Enctype = "multipart/form-data"; // v71: Import Address file upload
+        if (IsPostBack && (SA.Form("sa_op") == "addaddr" || SA.Form("sa_op") == "importaddr")) { if (SA.Form("sa_op") == "addaddr") AddAddress(); else ImportAddress(); return; }
         if (IsPostBack && SA.Form("sa_op").Length > 0) { Act(); return; }
         string tab = SA.Get("tab"); if (tab != "verified" && tab != "rejected") tab = "pending";
         string q = SA.Get("q"), country = SA.Get("country"), prov = SA.Get("prov"), date = SA.Get("date");
         int page; if (!Int32.TryParse(SA.Get("page"), out page) || page < 1) page = 1;
         int id; Int32.TryParse(SA.Get("id"), out id);
-        Flash.Text = SA.TakeFlash();
+        Flash.Text = SA.TakeFlash() + TakeImportSummary();
         using (var c = SA.Open())
         {
             bool ready = SA.Has(c, "AnyminuteAddressReview") && SA.Has(c, "AnyminuteSupportAudit");
@@ -82,6 +85,8 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
 
             var pick = id > 0 ? all.Rows.Cast<DataRow>().FirstOrDefault(r => Convert.ToInt32(r["AddressMasterId"]) == id) : null;
             Panel.Text = pick == null ? "" : EditPanel(c, pick, ready, baseQ + "&page=" + page);
+            if (SA.Get("add") == "1") Panel.Text += AddModal(ready);
+            else if (SA.Get("import") == "1") Panel.Text += ImportModal(ready);
         }
     }
     // City / Province hold CityMaster / ProvinceMaster ids in most rows (and names in a few): show names, keep raw values.
@@ -240,5 +245,119 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
         }
         Back(0);
     }
+    // ---- v71 (t206u/t207ua0): Verified Addresses > Add Address / Import Address (AnyminuteAddressImport) ----
+    const string Back71 = "SupportAddresses.aspx?tab=verified";
+    static string Inp(string label, string name, string val, string extra) { return "<label class='sa-field'><span>" + label + "</span><input name='" + name + "' value='" + SA.A(val) + "'" + extra + " /></label>"; }
+    string[] kept;
+    string V(int i) { if (kept == null) { kept = Session["sa_av_vals"] as string[] ?? new string[5]; Session.Remove("sa_av_vals"); } return kept[i] ?? ""; }
+    string AddModal(bool ready)
+    {
+        string dis = ready ? "" : " disabled";
+        var sb = new StringBuilder("<div class='sa-modal sa-modal45' data-sa-modal='1'><div class='sa-modal-box sa-av71' role='dialog' aria-modal='true' aria-labelledby='sa-av-h'><a class='sa-x sa-x-abs' href='" + Back71 + "' aria-label='Close'>&times;</a>")
+            .Append("<h2 id='sa-av-h'>Add Address</h2><p class='sa-muted'>The address is added to the Verified Address Database.</p>")
+            .Append(Inp("Street Name (Address) *", "av_street", V(0), " maxlength='200' required" + dis))
+            .Append("<div class='sa-row2'>").Append(Inp("City *", "av_city", V(1), " maxlength='200' required" + dis))
+            .Append(Inp("Prov/State *", "av_prov", V(2), " maxlength='200' list='sa-av-prov' required" + dis)).Append("</div>")
+            .Append("<div class='sa-row2'><label class='sa-field'><span>Country *</span><select name='av_country' required").Append(dis).Append(">").Append(SA.Options(SA.Countries, V(3).Length > 0 ? V(3) : "Canada", null)).Append("</select></label>")
+            .Append(Inp("Postal Code/PIN *", "av_postal", V(4), " maxlength='20' required" + dis)).Append("</div>")
+            .Append("<datalist id='sa-av-prov'>");
+        foreach (var p in AnyminuteSupportAddress.Canada.Concat(AnyminuteSupportAddress.States)) sb.Append("<option value='").Append(SA.A(p)).Append("'></option>");
+        return sb.Append("</datalist><div class='sa-panel-foot sa-one-line'><button type='submit' class='sa-btn' name='sa_op' value='addaddr'").Append(dis).Append(">&#10003; Save Address</button><a class='sa-btn sa-btn-outline' href='").Append(Back71).Append("'>Cancel</a></div></div></div>").ToString();
+    }
+    string ImportModal(bool ready)
+    {
+        string dis = ready ? "" : " disabled";
+        return "<div class='sa-modal sa-modal45' data-sa-modal='1'><div class='sa-modal-box sa-av71' role='dialog' aria-modal='true' aria-labelledby='sa-ai-h'><a class='sa-x sa-x-abs' href='" + Back71 + "' aria-label='Close'>&times;</a>"
+            + "<h2 id='sa-ai-h'>Import Address</h2><p class='sa-muted'>Upload a CSV or Excel (.xlsx) file with the columns <b>Address, City, Prov/State, Country, Postal Code/PIN</b> (first row = header). "
+            + "Valid rows are added to the Verified Address Database; blank rows and addresses already verified (same address, city and postal code) are skipped. Max 2 MB / " + AnyminuteAddressImport.MaxRows.ToString("#,0", CultureInfo.InvariantCulture) + " rows.</p>"
+            + "<p><a class='sa-link' href='SupportAddresses.aspx?template=1'>&#8595; Download template (CSV)</a></p>"
+            + "<label class='sa-field'><span>File *</span><input type='file' name='av_file' accept='.csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' required" + dis + " /></label>"
+            + "<div class='sa-panel-foot sa-one-line'><button type='submit' class='sa-btn' name='sa_op' value='importaddr'" + dis + ">&#8593; Import</button><a class='sa-btn sa-btn-outline' href='" + Back71 + "'>Cancel</a></div></div></div>";
+    }
+    void Template()
+    {
+        Response.Clear(); Response.ContentType = "text/csv"; Response.ContentEncoding = Encoding.UTF8;
+        Response.AddHeader("Content-Disposition", "attachment; filename=\"AnyMinute_Address_Import_Template.csv\"");
+        Response.Write("\uFEFF" + String.Join(",", AnyminuteAddressImport.Header) + "\r\n");
+        Response.Flush(); Response.SuppressContent = true; Context.ApplicationInstance.CompleteRequest();
+    }
+    void Go(string url) { Response.Redirect(url, false); Context.ApplicationInstance.CompleteRequest(); }
+    void AddAddress()
+    {
+        string street = SA.Form("av_street"), city = SA.Form("av_city"), prov = SA.Form("av_prov"), country = SA.Form("av_country"), postal = SA.Form("av_postal");
+        using (var c = SA.Open())
+        {
+            if (!SA.Has(c, "AnyminuteAddressReview") || !SA.Has(c, "AnyminuteSupportAudit")) { SA.Flash(SA.MissingTables); Go(Back71); return; }
+            using (var tx = c.BeginTransaction(IsolationLevel.Serializable))
+            {
+                int id; string err = AnyminuteAddressImport.AddVerified(c, tx, street, city, prov, country, postal, "Added by Support (" + SA.ActorName() + ")", "Added by Support Admin", out id);
+                if (err != null)
+                {
+                    tx.Rollback();
+                    SA.Flash(err == "duplicate" ? "This address is already in the Verified Address Database." : "Address not added: " + err);
+                    Session["sa_av_vals"] = new[] { street, city, prov, country, postal };
+                    Go(Back71 + "&add=1");
+                    return;
+                }
+                string after = street + ", " + city + ", " + prov + ", " + AnyminuteAddressImport.Country(country) + ", " + postal;
+                SA.Audit(c, tx, "Address", id.ToString(CultureInfo.InvariantCulture), "Added (Verified)", null, "Verified", null, after, "Added by Support Admin");
+                tx.Commit();
+            }
+        }
+        SA.Flash("Address added to the Verified Address Database.");
+        Go(Back71);
+    }
+    void ImportAddress()
+    {
+        var f = Request.Files["av_file"];
+        if (f == null || f.ContentLength == 0) { SA.Flash("Choose a CSV or .xlsx file to import."); Go(Back71 + "&import=1"); return; }
+        if (f.ContentLength > AnyminuteAddressImport.MaxBytes) { SA.Flash("The file is larger than 2 MB."); Go(Back71 + "&import=1"); return; }
+        var data = new byte[f.ContentLength]; int read = 0; while (read < data.Length) { int n = f.InputStream.Read(data, read, data.Length - read); if (n <= 0) break; read += n; }
+        List<string[]> rows;
+        try { rows = AnyminuteAddressImport.Read(f.FileName, data); }
+        catch (System.IO.InvalidDataException ex) { SA.Flash(ex.Message); Go(Back71 + "&import=1"); return; }
+        catch (System.Xml.XmlException) { SA.Flash("The .xlsx file could not be read."); Go(Back71 + "&import=1"); return; }
+        catch (IndexOutOfRangeException) { SA.Flash("The .xlsx file could not be read."); Go(Back71 + "&import=1"); return; }
+        catch (ArgumentException) { SA.Flash("The .xlsx file could not be read."); Go(Back71 + "&import=1"); return; }
+        if (rows.Count == 0) { SA.Flash("The file is empty."); Go(Back71 + "&import=1"); return; }
+        int[] map = AnyminuteAddressImport.Map(rows[0]); int start = 1;
+        if (map == null) { map = new[] { 0, 1, 2, 3, 4 }; start = 0; } // no header row: columns in template order
+        if (rows.Count - start > AnyminuteAddressImport.MaxRows) { SA.Flash("The file has more than " + AnyminuteAddressImport.MaxRows + " rows. Split it and import again."); Go(Back71 + "&import=1"); return; }
+        int added = 0, dups = 0, blanks = 0; var errors = new List<string>(); var seen = new HashSet<string>();
+        Func<string[], int, string> cell = (r, i) => i >= 0 && i < r.Length ? (r[i] ?? "").Trim() : "";
+        using (var c = SA.Open())
+        {
+            if (!SA.Has(c, "AnyminuteAddressReview") || !SA.Has(c, "AnyminuteSupportAudit")) { SA.Flash(SA.MissingTables); Go(Back71); return; }
+            using (var tx = c.BeginTransaction(IsolationLevel.Serializable))
+            {
+                try
+                {
+                    string by = "Imported by Support (" + SA.ActorName() + ")", note = "Imported from " + System.IO.Path.GetFileName(f.FileName ?? "");
+                    for (int i = start; i < rows.Count; i++)
+                    {
+                        var r = rows[i]; string s = cell(r, map[0]), ci = cell(r, map[1]), pr = cell(r, map[2]), co = cell(r, map[3]), pc = cell(r, map[4]);
+                        if ((s + ci + pr + co + pc).Length == 0) { blanks++; continue; }
+                        string key = SA.CompactPostal(pc) + "|" + s.ToUpperInvariant() + "|" + ci.ToUpperInvariant();
+                        if (!seen.Add(key)) { dups++; continue; }
+                        int id; string err = AnyminuteAddressImport.AddVerified(c, tx, s, ci, pr, co, pc, by, note, out id);
+                        if (err == null) added++; else if (err == "duplicate") dups++; else errors.Add("Row " + (i + 1) + ": " + err);
+                    }
+                    SA.Audit(c, tx, "Address", "import", "Imported (Verified)", null, "Verified", null, added + " added, " + dups + " duplicate(s) skipped, " + blanks + " blank, " + errors.Count + " error(s)", note);
+                    tx.Commit();
+                }
+                catch (SqlException ex)
+                {
+                    try { tx.Rollback(); } catch (InvalidOperationException) { }
+                    log4net.LogManager.GetLogger("Log").Error("Address import failed", ex);
+                    SA.Flash("Import failed and nothing was added: database error."); Go(Back71 + "&import=1"); return;
+                }
+            }
+        }
+        var sb = new StringBuilder("<div class='sa-flash' role='status'><strong>Import complete:</strong> ").Append(added).Append(" imported, ").Append(dups).Append(" duplicate(s) skipped, ").Append(blanks).Append(" blank row(s) skipped, ").Append(errors.Count).Append(" error(s).");
+        if (errors.Count > 0) { sb.Append("<ul class='sa-av-errs'>"); foreach (var e in errors.Take(50)) sb.Append("<li>").Append(SA.H(e)).Append("</li>"); if (errors.Count > 50) sb.Append("<li>... and ").Append(errors.Count - 50).Append(" more.</li>"); sb.Append("</ul>"); }
+        Session["sa_av_import"] = sb.Append("</div>").ToString();
+        Go(Back71);
+    }
+    string TakeImportSummary() { string s = Convert.ToString(Session["sa_av_import"]); Session.Remove("sa_av_import"); return s ?? ""; }
     void Back(int id) { Response.Redirect("SupportAddresses.aspx" + (id > 0 ? "?id=" + id : ""), false); Context.ApplicationInstance.CompleteRequest(); }
 }

@@ -353,3 +353,7 @@ html body .sa-card.sa-plan-up{box-shadow:0 0 0 2px #2563eb,0 4px 14px rgba(37,99
 .sa-page .sa-addr-std .am-al-details-head h3{margin:0}
 .sa-page .sa-addr-std .am-al-results select{width:100%!important;max-width:none!important}
 .sa-page .sa-addr-std>.am-al-details .am-al-subhead{margin:6px -18px 0;padding:10px 18px}
+/* v71: Address Verification - Add Address / Import Address */
+.sa-head-btns{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.sa-av71{max-width:600px}.sa-av71 h2{margin:0 0 4px}.sa-av71 .sa-field{margin-top:10px}.sa-av71 .sa-panel-foot{margin-top:16px}
+.sa-av-errs{margin:6px 0 0 18px;padding:0;max-height:220px;overflow:auto;font-size:13px}
