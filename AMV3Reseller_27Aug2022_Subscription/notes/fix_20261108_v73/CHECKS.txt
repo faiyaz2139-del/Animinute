@@ -1,0 +1,58 @@
+PASS AMV3Reseller_27Aug2022_Subscription/ExternalLogin.aspx: only CSS link/body class/build stamp changed
+PASS AMV3Reseller_27Aug2022_Subscription/ExternalLogin.aspx: one cache-busted shared link
+PASS AMV3Reseller_27Aug2022_Subscription/ExternalLogin.aspx: typography loaded after existing head styles
+PASS AMV3Reseller_27Aug2022_Subscription/Login.aspx: only CSS link/body class/build stamp changed
+PASS AMV3Reseller_27Aug2022_Subscription/Login.aspx: one cache-busted shared link
+PASS AMV3Reseller_27Aug2022_Subscription/Login.aspx: typography loaded after existing head styles
+PASS AMV3Reseller_27Aug2022_Subscription/Main.master: only CSS link/body class/build stamp changed
+PASS AMV3Reseller_27Aug2022_Subscription/Main.master: one cache-busted shared link
+PASS AMV3Reseller_27Aug2022_Subscription/Main.master: typography loaded after existing head styles
+PASS AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master: only CSS link/body class/build stamp changed
+PASS AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master: one cache-busted shared link
+PASS AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master: typography loaded after existing head styles
+PASS AMV3Reseller_27Aug2022_Subscription/ModalPopUpSelectEffectiveDate.aspx: only CSS link/body class/build stamp changed
+PASS AMV3Reseller_27Aug2022_Subscription/ModalPopUpSelectEffectiveDate.aspx: one cache-busted shared link
+PASS AMV3Reseller_27Aug2022_Subscription/ModalPopUpSelectEffectiveDate.aspx: typography loaded after existing head styles
+PASS AMV3Reseller_27Aug2022_Subscription/Modern.master: only CSS link/body class/build stamp changed
+PASS AMV3Reseller_27Aug2022_Subscription/Modern.master: one cache-busted shared link
+PASS AMV3Reseller_27Aug2022_Subscription/Modern.master: typography loaded after existing head styles
+PASS AMV3Reseller_27Aug2022_Subscription/Registration.aspx: only CSS link/body class/build stamp changed
+PASS AMV3Reseller_27Aug2022_Subscription/Registration.aspx: one cache-busted shared link
+PASS AMV3Reseller_27Aug2022_Subscription/Registration.aspx: typography loaded after existing head styles
+PASS AMV3Reseller_27Aug2022_Subscription/Report3.aspx: only CSS link/body class/build stamp changed
+PASS AMV3Reseller_27Aug2022_Subscription/Report3.aspx: one cache-busted shared link
+PASS AMV3Reseller_27Aug2022_Subscription/Report3.aspx: typography loaded after existing head styles
+PASS AMV3Reseller_27Aug2022_Subscription/ResetPassord.aspx: only CSS link/body class/build stamp changed
+PASS AMV3Reseller_27Aug2022_Subscription/ResetPassord.aspx: one cache-busted shared link
+PASS AMV3Reseller_27Aug2022_Subscription/ResetPassord.aspx: typography loaded after existing head styles
+PASS AMV3Reseller_27Aug2022_Subscription/ResetPassord_New_Account.aspx: only CSS link/body class/build stamp changed
+PASS AMV3Reseller_27Aug2022_Subscription/ResetPassord_New_Account.aspx: one cache-busted shared link
+PASS AMV3Reseller_27Aug2022_Subscription/ResetPassord_New_Account.aspx: typography loaded after existing head styles
+PASS AMV3Reseller_27Aug2022_Subscription/VerifyLoginEmail.aspx: only CSS link/body class/build stamp changed
+PASS AMV3Reseller_27Aug2022_Subscription/VerifyLoginEmail.aspx: one cache-busted shared link
+PASS AMV3Reseller_27Aug2022_Subscription/VerifyLoginEmail.aspx: typography loaded after existing head styles
+PASS AMV3Reseller_27Aug2022_Subscription/document2.aspx: only CSS link/body class/build stamp changed
+PASS AMV3Reseller_27Aug2022_Subscription/document2.aspx: one cache-busted shared link
+PASS AMV3Reseller_27Aug2022_Subscription/document2.aspx: typography loaded after existing head styles
+PASS AMV3Reseller_27Aug2022_Subscription/document3.aspx: only CSS link/body class/build stamp changed
+PASS AMV3Reseller_27Aug2022_Subscription/document3.aspx: one cache-busted shared link
+PASS AMV3Reseller_27Aug2022_Subscription/document3.aspx: typography loaded after existing head styles
+PASS balanced CSS blocks
+PASS typography-only declaration: --am-font-ui
+PASS typography-only declaration: --am-font-editorial
+PASS typography-only declaration: font-family
+PASS typography-only declaration: font-family
+PASS typography-only declaration: font-family
+PASS typography-only declaration: font-family
+PASS typography-only declaration: font-weight
+PASS typography-only declaration: letter-spacing
+PASS typography-only declaration: font-family
+PASS typography-only declaration: font-weight
+PASS no paid/downloaded fonts or added network dependency
+PASS no universal descendant or icon pseudo-element resets
+PASS regular editorial page/section hierarchy
+PASS no business code / wipe / Wait Me changes
+PASS Main.master C# master compile: zero errors
+PASS Modern.master C# master compile: zero errors
+PASS MasterWithoutMenu.master C# master compile: zero errors
+LIMITATIONS: screenshot missing; no browser screenshots or live-site tests. C# master checks use existing control stubs, not full ASP.NET dynamic page compilation. System font availability varies by device.

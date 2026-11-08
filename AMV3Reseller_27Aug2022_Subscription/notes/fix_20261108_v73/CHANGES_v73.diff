@@ -1,0 +1,269 @@
+diff --git a/AMV3Reseller_27Aug2022_Subscription/ExternalLogin.aspx b/AMV3Reseller_27Aug2022_Subscription/ExternalLogin.aspx
+index 7ed4391..e250aa2 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/ExternalLogin.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/ExternalLogin.aspx
+@@ -1,3 +1,3 @@
+ <%@ Page Language="C#" AutoEventWireup="true" CodeFile="ExternalLogin.aspx.cs" Inherits="AnyminuteExternalLoginPage" EnableViewState="false" %>
+ <%-- v41: Google / Microsoft sign-in start (?p=google|microsoft) and OAuth redirect URI (?code&state). No UI; always redirects. --%>
+-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8" /><meta name="referrer" content="no-referrer" /><title>Signing in | AnyMinute</title></head><body></body></html>
++<!DOCTYPE html><html lang="en"><head><meta charset="utf-8" /><meta name="referrer" content="no-referrer" /><title>Signing in | AnyMinute</title><link href="css/AnyminuteTypography.css?v=20261108v73" rel="stylesheet" /></head><body class="am-typography"></body></html>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Login.aspx b/AMV3Reseller_27Aug2022_Subscription/Login.aspx
+index 3f708ac..16f2829 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Login.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/Login.aspx
+@@ -152,8 +152,8 @@
+         .am-social-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;margin-bottom:10px;padding:9px 12px;border:1px solid #d0d7e2;border-radius:6px;background:#fff;color:#1f2937!important;font-weight:600;text-decoration:none!important}
+         .am-social-btn:hover{background:#f5f8fc;border-color:#b8c3d3}
+     </style>
+-</head>
+-<body>
++<link href="css/AnyminuteTypography.css?v=20261108v73" rel="stylesheet" /></head>
++<body class="am-typography">
+     <div class="container">
+             <div class="col-md-3 col-sm-12 col-xs-12"></div>
+             <div class="col-md-5 col-sm-12 col-xs-12"  >
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Main.master b/AMV3Reseller_27Aug2022_Subscription/Main.master
+index f00b0e3..0c75fb1 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Main.master
++++ b/AMV3Reseller_27Aug2022_Subscription/Main.master
+@@ -5,7 +5,7 @@
+ <!DOCTYPE html>
+ 
+ <html>
+-<head runat="server"><meta name="anyminute-build" content="v72-20261108" />
++<head runat="server"><meta name="anyminute-build" content="v73-20261108" />
+     <title>AnyMinute | Record From Anywhere</title>
+     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+@@ -139,11 +139,11 @@
+     </asp:ContentPlaceHolder>
+     <link href="css/AnyminuteUI2026.css?v=20261017" rel="stylesheet" />
+ <link href="css/AnyminuteUIUnified.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUiBugFixes.css?v=20261026v17" rel="stylesheet" />
+-<link href="css/AnyminuteNavDrawer.css?v=20261106v67" rel="stylesheet" /></head>
++<link href="css/AnyminuteNavDrawer.css?v=20261106v67" rel="stylesheet" /><link href="css/AnyminuteTypography.css?v=20261108v73" rel="stylesheet" /></head>
+ <script type="text/javascript">  
+     window.onload = window.history.forward(0);
+ </script>
+-<body class="am-ui">
++<body class="am-typography am-ui">
+     <form id="frmMaster" runat="server">
+         <asp:ScriptManager ID="ScriptManager1" runat="server" EnablePageMethods="true"></asp:ScriptManager>
+         <%--Header Content start--%>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master b/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master
+index b6a4cbe..760713b 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master
++++ b/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master
+@@ -2,7 +2,7 @@
+ <!DOCTYPE html>
+ 
+ <html>
+-<head runat="server">
++<head runat="server"><meta name="anyminute-build" content="v73-20261108" />
+     <title>AnyMinute | Record From Anywhere</title>
+     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+@@ -28,13 +28,13 @@
+                        
+     </asp:ContentPlaceHolder>
+     
+-</head>
++<link href="css/AnyminuteTypography.css?v=20261108v73" rel="stylesheet" /></head>
+     <script type="text/javascript">  
+ 
+     window.onload = window.history.forward(0);
+ 
+     </script>
+-<body style="background-color: whitesmoke;">
++<body style="background-color: whitesmoke;" class="am-typography">
+ 
+     <form id="frmMaster" runat="server">
+         <asp:ScriptManager ID="ScriptManager1" runat="server"></asp:ScriptManager>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/ModalPopUpSelectEffectiveDate.aspx b/AMV3Reseller_27Aug2022_Subscription/ModalPopUpSelectEffectiveDate.aspx
+index affcbae..96f5c32 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/ModalPopUpSelectEffectiveDate.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/ModalPopUpSelectEffectiveDate.aspx
+@@ -5,8 +5,8 @@
+ <html xmlns="http://www.w3.org/1999/xhtml">
+ <head runat="server">
+     <title></title>
+-</head>
+-<body>
++<link href="css/AnyminuteTypography.css?v=20261108v73" rel="stylesheet" /></head>
++<body class="am-typography">
+     <form id="form1" runat="server">
+         <div>
+             <asp:Panel ID="PnlEffectiveDate" runat="server" CssClass="modalPopup_addproject" Style="display: none;">
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Modern.master b/AMV3Reseller_27Aug2022_Subscription/Modern.master
+index a60eda9..34b8a10 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Modern.master
++++ b/AMV3Reseller_27Aug2022_Subscription/Modern.master
+@@ -1,7 +1,7 @@
+ <%@ Master Language="C#" AutoEventWireup="true" CodeFile="Modern.master.cs" Inherits="AnyminuteModernMaster" %>
+ <!DOCTYPE html>
+-<html lang="en"><head runat="server"><meta charset="utf-8" /><meta name="anyminute-build" content="v72-20261108" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>AnyMinute</title><link href="css/bootstrap.min.css" rel="stylesheet" /><script src="Assets/assets/js/core/jquery.3.2.1.min.js"></script><script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script><script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" /><script src="Assets/assets/js/plugin/datatables/datatables.min.js"></script><script src="Assets/assets/js/SweetAlert.js"></script><link href="css/AnyminuteModern.css" rel="stylesheet" /><asp:ContentPlaceHolder ID="head" runat="server" /><link href="css/AnyminuteUI2026.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUIUnified.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUiBugFixes.css?v=20261026v17" rel="stylesheet" /><link href="css/AnyminuteNavDrawer.css?v=20261106v67" rel="stylesheet" /></head>
+-<body class="am-modern"><form id="frmMaster" runat="server"><asp:ScriptManager ID="ScriptManager1" runat="server" />
++<html lang="en"><head runat="server"><meta charset="utf-8" /><meta name="anyminute-build" content="v73-20261108" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>AnyMinute</title><link href="css/bootstrap.min.css" rel="stylesheet" /><script src="Assets/assets/js/core/jquery.3.2.1.min.js"></script><script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script><script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" /><script src="Assets/assets/js/plugin/datatables/datatables.min.js"></script><script src="Assets/assets/js/SweetAlert.js"></script><link href="css/AnyminuteModern.css" rel="stylesheet" /><asp:ContentPlaceHolder ID="head" runat="server" /><link href="css/AnyminuteUI2026.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUIUnified.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUiBugFixes.css?v=20261026v17" rel="stylesheet" /><link href="css/AnyminuteNavDrawer.css?v=20261106v67" rel="stylesheet" /><link href="css/AnyminuteTypography.css?v=20261108v73" rel="stylesheet" /></head>
++<body class="am-typography am-modern"><form id="frmMaster" runat="server"><asp:ScriptManager ID="ScriptManager1" runat="server" />
+ <header class="am-topbar"><button type="button" class="am-icon-button" data-toggle-sidebar aria-controls="am-main-navigation" aria-expanded="true" aria-label="Toggle navigation">&#9776;</button><a href="Dashboard.aspx" class="am-brand"><asp:PlaceHolder ID="LogoDefault" runat="server"><img src="Assets/assets/img/logo.jpg" alt="AnyMinute" class="am-logo" /></asp:PlaceHolder><asp:Literal ID="Brand" runat="server" /></a><span>Welcome! <asp:Literal ID="Welcome" runat="server" /><asp:Literal ID="WelcomeContext" runat="server" /></span><asp:Literal ID="HeaderHelp" runat="server" /><asp:Literal ID="HeaderBell" runat="server" /><details class="am-account-menu"><summary aria-label="Account menu"><asp:Literal ID="AccountAvatar" runat="server" /><span class="am-account-chevron" aria-hidden="true"></span><span class="sr-only">Account</span></summary><div class="am-account-popover"><a href="MyProfile.aspx"><span data-am-icon="profile" aria-hidden="true"></span>My profile</a><a href="LoginSecurity.aspx"><span data-am-icon="settings" aria-hidden="true"></span>Login &amp; security</a><asp:LinkButton ID="SignOut" runat="server" CausesValidation="false" OnClick="SignOut_Click"><span data-am-icon="signout" aria-hidden="true"></span>Sign out</asp:LinkButton>
+    <a href="Change%20Password.aspx"><span data-am-icon="settings" aria-hidden="true"></span>Change password</a><asp:Literal ID="AccountHelp" runat="server" /><asp:Literal ID="AccountUpgrade" runat="server" /></div></details></header>
+ <aside id="am-main-navigation" class="am-sidebar"><nav aria-label="Main navigation"><ul class="sidebar-nav"><asp:Literal ID="Navigation" runat="server" /></ul></nav></aside>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Registration.aspx b/AMV3Reseller_27Aug2022_Subscription/Registration.aspx
+index c07c794..64c088f 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Registration.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/Registration.aspx
+@@ -146,8 +146,8 @@
+      window.onpageshow = function(evt) { if (evt.persisted) DisableBackButton() }
+      window.onunload = function() { void (0) }
+     </script>
+-</head>
+-<body>
++<link href="css/AnyminuteTypography.css?v=20261108v73" rel="stylesheet" /></head>
++<body class="am-typography">
+     <div class="container">
+         <%--Commited By Firoz--%>
+         <%--<div class="row" style="vertical-align:middle !important;top: 50%;">--%>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Report3.aspx b/AMV3Reseller_27Aug2022_Subscription/Report3.aspx
+index 7b0b63b..b587959 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Report3.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/Report3.aspx
+@@ -3,8 +3,8 @@
+ <html xmlns="http://www.w3.org/1999/xhtml">
+ <head runat="server"><title>AnyMinute - Employee Report</title>
+ <style>body{font-family:Arial,sans-serif;margin:24px;color:#25334a} .bar{display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin:12px 0}.field{display:flex;flex-direction:column;gap:5px}input,select{padding:7px} .action{padding:8px 12px;margin:3px} .table{margin-top:15px;overflow:auto}h2{margin-bottom:12px}</style>
+-</head>
+-<body><form id="form1" runat="server">
++<link href="css/AnyminuteTypography.css?v=20261108v73" rel="stylesheet" /></head>
++<body class="am-typography"><form id="form1" runat="server">
+ <asp:ScriptManager ID="ScriptManager1" runat="server" />
+ <h2>Employee Time Sheet Report</h2>
+ <div class="bar">
+diff --git a/AMV3Reseller_27Aug2022_Subscription/ResetPassord.aspx b/AMV3Reseller_27Aug2022_Subscription/ResetPassord.aspx
+index 86b3010..8a951e4 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/ResetPassord.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/ResetPassord.aspx
+@@ -133,8 +133,8 @@
+         }
+     </style>
+ 
+-</head>
+-<body>
++<link href="css/AnyminuteTypography.css?v=20261108v73" rel="stylesheet" /></head>
++<body class="am-typography">
+     <form id="form1" runat="server">
+        
+         <div class="outer">
+diff --git a/AMV3Reseller_27Aug2022_Subscription/ResetPassord_New_Account.aspx b/AMV3Reseller_27Aug2022_Subscription/ResetPassord_New_Account.aspx
+index 5cae20d..0755f95 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/ResetPassord_New_Account.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/ResetPassord_New_Account.aspx
+@@ -133,8 +133,8 @@
+         }
+     </style>
+ 
+-</head>
+-<body>
++<link href="css/AnyminuteTypography.css?v=20261108v73" rel="stylesheet" /></head>
++<body class="am-typography">
+     <form id="form1" runat="server">
+         <%--<div class="row" style="height:100px;"></div>--%>
+ 
+diff --git a/AMV3Reseller_27Aug2022_Subscription/VerifyLoginEmail.aspx b/AMV3Reseller_27Aug2022_Subscription/VerifyLoginEmail.aspx
+index a5252f0..eda280e 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/VerifyLoginEmail.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/VerifyLoginEmail.aspx
+@@ -1,7 +1,7 @@
+ <%@ Page Language="C#" AutoEventWireup="true" CodeFile="VerifyLoginEmail.aspx.cs" Inherits="AnyminuteVerifyLoginEmailPage" %>
+ <!DOCTYPE html>
+-<html lang="en"><head runat="server"><meta charset="utf-8" /><meta name="anyminute-build" content="v39-20261031" /><meta name="viewport" content="width=device-width,initial-scale=1" /><meta name="referrer" content="no-referrer" /><title>Verify Login Email | AnyMinute</title><link rel="icon" href="Assets/assets/img/logo.jpg" type="image/x-icon" /><link href="css/AnyminuteLoginSecurity.css?v=20261031v39" rel="stylesheet" /></head>
+-<body class="am-ls-verify"><form id="VerifyForm" runat="server">
++<html lang="en"><head runat="server"><meta charset="utf-8" /><meta name="anyminute-build" content="v39-20261031" /><meta name="viewport" content="width=device-width,initial-scale=1" /><meta name="referrer" content="no-referrer" /><title>Verify Login Email | AnyMinute</title><link rel="icon" href="Assets/assets/img/logo.jpg" type="image/x-icon" /><link href="css/AnyminuteLoginSecurity.css?v=20261031v39" rel="stylesheet" /><link href="css/AnyminuteTypography.css?v=20261108v73" rel="stylesheet" /></head>
++<body class="am-typography am-ls-verify"><form id="VerifyForm" runat="server">
+ <%-- v39 (Change Login Email DOC step 3): one-time link from the verification email. Works signed in or signed out; the change happens on the Confirm click (POST), so mail scanners that prefetch the link cannot use it. --%>
+ <main class="am-ls-box"><img src="Assets/assets/img/logo.jpg" alt="AnyMinute" class="am-ls-logo" />
+  <h1><asp:Literal ID="Heading" runat="server" /></h1><p><asp:Literal ID="Message" runat="server" /></p>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteTypography.css b/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteTypography.css
+new file mode 100644
+index 0000000..77b9a18
+--- /dev/null
++++ b/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteTypography.css
+@@ -0,0 +1,50 @@
++/* AnyMinute v73 (2026-11-08): reference-inspired typography only.
++   Not an identification/licence of Wave's fonts. No downloaded fonts or network requests.
++   System Georgia provides the regular editorial serif; system Helvetica Neue/Arial
++   provides compact UI sans. Existing sizes, line heights, spacing and layout stay intact.
++   No universal descendant font reset: icon faces and monospace values must survive. */
++html body.am-typography {
++    --am-font-ui: "Helvetica Neue", Arial, Helvetica, sans-serif;
++    --am-font-editorial: Georgia, "Times New Roman", serif;
++    font-family: var(--am-font-ui) !important;
++}
++/* Ordinary content, forms, card headings and tables remain sans-serif.
++   These semantic text containers do not target icon elements or their pseudo-elements. */
++html body.am-typography p,
++html body.am-typography label,
++html body.am-typography table,
++html body.am-typography nav,
++html body.am-typography h2,
++html body.am-typography h3,
++html body.am-typography h4,
++html body.am-typography h5,
++html body.am-typography h6 {
++    font-family: var(--am-font-ui) !important;
++}
++/* Native controls and legacy button shorthands otherwise retain browser/Inter faces.
++   Font-backed icon-only controls are deliberately excluded. */
++html body.am-typography input:not(.fa):not(.glyphicon):not([class*="fa-"]):not([class*="icon-"]),
++html body.am-typography select:not(.fa):not(.glyphicon):not([class*="fa-"]):not([class*="icon-"]),
++html body.am-typography textarea,
++html body.am-typography button:not(.fa):not(.glyphicon):not([class*="fa-"]):not([class*="icon-"]),
++html body.am-typography .btn:not(.fa):not(.glyphicon):not([class*="fa-"]):not([class*="icon-"]),
++html body.am-typography .am-button,
++html body.am-typography .sa-btn,
++html body.am-typography .am-action {
++    font-family: var(--am-font-ui) !important;
++}
++/* Editorial hierarchy: page titles and accountant dashboard section headings.
++   Utility/card/form labels do NOT become serif. Existing responsive font sizes remain. */
++html body.am-typography h1,
++html body.am-typography .am-ap-sechead h2 {
++    font-family: var(--am-font-editorial) !important;
++    font-weight: 400 !important;
++    letter-spacing: normal !important;
++}
++/* Dialog titles are UI, not page-level editorial headings. */
++html body.am-typography .am-dialog-head h1,
++html body.am-typography .am-modal h1,
++html body.am-typography .sa-modal h1 {
++    font-family: var(--am-font-ui) !important;
++    font-weight: 600 !important;
++}
+diff --git a/AMV3Reseller_27Aug2022_Subscription/document2.aspx b/AMV3Reseller_27Aug2022_Subscription/document2.aspx
+index 177100d..f30c8b0 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/document2.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/document2.aspx
+@@ -5,8 +5,8 @@
+ <html xmlns="http://www.w3.org/1999/xhtml">
+ <head runat="server">
+     <title></title>
+-</head>
+-<body>
++<link href="css/AnyminuteTypography.css?v=20261108v73" rel="stylesheet" /></head>
++<body class="am-typography">
+     <form id="form1" runat="server">
+              <div Style="visibility:hidden;display:none;">
+               <asp:GridView runat="server" ID="GvExport" CellPadding="4" ForeColor="#333333" GridLines="None" CellSpacing="4">
+diff --git a/AMV3Reseller_27Aug2022_Subscription/document3.aspx b/AMV3Reseller_27Aug2022_Subscription/document3.aspx
+index 29943f1..5c1b7f5 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/document3.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/document3.aspx
+@@ -5,8 +5,8 @@
+ <html xmlns="http://www.w3.org/1999/xhtml">
+ <head runat="server">
+     <title></title>
+-</head>
+-<body>
++<link href="css/AnyminuteTypography.css?v=20261108v73" rel="stylesheet" /></head>
++<body class="am-typography">
+     <form id="form1" runat="server">
+              <div Style="visibility:hidden;display:none;">
+               <asp:GridView runat="server" ID="GvExport" CellPadding="4" ForeColor="#333333" GridLines="None" CellSpacing="4">
