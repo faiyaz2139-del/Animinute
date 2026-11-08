@@ -5,8 +5,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head runat="server">
     <title></title>
-</head>
-<body>
+<link href="css/AnyminuteTypography.css?v=20261108v73" rel="stylesheet" /></head>
+<body class="am-typography">
     <form id="form1" runat="server">
              <div Style="visibility:hidden;display:none;">
               <asp:GridView runat="server" ID="GvExport" CellPadding="4" ForeColor="#333333" GridLines="None" CellSpacing="4">

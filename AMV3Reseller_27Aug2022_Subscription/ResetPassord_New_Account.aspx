@@ -133,8 +133,8 @@
         }
     </style>
 
-</head>
-<body>
+<link href="css/AnyminuteTypography.css?v=20261108v73" rel="stylesheet" /></head>
+<body class="am-typography">
     <form id="form1" runat="server">
         <%--<div class="row" style="height:100px;"></div>--%>
 

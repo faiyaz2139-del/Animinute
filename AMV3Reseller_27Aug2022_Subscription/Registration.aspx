@@ -146,8 +146,8 @@
      window.onpageshow = function(evt) { if (evt.persisted) DisableBackButton() }
      window.onunload = function() { void (0) }
     </script>
-</head>
-<body>
+<link href="css/AnyminuteTypography.css?v=20261108v73" rel="stylesheet" /></head>
+<body class="am-typography">
     <div class="container">
         <%--Commited By Firoz--%>
         <%--<div class="row" style="vertical-align:middle !important;top: 50%;">--%>

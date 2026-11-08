@@ -152,8 +152,8 @@
         .am-social-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;margin-bottom:10px;padding:9px 12px;border:1px solid #d0d7e2;border-radius:6px;background:#fff;color:#1f2937!important;font-weight:600;text-decoration:none!important}
         .am-social-btn:hover{background:#f5f8fc;border-color:#b8c3d3}
     </style>
-</head>
-<body>
+<link href="css/AnyminuteTypography.css?v=20261108v73" rel="stylesheet" /></head>
+<body class="am-typography">
     <div class="container">
             <div class="col-md-3 col-sm-12 col-xs-12"></div>
             <div class="col-md-5 col-sm-12 col-xs-12"  >

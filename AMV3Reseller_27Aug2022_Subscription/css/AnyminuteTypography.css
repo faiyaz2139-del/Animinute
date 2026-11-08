@@ -1,0 +1,50 @@
+/* AnyMinute v73 (2026-11-08): reference-inspired typography only.
+   Not an identification/licence of Wave's fonts. No downloaded fonts or network requests.
+   System Georgia provides the regular editorial serif; system Helvetica Neue/Arial
+   provides compact UI sans. Existing sizes, line heights, spacing and layout stay intact.
+   No universal descendant font reset: icon faces and monospace values must survive. */
+html body.am-typography {
+    --am-font-ui: "Helvetica Neue", Arial, Helvetica, sans-serif;
+    --am-font-editorial: Georgia, "Times New Roman", serif;
+    font-family: var(--am-font-ui) !important;
+}
+/* Ordinary content, forms, card headings and tables remain sans-serif.
+   These semantic text containers do not target icon elements or their pseudo-elements. */
+html body.am-typography p,
+html body.am-typography label,
+html body.am-typography table,
+html body.am-typography nav,
+html body.am-typography h2,
+html body.am-typography h3,
+html body.am-typography h4,
+html body.am-typography h5,
+html body.am-typography h6 {
+    font-family: var(--am-font-ui) !important;
+}
+/* Native controls and legacy button shorthands otherwise retain browser/Inter faces.
+   Font-backed icon-only controls are deliberately excluded. */
+html body.am-typography input:not(.fa):not(.glyphicon):not([class*="fa-"]):not([class*="icon-"]),
+html body.am-typography select:not(.fa):not(.glyphicon):not([class*="fa-"]):not([class*="icon-"]),
+html body.am-typography textarea,
+html body.am-typography button:not(.fa):not(.glyphicon):not([class*="fa-"]):not([class*="icon-"]),
+html body.am-typography .btn:not(.fa):not(.glyphicon):not([class*="fa-"]):not([class*="icon-"]),
+html body.am-typography .am-button,
+html body.am-typography .sa-btn,
+html body.am-typography .am-action {
+    font-family: var(--am-font-ui) !important;
+}
+/* Editorial hierarchy: page titles and accountant dashboard section headings.
+   Utility/card/form labels do NOT become serif. Existing responsive font sizes remain. */
+html body.am-typography h1,
+html body.am-typography .am-ap-sechead h2 {
+    font-family: var(--am-font-editorial) !important;
+    font-weight: 400 !important;
+    letter-spacing: normal !important;
+}
+/* Dialog titles are UI, not page-level editorial headings. */
+html body.am-typography .am-dialog-head h1,
+html body.am-typography .am-modal h1,
+html body.am-typography .sa-modal h1 {
+    font-family: var(--am-font-ui) !important;
+    font-weight: 600 !important;
+}
