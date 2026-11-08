@@ -1,0 +1,712 @@
+diff --git a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteAddressImport.cs b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteAddressImport.cs
+index d73f820..9e1f318 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteAddressImport.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteAddressImport.cs
+@@ -15,7 +15,7 @@ using SA = AnyminuteSupportAdmin;
+ // (Status=Verified, SubmittedBy = "Added by Support (<name>)" / "Imported by Support (<name>)", submitted/reviewed now), so they
+ // show in the Verified Addresses list. Same validation as Approve (SA.VerifyAddress: street, city, prov/state, country,
+ // postal format per country). Duplicate = an already verified row with the same street + city + postal code.
+-// Import reads CSV or .xlsx (first worksheet; minimal zip reader on DeflateStream from System.dll - no new assembly / package).
++// Import reads CSV or .xlsx (all worksheets; minimal zip reader on DeflateStream from System.dll - no new assembly / package).
+ public static class AnyminuteAddressImport
+ {
+     public const int MaxBytes = 2 * 1024 * 1024, MaxRows = 5000;
+@@ -66,13 +66,33 @@ public static class AnyminuteAddressImport
+     }
+ 
+     // ---- file reading: rows of cells (header row included) ----
+-    public static List<string[]> Read(string fileName, byte[] data)
++    // v72: returns data rows in template order, excluding each worksheet's header.
++    public static List<string[]> Read(string fileName, byte[] data) { string sheets; return Read(fileName, data, out sheets); }
++    public static List<string[]> Read(string fileName, byte[] data, out string sheets)
+     {
++        if (data == null || data.Length > MaxBytes) throw new InvalidDataException("The file exceeds the 2 MB limit. Nothing was imported.");
++        sheets = "CSV";
+         string ext = Path.GetExtension(fileName ?? "").ToLowerInvariant();
+-        if (ext == ".xlsx") return Xlsx(data);
+-        if (ext == ".csv" || ext == ".txt") return Csv(Decode(data));
++        if (ext == ".xlsx") return Xlsx(data, out sheets);
++        if (ext == ".csv" || ext == ".txt") return Prepare(Csv(Decode(data)));
+         throw new InvalidDataException("Upload a .csv or .xlsx file.");
+     }
++    static List<string[]> Prepare(List<string[]> raw)
++    {
++        var rows = new List<string[]>();
++        int first = raw.FindIndex(r => r.Any(v => !String.IsNullOrWhiteSpace(v)));
++        if (first < 0)
++        {
++            if (raw.Count > MaxRows) throw new InvalidDataException("The file exceeds 5,000 data rows. Nothing was imported.");
++            return raw.Select(r => new string[5]).ToList();
++        }
++        int[] map = Map(raw[first]);
++        if (map == null) map = new[] { 0, 1, 2, 3, 4 };
++        else raw.RemoveAt(first);
++        foreach (var r in raw) rows.Add(map.Select(i => i < r.Length ? r[i] : "").ToArray());
++        if (rows.Count > MaxRows) throw new InvalidDataException("The file has more than 5,000 data rows. Split it and import again. Nothing was imported.");
++        return rows;
++    }
+     static string Decode(byte[] d)
+     {
+         if (d.Length >= 3 && d[0] == 0xEF && d[1] == 0xBB && d[2] == 0xBF) return Encoding.UTF8.GetString(d, 3, d.Length - 3);
+@@ -95,9 +115,10 @@ public static class AnyminuteAddressImport
+             else cell.Append(ch);
+         }
+         if (cell.Length > 0 || cur.Count > 0) { cur.Add(cell.ToString()); rows.Add(cur.ToArray()); }
++        if (q) throw new InvalidDataException("The CSV has an unclosed quoted field. Nothing was imported.");
+         return rows;
+     }
+-    // Minimal .xlsx reader: zip central directory -> sharedStrings + first worksheet.
++    // Minimal .xlsx reader: zip central directory -> sharedStrings + every worksheet in workbook order.
+     static Dictionary<string, byte[]> Unzip(byte[] z)
+     {
+         var files = new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase);
+@@ -105,24 +126,25 @@ public static class AnyminuteAddressImport
+         for (int i = z.Length - 22; i >= Math.Max(0, z.Length - 65557); i--) if (BitConverter.ToUInt32(z, i) == 0x06054b50) { eocd = i; break; }
+         if (eocd < 0) throw new InvalidDataException("The .xlsx file could not be read.");
+         int n = BitConverter.ToUInt16(z, eocd + 10), p = (int)BitConverter.ToUInt32(z, eocd + 16);
++        long expanded = 0;
+         for (int k = 0; k < n; k++)
+         {
+             if (BitConverter.ToUInt32(z, p) != 0x02014b50) throw new InvalidDataException("The .xlsx file could not be read.");
+             int method = BitConverter.ToUInt16(z, p + 10), csize = (int)BitConverter.ToUInt32(z, p + 20), usize = (int)BitConverter.ToUInt32(z, p + 24);
+             int fl = BitConverter.ToUInt16(z, p + 28), el = BitConverter.ToUInt16(z, p + 30), cl = BitConverter.ToUInt16(z, p + 32), off = (int)BitConverter.ToUInt32(z, p + 42);
+             string name = Encoding.UTF8.GetString(z, p + 46, fl); p += 46 + fl + el + cl;
+-            bool want = name.Equals("xl/sharedStrings.xml", StringComparison.OrdinalIgnoreCase) || name.Equals("xl/workbook.xml", StringComparison.OrdinalIgnoreCase) || name.Equals("xl/_rels/workbook.xml.rels", StringComparison.OrdinalIgnoreCase) || name.StartsWith("xl/worksheets/sheet", StringComparison.OrdinalIgnoreCase);
++            bool want = name.Equals("xl/sharedStrings.xml", StringComparison.OrdinalIgnoreCase) || name.Equals("xl/workbook.xml", StringComparison.OrdinalIgnoreCase) || name.Equals("xl/_rels/workbook.xml.rels", StringComparison.OrdinalIgnoreCase) || name.StartsWith("xl/worksheets/", StringComparison.OrdinalIgnoreCase);
+             if (!want) continue;
+             if (usize > 50 * 1024 * 1024) throw new InvalidDataException("The .xlsx file is too large.");
+             int data = off + 30 + BitConverter.ToUInt16(z, off + 26) + BitConverter.ToUInt16(z, off + 28);
+-            if (method == 0) { var b = new byte[csize]; Buffer.BlockCopy(z, data, b, 0, csize); files[name] = b; }
+-            else if (method == 8) using (var ds = new DeflateStream(new MemoryStream(z, data, csize), CompressionMode.Decompress)) using (var ms = new MemoryStream()) { ds.CopyTo(ms); files[name] = ms.ToArray(); }
++            if (method == 0) { expanded += csize; if (expanded > 50 * 1024 * 1024) throw new InvalidDataException("The expanded workbook exceeds 50 MB."); var b = new byte[csize]; Buffer.BlockCopy(z, data, b, 0, csize); files[name] = b; }
++            else if (method == 8) using (var ds = new DeflateStream(new MemoryStream(z, data, csize), CompressionMode.Decompress)) using (var ms = new MemoryStream()) { byte[] buf = new byte[8192]; int got; while ((got = ds.Read(buf, 0, buf.Length)) > 0) { expanded += got; if (expanded > 50 * 1024 * 1024) throw new InvalidDataException("The expanded workbook exceeds 50 MB."); ms.Write(buf, 0, got); } files[name] = ms.ToArray(); }
+             else throw new InvalidDataException("The .xlsx file uses an unsupported format.");
+         }
+         return files;
+     }
+     static XmlDocument Xml(byte[] b) { var d = new XmlDocument { XmlResolver = null }; using (var r = XmlReader.Create(new MemoryStream(b), new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit, XmlResolver = null })) d.Load(r); return d; }
+-    static List<string[]> Xlsx(byte[] data)
++    static List<string[]> Xlsx(byte[] data, out string sheetNames)
+     {
+         Dictionary<string, byte[]> f;
+         try { f = Unzip(data); } catch (ArgumentException) { throw new InvalidDataException("The .xlsx file could not be read."); }
+@@ -133,24 +155,33 @@ public static class AnyminuteAddressImport
+             var d = Xml(f["xl/sharedStrings.xml"]); var ns = new XmlNamespaceManager(d.NameTable); ns.AddNamespace("m", M);
+             foreach (XmlNode si in d.SelectNodes("//m:si", ns)) ss.Add(String.Concat(si.SelectNodes(".//m:t", ns).Cast<XmlNode>().Select(t => t.InnerText)));
+         }
+-        // First sheet in workbook order (via rels), else the lowest sheetN.xml.
+-        string sheet = null;
+-        try
++        var sheets = new List<KeyValuePair<string, string>>();
++        if (!f.ContainsKey("xl/workbook.xml") || !f.ContainsKey("xl/_rels/workbook.xml.rels")) throw new InvalidDataException("Workbook sheet information is missing.");
++        var wb = Xml(f["xl/workbook.xml"]); var ns2 = new XmlNamespaceManager(wb.NameTable); ns2.AddNamespace("m", M);
++        var rels = Xml(f["xl/_rels/workbook.xml.rels"]);
++        foreach (XmlElement ws in wb.SelectNodes("//m:sheets/m:sheet", ns2))
+         {
+-            var wb = Xml(f["xl/workbook.xml"]); var ns = new XmlNamespaceManager(wb.NameTable); ns.AddNamespace("m", M);
+-            var s1 = wb.SelectSingleNode("//m:sheets/m:sheet", ns) as XmlElement;
+-            string rid = s1 == null ? null : s1.GetAttribute("id", "http://schemas.openxmlformats.org/officeDocument/2006/relationships");
+-            var rels = Xml(f["xl/_rels/workbook.xml.rels"]);
+-            foreach (XmlElement r in rels.GetElementsByTagName("Relationship")) if (r.GetAttribute("Id") == rid) { string t = r.GetAttribute("Target").TrimStart('/'); sheet = t.StartsWith("xl/") ? t : "xl/" + t; }
++            string rid = ws.GetAttribute("id", "http://schemas.openxmlformats.org/officeDocument/2006/relationships");
++            foreach (XmlElement rel in rels.GetElementsByTagName("Relationship"))
++                if (rel.GetAttribute("Id") == rid && rel.GetAttribute("Type").EndsWith("/worksheet"))
++                {
++                    if (rel.GetAttribute("TargetMode") == "External") throw new InvalidDataException("External worksheets cannot be imported.");
++                    string target = new Uri(new Uri("http://xlsx/xl/workbook.xml"), rel.GetAttribute("Target")).AbsolutePath.TrimStart('/');
++                    if (!f.ContainsKey(target)) throw new InvalidDataException("A worksheet is missing: " + ws.GetAttribute("name"));
++                    sheets.Add(new KeyValuePair<string, string>(ws.GetAttribute("name"), target));
++                }
+         }
+-        catch (Exception) { sheet = null; }
+-        if (sheet == null || !f.ContainsKey(sheet)) sheet = f.Keys.Where(k => k.StartsWith("xl/worksheets/sheet", StringComparison.OrdinalIgnoreCase)).OrderBy(k => k.Length).ThenBy(k => k).FirstOrDefault();
+-        if (sheet == null) throw new InvalidDataException("The .xlsx file has no worksheet.");
++        if (sheets.Count == 0) throw new InvalidDataException("The .xlsx file has no worksheet.");
++        sheetNames = String.Join(", ", sheets.Select(x => x.Key).ToArray());
++        var combined = new List<string[]>();
++        foreach (var ws in sheets)
++        {
++        string sheet = ws.Value;
+         var doc = Xml(f[sheet]); var nm = new XmlNamespaceManager(doc.NameTable); nm.AddNamespace("m", M);
+         var rows = new List<string[]>();
+         foreach (XmlElement row in doc.SelectNodes("//m:sheetData/m:row", nm))
+         {
+-            int rn; if (Int32.TryParse(row.GetAttribute("r"), out rn)) while (rows.Count < rn - 1) rows.Add(new string[0]);
++            // Sparse row numbers are positions, not missing address records.
+             var cells = new List<string>();
+             foreach (XmlElement cel in row.SelectNodes("m:c", nm))
+             {
+@@ -165,9 +196,12 @@ public static class AnyminuteAddressImport
+                 if (cells.Count == col) cells.Add(v); else cells[col] = v;
+             }
+             rows.Add(cells.ToArray());
+-            if (rows.Count > MaxRows + 1) break;
++            if (rows.Count > MaxRows + 1) throw new InvalidDataException("A worksheet exceeds 5,000 data rows. Nothing was imported.");
+         }
+-        return rows;
++        combined.AddRange(Prepare(rows));
++        if (combined.Count > MaxRows) throw new InvalidDataException("All worksheets together exceed 5,000 data rows. Nothing was imported.");
++        }
++        return combined;
+     }
+ 
+     // Column positions from the header row (Address/Street, City, Prov/State/Province, Country, Postal/ZIP/PIN); null = no header.
+@@ -178,11 +212,14 @@ public static class AnyminuteAddressImport
+         {
+             string k = Regex.Replace((h[i] ?? "").ToUpperInvariant(), @"[^A-Z]", "");
+             if (k.Length == 0) continue;
+-            int slot = k.StartsWith("POSTAL") || k.StartsWith("ZIP") || k == "PIN" || k.StartsWith("PINCODE") || k == "POSTCODE" ? 4
+-                : k.StartsWith("PROV") || k.StartsWith("STATE") ? 2 : k.StartsWith("COUNTRY") ? 3 : k.StartsWith("CITY") ? 1
+-                : k.StartsWith("ADDRESS") || k.StartsWith("STREET") ? 0 : -1;
++            int slot = new[] { "POSTAL", "POSTALCODE", "POSTALCODEPIN", "POSTALZIPCODE", "ZIP", "ZIPCODE", "PIN", "PINCODE", "POSTCODE" }.Contains(k) ? 4
++                : new[] { "PROV", "PROVINCE", "STATE", "PROVSTATE", "PROVINCESTATE", "STATEPROVINCE" }.Contains(k) ? 2
++                : k == "COUNTRY" ? 3 : k == "CITY" ? 1
++                : new[] { "ADDRESS", "STREET", "STREETNAME", "STREETADDRESS", "STREETNAMEADDRESS" }.Contains(k) ? 0 : -1;
+             if (slot >= 0 && idx[slot] < 0) idx[slot] = i;
+         }
+-        return idx.Count(x => x >= 0) >= 3 ? idx : null;
++        int found = idx.Count(x => x >= 0);
++        if (found > 0 && found < 5) throw new InvalidDataException("The header must contain all five required columns: Address, City, Prov/State, Country, Postal Code/PIN.");
++        return found == 5 ? idx : null;
+     }
+ }
+diff --git a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteEverythingWipe.cs b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteEverythingWipe.cs
+new file mode 100644
+index 0000000..2cc638e
+--- /dev/null
++++ b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteEverythingWipe.cs
+@@ -0,0 +1,168 @@
++using System;
++using System.Data;
++using System.Data.SqlClient;
++using SA = AnyminuteSupportAdmin;
++
++// v72: explicit local-data wipe, one transaction, FK-safe or fail-closed, no remote services.
++public static class AnyminuteEverythingWipe
++{
++    public static DataTable Run(SqlConnection c, string reason)
++    {
++        if (!SA.IsSupportAdminOnly()) throw new System.Web.HttpException(403, "Only Support Admin may wipe everything.");
++        using (var cmd = AnyminuteTimesheetRepair.Command(c, null, Sql,
++            "@actor", SA.ActorId(), "@name", SA.ActorName(), "@reason", reason, "@confirm", "WIPE EVERYTHING"))
++        {
++            cmd.CommandTimeout = 600;
++            var result = new DataTable();
++            using (var adapter = new SqlDataAdapter(cmd)) adapter.Fill(result);
++            return result;
++        }
++    }
++    public const string Sql = @"SET NOCOUNT ON;
++SET XACT_ABORT ON;
++IF @confirm <> N'WIPE EVERYTHING' OR LEN(LTRIM(RTRIM(ISNULL(@reason,N''))))=0
++    THROW 51000, 'Type WIPE EVERYTHING and supply a reason. Nothing was deleted.', 1;
++IF OBJECT_ID('dbo.AnyminuteSupportAudit','U') IS NULL
++    THROW 51000, 'Support audit table is required. Nothing was deleted.', 1;
++BEGIN TRY
++ BEGIN TRANSACTION;
++ DECLARE @lock int;
++ EXEC @lock = sys.sp_getapplock @Resource=N'AnyminuteWipeEverything', @LockMode='Exclusive', @LockOwner='Transaction', @LockTimeout=0;
++ IF @lock < 0 THROW 51000, 'Another wipe is running. Nothing was deleted.', 1;
++ CREATE TABLE #wt (Ordinal int IDENTITY PRIMARY KEY, TableName sysname NOT NULL, ObjectId int NULL, Predicate nvarchar(1000) NOT NULL DEFAULT N'1=1', Done bit NOT NULL DEFAULT 0);
++ CREATE TABLE #wc (TableName sysname NOT NULL, DeletedRows bigint NOT NULL);
++ INSERT #wt(TableName) VALUES
++ (N'AnyminuteAccessInviteBusiness'),
++ (N'AnyminuteAccessInvite'),
++ (N'AnyminuteAccessLog'),
++ (N'AnyminuteProjectAssignmentLog'),
++ (N'AnyminuteProjectAssignment'),
++ (N'AnyminuteProjectDetail'),
++ (N'ASSIGNPROJECT'),
++ (N'TimeSheetEntry'),
++ (N'BreakTime'),
++ (N'TimeSheet'),
++ (N'TimeCardStatus'),
++ (N'AnyminuteWeek'),
++ (N'AnyminuteActivity'),
++ (N'AnyminuteApprovalAudit'),
++ (N'AnyminuteBusinessPolicy'),
++ (N'AnyminuteClockOutEstimate'),
++ (N'AnyminuteNotification'),
++ (N'AnyminuteWeeklySchedule'),
++ (N'AnyminuteEmployeeRoleHistory'),
++ (N'EmpType_Change_History'),
++ (N'AssgineDelegates'),
++ (N'AssgineManager'),
++ (N'AnyminuteAssignmentDetail'),
++ (N'AnyminuteAssignmentRole'),
++ (N'AnyminuteRateChangeReason'),
++ (N'AnyminuteReportAccess'),
++ (N'User_Role_Permission'),
++ (N'Role_AssginedLink'),
++ (N'AssginLink'),
++ (N'AnyminuteTicketMeta'),
++ (N'Ticket_Comments'),
++ (N'Ticket'),
++ (N'AnyminuteResellerSubscriber'),
++ (N'AnyminuteReseller'),
++ (N'EmailChangeAudit'),
++ (N'EmailChangeRequests'),
++ (N'AnyminutePasswordResetToken'),
++ (N'AnyminuteActiveSession'),
++ (N'AnyminuteLoginSecurity'),
++ (N'ExternalLogins'),
++ (N'Email_Payment_Link'),
++ (N'PlanHistory'),
++ (N'MappingTable'),
++ (N'AssginBussiness'),
++ (N'EmpImage'),
++ (N'Emp_Active_Inactive_Status'),
++ (N'AddProject'),
++ (N'UserAcc'),
++ (N'AddEmployee'),
++ (N'AddBusiness'),
++ (N'AnyminuteAddressReview'),
++ (N'AddressMaster'),
++ (N'StreetMaster'),
++ (N'AddEmployee_Archive'),
++ (N'AssginBussiness_Archive'),
++ (N'UserAcc_01_Aug_2020'),
++ (N'Register_Partner'),
++ (N'MotherOrg'),
++ (N'Files'),
++ (N'BusinessAddress'),
++ (N'EmpAddress'),
++ (N'RateDetails');
++ UPDATE #wt SET ObjectId=OBJECT_ID(N'dbo.'+QUOTENAME(TableName),'U');
++ -- Absent optional tables are reported as zero, never created.
++ INSERT #wc SELECT TableName,0 FROM #wt WHERE ObjectId IS NULL;
++ UPDATE #wt SET Done=1 WHERE ObjectId IS NULL;
++ DECLARE @table sysname, @obj int, @sql nvarchar(max), @pred nvarchar(1000), @n bigint;
++ -- Lock known data tables for the entire atomic wipe, including support-account selection.
++ DECLARE locks CURSOR LOCAL FAST_FORWARD FOR SELECT TableName FROM #wt WHERE ObjectId IS NOT NULL ORDER BY TableName;
++ OPEN locks; FETCH NEXT FROM locks INTO @table;
++ WHILE @@FETCH_STATUS=0
++ BEGIN
++   SET @sql=N'SELECT @n=COUNT_BIG(*) FROM dbo.'+QUOTENAME(@table)+N' WITH(TABLOCKX,HOLDLOCK)';
++   EXEC sys.sp_executesql @sql,N'@n bigint OUTPUT',@n OUTPUT;
++   FETCH NEXT FROM locks INTO @table;
++ END;
++ CLOSE locks; DEALLOCATE locks;
++ SELECT UserId,EmployeeId INTO #ku FROM dbo.UserAcc
++ WHERE LOWER(REPLACE(LTRIM(RTRIM(ISNULL(UserType,''))),' ','')) IN ('supportadmin','superadmin','support');
++ IF NOT EXISTS(SELECT 1 FROM #ku WHERE UserId=@actor)
++    THROW 51000, 'The acting login is not a protected Support Admin account. Nothing was deleted.', 1;
++ SELECT DISTINCT EmployeeId INTO #ke FROM #ku WHERE EmployeeId IS NOT NULL;
++ UPDATE #wt SET Predicate=N'NOT EXISTS(SELECT 1 FROM #ku k WHERE k.UserId=d.UserId)' WHERE TableName IN ('UserAcc','AnyminuteLoginSecurity','AnyminuteActiveSession','ExternalLogins');
++ UPDATE #wt SET Predicate=N'NOT EXISTS(SELECT 1 FROM #ku k WHERE k.UserId=d.USERID)' WHERE TableName='MappingTable';
++ UPDATE #wt SET Predicate=N'NOT EXISTS(SELECT 1 FROM #ke k WHERE k.EmployeeId=d.EmployeeID)' WHERE TableName='AddEmployee';
++ -- Plan definitions survive, but their former reseller/editor references must not.
++ IF COL_LENGTH('dbo.AnyminuteSubscriptionPlan','ResellerID') IS NOT NULL
++    EXEC(N'UPDATE dbo.AnyminuteSubscriptionPlan SET ResellerID=NULL');
++ IF COL_LENGTH('dbo.AnyminuteSubscriptionPlan','UpdatedBy') IS NOT NULL
++    EXEC(N'UPDATE dbo.AnyminuteSubscriptionPlan SET UpdatedBy=NULL');
++ -- Retain only support login/role shells; detach every address and business reference.
++ UPDATE dbo.MappingTable SET BusinessID=NULL WHERE USERID IN(SELECT UserId FROM #ku);
++ UPDATE dbo.UserAcc SET MotherOrgid=NULL, LinkAcc=NULL WHERE UserId IN(SELECT UserId FROM #ku);
++ UPDATE dbo.AddEmployee SET ADDRESSID=NULL, Rateid=NULL, BusinessID=NULL, MotherOrgID=NULL, MangerId=NULL, BusinessOwnerId=NULL,
++     StreetNumber=NULL,StreetName=NULL,Apartment=NULL,City=NULL,Province=NULL,PostalCode=NULL
++ WHERE EmployeeID IN(SELECT EmployeeId FROM #ke);
++ WHILE EXISTS(SELECT 1 FROM #wt WHERE Done=0)
++ BEGIN
++   SET @table=NULL;
++   SELECT TOP(1) @table=w.TableName,@obj=w.ObjectId,@pred=w.Predicate FROM #wt w
++   WHERE w.Done=0 AND NOT EXISTS(
++      SELECT 1 FROM sys.foreign_keys fk JOIN #wt child ON child.ObjectId=fk.parent_object_id AND child.Done=0
++      WHERE fk.referenced_object_id=w.ObjectId AND fk.parent_object_id<>fk.referenced_object_id AND fk.is_disabled=0)
++   ORDER BY w.Ordinal;
++   IF @table IS NULL THROW 51000, 'Foreign key cycle found. Wipe rolled back; no constraints were disabled.', 1;
++   SET @sql=N'DELETE d FROM dbo.'+QUOTENAME(@table)+N' d WHERE '+@pred+N'; SET @n=@@ROWCOUNT;';
++   EXEC sys.sp_executesql @sql,N'@n bigint OUTPUT',@n OUTPUT;
++   INSERT #wc VALUES(@table,@n);
++   UPDATE #wt SET Done=1 WHERE ObjectId=@obj;
++ END;
++ -- A trigger must not silently regenerate business/archive records after their delete.
++ DECLARE verify_rows CURSOR LOCAL FAST_FORWARD FOR SELECT TableName,Predicate FROM #wt WHERE ObjectId IS NOT NULL;
++ OPEN verify_rows; FETCH NEXT FROM verify_rows INTO @table,@pred;
++ WHILE @@FETCH_STATUS=0
++ BEGIN
++   SET @sql=N'SELECT @n=COUNT_BIG(*) FROM dbo.'+QUOTENAME(@table)+N' d WHERE '+@pred;
++   EXEC sys.sp_executesql @sql,N'@n bigint OUTPUT',@n OUTPUT;
++   IF @n<>0 THROW 51000, 'Rows remained or were regenerated by a trigger. Wipe rolled back.', 1;
++   FETCH NEXT FROM verify_rows INTO @table,@pred;
++ END;
++ CLOSE verify_rows; DEALLOCATE verify_rows;
++ DECLARE @summary nvarchar(max)=N'';
++ SELECT @summary=@summary+TableName+N': '+CONVERT(nvarchar(30),DeletedRows)+N'; ' FROM #wc ORDER BY TableName;
++ INSERT dbo.AnyminuteSupportAudit(Entity,EntityKey,Action,ChangedBy,ChangedByName,NewValue,Comments,Success)
++ VALUES('Login','wipe-everything','Wipe Everything',@actor,LEFT(@name,150),@summary,LEFT(@reason,1000),1);
++ COMMIT TRANSACTION;
++ SELECT TableName,DeletedRows FROM #wc ORDER BY TableName;
++END TRY
++BEGIN CATCH
++ IF XACT_STATE()<>0 ROLLBACK TRANSACTION;
++ THROW;
++END CATCH;
++";
++}
+diff --git a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteSubscriberErase.cs b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteSubscriberErase.cs
+index 2384c5a..4701dce 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteSubscriberErase.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteSubscriberErase.cs
+@@ -49,10 +49,11 @@ public static class AnyminuteSubscriberErase
+             DELETE b FROM #eb b JOIN #sk s ON s.BusinessID=b.BusinessID;
+             INSERT #ae SELECT DISTINCT a.EmployeeID FROM AssginBussiness a JOIN #eb b ON b.BusinessID=a.BusinessID WHERE a.EmployeeID IS NOT NULL AND a.EmployeeID<>@a;
+             INSERT #ee SELECT e.EmployeeID FROM #ae e WHERE NOT EXISTS(SELECT 1 FROM AssginBussiness x WHERE x.EmployeeID=e.EmployeeID AND (x.BusinessID IS NULL OR x.BusinessID NOT IN (SELECT BusinessID FROM #eb)))
+-                AND NOT EXISTS(SELECT 1 FROM UserAcc ux JOIN MappingTable mx ON mx.USERID=ux.UserId WHERE ux.EmployeeId=e.EmployeeID AND ISNULL(ux.UserType,'')<>'SupportAdmin' AND mx.UserTypeId=1);
++                AND NOT EXISTS(SELECT 1 FROM UserAcc ux WHERE ux.EmployeeId=e.EmployeeID AND LOWER(REPLACE(ISNULL(ux.UserType,''),' ','')) IN('supportadmin','superadmin','support'))
++                AND NOT EXISTS(SELECT 1 FROM UserAcc ux JOIN MappingTable mx ON mx.USERID=ux.UserId WHERE ux.EmployeeId=e.EmployeeID AND (mx.UserTypeId=1 OR (ISNULL(mx.BusinessID,0)<>0 AND mx.BusinessID NOT IN(SELECT BusinessID FROM #eb))));
+             INSERT #ep SELECT DISTINCT p.ProjectID FROM AddProject p JOIN #eb b ON b.BusinessID=p.BusinessID;
+             INSERT #et SELECT DISTINCT t.TicketId FROM Ticket t WHERE t.BusinessId IN (SELECT BusinessID FROM #eb) OR t.EmpId IN (SELECT EmployeeID FROM #ee) OR (@m<>'' AND LTRIM(RTRIM(t.EmailId))=@m);
+-            INSERT #eu SELECT DISTINCT ux.UserId FROM UserAcc ux JOIN #ee e ON e.EmployeeID=ux.EmployeeId WHERE ux.UserId<>@u AND ISNULL(ux.UserType,'')<>'SupportAdmin'
++            INSERT #eu SELECT DISTINCT ux.UserId FROM UserAcc ux JOIN #ee e ON e.EmployeeID=ux.EmployeeId WHERE ux.UserId<>@u AND LOWER(REPLACE(ISNULL(ux.UserType,''),' ','')) NOT IN('supportadmin','superadmin','support')
+                 AND NOT EXISTS(SELECT 1 FROM MappingTable mx WHERE mx.USERID=ux.UserId AND (mx.UserTypeId=1 OR (ISNULL(mx.BusinessID,0)<>0 AND mx.BusinessID NOT IN (SELECT BusinessID FROM #eb))));" +
+             (rv ? @" INSERT #ea SELECT DISTINCT r.AddressMasterId FROM AnyminuteAddressReview r WHERE ISNULL(r.Status,'Pending')<>'Verified' AND (r.SubmittedBy IN (SELECT LEFT(b.CompanyName+' (Business)',150) FROM AddBusiness b JOIN #eb e ON e.BusinessID=b.BusinessID)
+                 OR r.SubmittedBy IN (SELECT LEFT(LTRIM(RTRIM(ISNULL(ae.FirstName,'')+' '+ISNULL(ae.LastName,'')))+' (Employee)',150) FROM AddEmployee ae JOIN #ee e ON e.EmployeeID=ae.EmployeeID));" : ""),
+@@ -101,7 +102,8 @@ public static class AnyminuteSubscriberErase
+                 Run(c, tx, "INSERT #eb SELECT BusinessID FROM #sk; DELETE FROM #sk; DELETE FROM #eu;");
+                 // Rebuild dependent scope after shared businesses were included.
+                 Run(c, tx, @"INSERT #ae SELECT DISTINCT a.EmployeeID FROM AssginBussiness a JOIN #eb b ON b.BusinessID=a.BusinessID WHERE a.EmployeeID IS NOT NULL AND a.EmployeeID<>@a AND a.EmployeeID NOT IN (SELECT EmployeeID FROM #ae);
+-                    INSERT #ee SELECT e.EmployeeID FROM #ae e WHERE e.EmployeeID NOT IN (SELECT EmployeeID FROM #ee) AND NOT EXISTS(SELECT 1 FROM AssginBussiness x WHERE x.EmployeeID=e.EmployeeID AND (x.BusinessID IS NULL OR x.BusinessID NOT IN (SELECT BusinessID FROM #eb))) AND NOT EXISTS(SELECT 1 FROM UserAcc ux JOIN MappingTable m ON m.USERID=ux.UserId WHERE ux.EmployeeId=e.EmployeeID AND m.UserTypeId=1);
++                    INSERT #ee SELECT e.EmployeeID FROM #ae e WHERE e.EmployeeID NOT IN (SELECT EmployeeID FROM #ee) AND NOT EXISTS(SELECT 1 FROM AssginBussiness x WHERE x.EmployeeID=e.EmployeeID AND (x.BusinessID IS NULL OR x.BusinessID NOT IN (SELECT BusinessID FROM #eb))) AND NOT EXISTS(SELECT 1 FROM UserAcc ux JOIN MappingTable m ON m.USERID=ux.UserId WHERE ux.EmployeeId=e.EmployeeID AND m.UserTypeId=1)
++                    AND NOT EXISTS(SELECT 1 FROM UserAcc ux WHERE ux.EmployeeId=e.EmployeeID AND LOWER(REPLACE(ISNULL(ux.UserType,''),' ','')) IN('supportadmin','superadmin','support'));
+                     INSERT #ep SELECT p.ProjectID FROM AddProject p JOIN #eb b ON b.BusinessID=p.BusinessID WHERE p.ProjectID NOT IN (SELECT ProjectID FROM #ep);
+                     INSERT #et SELECT t.TicketId FROM Ticket t WHERE t.BusinessId IN (SELECT BusinessID FROM #eb) AND t.TicketId NOT IN (SELECT TicketId FROM #et);", "@a", owner);
+             }
+@@ -109,6 +111,16 @@ public static class AnyminuteSubscriberErase
+                 Run(c, tx, @"INSERT #ea SELECT DISTINCT r.AddressMasterId FROM AnyminuteAddressReview r WHERE ISNULL(r.Status,'Pending')<>'Verified' AND r.AddressMasterId NOT IN (SELECT AddressMasterId FROM #ea) AND
+                     (r.SubmittedBy IN (SELECT LEFT(b.CompanyName+' (Business)',150) FROM AddBusiness b JOIN #eb e ON e.BusinessID=b.BusinessID)
+                     OR r.SubmittedBy IN (SELECT LEFT(LTRIM(RTRIM(ISNULL(a.FirstName,'')+' '+ISNULL(a.LastName,'')))+' (Employee)',150) FROM AddEmployee a JOIN #ee e ON e.EmployeeID=a.EmployeeID));");
++            // v72: snapshot parent-owned addresses/rates before deleting profiles/businesses.
++            // Detach nullable rate references first; legacy databases may have both RateDetails.EmployeeId
++            // and AddEmployee.Rateid foreign keys. Never delete a shared rate/address still in use.
++            Run(c, tx, @"IF OBJECT_ID('tempdb..#erate') IS NOT NULL DROP TABLE #erate;
++                IF OBJECT_ID('tempdb..#eaddr') IS NOT NULL DROP TABLE #eaddr;
++                IF OBJECT_ID('tempdb..#baddr') IS NOT NULL DROP TABLE #baddr;
++                SELECT DISTINCT Rateid INTO #erate FROM AddEmployee WHERE EmployeeID IN(SELECT EmployeeID FROM #ee) AND Rateid IS NOT NULL;
++                SELECT DISTINCT ADDRESSID INTO #eaddr FROM AddEmployee WHERE EmployeeID IN(SELECT EmployeeID FROM #ee) AND ADDRESSID IS NOT NULL;
++                SELECT DISTINCT ADDRESSID INTO #baddr FROM AddBusiness WHERE BusinessID IN(SELECT BusinessID FROM #eb) AND ADDRESSID IS NOT NULL;
++                UPDATE AddEmployee SET Rateid=NULL WHERE EmployeeID IN(SELECT EmployeeID FROM #ee);");
+             res.Skipped = Num(c, tx, "SELECT COUNT(*) FROM #sk");
+             var bucket = new Dictionary<string, int>();
+             add = (k, sql) => { int n = Run(c, tx, sql); bucket[k] = (bucket.ContainsKey(k) ? bucket[k] : 0) + Math.Max(0, n); return n; };
+@@ -133,19 +145,22 @@ public static class AnyminuteSubscriberErase
+                 del("Activity, approvals, schedules and permissions", t[0], t[1], B);
+             // Projects
+             foreach (var t in new[] { new[] { "ASSIGNPROJECT", "BUSINESSID" }, new[] { "AnyminuteProjectAssignment", "BusinessID" }, new[] { "AnyminuteProjectAssignmentLog", "BusinessID" } }) del("Project assignments", t[0], t[1], B);
++            foreach (var table in new[] { "AnyminuteProjectAssignmentLog", "AnyminuteProjectAssignment", "ASSIGNPROJECT" }) del("Project assignments", table, "ProjectID", P);
+             del("Project assignments", "AnyminuteProjectDetail", "ProjectID", P);
+             del("Projects", "AddProject", "ProjectID", P);
+             // Tickets (business, erased employees, and the subscriber's own email)
+             del("Support tickets", "Ticket_Comments", "TicketId", T); del("Support tickets", "AnyminuteTicketMeta", "TicketId", T); del("Support tickets", "Ticket", "TicketId", T);
++            if (Col(c, tx, "AnyminuteAccessLog", "UserId")) del("Employee logins", "AnyminuteAccessLog", "UserId", U);
++            if (Col(c, tx, "EmailChangeAudit", "UserId")) del("Employee logins", "EmailChangeAudit", "UserId", U);
+             // Employee logins (only employees working solely for this subscriber; never SupportAdmin or subscriber logins)
+             foreach (var t in new[] { "AnyminuteLoginSecurity", "AnyminuteActiveSession", "AnyminutePasswordResetToken", "ExternalLogins" }) del("Employee logins", t, "UserId", U);
+             if (Col(c, tx, "EmailChangeRequests", "UserId")) del("Employee logins", "EmailChangeRequests", "UserId", U);
+             add("Employee logins", "DELETE FROM dbo.MappingTable WHERE USERID IN (SELECT " + U + ")");
+             add("Employee logins", "DELETE FROM dbo.UserAcc WHERE UserId IN (SELECT " + U + ")");
+             // Employees: DeleteAllDetails pattern for #ee (record, rate, address, image, status); links for every employee in these businesses
+-            del("Employees", "RateDetails", "EmployeeId", E);
+-            add("Employees", "DELETE r FROM dbo.RateDetails r JOIN dbo.AddEmployee ae ON ae.Rateid=r.RateId JOIN #ee e ON e.EmployeeID=ae.EmployeeID");
+-            add("Addresses", "DELETE ea FROM dbo.EmpAddress ea JOIN dbo.AddEmployee ae ON ae.ADDRESSID=ea.EmpAddressId JOIN #ee e ON e.EmployeeID=ae.EmployeeID WHERE ea.EmpAddressId NOT IN (SELECT ISNULL(o.ADDRESSID,-1) FROM dbo.AddEmployee o WHERE o.EmployeeID=" + owner.ToString(CultureInfo.InvariantCulture) + ")" + (keepLogins ? " AND ea.EmpAddressId NOT IN (SELECT ISNULL(a.ADDRESSID,-1) FROM AddEmployee a JOIN UserAcc u ON u.EmployeeId=a.EmployeeID)" : ""));
++            if (Col(c, tx, "AnyminuteRateChangeReason", "RateId")) add("Employees", "DELETE FROM dbo.AnyminuteRateChangeReason WHERE (RateId IN(SELECT Rateid FROM #erate) OR RateId IN(SELECT RateId FROM RateDetails WHERE EmployeeId IN(SELECT EmployeeID FROM #ee))) AND NOT EXISTS(SELECT 1 FROM AddEmployee a WHERE a.Rateid=AnyminuteRateChangeReason.RateId)");
++            if (Col(c, tx, "RateDetails", "EmployeeId")) add("Employees", "DELETE FROM dbo.RateDetails WHERE EmployeeId IN(SELECT EmployeeID FROM #ee) AND NOT EXISTS(SELECT 1 FROM AddEmployee a WHERE a.Rateid=RateDetails.RateId)");
++            add("Employees", "DELETE r FROM dbo.RateDetails r WHERE r.RateId IN(SELECT Rateid FROM #erate) AND NOT EXISTS(SELECT 1 FROM AddEmployee a WHERE a.Rateid=r.RateId)");
+             foreach (var t in new[] { new[] { "EmpImage", "Empid" }, new[] { "Emp_Active_Inactive_Status", "EmpId" }, new[] { "AnyminuteEmployeeRoleHistory", "EmployeeId" } }) del("Employees", t[0], t[1], E);
+             if (keepLogins) Run(c, tx, "UPDATE dbo.MappingTable SET BusinessID=0 WHERE UserTypeId=1 AND BusinessID IN (SELECT BusinessID FROM #eb)");
+             add("Employees", "DELETE FROM dbo.MappingTable WHERE BusinessID IN (SELECT " + B + ") AND ISNULL(USERID,0)<>" + user.ToString(CultureInfo.InvariantCulture));
+@@ -154,16 +169,18 @@ public static class AnyminuteSubscriberErase
+                 DELETE m FROM dbo.MappingTable m WHERE m.USERID=@u AND m.BusinessID=0 AND EXISTS(SELECT 1 FROM dbo.MappingTable k WHERE k.USERID=m.USERID AND k.UserTypeId=m.UserTypeId AND ISNULL(k.EmployeeID,0)=ISNULL(m.EmployeeID,0) AND k.BusinessID=0 AND k.MappingId<m.MappingId);", "@u", user);
+             add("Employees", "DELETE FROM dbo.AssginBussiness WHERE BusinessID IN (SELECT " + B + ")");
+             Run(c, tx, "IF NOT EXISTS(SELECT 1 FROM dbo.AssginBussiness WHERE EmployeeID=@a AND UserTypeId=1) INSERT INTO dbo.AssginBussiness(EmployeeID,EmployeeName,UserTypeId) VALUES(@a,@n,1)", "@a", owner, "@n", (ownerFirst ?? "").Length > 50 ? ownerFirst.Substring(0, 50) : (ownerFirst ?? ""));
+-            int emps = Num(c, tx, "SELECT COUNT(*) FROM #ee" + (keepLogins ? " WHERE EmployeeID NOT IN (SELECT EmployeeId FROM UserAcc WHERE EmployeeId IS NOT NULL)" : ""));
+-            add("Employees", "DELETE FROM dbo.AddEmployee WHERE EmployeeID IN (SELECT " + E + ") AND EmployeeID<>" + owner.ToString(CultureInfo.InvariantCulture) + (keepLogins ? " AND EmployeeID NOT IN (SELECT EmployeeId FROM UserAcc WHERE EmployeeId IS NOT NULL)" : ""));
++            int emps = Num(c, tx, "SELECT COUNT(*) FROM #ee WHERE EmployeeID NOT IN (SELECT EmployeeId FROM UserAcc WHERE EmployeeId IS NOT NULL)");
++            add("Employees", "DELETE FROM dbo.AddEmployee WHERE EmployeeID IN (SELECT " + E + ") AND EmployeeID<>" + owner.ToString(CultureInfo.InvariantCulture) + " AND EmployeeID NOT IN (SELECT EmployeeId FROM UserAcc WHERE EmployeeId IS NOT NULL)");
++            add("Addresses", "DELETE a FROM dbo.EmpAddress a WHERE a.EmpAddressId IN(SELECT ADDRESSID FROM #eaddr) AND NOT EXISTS(SELECT 1 FROM AddEmployee e WHERE e.ADDRESSID=a.EmpAddressId)");
+             // Address verification queue rows submitted for these businesses / employees (unverified only), then the businesses.
+             if (AnyminuteEmployeeEditor.HasTable(c, tx, "AnyminuteAddressReview"))
+             {
+                 add("Addresses", "DELETE FROM dbo.AnyminuteAddressReview WHERE AddressMasterId IN (SELECT AddressMasterId FROM #ea)");
+                 add("Addresses", "DELETE FROM dbo.AddressMaster WHERE ISNULL(Verifed,0)=0 AND AddressMasterId IN (SELECT AddressMasterId FROM #ea)");
+             }
+-            add("Addresses", "DELETE ba FROM dbo.BusinessAddress ba JOIN dbo.AddBusiness b ON b.ADDRESSID=ba.BusinessAddressId JOIN #eb e ON e.BusinessID=b.BusinessID");
+             int biz = add("Businesses", "DELETE FROM dbo.AddBusiness WHERE BusinessID IN (SELECT " + B + ")");
++            add("Addresses", "DELETE a FROM dbo.BusinessAddress a WHERE a.BusinessAddressId IN(SELECT ADDRESSID FROM #baddr) AND NOT EXISTS(SELECT 1 FROM AddBusiness b WHERE b.ADDRESSID=a.BusinessAddressId)");
++            Run(c, tx, "DROP TABLE #erate; DROP TABLE #eaddr; DROP TABLE #baddr;");
+             int proj = bucket.ContainsKey("Projects") ? bucket["Projects"] : 0;
+             res.Rows.Add(new KeyValuePair<string, int>("Businesses", biz)); res.Rows.Add(new KeyValuePair<string, int>("Employees erased", emps));
+             res.Rows.Add(new KeyValuePair<string, int>("Projects", proj));
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Main.master b/AMV3Reseller_27Aug2022_Subscription/Main.master
+index 4b6b213..f00b0e3 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Main.master
++++ b/AMV3Reseller_27Aug2022_Subscription/Main.master
+@@ -5,7 +5,7 @@
+ <!DOCTYPE html>
+ 
+ <html>
+-<head runat="server"><meta name="anyminute-build" content="v71-20261107" />
++<head runat="server"><meta name="anyminute-build" content="v72-20261108" />
+     <title>AnyMinute | Record From Anywhere</title>
+     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Modern.master b/AMV3Reseller_27Aug2022_Subscription/Modern.master
+index d307f55..a60eda9 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Modern.master
++++ b/AMV3Reseller_27Aug2022_Subscription/Modern.master
+@@ -1,6 +1,6 @@
+ <%@ Master Language="C#" AutoEventWireup="true" CodeFile="Modern.master.cs" Inherits="AnyminuteModernMaster" %>
+ <!DOCTYPE html>
+-<html lang="en"><head runat="server"><meta charset="utf-8" /><meta name="anyminute-build" content="v71-20261107" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>AnyMinute</title><link href="css/bootstrap.min.css" rel="stylesheet" /><script src="Assets/assets/js/core/jquery.3.2.1.min.js"></script><script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script><script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" /><script src="Assets/assets/js/plugin/datatables/datatables.min.js"></script><script src="Assets/assets/js/SweetAlert.js"></script><link href="css/AnyminuteModern.css" rel="stylesheet" /><asp:ContentPlaceHolder ID="head" runat="server" /><link href="css/AnyminuteUI2026.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUIUnified.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUiBugFixes.css?v=20261026v17" rel="stylesheet" /><link href="css/AnyminuteNavDrawer.css?v=20261106v67" rel="stylesheet" /></head>
++<html lang="en"><head runat="server"><meta charset="utf-8" /><meta name="anyminute-build" content="v72-20261108" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>AnyMinute</title><link href="css/bootstrap.min.css" rel="stylesheet" /><script src="Assets/assets/js/core/jquery.3.2.1.min.js"></script><script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script><script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" /><script src="Assets/assets/js/plugin/datatables/datatables.min.js"></script><script src="Assets/assets/js/SweetAlert.js"></script><link href="css/AnyminuteModern.css" rel="stylesheet" /><asp:ContentPlaceHolder ID="head" runat="server" /><link href="css/AnyminuteUI2026.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUIUnified.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUiBugFixes.css?v=20261026v17" rel="stylesheet" /><link href="css/AnyminuteNavDrawer.css?v=20261106v67" rel="stylesheet" /></head>
+ <body class="am-modern"><form id="frmMaster" runat="server"><asp:ScriptManager ID="ScriptManager1" runat="server" />
+ <header class="am-topbar"><button type="button" class="am-icon-button" data-toggle-sidebar aria-controls="am-main-navigation" aria-expanded="true" aria-label="Toggle navigation">&#9776;</button><a href="Dashboard.aspx" class="am-brand"><asp:PlaceHolder ID="LogoDefault" runat="server"><img src="Assets/assets/img/logo.jpg" alt="AnyMinute" class="am-logo" /></asp:PlaceHolder><asp:Literal ID="Brand" runat="server" /></a><span>Welcome! <asp:Literal ID="Welcome" runat="server" /><asp:Literal ID="WelcomeContext" runat="server" /></span><asp:Literal ID="HeaderHelp" runat="server" /><asp:Literal ID="HeaderBell" runat="server" /><details class="am-account-menu"><summary aria-label="Account menu"><asp:Literal ID="AccountAvatar" runat="server" /><span class="am-account-chevron" aria-hidden="true"></span><span class="sr-only">Account</span></summary><div class="am-account-popover"><a href="MyProfile.aspx"><span data-am-icon="profile" aria-hidden="true"></span>My profile</a><a href="LoginSecurity.aspx"><span data-am-icon="settings" aria-hidden="true"></span>Login &amp; security</a><asp:LinkButton ID="SignOut" runat="server" CausesValidation="false" OnClick="SignOut_Click"><span data-am-icon="signout" aria-hidden="true"></span>Sign out</asp:LinkButton>
+    <a href="Change%20Password.aspx"><span data-am-icon="settings" aria-hidden="true"></span>Change password</a><asp:Literal ID="AccountHelp" runat="server" /><asp:Literal ID="AccountUpgrade" runat="server" /></div></details></header>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx b/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx
+index 16214c0..4decd10 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="SupportAddresses.aspx.cs" Inherits="AnyminuteSupportAddressesPage" Title="Address Verification" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261107v71" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261107v71" defer="defer"></script></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261108v72" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261108v72" defer="defer"></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section class="sa-page">
+  <header class="sa-head"><div><h1>Address Verification</h1><p>Review, correct and verify manually entered addresses.</p></div>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx.cs b/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx.cs
+index 8f02775..32624e2 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx.cs
+@@ -254,7 +254,7 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
+     {
+         string dis = ready ? "" : " disabled";
+         var sb = new StringBuilder("<div class='sa-modal sa-modal45' data-sa-modal='1'><div class='sa-modal-box sa-av71' role='dialog' aria-modal='true' aria-labelledby='sa-av-h'><a class='sa-x sa-x-abs' href='" + Back71 + "' aria-label='Close'>&times;</a>")
+-            .Append("<h2 id='sa-av-h'>Add Address</h2><p class='sa-muted'>The address is added to the Verified Address Database.</p>")
++            .Append("<h2 id='sa-av-h'>Add Address</h2>" + TakeModalMessage() + "<p class='sa-muted'>The address is added to the Verified Address Database.</p>")
+             .Append(Inp("Street Name (Address) *", "av_street", V(0), " maxlength='200' required" + dis))
+             .Append("<div class='sa-row2'>").Append(Inp("City *", "av_city", V(1), " maxlength='200' required" + dis))
+             .Append(Inp("Prov/State *", "av_prov", V(2), " maxlength='200' list='sa-av-prov' required" + dis)).Append("</div>")
+@@ -268,7 +268,7 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
+     {
+         string dis = ready ? "" : " disabled";
+         return "<div class='sa-modal sa-modal45' data-sa-modal='1'><div class='sa-modal-box sa-av71' role='dialog' aria-modal='true' aria-labelledby='sa-ai-h'><a class='sa-x sa-x-abs' href='" + Back71 + "' aria-label='Close'>&times;</a>"
+-            + "<h2 id='sa-ai-h'>Import Address</h2><p class='sa-muted'>Upload a CSV or Excel (.xlsx) file with the columns <b>Address, City, Prov/State, Country, Postal Code/PIN</b> (first row = header). "
++            + "<h2 id='sa-ai-h'>Import Address</h2>" + TakeModalMessage() + "<p class='sa-muted'>Upload a CSV or Excel (.xlsx) file with the columns <b>Address, City, Prov/State, Country, Postal Code/PIN</b> (first row = header; all worksheets are read). "
+             + "Valid rows are added to the Verified Address Database; blank rows and addresses already verified (same address, city and postal code) are skipped. Max 2 MB / " + AnyminuteAddressImport.MaxRows.ToString("#,0", CultureInfo.InvariantCulture) + " rows.</p>"
+             + "<p><a class='sa-link' href='SupportAddresses.aspx?template=1'>&#8595; Download template (CSV)</a></p>"
+             + "<label class='sa-field'><span>File *</span><input type='file' name='av_file' accept='.csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' required" + dis + " /></label>"
+@@ -282,78 +282,97 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
+         Response.Flush(); Response.SuppressContent = true; Context.ApplicationInstance.CompleteRequest();
+     }
+     void Go(string url) { Response.Redirect(url, false); Context.ApplicationInstance.CompleteRequest(); }
++    string TakeModalMessage() { string m = Session["sa_av_message"] as string; Session.Remove("sa_av_message"); return String.IsNullOrEmpty(m) ? "" : "<div class='sa-flash sa-warn' role='alert'>" + SA.H(m) + "</div>"; }
++    void ModalError(string message, string modal) { Session["sa_av_message"] = message; Go(Back71 + "&" + modal + "=1"); }
+     void AddAddress()
+     {
+         string street = SA.Form("av_street"), city = SA.Form("av_city"), prov = SA.Form("av_prov"), country = SA.Form("av_country"), postal = SA.Form("av_postal");
+-        using (var c = SA.Open())
++        Session["sa_av_vals"] = new[] { street, city, prov, country, postal };
++        try
+         {
+-            if (!SA.Has(c, "AnyminuteAddressReview") || !SA.Has(c, "AnyminuteSupportAudit")) { SA.Flash(SA.MissingTables); Go(Back71); return; }
+-            using (var tx = c.BeginTransaction(IsolationLevel.Serializable))
++            using (var c = SA.Open())
+             {
+-                int id; string err = AnyminuteAddressImport.AddVerified(c, tx, street, city, prov, country, postal, "Added by Support (" + SA.ActorName() + ")", "Added by Support Admin", out id);
+-                if (err != null)
++                if (!SA.Has(c, "AnyminuteAddressReview") || !SA.Has(c, "AnyminuteSupportAudit")) { ModalError(SA.MissingTables, "add"); return; }
++                using (var tx = c.BeginTransaction(IsolationLevel.Serializable))
+                 {
+-                    tx.Rollback();
+-                    SA.Flash(err == "duplicate" ? "This address is already in the Verified Address Database." : "Address not added: " + err);
+-                    Session["sa_av_vals"] = new[] { street, city, prov, country, postal };
+-                    Go(Back71 + "&add=1");
+-                    return;
++                    int id; string err = AnyminuteAddressImport.AddVerified(c, tx, street, city, prov, country, postal, "Added by Support (" + SA.ActorName() + ")", "Added by Support Admin", out id);
++                    if (err != null) { tx.Rollback(); ModalError(err == "duplicate" ? "This address is already in the Verified Address Database." : "Address not added: " + err, "add"); return; }
++                    string after = street + ", " + city + ", " + prov + ", " + AnyminuteAddressImport.Country(country) + ", " + postal;
++                    SA.Audit(c, tx, "Address", id.ToString(CultureInfo.InvariantCulture), "Added (Verified)", null, "Verified", null, after, "Added by Support Admin");
++                    tx.Commit();
+                 }
+-                string after = street + ", " + city + ", " + prov + ", " + AnyminuteAddressImport.Country(country) + ", " + postal;
+-                SA.Audit(c, tx, "Address", id.ToString(CultureInfo.InvariantCulture), "Added (Verified)", null, "Verified", null, after, "Added by Support Admin");
+-                tx.Commit();
+             }
+         }
++        catch (SqlException ex) { log4net.LogManager.GetLogger("Log").Error("Add address failed", ex); ModalError("Address not added: database error. Nothing was saved; please retry.", "add"); return; }
++        Session.Remove("sa_av_vals"); Session.Remove("sa_av_message");
+         SA.Flash("Address added to the Verified Address Database.");
+         Go(Back71);
+     }
+     void ImportAddress()
+     {
+         var f = Request.Files["av_file"];
+-        if (f == null || f.ContentLength == 0) { SA.Flash("Choose a CSV or .xlsx file to import."); Go(Back71 + "&import=1"); return; }
+-        if (f.ContentLength > AnyminuteAddressImport.MaxBytes) { SA.Flash("The file is larger than 2 MB."); Go(Back71 + "&import=1"); return; }
+-        var data = new byte[f.ContentLength]; int read = 0; while (read < data.Length) { int n = f.InputStream.Read(data, read, data.Length - read); if (n <= 0) break; read += n; }
+-        List<string[]> rows;
+-        try { rows = AnyminuteAddressImport.Read(f.FileName, data); }
+-        catch (System.IO.InvalidDataException ex) { SA.Flash(ex.Message); Go(Back71 + "&import=1"); return; }
+-        catch (System.Xml.XmlException) { SA.Flash("The .xlsx file could not be read."); Go(Back71 + "&import=1"); return; }
+-        catch (IndexOutOfRangeException) { SA.Flash("The .xlsx file could not be read."); Go(Back71 + "&import=1"); return; }
+-        catch (ArgumentException) { SA.Flash("The .xlsx file could not be read."); Go(Back71 + "&import=1"); return; }
+-        if (rows.Count == 0) { SA.Flash("The file is empty."); Go(Back71 + "&import=1"); return; }
+-        int[] map = AnyminuteAddressImport.Map(rows[0]); int start = 1;
+-        if (map == null) { map = new[] { 0, 1, 2, 3, 4 }; start = 0; } // no header row: columns in template order
+-        if (rows.Count - start > AnyminuteAddressImport.MaxRows) { SA.Flash("The file has more than " + AnyminuteAddressImport.MaxRows + " rows. Split it and import again."); Go(Back71 + "&import=1"); return; }
+-        int added = 0, dups = 0, blanks = 0; var errors = new List<string>(); var seen = new HashSet<string>();
++        if (f == null || f.ContentLength == 0) { ModalError("Choose a CSV or .xlsx file to import.", "import"); return; }
++        if (f.ContentLength > AnyminuteAddressImport.MaxBytes) { ModalError("The file is larger than 2 MB. Nothing was imported.", "import"); return; }
++        var data = new byte[f.ContentLength]; int read = 0;
++        while (read < data.Length) { int n = f.InputStream.Read(data, read, data.Length - read); if (n <= 0) break; read += n; }
++        if (read != data.Length) { ModalError("The upload was incomplete. Nothing was imported.", "import"); return; }
++        List<string[]> rows; string sheets;
++        try { rows = AnyminuteAddressImport.Read(f.FileName, data, out sheets); }
++        catch (System.IO.InvalidDataException ex) { ModalError(ex.Message, "import"); return; }
++        catch (System.Xml.XmlException) { ModalError("The .xlsx file could not be read. Nothing was imported.", "import"); return; }
++        catch (IndexOutOfRangeException) { ModalError("The .xlsx file could not be read. Nothing was imported.", "import"); return; }
++        catch (ArgumentException) { ModalError("The .xlsx file could not be read. Nothing was imported.", "import"); return; }
++        if (rows.Count == 0) { ModalError("The file has no data rows.", "import"); return; }
++        int added = 0, verified = 0, fileDups = 0, blanks = 0, failed = 0;
++        bool rolledBack = false;
++        var errors = new List<string>(); var reasons = new Dictionary<string, int>(); var seen = new HashSet<string>();
+         Func<string[], int, string> cell = (r, i) => i >= 0 && i < r.Length ? (r[i] ?? "").Trim() : "";
++        try
++        {
+         using (var c = SA.Open())
+         {
+-            if (!SA.Has(c, "AnyminuteAddressReview") || !SA.Has(c, "AnyminuteSupportAudit")) { SA.Flash(SA.MissingTables); Go(Back71); return; }
++            if (!SA.Has(c, "AnyminuteAddressReview") || !SA.Has(c, "AnyminuteSupportAudit")) { ModalError(SA.MissingTables, "import"); return; }
+             using (var tx = c.BeginTransaction(IsolationLevel.Serializable))
+             {
+                 try
+                 {
+                     string by = "Imported by Support (" + SA.ActorName() + ")", note = "Imported from " + System.IO.Path.GetFileName(f.FileName ?? "");
+-                    for (int i = start; i < rows.Count; i++)
++                    for (int i = 0; i < rows.Count; i++)
+                     {
+-                        var r = rows[i]; string s = cell(r, map[0]), ci = cell(r, map[1]), pr = cell(r, map[2]), co = cell(r, map[3]), pc = cell(r, map[4]);
+-                        if ((s + ci + pr + co + pc).Length == 0) { blanks++; continue; }
+-                        string key = SA.CompactPostal(pc) + "|" + s.ToUpperInvariant() + "|" + ci.ToUpperInvariant();
+-                        if (!seen.Add(key)) { dups++; continue; }
+-                        int id; string err = AnyminuteAddressImport.AddVerified(c, tx, s, ci, pr, co, pc, by, note, out id);
+-                        if (err == null) added++; else if (err == "duplicate") dups++; else errors.Add("Row " + (i + 1) + ": " + err);
++                        var r = rows[i]; string street = cell(r, 0), city = cell(r, 1), prov = cell(r, 2), country = cell(r, 3), postal = cell(r, 4);
++                        if ((street + city + prov + country + postal).Length == 0) { blanks++; continue; }
++                        string key = SA.CompactPostal(postal) + "|" + System.Text.RegularExpressions.Regex.Replace(street, @"\s+", " ").ToUpperInvariant() + "|" + System.Text.RegularExpressions.Regex.Replace(city, @"\s+", " ").ToUpperInvariant();
++                        if (!seen.Add(key)) { fileDups++; continue; }
++                        int id; string err = AnyminuteAddressImport.AddVerified(c, tx, street, city, prov, country, postal, by, note, out id);
++                        if (err == null) added++;
++                        else if (err == "duplicate") verified++;
++                        else { errors.Add("Data row " + (i + 1) + ": " + err); reasons[err] = (reasons.ContainsKey(err) ? reasons[err] : 0) + 1; }
+                     }
+-                    SA.Audit(c, tx, "Address", "import", "Imported (Verified)", null, "Verified", null, added + " added, " + dups + " duplicate(s) skipped, " + blanks + " blank, " + errors.Count + " error(s)", note);
++                    SA.Audit(c, tx, "Address", "import", "Imported (Verified)", null, "Verified", null,
++                        rows.Count + " read, " + added + " added, " + verified + " already verified, " + fileDups + " within-file duplicates, " + blanks + " blank, " + errors.Count + " invalid, 0 failed", note);
+                     tx.Commit();
+                 }
+                 catch (SqlException ex)
+                 {
+                     try { tx.Rollback(); } catch (InvalidOperationException) { }
+                     log4net.LogManager.GetLogger("Log").Error("Address import failed", ex);
+-                    SA.Flash("Import failed and nothing was added: database error."); Go(Back71 + "&import=1"); return;
++                    rolledBack = true; added = 0; failed = rows.Count - verified - fileDups - blanks - errors.Count;
+                 }
+             }
+         }
+-        var sb = new StringBuilder("<div class='sa-flash' role='status'><strong>Import complete:</strong> ").Append(added).Append(" imported, ").Append(dups).Append(" duplicate(s) skipped, ").Append(blanks).Append(" blank row(s) skipped, ").Append(errors.Count).Append(" error(s).");
++        }
++        catch (SqlException ex)
++        {
++            log4net.LogManager.GetLogger("Log").Error("Address import connection/transaction failed", ex);
++            rolledBack = true; added = 0; failed = rows.Count - verified - fileDups - blanks - errors.Count;
++        }
++        var sb = new StringBuilder("<div class='sa-flash' role='status'><strong>" + (rolledBack ? "Import rolled back: nothing added." : "Import complete.") + "</strong>");
++        sb.Append("<p>Source: ").Append(SA.H(sheets)).Append(" (data rows, excluding headers; Excel row-number gaps are not records).</p><ul>")
++            .Append("<li>Total rows read: ").Append(rows.Count).Append("</li><li>Added: ").Append(added)
++            .Append("</li><li>Skipped — already verified: ").Append(verified).Append("</li><li>Skipped — duplicates within file: ").Append(fileDups)
++            .Append("</li><li>Skipped — blank/invalid: ").Append(blanks + errors.Count).Append(" (blank: ").Append(blanks).Append(", invalid: ").Append(errors.Count)
++            .Append(")</li><li>Failed: ").Append(failed).Append(rolledBack ? " (database failure: includes rolled-back additions and unprocessed rows)" : "").Append("</li></ul>");
++        if (reasons.Count > 0) { sb.Append("<p>Invalid reason counts:</p><ul>"); foreach (var reason in reasons) sb.Append("<li>").Append(SA.H(reason.Key)).Append(": ").Append(reason.Value).Append("</li>"); sb.Append("</ul>"); }
+         if (errors.Count > 0) { sb.Append("<ul class='sa-av-errs'>"); foreach (var e in errors.Take(50)) sb.Append("<li>").Append(SA.H(e)).Append("</li>"); if (errors.Count > 50) sb.Append("<li>... and ").Append(errors.Count - 50).Append(" more.</li>"); sb.Append("</ul>"); }
+         Session["sa_av_import"] = sb.Append("</div>").ToString();
+         Go(Back71);
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx b/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx
+index 8e2e930..8b23f67 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="SupportSubscribers.aspx.cs" Inherits="AnyminuteSupportSubscribersPage" Title="Subscribers" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteAddressLookup.css?v=20261106v67" rel="stylesheet" /><link href="css/AnyminuteSupport.css?v=20261107v70" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261107v70" defer="defer"></script></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteAddressLookup.css?v=20261106v67" rel="stylesheet" /><link href="css/AnyminuteSupport.css?v=20261108v72" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261108v72" defer="defer"></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section class="sa-page">
+  <asp:Literal ID="Crumbs" runat="server" />
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx.cs b/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx.cs
+index 38df55d..7a669d8 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx.cs
+@@ -147,6 +147,8 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+         if (SA.Get("lookup") == "1") { Lookup(); return; }
+         string op0 = SA.Form("sa_op");
+         if (IsPostBack && (op0 == "add" || op0 == "addsave" || op0 == "addback")) { AddPost(); return; }
++        if (IsPostBack && op0 == "wipeeverythingrun") { WipeEverythingPost(); return; }
++        if (SA.Get("view") == "wipeeverything") { if (!WipeAllowed()) { Response.StatusCode = 403; return; } WipeEverythingView(); return; }
+         if (IsPostBack && op0 == "eraseallrun") { EraseAllPost(); return; }
+         if (IsPostBack && (op0 == "cleanprev" || op0 == "cleanrun")) { CleanPost(op0); return; } // v61 Clean Test Data (Support Admin only)
+         if (IsPostBack && op0.Length > 0) { Act(user); return; }
+@@ -241,7 +243,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+         if (key != null) rows = (dir == "desc" ? rows.OrderByDescending(key) : rows.OrderBy(key)).ToList();
+         string bq0 = "SupportSubscribers.aspx?q=" + HttpUtility.UrlEncode(q) + "&plan=" + HttpUtility.UrlEncode(plan) + "&status=" + HttpUtility.UrlEncode(st), bq = bq0 + (sort.Length > 0 ? "&sort=" + sort + "&dir=" + dir : "");
+         Func<string, string, string> th = (label, k) => "<th><a class='sa-sort" + (sort == k ? " on" : "") + "' href='" + SA.A(bq0 + "&size=" + size + "&sort=" + k + "&dir=" + (sort == k && dir == "asc" ? "desc" : "asc")) + "'>" + label + " <i aria-hidden='true'>" + (sort == k ? (dir == "asc" ? "&#9650;" : "&#9660;") : "&#8661;") + "</i></a></th>";
+-        HeadActions.Text = (CleanAllowed() ? "<a class='sa-btn sa-btn-outline' href='SupportSubscribers.aspx?view=clean'>Clean Test Data</a> <a class='sa-btn sa-btn-danger' href='SupportSubscribers.aspx?view=eraseall'>Erase All Subscribers&#39; Data</a> " : "") + "<a class='sa-btn' href='SupportSubscribers.aspx?view=add'>+ Add Subscriber</a>";
++        HeadActions.Text = (CleanAllowed() ? "<a class='sa-btn sa-btn-outline' href='SupportSubscribers.aspx?view=clean'>Clean Test Data</a> <a class='sa-btn sa-btn-danger' href='SupportSubscribers.aspx?view=eraseall'>Erase All Subscribers&#39; Data</a> " : "") + (WipeAllowed() ? "<a class='sa-btn sa-btn-danger' href='SupportSubscribers.aspx?view=wipeeverything'>Wipe Everything</a> " : "") + "<a class='sa-btn' href='SupportSubscribers.aspx?view=add'>+ Add Subscriber</a>";
+         int pages = Math.Max(1, (rows.Count + size - 1) / size); if (page > pages) page = pages;
+         Func<string, string, string, int, string> kpi = (icon, label, tone, cnt) => "<div class='sa-kpi'><i class='sa-kpi-icon sa-" + tone + "' aria-hidden='true'>" + icon + "</i><div><span>" + label + "</span><strong>" + cnt + "</strong></div></div>";
+         var sb = new StringBuilder("<div class='sa-kpis'>").Append(kpi("&#128101;", "Total Subscribers", "blue", all.Count)).Append(kpi("&#10004;", "Active Subscribers", "green", all.Count(r => StatusOf(r) == "Active")))
+@@ -1167,6 +1169,45 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+     // -> Run (cleanrun: everything re-checked on the server, one transaction per subscriber, results table). Resellers are refused.
+     static bool CleanAllowed() { return Rsl == null && SA.IsSupport(); }
+     // v69: global wipe is deliberately separate from test cleanup/account deletion.
++    // v72: a separate, explicitly destructive tool. Never called by the existing erase actions.
++    static bool WipeAllowed() { return Rsl == null && SA.IsSupportAdminOnly(); }
++    void WipeEverythingView()
++    {
++        Title1.Text = "Wipe Everything"; Lead.Text = "Support Admin only — permanent full database data reset"; HeadActions.Text = "";
++        string token = Guid.NewGuid().ToString("N"); Session["WipeEverythingToken"] = token; Session["WipeEverythingExpiry"] = DateTime.UtcNow.AddMinutes(15);
++        Content.Text = "<div class='sa-card'><div class='sa-flash sa-warn'><b>Take a fresh, verified database backup first. This cannot be undone.</b> Deletes ALL subscribers, resellers, businesses, employees, other logins, billing/payment/invoice records stored locally, all module data, archives and ALL pending/verified/rejected addresses. Keeps Support Admin/support-role logins and their minimal login/role shells, subscription plan definitions, shared configuration masters and Support audit history. External payment subscriptions and physical files are not changed. One transaction: any failure rolls back the entire wipe.</div>"
++            + "<input type='hidden' name='sa_wipe_token' value='" + token + "' /><label class='sa-field'><span>Type <b>WIPE EVERYTHING</b> exactly</span><input name='sa_confirm' autocomplete='off' /></label>"
++            + "<label class='sa-field'><span>Reason (required)</span><textarea name='sa_reason' maxlength='500'></textarea></label>"
++            + "<div class='sa-panel-foot'><a class='sa-btn sa-btn-outline' href='SupportSubscribers.aspx'>Cancel</a><button type='submit' name='sa_op' value='wipeeverythingrun' class='sa-btn sa-btn-danger' formnovalidate='formnovalidate' data-sa-confirm='WIPE EVERYTHING? All non-support logins, billing and addresses will be permanently deleted. Confirm that you have a verified backup. This cannot be undone.'>Wipe Everything</button></div></div>";
++    }
++    void WipeEverythingPost()
++    {
++        if (!WipeAllowed()) { Response.StatusCode = 403; return; }
++        string token = Session["WipeEverythingToken"] as string; object expiry = Session["WipeEverythingExpiry"];
++        Session.Remove("WipeEverythingToken"); Session.Remove("WipeEverythingExpiry");
++        string reason = SA.Form("sa_reason").Trim(); if (reason.Length > 500) reason = reason.Substring(0, 500);
++        if (String.IsNullOrEmpty(token) || token != SA.Form("sa_wipe_token") || !(expiry is DateTime) || (DateTime)expiry < DateTime.UtcNow || SA.Form("sa_confirm").Trim() != "WIPE EVERYTHING" || reason.Length == 0)
++        { WipeEverythingView(); Flash.Text = "<div class='sa-flash sa-warn'>Type WIPE EVERYTHING and enter a reason on this confirmation page. The confirmation expires after 15 minutes and can only be used once. Nothing was deleted.</div>"; return; }
++        Server.ScriptTimeout = 660;
++        try
++        {
++            using (var c = SA.Open())
++            {
++                DataTable result = AnyminuteEverythingWipe.Run(c, reason);
++                Title1.Text = "Wipe Everything: Results"; Lead.Text = "Completed. Support logins and subscription plan definitions were kept."; HeadActions.Text = "";
++                var sb = new StringBuilder("<div class='sa-card'><p><a class='sa-link' href='SupportSubscribers.aspx'>Back to Subscribers</a></p><table class='sa-table'><thead><tr><th>Table</th><th>Rows deleted</th></tr></thead><tbody>");
++                foreach (DataRow row in result.Rows) sb.Append("<tr><td>").Append(SA.H(row["TableName"])).Append("</td><td>").Append(SA.H(row["DeletedRows"])).Append("</td></tr>");
++                Content.Text = sb.Append("</tbody></table><p>Counts are also recorded in Support audit history. Missing optional tables show zero.</p></div>").ToString();
++            }
++        }
++        catch (SqlException ex)
++        {
++            log4net.LogManager.GetLogger("Log").Error("Wipe Everything rolled back", ex);
++            WipeEverythingView(); Flash.Text = "<div class='sa-flash sa-warn'>Wipe failed and was rolled back. Nothing was deleted. Check the server log for the database constraint or schema issue before retrying.</div>";
++            try { using (var c = SA.Open()) SA.Audit(c, null, "Login", "wipe-everything", "Wipe Everything Failed", null, null, null, "Transaction rolled back; SQL error " + ex.Number, reason); } catch (SqlException) { }
++        }
++    }
++
+     void EraseAllView()
+     {
+         Title1.Text = "Erase All Subscribers' Data";

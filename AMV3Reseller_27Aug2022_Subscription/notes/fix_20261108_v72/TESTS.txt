@@ -1,0 +1,16 @@
+PASS all worksheets + sparse row 10000 does not inflate count
+PASS inline strings + independently reordered sheet headers + absolute relationship
+PASS worksheet names reported
+PASS rich shared strings + sparse missing cell
+PASS 2400 + 2000 worksheets = 4400 data rows
+PASS 5001 XLSX data rows rejected, never truncated
+PASS exactly 5000 CSV rows accepted
+PASS 5001 CSV rows rejected
+PASS 2 MB size cap explicit rejection
+PASS partial header rejected, not silently mis-mapped
+PASS semicolon CSV quoting + blank data row retained for counting
+PASS headerless data no longer mistaken for prefix-matching header
+PASS unclosed CSV quote rejected
+13 parser regression checks passed; no database used.
+
+Static SQL parity/guard/transaction/FK/audit/protected-plan checks passed. No SQL executed.
