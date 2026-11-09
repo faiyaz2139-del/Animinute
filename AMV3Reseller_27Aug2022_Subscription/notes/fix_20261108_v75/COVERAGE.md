@@ -1,0 +1,85 @@
+# v75 coverage audit
+Known schema definitions classified: 77
+Wipe targets: 62
+Explicitly retained master/config tables: 19
+All v72 wipe and subscriber-erase referenced tables covered.
+No web code-behind callers of erase/wipe/clean classes remain.
+SQL reviewed statically only: no database connection or execution.
+
+- ASSIGNPROJECT: WIPE / protected-row predicate where applicable
+- AddBusiness: WIPE / protected-row predicate where applicable
+- AddEmployee: WIPE / protected-row predicate where applicable
+- AddEmployee_Archive: WIPE / protected-row predicate where applicable
+- AddProject: WIPE / protected-row predicate where applicable
+- AddressMaster: WIPE / protected-row predicate where applicable
+- AdminUserType: RETAIN shared definitions/config/audit/support
+- AnyminuteAccessInvite: WIPE / protected-row predicate where applicable
+- AnyminuteAccessInviteBusiness: WIPE / protected-row predicate where applicable
+- AnyminuteActiveSession: WIPE / protected-row predicate where applicable
+- AnyminuteActivity: WIPE / protected-row predicate where applicable
+- AnyminuteAddressReview: WIPE / protected-row predicate where applicable
+- AnyminuteApprovalAudit: WIPE / protected-row predicate where applicable
+- AnyminuteAssignmentDetail: WIPE / protected-row predicate where applicable
+- AnyminuteAssignmentRole: WIPE / protected-row predicate where applicable
+- AnyminuteBusinessPolicy: WIPE / protected-row predicate where applicable
+- AnyminuteClockOutEstimate: WIPE / protected-row predicate where applicable
+- AnyminuteEmployeeRoleHistory: WIPE / protected-row predicate where applicable
+- AnyminuteLoginSecurity: WIPE / protected-row predicate where applicable
+- AnyminuteNotification: WIPE / protected-row predicate where applicable
+- AnyminutePasswordResetToken: WIPE / protected-row predicate where applicable
+- AnyminuteProjectAssignment: WIPE / protected-row predicate where applicable
+- AnyminuteProjectAssignmentLog: WIPE / protected-row predicate where applicable
+- AnyminuteProjectDetail: WIPE / protected-row predicate where applicable
+- AnyminuteRateChangeReason: WIPE / protected-row predicate where applicable
+- AnyminuteReportAccess: WIPE / protected-row predicate where applicable
+- AnyminuteReseller: WIPE / protected-row predicate where applicable
+- AnyminuteResellerSubscriber: WIPE / protected-row predicate where applicable
+- AnyminuteSubscriptionPlan: RETAIN shared definitions/config/audit/support
+- AnyminuteSupportAudit: RETAIN shared definitions/config/audit/support
+- AnyminuteTicketMeta: WIPE / protected-row predicate where applicable
+- AnyminuteWeek: WIPE / protected-row predicate where applicable
+- AnyminuteWeeklySchedule: WIPE / protected-row predicate where applicable
+- AssginBussiness: WIPE / protected-row predicate where applicable
+- AssginBussiness_Archive: WIPE / protected-row predicate where applicable
+- AssgineDelegates: WIPE / protected-row predicate where applicable
+- AssgineManager: WIPE / protected-row predicate where applicable
+- BreakTime: WIPE / protected-row predicate where applicable
+- BusinessAddress: WIPE / protected-row predicate where applicable
+- CityMaster: RETAIN shared definitions/config/audit/support
+- CodeType: RETAIN shared definitions/config/audit/support
+- DefaultMotherOrg: RETAIN shared definitions/config/audit/support
+- DomainMaster: RETAIN shared definitions/config/audit/support
+- EmailChangeAudit: WIPE / protected-row predicate where applicable
+- EmailChangeRequests: WIPE / protected-row predicate where applicable
+- EmailSeting: RETAIN shared definitions/config/audit/support
+- Email_Payment_Link: WIPE / protected-row predicate where applicable
+- EmpAddress: WIPE / protected-row predicate where applicable
+- EmpImage: WIPE / protected-row predicate where applicable
+- EmpType_Change_History: WIPE / protected-row predicate where applicable
+- Emp_Active_Inactive_Status: WIPE / protected-row predicate where applicable
+- ExternalLogins: WIPE / protected-row predicate where applicable
+- Files: WIPE / protected-row predicate where applicable
+- LinkMaster: RETAIN shared definitions/config/audit/support
+- Map_Menu_Page_User: RETAIN shared definitions/config/audit/support
+- MappingTable: WIPE / protected-row predicate where applicable
+- MotherOrg: WIPE / protected-row predicate where applicable
+- Mst_Menu: RETAIN shared definitions/config/audit/support
+- Mst_Page: RETAIN shared definitions/config/audit/support
+- PlanHistory: WIPE / protected-row predicate where applicable
+- ProvinceMaster: RETAIN shared definitions/config/audit/support
+- RateDetails: WIPE / protected-row predicate where applicable
+- Register_Partner: WIPE / protected-row predicate where applicable
+- Role_Permission_Master: RETAIN shared definitions/config/audit/support
+- StreetMaster: WIPE / protected-row predicate where applicable
+- SupportAdmin: RETAIN shared definitions/config/audit/support
+- TemplateMaster: RETAIN shared definitions/config/audit/support
+- TempleteType: RETAIN shared definitions/config/audit/support
+- Ticket: WIPE / protected-row predicate where applicable
+- Ticket_Comments: WIPE / protected-row predicate where applicable
+- TimeCardStatus: WIPE / protected-row predicate where applicable
+- TimeSheet: WIPE / protected-row predicate where applicable
+- TimeSheetEntry: WIPE / protected-row predicate where applicable
+- UserAcc: WIPE / protected-row predicate where applicable
+- UserAcc_01_Aug_2020: WIPE / protected-row predicate where applicable
+- UserType: RETAIN shared definitions/config/audit/support
+- User_Role_Permission: WIPE / protected-row predicate where applicable

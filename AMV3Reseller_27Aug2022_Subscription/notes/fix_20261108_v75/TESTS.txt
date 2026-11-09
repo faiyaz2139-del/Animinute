@@ -1,0 +1,14 @@
+PASS blocked: erase
+PASS blocked: ERASE
+PASS blocked:  eraseall 
+PASS blocked: eraseallrun
+PASS blocked: clean
+PASS blocked: cleanprev
+PASS blocked: cleanrun
+PASS blocked: wipeeverything
+PASS blocked: wipeeverythingrun
+PASS blocked:  CleanRun 
+PASS legitimate subscriber/password-reset/invitation operations remain allowed
+PASS 8 safe identity branch/arithmetic model checks (NOT SQL runtime tests)
+PASS erase/wipe/clean classes remain compiled and byte-identical; original v72 SQL unchanged
+PASS 77 known schema tables classified; 62 wipe targets; no remaining web callers

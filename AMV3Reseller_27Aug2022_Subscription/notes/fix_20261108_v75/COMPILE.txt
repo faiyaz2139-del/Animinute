@@ -1,0 +1,130 @@
+## compile_Main.master.txt
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/Main.master.cs(196,19): warning CS0219: The variable `dt' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/Main.master.cs(277,16): warning CS0168: The variable `linkis' is declared but never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/Main.master.cs(284,20): warning CS0219: The variable `DomainTitle' is assigned but its value is never used
+/tmp/v69compile/stub_Main.master.cs(35,29): warning CS0219: The variable `Container' is assigned but its value is never used
+/tmp/v69compile/stub_Main.master.cs(36,29): warning CS0219: The variable `Container' is assigned but its value is never used
+/tmp/v69compile/stub_Main.master.cs(37,29): warning CS0219: The variable `Container' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/Main.master.cs(13,12): warning CS0169: The private field `MasterPage._usertype' is never used
+Compilation succeeded - 7 warning(s)
+
+## compile_MasterWithoutMenu.master.txt
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master.cs(12,12): warning CS0169: The private field `MasterWithoutMenu._usertype' is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master.cs(13,17): warning CS0414: The private field `MasterWithoutMenu.comm' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master.cs(14,15): warning CS0414: The private field `MasterWithoutMenu.MenusDomain' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master.cs(15,15): warning CS0414: The private field `MasterWithoutMenu.AllMenu' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master.cs(16,21): warning CS0414: The private field `MasterWithoutMenu.cl' is assigned but its value is never used
+Compilation succeeded - 5 warning(s)
+
+## compile_Modern.master.txt
+
+## compile_SupportSubscribers.aspx.txt
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx.cs(336,19): warning CS0108: `AnyminuteSupportSubscribersPage.Header(System.Data.SqlClient.SqlConnection, System.Data.DataRow, bool)' hides inherited member `System.Web.UI.Page.Header'. Use the new keyword if hiding was intended
+/opt/monoenv/lib/mono/4.5-api/System.Web.dll (Location of the symbol related to previous warning)
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx.cs(898,30): warning CS0414: The private field `AnyminuteSupportSubscribersPage.Provinces' is assigned but its value is never used
+Compilation succeeded - 2 warning(s)
+
+## compile_app.txt
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/RateDetailsController.cs(120,13): warning CS0162: Unreachable code detected
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/AddProjectController.cs(86,13): warning CS0162: Unreachable code detected
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/h.cs(46,28): warning CS0219: The variable `da' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/h.cs(77,28): warning CS0219: The variable `da' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/GraphClass.cs(606,26): warning CS0168: The variable `ex' is declared but never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/CommanClass.cs(245,13): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/CommanClass.cs(234,28): warning CS0219: The variable `da' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/AddEmployeeControlerClass.cs(278,28): warning CS0219: The variable `Tran' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/AddEmployeeControlerClass.cs(633,13): warning CS0162: Unreachable code detected
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/clsGlobalVar.cs(45,18): warning CS0219: The variable `dt' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/clsGlobalVar.cs(116,20): warning CS0219: The variable `line1' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/clsGlobalVar.cs(134,20): warning CS0219: The variable `line1' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/clsGlobalVar.cs(214,26): warning CS0168: The variable `ex1' is declared but never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/clsGlobalVar.cs(258,26): warning CS0168: The variable `ex1' is declared but never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/AddBusinessControllerClass.cs(512,13): warning CS0219: The variable `BusinessId' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/AddBusinessControllerClass.cs(873,13): warning CS0162: Unreachable code detected
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/EmailSettingController.cs(208,13): warning CS0618: `System.Net.Mail.SmtpClient' is obsolete: `SmtpClient and its network of types are poorly designed, we strongly recommend you use https://github.com/jstedfast/MailKit and https://github.com/jstedfast/MimeKit instead'
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/EmailSettingController.cs(208,35): warning CS0618: `System.Net.Mail.SmtpClient' is obsolete: `SmtpClient and its network of types are poorly designed, we strongly recommend you use https://github.com/jstedfast/MailKit and https://github.com/jstedfast/MimeKit instead'
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/EmailSettingController.cs(264,13): warning CS0618: `System.Net.Mail.SmtpClient' is obsolete: `SmtpClient and its network of types are poorly designed, we strongly recommend you use https://github.com/jstedfast/MailKit and https://github.com/jstedfast/MimeKit instead'
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/EmailSettingController.cs(264,35): warning CS0618: `System.Net.Mail.SmtpClient' is obsolete: `SmtpClient and its network of types are poorly designed, we strongly recommend you use https://github.com/jstedfast/MailKit and https://github.com/jstedfast/MimeKit instead'
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/EmailSettingController.cs(310,13): warning CS0618: `System.Net.Mail.SmtpClient' is obsolete: `SmtpClient and its network of types are poorly designed, we strongly recommend you use https://github.com/jstedfast/MailKit and https://github.com/jstedfast/MimeKit instead'
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/EmailSettingController.cs(310,35): warning CS0618: `System.Net.Mail.SmtpClient' is obsolete: `SmtpClient and its network of types are poorly designed, we strongly recommend you use https://github.com/jstedfast/MailKit and https://github.com/jstedfast/MimeKit instead'
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/EmailSettingController.cs(377,13): warning CS0618: `System.Net.Mail.SmtpClient' is obsolete: `SmtpClient and its network of types are poorly designed, we strongly recommend you use https://github.com/jstedfast/MailKit and https://github.com/jstedfast/MimeKit instead'
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/EmailSettingController.cs(377,35): warning CS0618: `System.Net.Mail.SmtpClient' is obsolete: `SmtpClient and its network of types are poorly designed, we strongly recommend you use https://github.com/jstedfast/MailKit and https://github.com/jstedfast/MimeKit instead'
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/EmailSettingController.cs(438,13): warning CS0618: `System.Net.Mail.SmtpClient' is obsolete: `SmtpClient and its network of types are poorly designed, we strongly recommend you use https://github.com/jstedfast/MailKit and https://github.com/jstedfast/MimeKit instead'
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/EmailSettingController.cs(438,35): warning CS0618: `System.Net.Mail.SmtpClient' is obsolete: `SmtpClient and its network of types are poorly designed, we strongly recommend you use https://github.com/jstedfast/MailKit and https://github.com/jstedfast/MimeKit instead'
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/EmailSettingController.cs(521,13): warning CS0618: `System.Net.Mail.SmtpClient' is obsolete: `SmtpClient and its network of types are poorly designed, we strongly recommend you use https://github.com/jstedfast/MailKit and https://github.com/jstedfast/MimeKit instead'
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/EmailSettingController.cs(521,35): warning CS0618: `System.Net.Mail.SmtpClient' is obsolete: `SmtpClient and its network of types are poorly designed, we strongly recommend you use https://github.com/jstedfast/MailKit and https://github.com/jstedfast/MimeKit instead'
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/EmailSettingController.cs(590,13): warning CS0618: `System.Net.Mail.SmtpClient' is obsolete: `SmtpClient and its network of types are poorly designed, we strongly recommend you use https://github.com/jstedfast/MailKit and https://github.com/jstedfast/MimeKit instead'
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/EmailSettingController.cs(590,35): warning CS0618: `System.Net.Mail.SmtpClient' is obsolete: `SmtpClient and its network of types are poorly designed, we strongly recommend you use https://github.com/jstedfast/MailKit and https://github.com/jstedfast/MimeKit instead'
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/EmailSettingController.cs(659,13): warning CS0618: `System.Net.Mail.SmtpClient' is obsolete: `SmtpClient and its network of types are poorly designed, we strongly recommend you use https://github.com/jstedfast/MailKit and https://github.com/jstedfast/MimeKit instead'
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/EmailSettingController.cs(659,35): warning CS0618: `System.Net.Mail.SmtpClient' is obsolete: `SmtpClient and its network of types are poorly designed, we strongly recommend you use https://github.com/jstedfast/MailKit and https://github.com/jstedfast/MimeKit instead'
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/SearchAddressController.cs(41,13): warning CS0219: The variable `Empid' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/SearchAddressController.cs(60,17): warning CS0219: The variable `rw' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/Cls_UserType_Bkp2.cs(13,20): warning CS0414: The private field `Cls_UserType_Bkp2.da' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/Cls_UserType_Bkp2.cs(16,13): warning CS0414: The private field `Cls_UserType_Bkp2.ds' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/Cls_UserType_Bkp2.cs(19,9): warning CS0169: The private field `Cls_UserType_Bkp2.i' is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/TimeSheetControllerClass.cs(13,20): warning CS0414: The private field `TimeSheetControllerClass.da' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/TimeSheetControllerClass.cs(16,13): warning CS0414: The private field `TimeSheetControllerClass.ds' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/TimeSheetControllerClass.cs(19,9): warning CS0169: The private field `TimeSheetControllerClass.i' is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/AddProjectController.cs(13,20): warning CS0414: The private field `AddProjectController.da' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/AddProjectController.cs(15,16): warning CS0414: The private field `AddProjectController.cmd' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/AddProjectController.cs(16,13): warning CS0414: The private field `AddProjectController.ds' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/AddProjectController.cs(19,9): warning CS0169: The private field `AddProjectController.i' is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/h.cs(13,20): warning CS0414: The private field `AddressMasterController.da' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/h.cs(18,16): warning CS0414: The private field `AddressMasterController.cmd' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/h.cs(19,13): warning CS0414: The private field `AddressMasterController.ds' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteAccountantDashboard.cs(147,105): warning CS0649: Field `AnyminuteAccountantDashboard.Biz.Phone' is never assigned to, and will always have its default value `null'
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/GraphClass.cs(13,20): warning CS0414: The private field `GraphClass.da' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/GraphClass.cs(16,16): warning CS0414: The private field `GraphClass.cmd' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/GraphClass.cs(17,13): warning CS0414: The private field `GraphClass.ds' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/GraphClass.cs(18,10): warning CS0414: The private field `GraphClass.Logger' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/GraphClass.cs(19,12): warning CS0169: The private field `GraphClass.loginfo' is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/GraphClass.cs(20,9): warning CS0169: The private field `GraphClass.i' is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/ChangePasswordControllerClass.cs(13,20): warning CS0414: The private field `ChangePasswordControllerClass.da' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/ChangePasswordControllerClass.cs(16,13): warning CS0414: The private field `ChangePasswordControllerClass.ds' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/ChangePasswordControllerClass.cs(19,9): warning CS0169: The private field `ChangePasswordControllerClass.i' is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/StreetMasterClass.cs(15,20): warning CS0414: The private field `StreetMasterClass.da' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/StreetMasterClass.cs(18,13): warning CS0414: The private field `StreetMasterClass.ds' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/StreetMasterClass.cs(21,9): warning CS0169: The private field `StreetMasterClass.i' is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/CommanClass.cs(24,9): warning CS0169: The private field `CommanClass.i' is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/SuperAdminController.cs(13,20): warning CS0414: The private field `SuperAdminController.da' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/SuperAdminController.cs(14,17): warning CS0414: The private field `SuperAdminController.Comm' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/clsGlobalVar.cs(18,19): warning CS0414: The private field `clsGlobalVar.objSqlConn' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/MyProfileController.cs(13,20): warning CS0414: The private field `MyProfileController.da' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/ProjectReportClass.cs(13,20): warning CS0414: The private field `ProjectReportClass.da' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/ProjectReportClass.cs(15,12): warning CS0414: The private field `ProjectReportClass.loginfo' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/MotherOrgControllerClass.cs(13,20): warning CS0414: The private field `MotherOrgControllerClass.da' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/MotherOrgControllerClass.cs(16,13): warning CS0414: The private field `MotherOrgControllerClass.ds' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/MotherOrgControllerClass.cs(19,9): warning CS0169: The private field `MotherOrgControllerClass.i' is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/AssgineManagerController.cs(13,20): warning CS0414: The private field `AssgineManagerController.da' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/AssgineManagerController.cs(15,16): warning CS0414: The private field `AssgineManagerController.cmd' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/AssgineManagerController.cs(16,13): warning CS0414: The private field `AssgineManagerController.ds' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/AssgineManagerController.cs(19,9): warning CS0169: The private field `AssgineManagerController.i' is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/AddBusinessControllerClass.cs(13,20): warning CS0414: The private field `AddBusinessControllerClass.da' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/AddBusinessControllerClass.cs(14,24): warning CS0414: The private field `AddBusinessControllerClass.BusinessAddressEntity' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/AddBusinessControllerClass.cs(20,13): warning CS0414: The private field `AddBusinessControllerClass.ds' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/AddBusinessControllerClass.cs(21,9): warning CS0169: The private field `AddBusinessControllerClass.i' is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/ActiveDeactiveController.cs(13,20): warning CS0414: The private field `ActiveDeactiveController.da' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/ActiveDeactiveController.cs(16,10): warning CS0414: The private field `ActiveDeactiveController.Logger' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/ActiveDeactiveController.cs(17,12): warning CS0169: The private field `ActiveDeactiveController.loginfo' is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/AssgienDelegateController.cs(13,17): warning CS0414: The private field `AssgienDelegateController.comm' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/AssgienDelegateController.cs(14,27): warning CS0414: The private field `AssgienDelegateController.AssdE' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/SupportAdminCtrl.cs(13,20): warning CS0414: The private field `SupportAdminCtrl.da' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/EmpAddressController.cs(12,22): warning CS0414: The private field `EmpAddressController.EmpAddEnity' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/AddBreakController.cs(13,20): warning CS0414: The private field `AddBreakController.da' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/AddTicketControllerClass.cs(13,20): warning CS0414: The private field `AddTicketControllerClass.da' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/AddTicketControllerClass.cs(15,13): warning CS0414: The private field `AddTicketControllerClass.ds' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/AddTicketControllerClass.cs(18,9): warning CS0169: The private field `AddTicketControllerClass.i' is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/TimeSheetController.cs(13,20): warning CS0414: The private field `TimeSheetController.da' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/EmailSettingController.cs(17,20): warning CS0414: The private field `EmailSettingController.da' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/UserAccController.cs(14,20): warning CS0414: The private field `UserAccController.da' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/UserAccController.cs(16,16): warning CS0414: The private field `UserAccController.cmd' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/UserAccController.cs(17,13): warning CS0414: The private field `UserAccController.ds' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/UserAccController.cs(20,9): warning CS0169: The private field `UserAccController.i' is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/SearchAddressController.cs(15,20): warning CS0414: The private field `SearchAddressController.da' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/SearchAddressController.cs(16,10): warning CS0414: The private field `SearchAddressController.Logger' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/SearchAddressController.cs(17,12): warning CS0169: The private field `SearchAddressController.loginfo' is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/Cls_UserType.cs(13,20): warning CS0414: The private field `Cls_UserType.da' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/Cls_UserType.cs(16,13): warning CS0414: The private field `Cls_UserType.ds' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/Cls_UserType.cs(19,9): warning CS0169: The private field `Cls_UserType.i' is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/DAL/DAL.cs(10,12): warning CS0414: The private field `DAL.strcon' is assigned but its value is never used
+Compilation succeeded - 102 warning(s)
