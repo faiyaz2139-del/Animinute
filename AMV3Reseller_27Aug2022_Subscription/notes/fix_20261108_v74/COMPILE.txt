@@ -1,0 +1,19 @@
+## compile_Main.master.txt
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/Main.master.cs(196,19): warning CS0219: The variable `dt' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/Main.master.cs(277,16): warning CS0168: The variable `linkis' is declared but never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/Main.master.cs(284,20): warning CS0219: The variable `DomainTitle' is assigned but its value is never used
+/tmp/v69compile/stub_Main.master.cs(35,29): warning CS0219: The variable `Container' is assigned but its value is never used
+/tmp/v69compile/stub_Main.master.cs(36,29): warning CS0219: The variable `Container' is assigned but its value is never used
+/tmp/v69compile/stub_Main.master.cs(37,29): warning CS0219: The variable `Container' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/Main.master.cs(13,12): warning CS0169: The private field `MasterPage._usertype' is never used
+Compilation succeeded - 7 warning(s)
+
+## compile_MasterWithoutMenu.master.txt
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master.cs(12,12): warning CS0169: The private field `MasterWithoutMenu._usertype' is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master.cs(13,17): warning CS0414: The private field `MasterWithoutMenu.comm' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master.cs(14,15): warning CS0414: The private field `MasterWithoutMenu.MenusDomain' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master.cs(15,15): warning CS0414: The private field `MasterWithoutMenu.AllMenu' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master.cs(16,21): warning CS0414: The private field `MasterWithoutMenu.cl' is assigned but its value is never used
+Compilation succeeded - 5 warning(s)
+
+## compile_Modern.master.txt

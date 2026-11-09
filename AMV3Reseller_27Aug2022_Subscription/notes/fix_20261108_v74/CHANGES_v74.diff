@@ -1,0 +1,447 @@
+diff --git a/AMV3Reseller_27Aug2022_Subscription/ExternalLogin.aspx b/AMV3Reseller_27Aug2022_Subscription/ExternalLogin.aspx
+index e250aa2..65a4a38 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/ExternalLogin.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/ExternalLogin.aspx
+@@ -1,3 +1,3 @@
+ <%@ Page Language="C#" AutoEventWireup="true" CodeFile="ExternalLogin.aspx.cs" Inherits="AnyminuteExternalLoginPage" EnableViewState="false" %>
+ <%-- v41: Google / Microsoft sign-in start (?p=google|microsoft) and OAuth redirect URI (?code&state). No UI; always redirects. --%>
+-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8" /><meta name="referrer" content="no-referrer" /><title>Signing in | AnyMinute</title><link href="css/AnyminuteTypography.css?v=20261108v73" rel="stylesheet" /></head><body class="am-typography"></body></html>
++<!DOCTYPE html><html lang="en"><head><meta charset="utf-8" /><meta name="referrer" content="no-referrer" /><title>Signing in | AnyMinute</title><link href="css/AnyminuteTypography.css?v=20261108v74" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261108v74" rel="stylesheet" /></head><body class="am-reference am-typography"></body></html>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Login.aspx b/AMV3Reseller_27Aug2022_Subscription/Login.aspx
+index 16f2829..ab4ef39 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Login.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/Login.aspx
+@@ -152,8 +152,8 @@
+         .am-social-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;margin-bottom:10px;padding:9px 12px;border:1px solid #d0d7e2;border-radius:6px;background:#fff;color:#1f2937!important;font-weight:600;text-decoration:none!important}
+         .am-social-btn:hover{background:#f5f8fc;border-color:#b8c3d3}
+     </style>
+-<link href="css/AnyminuteTypography.css?v=20261108v73" rel="stylesheet" /></head>
+-<body class="am-typography">
++<link href="css/AnyminuteTypography.css?v=20261108v74" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261108v74" rel="stylesheet" /></head>
++<body class="am-reference am-typography">
+     <div class="container">
+             <div class="col-md-3 col-sm-12 col-xs-12"></div>
+             <div class="col-md-5 col-sm-12 col-xs-12"  >
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Main.master b/AMV3Reseller_27Aug2022_Subscription/Main.master
+index 0c75fb1..115c4e9 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Main.master
++++ b/AMV3Reseller_27Aug2022_Subscription/Main.master
+@@ -5,7 +5,7 @@
+ <!DOCTYPE html>
+ 
+ <html>
+-<head runat="server"><meta name="anyminute-build" content="v73-20261108" />
++<head runat="server"><meta name="anyminute-build" content="v74-20261108" />
+     <title>AnyMinute | Record From Anywhere</title>
+     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+@@ -139,11 +139,11 @@
+     </asp:ContentPlaceHolder>
+     <link href="css/AnyminuteUI2026.css?v=20261017" rel="stylesheet" />
+ <link href="css/AnyminuteUIUnified.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUiBugFixes.css?v=20261026v17" rel="stylesheet" />
+-<link href="css/AnyminuteNavDrawer.css?v=20261106v67" rel="stylesheet" /><link href="css/AnyminuteTypography.css?v=20261108v73" rel="stylesheet" /></head>
++<link href="css/AnyminuteNavDrawer.css?v=20261106v67" rel="stylesheet" /><link href="css/AnyminuteTypography.css?v=20261108v74" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261108v74" rel="stylesheet" /></head>
+ <script type="text/javascript">  
+     window.onload = window.history.forward(0);
+ </script>
+-<body class="am-typography am-ui">
++<body class="am-reference am-typography am-ui">
+     <form id="frmMaster" runat="server">
+         <asp:ScriptManager ID="ScriptManager1" runat="server" EnablePageMethods="true"></asp:ScriptManager>
+         <%--Header Content start--%>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master b/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master
+index 760713b..380a889 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master
++++ b/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master
+@@ -2,7 +2,7 @@
+ <!DOCTYPE html>
+ 
+ <html>
+-<head runat="server"><meta name="anyminute-build" content="v73-20261108" />
++<head runat="server"><meta name="anyminute-build" content="v74-20261108" />
+     <title>AnyMinute | Record From Anywhere</title>
+     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+@@ -28,13 +28,13 @@
+                        
+     </asp:ContentPlaceHolder>
+     
+-<link href="css/AnyminuteTypography.css?v=20261108v73" rel="stylesheet" /></head>
++<link href="css/AnyminuteTypography.css?v=20261108v74" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261108v74" rel="stylesheet" /></head>
+     <script type="text/javascript">  
+ 
+     window.onload = window.history.forward(0);
+ 
+     </script>
+-<body style="background-color: whitesmoke;" class="am-typography">
++<body style="background-color: whitesmoke;" class="am-reference am-typography">
+ 
+     <form id="frmMaster" runat="server">
+         <asp:ScriptManager ID="ScriptManager1" runat="server"></asp:ScriptManager>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/ModalPopUpSelectEffectiveDate.aspx b/AMV3Reseller_27Aug2022_Subscription/ModalPopUpSelectEffectiveDate.aspx
+index 96f5c32..c72fb58 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/ModalPopUpSelectEffectiveDate.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/ModalPopUpSelectEffectiveDate.aspx
+@@ -5,8 +5,8 @@
+ <html xmlns="http://www.w3.org/1999/xhtml">
+ <head runat="server">
+     <title></title>
+-<link href="css/AnyminuteTypography.css?v=20261108v73" rel="stylesheet" /></head>
+-<body class="am-typography">
++<link href="css/AnyminuteTypography.css?v=20261108v74" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261108v74" rel="stylesheet" /></head>
++<body class="am-reference am-typography">
+     <form id="form1" runat="server">
+         <div>
+             <asp:Panel ID="PnlEffectiveDate" runat="server" CssClass="modalPopup_addproject" Style="display: none;">
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Modern.master b/AMV3Reseller_27Aug2022_Subscription/Modern.master
+index 34b8a10..e0a028d 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Modern.master
++++ b/AMV3Reseller_27Aug2022_Subscription/Modern.master
+@@ -1,7 +1,7 @@
+ <%@ Master Language="C#" AutoEventWireup="true" CodeFile="Modern.master.cs" Inherits="AnyminuteModernMaster" %>
+ <!DOCTYPE html>
+-<html lang="en"><head runat="server"><meta charset="utf-8" /><meta name="anyminute-build" content="v73-20261108" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>AnyMinute</title><link href="css/bootstrap.min.css" rel="stylesheet" /><script src="Assets/assets/js/core/jquery.3.2.1.min.js"></script><script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script><script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" /><script src="Assets/assets/js/plugin/datatables/datatables.min.js"></script><script src="Assets/assets/js/SweetAlert.js"></script><link href="css/AnyminuteModern.css" rel="stylesheet" /><asp:ContentPlaceHolder ID="head" runat="server" /><link href="css/AnyminuteUI2026.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUIUnified.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUiBugFixes.css?v=20261026v17" rel="stylesheet" /><link href="css/AnyminuteNavDrawer.css?v=20261106v67" rel="stylesheet" /><link href="css/AnyminuteTypography.css?v=20261108v73" rel="stylesheet" /></head>
+-<body class="am-typography am-modern"><form id="frmMaster" runat="server"><asp:ScriptManager ID="ScriptManager1" runat="server" />
++<html lang="en"><head runat="server"><meta charset="utf-8" /><meta name="anyminute-build" content="v74-20261108" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>AnyMinute</title><link href="css/bootstrap.min.css" rel="stylesheet" /><script src="Assets/assets/js/core/jquery.3.2.1.min.js"></script><script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script><script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" /><script src="Assets/assets/js/plugin/datatables/datatables.min.js"></script><script src="Assets/assets/js/SweetAlert.js"></script><link href="css/AnyminuteModern.css" rel="stylesheet" /><asp:ContentPlaceHolder ID="head" runat="server" /><link href="css/AnyminuteUI2026.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUIUnified.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUiBugFixes.css?v=20261026v17" rel="stylesheet" /><link href="css/AnyminuteNavDrawer.css?v=20261106v67" rel="stylesheet" /><link href="css/AnyminuteTypography.css?v=20261108v74" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261108v74" rel="stylesheet" /></head>
++<body class="am-reference am-typography am-modern"><form id="frmMaster" runat="server"><asp:ScriptManager ID="ScriptManager1" runat="server" />
+ <header class="am-topbar"><button type="button" class="am-icon-button" data-toggle-sidebar aria-controls="am-main-navigation" aria-expanded="true" aria-label="Toggle navigation">&#9776;</button><a href="Dashboard.aspx" class="am-brand"><asp:PlaceHolder ID="LogoDefault" runat="server"><img src="Assets/assets/img/logo.jpg" alt="AnyMinute" class="am-logo" /></asp:PlaceHolder><asp:Literal ID="Brand" runat="server" /></a><span>Welcome! <asp:Literal ID="Welcome" runat="server" /><asp:Literal ID="WelcomeContext" runat="server" /></span><asp:Literal ID="HeaderHelp" runat="server" /><asp:Literal ID="HeaderBell" runat="server" /><details class="am-account-menu"><summary aria-label="Account menu"><asp:Literal ID="AccountAvatar" runat="server" /><span class="am-account-chevron" aria-hidden="true"></span><span class="sr-only">Account</span></summary><div class="am-account-popover"><a href="MyProfile.aspx"><span data-am-icon="profile" aria-hidden="true"></span>My profile</a><a href="LoginSecurity.aspx"><span data-am-icon="settings" aria-hidden="true"></span>Login &amp; security</a><asp:LinkButton ID="SignOut" runat="server" CausesValidation="false" OnClick="SignOut_Click"><span data-am-icon="signout" aria-hidden="true"></span>Sign out</asp:LinkButton>
+    <a href="Change%20Password.aspx"><span data-am-icon="settings" aria-hidden="true"></span>Change password</a><asp:Literal ID="AccountHelp" runat="server" /><asp:Literal ID="AccountUpgrade" runat="server" /></div></details></header>
+ <aside id="am-main-navigation" class="am-sidebar"><nav aria-label="Main navigation"><ul class="sidebar-nav"><asp:Literal ID="Navigation" runat="server" /></ul></nav></aside>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Registration.aspx b/AMV3Reseller_27Aug2022_Subscription/Registration.aspx
+index 64c088f..ce3ff8b 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Registration.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/Registration.aspx
+@@ -146,8 +146,8 @@
+      window.onpageshow = function(evt) { if (evt.persisted) DisableBackButton() }
+      window.onunload = function() { void (0) }
+     </script>
+-<link href="css/AnyminuteTypography.css?v=20261108v73" rel="stylesheet" /></head>
+-<body class="am-typography">
++<link href="css/AnyminuteTypography.css?v=20261108v74" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261108v74" rel="stylesheet" /></head>
++<body class="am-reference am-typography">
+     <div class="container">
+         <%--Commited By Firoz--%>
+         <%--<div class="row" style="vertical-align:middle !important;top: 50%;">--%>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Report3.aspx b/AMV3Reseller_27Aug2022_Subscription/Report3.aspx
+index b587959..094b419 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Report3.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/Report3.aspx
+@@ -3,8 +3,8 @@
+ <html xmlns="http://www.w3.org/1999/xhtml">
+ <head runat="server"><title>AnyMinute - Employee Report</title>
+ <style>body{font-family:Arial,sans-serif;margin:24px;color:#25334a} .bar{display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin:12px 0}.field{display:flex;flex-direction:column;gap:5px}input,select{padding:7px} .action{padding:8px 12px;margin:3px} .table{margin-top:15px;overflow:auto}h2{margin-bottom:12px}</style>
+-<link href="css/AnyminuteTypography.css?v=20261108v73" rel="stylesheet" /></head>
+-<body class="am-typography"><form id="form1" runat="server">
++<link href="css/AnyminuteTypography.css?v=20261108v74" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261108v74" rel="stylesheet" /></head>
++<body class="am-reference am-typography"><form id="form1" runat="server">
+ <asp:ScriptManager ID="ScriptManager1" runat="server" />
+ <h2>Employee Time Sheet Report</h2>
+ <div class="bar">
+diff --git a/AMV3Reseller_27Aug2022_Subscription/ResetPassord.aspx b/AMV3Reseller_27Aug2022_Subscription/ResetPassord.aspx
+index 8a951e4..a76849c 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/ResetPassord.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/ResetPassord.aspx
+@@ -133,8 +133,8 @@
+         }
+     </style>
+ 
+-<link href="css/AnyminuteTypography.css?v=20261108v73" rel="stylesheet" /></head>
+-<body class="am-typography">
++<link href="css/AnyminuteTypography.css?v=20261108v74" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261108v74" rel="stylesheet" /></head>
++<body class="am-reference am-typography">
+     <form id="form1" runat="server">
+        
+         <div class="outer">
+diff --git a/AMV3Reseller_27Aug2022_Subscription/ResetPassord_New_Account.aspx b/AMV3Reseller_27Aug2022_Subscription/ResetPassord_New_Account.aspx
+index 0755f95..9487ea5 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/ResetPassord_New_Account.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/ResetPassord_New_Account.aspx
+@@ -133,8 +133,8 @@
+         }
+     </style>
+ 
+-<link href="css/AnyminuteTypography.css?v=20261108v73" rel="stylesheet" /></head>
+-<body class="am-typography">
++<link href="css/AnyminuteTypography.css?v=20261108v74" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261108v74" rel="stylesheet" /></head>
++<body class="am-reference am-typography">
+     <form id="form1" runat="server">
+         <%--<div class="row" style="height:100px;"></div>--%>
+ 
+diff --git a/AMV3Reseller_27Aug2022_Subscription/VerifyLoginEmail.aspx b/AMV3Reseller_27Aug2022_Subscription/VerifyLoginEmail.aspx
+index eda280e..5336adb 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/VerifyLoginEmail.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/VerifyLoginEmail.aspx
+@@ -1,7 +1,7 @@
+ <%@ Page Language="C#" AutoEventWireup="true" CodeFile="VerifyLoginEmail.aspx.cs" Inherits="AnyminuteVerifyLoginEmailPage" %>
+ <!DOCTYPE html>
+-<html lang="en"><head runat="server"><meta charset="utf-8" /><meta name="anyminute-build" content="v39-20261031" /><meta name="viewport" content="width=device-width,initial-scale=1" /><meta name="referrer" content="no-referrer" /><title>Verify Login Email | AnyMinute</title><link rel="icon" href="Assets/assets/img/logo.jpg" type="image/x-icon" /><link href="css/AnyminuteLoginSecurity.css?v=20261031v39" rel="stylesheet" /><link href="css/AnyminuteTypography.css?v=20261108v73" rel="stylesheet" /></head>
+-<body class="am-typography am-ls-verify"><form id="VerifyForm" runat="server">
++<html lang="en"><head runat="server"><meta charset="utf-8" /><meta name="anyminute-build" content="v39-20261031" /><meta name="viewport" content="width=device-width,initial-scale=1" /><meta name="referrer" content="no-referrer" /><title>Verify Login Email | AnyMinute</title><link rel="icon" href="Assets/assets/img/logo.jpg" type="image/x-icon" /><link href="css/AnyminuteLoginSecurity.css?v=20261031v39" rel="stylesheet" /><link href="css/AnyminuteTypography.css?v=20261108v74" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261108v74" rel="stylesheet" /></head>
++<body class="am-reference am-typography am-ls-verify"><form id="VerifyForm" runat="server">
+ <%-- v39 (Change Login Email DOC step 3): one-time link from the verification email. Works signed in or signed out; the change happens on the Confirm click (POST), so mail scanners that prefetch the link cannot use it. --%>
+ <main class="am-ls-box"><img src="Assets/assets/img/logo.jpg" alt="AnyMinute" class="am-ls-logo" />
+  <h1><asp:Literal ID="Heading" runat="server" /></h1><p><asp:Literal ID="Message" runat="server" /></p>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteReference.css b/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteReference.css
+new file mode 100644
+index 0000000..fdb80fc
+--- /dev/null
++++ b/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteReference.css
+@@ -0,0 +1,125 @@
++/* v74: measured from the supplied 1600x789 reference; AnyMinute content/brand retained.
++   STIX Two Text is selected, not identified from screenshot pixels. SIL OFL bundled beside font.
++   Marketing-site evidence: wave-apps.shared.5e8a2d235.min.css names STIX Two Text / Dinero Sans.
++   Dinero is NOT redistributed: no verified reuse licence. UI uses system Arial instead. */
++@font-face{font-family:"AnyMinute Editorial";src:url("fonts/STIXTwoText-Variable.ttf") format("truetype");font-style:normal;font-weight:400 700;font-display:swap}
++html body.am-reference.am-typography{--am-font-ui:Arial,Helvetica,sans-serif;--am-font-editorial:"AnyMinute Editorial","Times New Roman",serif;--am-sidebar:188px;--am-text:#172c3b;--am-ink:#172c3b;--sa-ink:#172c3b;--am-muted:#526674;--am-line:#dce4e8;--am-border:#dce4e8;--am-bg:#fff;background:#fff!important;color:#172c3b;font-size:14px;line-height:1.45}
++/* All shared shell variants; navigation state and existing JS toggle semantics are unchanged. */
++html body.am-reference.am-typography .am-topbar,
++html body.am-reference.am-typography .navbar-fixed-top{height:48px!important;min-height:48px!important;background:#f6fbff!important;border-bottom:1px solid #e1e8ed!important;box-shadow:none!important;padding:0 16px!important;gap:12px!important}
++html body.am-reference.am-typography .navbar>.container-fluid{height:48px!important;min-height:48px!important;padding:0 12px!important;display:flex;align-items:center}
++html body.am-reference.am-typography .am-topbar>a.am-brand{height:40px!important;flex:0 0 auto!important;width:auto!important;padding:0 8px!important;border-right:0!important}
++html body.am-reference.am-typography .am-topbar>span{font-size:14px!important;line-height:1.2!important;padding-left:8px!important;font-weight:400!important}
++html body.am-reference.am-typography .am-logo{max-width:112px!important;width:auto!important;height:32px!important;object-fit:contain}
++html body.am-reference.am-typography a.logo img{width:auto!important;height:30px!important;max-width:112px!important}
++html body.am-reference.am-typography .am-ap-brand svg,
++html body.am-reference.am-typography .am-rsl-brand svg{width:26px!important;height:26px!important;flex-basis:26px!important}
++html body.am-reference.am-typography .am-ap-brand-text,
++html body.am-reference.am-typography .am-rsl-brand-text{font-size:18px!important;letter-spacing:normal!important}
++html body.am-reference.am-typography .am-account-avatar,
++html body.am-reference.am-typography .am-ap-avatar{width:30px!important;height:30px!important;flex-basis:30px!important;font-size:12px!important}
++html body.am-reference.am-typography .am-icon-button,
++html body.am-reference.am-typography .am-topbar>[data-toggle-sidebar]{height:32px!important;width:28px!important;min-height:0!important;margin:0!important;padding:0!important;font-size:20px!important}
++html body.am-reference.am-typography #menu-toggle{margin:0 10px 0 0!important}
++html body.am-reference.am-typography .am-sidebar,
++html body.am-reference.am-typography #sidebar-wrapper,
++html body.am-reference.am-typography #wrapper.active #sidebar-wrapper{top:48px!important;width:188px!important;background:#fff!important;border-right:1px solid #e1e8ed!important;box-shadow:none!important;padding:10px 8px!important}
++html body.am-reference.am-typography .sidebar-nav{padding:0!important;margin:0!important;list-style:none}
++html body.am-reference.am-typography .sidebar-nav>li{margin:0 0 3px!important;padding:0!important;line-height:normal!important}
++html body.am-reference.am-typography .sidebar-nav>li>a,
++html body.am-reference.am-typography .am-sidebar nav>a{display:flex!important;align-items:center;gap:9px!important;min-height:34px!important;padding:7px 8px!important;margin:0!important;border-radius:5px!important;font-size:13px!important;font-weight:400!important;line-height:1.4!important;color:#18374c!important;white-space:normal!important}
++html body.am-reference.am-typography .sidebar-nav>li>a[aria-current=page],
++html body.am-reference.am-typography .am-sidebar nav>a[aria-current=page]{background:#e0f2ff!important;color:#143c64!important;font-weight:600!important}
++html body.am-reference.am-typography .sidebar-nav>li>a:hover{background:#f0f8fd!important}
++html body.am-reference.am-typography .sidebar-nav>li>a svg,
++html body.am-reference.am-typography .am-sidebar nav>a svg{width:16px!important;height:16px!important;flex:0 0 16px!important;color:#69acd1}
++html body.am-reference.am-typography .am-main{margin-top:48px!important;padding:32px clamp(24px,5.5vw,88px)!important;max-width:none!important;min-width:0}
++html body.am-reference.am-typography #wrapper,
++html body.am-reference.am-typography #wrapper.active{margin-top:48px!important}
++html body.am-reference.am-typography #page-content-wrapper{padding:32px clamp(24px,5.5vw,88px)!important;min-width:0}
++/* Pin/content alignment must outrank historic 240/288px role-specific rules. */
++@media(min-width:992px){
++html body.am-reference.am-typography:not(.am-drawer-nav) .am-main{margin-left:188px!important}
++html body.am-reference.am-typography.am-drawer-nav.am-sa-pinned.am-drawer-open .am-main,
++html body.am-reference.am-typography.am-drawer-nav.am-sa-pinned.am-drawer-open #page-content-wrapper,
++html body.am-reference.am-typography.am-drawer-nav.am-sa-pinned.am-drawer-open #wrapper.active #page-content-wrapper{margin-left:188px!important;width:calc(100% - 188px)!important;box-sizing:border-box}
++html body.am-reference.am-typography.am-drawer-nav.am-sa-pinned.am-drawer-open .am-sidebar{box-shadow:none!important}
++}
++/* Editorial title and section hierarchy. Cards/forms remain compact sans. */
++html body.am-reference.am-typography h1{font-size:42px!important;line-height:1.16!important;font-weight:400!important;color:#182b33!important;letter-spacing:normal!important}
++html body.am-reference.am-typography .am-heading,
++html body.am-reference.am-typography .am-title,
++html body.am-reference.am-typography .sa-head,
++html body.am-reference.am-typography .am-ap-head{margin-bottom:32px!important}
++html body.am-reference.am-typography .am-ap-sechead h2{font-size:30px!important;line-height:1.2!important;font-weight:400!important}
++html body.am-reference.am-typography .am-card,
++html body.am-reference.am-typography .sa-card,
++html body.am-reference.am-typography .panel{background:#fff!important;border:1px solid #dce4e8!important;border-radius:6px!important;box-shadow:none!important}
++html body.am-reference.am-typography .am-card,
++html body.am-reference.am-typography .sa-card{padding:16px!important;margin-bottom:20px!important}
++html body.am-reference.am-typography .am-card h2,
++html body.am-reference.am-typography .sa-card h2{font-size:18px;line-height:1.3;font-weight:600}
++html body.am-reference.am-typography .am-ap-sechead{margin-bottom:20px!important}
++html body.am-reference.am-typography .am-notice,
++html body.am-reference.am-typography .sa-flash:not(.sa-warn){background:#f6fbff!important;border:1px solid #d4e9f5!important;border-left:4px solid #1261a0!important;border-radius:5px!important;color:#173e57!important;padding:16px 20px!important;box-shadow:none!important}
++/* Respect warning/error/destructive semantics rather than repainting every action pastel. */
++html body.am-reference.am-typography .am-button,
++html body.am-reference.am-typography .sa-btn,
++html body.am-reference.am-typography .am-action{border-radius:18px!important;min-height:32px;padding:6px 16px!important;font-size:13px!important;line-height:1.35!important;box-shadow:none!important}
++html body.am-reference.am-typography .am-button.secondary,
++html body.am-reference.am-typography .sa-btn-outline,
++html body.am-reference.am-typography .am-secondary{background:#fff!important;border:1px solid #2b74be!important;color:#155c98!important}
++html body.am-reference.am-typography input:not([type=checkbox]):not([type=radio]):not([type=hidden]):not([type=submit]):not([type=button]),
++html body.am-reference.am-typography select,
++html body.am-reference.am-typography textarea{border-radius:5px!important;border-color:#d8e2e9!important;font-size:14px!important}
++html body.am-reference.am-typography .am-table th,
++html body.am-reference.am-typography .sa-table th{background:#f6fbff!important;color:#294554;font-size:13px!important;font-weight:600!important}
++html body.am-reference.am-typography .am-table td,
++html body.am-reference.am-typography .sa-table td{font-size:14px!important;border-color:#e1e8ed!important}
++html body.am-reference.am-typography .am-table-wrap,
++html body.am-reference.am-typography .sa-table-wrap{border-radius:6px!important;border-color:#dce4e8!important;box-shadow:none!important}
++/* Pastels only for existing dashboard quick-action links, never delete/reset controls. */
++html body.am-reference.am-typography .am-quick>a{border:0!important;border-radius:8px!important;min-height:38px;padding:10px 16px!important;color:#172c3b!important;font-size:13px!important;font-weight:600!important;background:#eafef3!important}
++html body.am-reference.am-typography .am-quick>a:nth-child(4n+2){background:#e0f2ff!important}
++html body.am-reference.am-typography .am-quick>a:nth-child(4n+3){background:#f1e8fb!important}
++html body.am-reference.am-typography .am-quick>a:nth-child(4n){background:#fdf0e7!important}
++html body.am-reference.am-typography .am-dialog-head h1,
++html body.am-reference.am-typography .am-modal h1,
++html body.am-reference.am-typography .sa-modal h1{font-size:24px!important;font-weight:600!important}
++@media(max-width:991px){
++html body.am-reference.am-typography .am-main{margin-left:0!important;width:100%!important;padding:24px!important}
++html body.am-reference.am-typography .am-sidebar,
++html body.am-reference.am-typography #sidebar-wrapper{width:220px!important;max-width:86vw}
++html body.am-reference.am-typography h1{font-size:34px!important}
++}
++@media(max-width:720px){
++html body.am-reference.am-typography .am-main,
++html body.am-reference.am-typography #page-content-wrapper{padding:20px 14px!important}
++html body.am-reference.am-typography .am-topbar>span{font-size:12px!important}
++html body.am-reference.am-typography h1{font-size:30px!important}
++html body.am-reference.am-typography .am-ap-sechead h2{font-size:25px!important}
++html body.am-reference.am-typography .am-heading,
++html body.am-reference.am-typography .am-title,
++html body.am-reference.am-typography .sa-head{margin-bottom:24px!important}
++}
++@media print{
++html body.am-reference.am-typography .am-main,
++html body.am-reference.am-typography #page-content-wrapper{margin:0!important;width:100%!important;padding:0!important}
++}
++/* The owner dashboard's existing Quick Actions uses a grid rather than .am-quick. */
++html body.am-reference.am-typography #businesses.am-card{border:0!important;padding:0!important;background:transparent!important}
++html body.am-reference.am-typography .am-businesses-header{flex-wrap:wrap!important;gap:20px!important}
++html body.am-reference.am-typography .am-businesses-header>div{flex:1 1 100%}
++html body.am-reference.am-typography .am-quick-actions.am-card{width:100%;border:0!important;padding:0!important;margin:0!important;background:transparent!important}
++html body.am-reference.am-typography .am-quick-grid{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(160px,1fr))!important;gap:20px!important}
++html body.am-reference.am-typography .am-quick-grid>a{border:0!important;border-radius:8px!important;min-height:38px!important;padding:10px 16px!important;color:#172c3b!important;font-size:13px!important;font-weight:600!important;background:#eafef3!important}
++html body.am-reference.am-typography .am-quick-grid>a:nth-child(4n+2){background:#e0f2ff!important}
++html body.am-reference.am-typography .am-quick-grid>a:nth-child(4n+3){background:#f1e8fb!important}
++html body.am-reference.am-typography .am-quick-grid>a:nth-child(4n){background:#fdf0e7!important}
++html body.am-reference.am-typography .sa-rsl-grid{gap:32px!important}
++html body.am-reference.am-typography input[aria-invalid=true],
++html body.am-reference.am-typography .input-validation-error{border-color:#b42318!important}
++/* Preserve print behavior after dashboard-specific rules. */
++@media print{html body.am-reference.am-typography .am-quick-actions{display:none!important}}
++/* Remove the old console's extra 4/8px inset so every role shares the measured content edge. */
++html body.am-reference.am-typography .sa-page{--sa-ink:#172c3b;--sa-line:#dce4e8;--sa-bg:#fff;font-size:14px;padding:0 0 32px}
+diff --git a/AMV3Reseller_27Aug2022_Subscription/css/fonts/STIXTwoText-OFL.txt b/AMV3Reseller_27Aug2022_Subscription/css/fonts/STIXTwoText-OFL.txt
+new file mode 100644
+index 0000000..4190bc7
+--- /dev/null
++++ b/AMV3Reseller_27Aug2022_Subscription/css/fonts/STIXTwoText-OFL.txt
+@@ -0,0 +1,93 @@
++Copyright 2001-2021 The STIX Fonts Project Authors (https://github.com/stipub/stixfonts), with Reserved Font Name "TM Math". STIX Fonts™ is a trademark of The Institute of Electrical and Electronics Engineers, Inc.
++
++This Font Software is licensed under the SIL Open Font License, Version 1.1.
++This license is copied below, and is also available with a FAQ at:
++http://scripts.sil.org/OFL
++
++
++-----------------------------------------------------------
++SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007
++-----------------------------------------------------------
++
++PREAMBLE
++The goals of the Open Font License (OFL) are to stimulate worldwide
++development of collaborative font projects, to support the font creation
++efforts of academic and linguistic communities, and to provide a free and
++open framework in which fonts may be shared and improved in partnership
++with others.
++
++The OFL allows the licensed fonts to be used, studied, modified and
++redistributed freely as long as they are not sold by themselves. The
++fonts, including any derivative works, can be bundled, embedded, 
++redistributed and/or sold with any software provided that any reserved
++names are not used by derivative works. The fonts and derivatives,
++however, cannot be released under any other type of license. The
++requirement for fonts to remain under this license does not apply
++to any document created using the fonts or their derivatives.
++
++DEFINITIONS
++"Font Software" refers to the set of files released by the Copyright
++Holder(s) under this license and clearly marked as such. This may
++include source files, build scripts and documentation.
++
++"Reserved Font Name" refers to any names specified as such after the
++copyright statement(s).
++
++"Original Version" refers to the collection of Font Software components as
++distributed by the Copyright Holder(s).
++
++"Modified Version" refers to any derivative made by adding to, deleting,
++or substituting -- in part or in whole -- any of the components of the
++Original Version, by changing formats or by porting the Font Software to a
++new environment.
++
++"Author" refers to any designer, engineer, programmer, technical
++writer or other person who contributed to the Font Software.
++
++PERMISSION & CONDITIONS
++Permission is hereby granted, free of charge, to any person obtaining
++a copy of the Font Software, to use, study, copy, merge, embed, modify,
++redistribute, and sell modified and unmodified copies of the Font
++Software, subject to the following conditions:
++
++1) Neither the Font Software nor any of its individual components,
++in Original or Modified Versions, may be sold by itself.
++
++2) Original or Modified Versions of the Font Software may be bundled,
++redistributed and/or sold with any software, provided that each copy
++contains the above copyright notice and this license. These can be
++included either as stand-alone text files, human-readable headers or
++in the appropriate machine-readable metadata fields within text or
++binary files as long as those fields can be easily viewed by the user.
++
++3) No Modified Version of the Font Software may use the Reserved Font
++Name(s) unless explicit written permission is granted by the corresponding
++Copyright Holder. This restriction only applies to the primary font name as
++presented to the users.
++
++4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font
++Software shall not be used to promote, endorse or advertise any
++Modified Version, except to acknowledge the contribution(s) of the
++Copyright Holder(s) and the Author(s) or with their explicit written
++permission.
++
++5) The Font Software, modified or unmodified, in part or in whole,
++must be distributed entirely under this license, and must not be
++distributed under any other license. The requirement for fonts to
++remain under this license does not apply to any document created
++using the Font Software.
++
++TERMINATION
++This license becomes null and void if any of the above conditions are
++not met.
++
++DISCLAIMER
++THE FONT SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF
++MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT
++OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE
++COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
++INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
++DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
++OTHER DEALINGS IN THE FONT SOFTWARE.
+diff --git a/AMV3Reseller_27Aug2022_Subscription/css/fonts/STIXTwoText-Variable.ttf b/AMV3Reseller_27Aug2022_Subscription/css/fonts/STIXTwoText-Variable.ttf
+new file mode 100644
+index 0000000..65db142
+Binary files /dev/null and b/AMV3Reseller_27Aug2022_Subscription/css/fonts/STIXTwoText-Variable.ttf differ
+diff --git a/AMV3Reseller_27Aug2022_Subscription/document2.aspx b/AMV3Reseller_27Aug2022_Subscription/document2.aspx
+index f30c8b0..501df00 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/document2.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/document2.aspx
+@@ -5,8 +5,8 @@
+ <html xmlns="http://www.w3.org/1999/xhtml">
+ <head runat="server">
+     <title></title>
+-<link href="css/AnyminuteTypography.css?v=20261108v73" rel="stylesheet" /></head>
+-<body class="am-typography">
++<link href="css/AnyminuteTypography.css?v=20261108v74" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261108v74" rel="stylesheet" /></head>
++<body class="am-reference am-typography">
+     <form id="form1" runat="server">
+              <div Style="visibility:hidden;display:none;">
+               <asp:GridView runat="server" ID="GvExport" CellPadding="4" ForeColor="#333333" GridLines="None" CellSpacing="4">
+diff --git a/AMV3Reseller_27Aug2022_Subscription/document3.aspx b/AMV3Reseller_27Aug2022_Subscription/document3.aspx
+index 5c1b7f5..85fa08c 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/document3.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/document3.aspx
+@@ -5,8 +5,8 @@
+ <html xmlns="http://www.w3.org/1999/xhtml">
+ <head runat="server">
+     <title></title>
+-<link href="css/AnyminuteTypography.css?v=20261108v73" rel="stylesheet" /></head>
+-<body class="am-typography">
++<link href="css/AnyminuteTypography.css?v=20261108v74" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261108v74" rel="stylesheet" /></head>
++<body class="am-reference am-typography">
+     <form id="form1" runat="server">
+              <div Style="visibility:hidden;display:none;">
+               <asp:GridView runat="server" ID="GvExport" CellPadding="4" ForeColor="#333333" GridLines="None" CellSpacing="4">

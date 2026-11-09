@@ -1,0 +1,43 @@
+PASS balanced CSS blocks, including responsive/print rules
+PASS no icon pseudo-element overrides
+PASS font-face is the only direct font-family declaration; inherited UI/heading variables preserve icon faces
+PASS no added external runtime dependencies
+PASS bundled STIX font includes SIL OFL licence
+PASS bundled font has a valid TrueType signature
+PASS AMV3Reseller_27Aug2022_Subscription/ExternalLogin.aspx: markup changes limited to style references, body class and stamp
+PASS AMV3Reseller_27Aug2022_Subscription/ExternalLogin.aspx: reference stylesheet loaded once, after existing styles
+PASS AMV3Reseller_27Aug2022_Subscription/Login.aspx: markup changes limited to style references, body class and stamp
+PASS AMV3Reseller_27Aug2022_Subscription/Login.aspx: reference stylesheet loaded once, after existing styles
+PASS AMV3Reseller_27Aug2022_Subscription/Main.master: markup changes limited to style references, body class and stamp
+PASS AMV3Reseller_27Aug2022_Subscription/Main.master: reference stylesheet loaded once, after existing styles
+PASS AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master: markup changes limited to style references, body class and stamp
+PASS AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master: reference stylesheet loaded once, after existing styles
+PASS AMV3Reseller_27Aug2022_Subscription/ModalPopUpSelectEffectiveDate.aspx: markup changes limited to style references, body class and stamp
+PASS AMV3Reseller_27Aug2022_Subscription/ModalPopUpSelectEffectiveDate.aspx: reference stylesheet loaded once, after existing styles
+PASS AMV3Reseller_27Aug2022_Subscription/Modern.master: markup changes limited to style references, body class and stamp
+PASS AMV3Reseller_27Aug2022_Subscription/Modern.master: reference stylesheet loaded once, after existing styles
+PASS AMV3Reseller_27Aug2022_Subscription/Registration.aspx: markup changes limited to style references, body class and stamp
+PASS AMV3Reseller_27Aug2022_Subscription/Registration.aspx: reference stylesheet loaded once, after existing styles
+PASS AMV3Reseller_27Aug2022_Subscription/Report3.aspx: markup changes limited to style references, body class and stamp
+PASS AMV3Reseller_27Aug2022_Subscription/Report3.aspx: reference stylesheet loaded once, after existing styles
+PASS AMV3Reseller_27Aug2022_Subscription/ResetPassord.aspx: markup changes limited to style references, body class and stamp
+PASS AMV3Reseller_27Aug2022_Subscription/ResetPassord.aspx: reference stylesheet loaded once, after existing styles
+PASS AMV3Reseller_27Aug2022_Subscription/ResetPassord_New_Account.aspx: markup changes limited to style references, body class and stamp
+PASS AMV3Reseller_27Aug2022_Subscription/ResetPassord_New_Account.aspx: reference stylesheet loaded once, after existing styles
+PASS AMV3Reseller_27Aug2022_Subscription/VerifyLoginEmail.aspx: markup changes limited to style references, body class and stamp
+PASS AMV3Reseller_27Aug2022_Subscription/VerifyLoginEmail.aspx: reference stylesheet loaded once, after existing styles
+PASS AMV3Reseller_27Aug2022_Subscription/document2.aspx: markup changes limited to style references, body class and stamp
+PASS AMV3Reseller_27Aug2022_Subscription/document2.aspx: reference stylesheet loaded once, after existing styles
+PASS AMV3Reseller_27Aug2022_Subscription/document3.aspx: markup changes limited to style references, body class and stamp
+PASS AMV3Reseller_27Aug2022_Subscription/document3.aspx: reference stylesheet loaded once, after existing styles
+PASS no business code, wipe or Wait Me changes
+PASS Main.master master compile: zero errors
+PASS Modern.master master compile: zero errors
+PASS MasterWithoutMenu.master master compile: zero errors
+PASS static preview resource returns 200: index.html
+PASS static preview resource returns 200: reference.jpg
+PASS static preview resource returns 200: site/css/AnyminuteReference.css?v=20261108v74
+PASS static preview resource returns 200: site/css/fonts/STIXTwoText-Variable.ttf
+PASS static preview resource returns 200: site/Assets/assets/css/fonts.min.css
+PASS v72 wipe C# remains byte-identical
+PASS v72 wipe SQL remains byte-identical
