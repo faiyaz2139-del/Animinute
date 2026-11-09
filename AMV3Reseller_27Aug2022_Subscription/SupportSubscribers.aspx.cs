@@ -181,18 +181,19 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
             // standalone reseller pages (slide title + lead, close X back to Subscriber Details) - v60 drew them inside the Details tab shell.
             if (Rsl != null && (view == "access" || view == "reset" || view == "history")) { RPage(c, r, view, ready); return; }
             if (Rsl == null && view == "activity") view = "history";
-            if (view == "" || view == "businesses" || view == "employees" || view == "projects" || view == "billing" || view == "access" || view == "support" || view == "history" || view == "reset" || view == "activity")
+            if (view == "" || view == "businesses" || view == "locations" || view == "employees" || view == "projects" || view == "billing" || view == "access" || view == "support" || view == "history" || view == "reset" || view == "activity")
             {
                 Title1.Text = ""; Lead.Text = ""; string on = view.Length == 0 ? "businesses" : view;
                 // v54 (NOTES_v54): Send Password Reset renders inside the sticky Details + DTabs shell with Login & Access selected.
                 bool rst = on == "reset"; if (rst) on = "access";
-                Crumbs.Text = CrumbBar(CrumbSep(on == "businesses" ? "<span>Subscriber Details</span>" : "<a href='SupportSubscribers.aspx?user=" + user + "'>Subscriber Details</a>") + (rst ? CrumbSep("<a href='SupportSubscribers.aspx?user=" + user + "&amp;view=access'>Login &amp; Access</a>") + CrumbSep("<span>Send Password Reset</span>") : on == "access" ? CrumbSep("<span>Login &amp; Access</span>") : on == "support" ? CrumbSep("<span>Support History</span>") : on == "history" ? CrumbSep("<span>Login Activity History</span>") : on == "activity" ? CrumbSep("<span>Activity Log</span>") : ""));
+                Crumbs.Text = CrumbBar(CrumbSep(on == "businesses" || on == "locations" ? "<span>Subscriber Details</span>" : "<a href='SupportSubscribers.aspx?user=" + user + "'>Subscriber Details</a>") + (rst ? CrumbSep("<a href='SupportSubscribers.aspx?user=" + user + "&amp;view=access'>Login &amp; Access</a>") + CrumbSep("<span>Send Password Reset</span>") : on == "access" ? CrumbSep("<span>Login &amp; Access</span>") : on == "support" ? CrumbSep("<span>Support History</span>") : on == "history" ? CrumbSep("<span>Login Activity History</span>") : on == "activity" ? CrumbSep("<span>Activity Log</span>") : ""));
                 if (on == "history" || on == "activity") { var nm = Name(r).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); SubName = nm.Length > 1 ? nm[0] + " " + nm[nm.Length - 1] : Name(r); }
-                string body = on == "billing" ? Billing(c, r) : on == "employees" || on == "projects" ? Related(c, r, on) : rst ? "<div class='sa-tabpad'>" + RHead("Send Password Reset", "Send a secure password reset link to the subscriber.", "SupportSubscribers.aspx?user=" + user + "&amp;view=access") + Reset(r, ready) + "</div>" : on == "access" ? "<div class='sa-tabpad'>" + RHead("Manage Login &amp; Access", "Manage the subscriber's login access and security settings.", null) + Access(c, r, ready) + "</div>" : on == "support" ? Support(c, r) : on == "history" ? RHead("Login Activity History", "View sign-in activity and security events for this subscriber.", null) + History(c, user, "history") : on == "activity" ? History(c, user, "activity") : Biz(c, r);
+                string body = on == "billing" ? Billing(c, r) : on == "locations" ? Locations(c, r) : on == "employees" || on == "projects" ? Related(c, r, on) : rst ? "<div class='sa-tabpad'>" + RHead("Send Password Reset", "Send a secure password reset link to the subscriber.", "SupportSubscribers.aspx?user=" + user + "&amp;view=access") + Reset(r, ready) + "</div>" : on == "access" ? "<div class='sa-tabpad'>" + RHead("Manage Login &amp; Access", "Manage the subscriber's login access and security settings.", null) + Access(c, r, ready) + "</div>" : on == "support" ? Support(c, r) : on == "history" ? RHead("Login Activity History", "View sign-in activity and security events for this subscriber.", null) + History(c, user, "history") : on == "activity" ? History(c, user, "activity") : Biz(c, r);
                 Content.Text = Details(c, r) + "<div class='sa-tabbed'>" + DTabs(c, r, on) + body + "</div>";
             }
             else if (view == "bizadd") { Title1.Text = ""; Lead.Text = ""; Content.Text = Details(c, r) + "<div class='sa-tabbed'>" + DTabs(c, r, "businesses") + BizAdd(c, r, null) + "</div>"; }
             else if (view == "bizview") { int bz; Int32.TryParse(SA.Get("biz"), out bz); Title1.Text = ""; Lead.Text = ""; Content.Text = Details(c, r) + "<div class='sa-tabbed'>" + DTabs(c, r, "businesses") + BizView(c, r, bz) + "</div>"; }
+            else if (view == "locview") { int bz; Int32.TryParse(SA.Get("biz"), out bz); Title1.Text = ""; Lead.Text = ""; Content.Text = Details(c, r) + "<div class='sa-tabbed'>" + DTabs(c, r, "locations") + LocView(c, r, bz) + "</div>"; }
             else if (view == "bizedit") { int bz; Int32.TryParse(SA.Get("biz"), out bz); Title1.Text = ""; Lead.Text = ""; Content.Text = Details(c, r) + "<div class='sa-tabbed'>" + DTabs(c, r, "businesses") + BizEdit(c, r, bz, null, null) + "</div>"; }
             else if (view == "edit")
             {
@@ -262,7 +263,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
         foreach (var r in rows.Skip((page - 1) * size).Take(size))
         {
             int u = Convert.ToInt32(r["UserId"]); string b = "SupportSubscribers.aspx?user=" + u, sts = StatusOf(r), phone = SA.S(r["MainPhone"]).Length > 0 ? SA.S(r["MainPhone"]) : SA.S(r["MobilePhone"]);
-            sb.Append("<tr><td><input type='checkbox' name='sa_sel' value='").Append(u).Append("' aria-label='Select' /></td><td>").Append(++n).Append("</td><td><a class='sa-link' href='").Append(b).Append("'>").Append(SA.H(Name(r))).Append("</a></td><td>")
+            sb.Append("<tr><td><input type='checkbox' name='sa_sel' value='").Append(u).Append("' aria-label='Select' /></td><td>").Append(++n).Append("</td><td><a class='sa-link sa-sub-name' href='").Append(b).Append("' title='Open subscriber details'>").Append(SA.H(Name(r))).Append("</a></td><td>")
               .Append(SA.S(r["PlanName"]).Length > 0 ? SA.H(r["PlanName"]) : "&mdash;").Append("</td><td class='sa-c'>").Append(Used(r["Businesses"], r["PlanBiz"])).Append("</td><td class='sa-c'>").Append(Used(r["Users"], r["PlanUsers"]))
               .Append("</td><td>").Append(phone.Length > 0 ? SA.H(phone) : "&mdash;").Append("</td><td>").Append(SA.H(r["Email"])).Append("</td><td>").Append(r["Since"] == DBNull.Value ? "&mdash;" : D(r["Since"])).Append("</td><td class='sa-nowrap'>").Append(SA.Pill(sts, Tone(sts))) // v46 (t150u): status toggle removed - status pill only, as on Resellers / Businesses
               // v51 (held note): View button in Actions, the three-dot menu in the next column.
@@ -306,7 +307,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
         {
             int u = Convert.ToInt32(r["UserId"]); string b = "SupportSubscribers.aspx?user=" + u, sts = StatusOf(r);
             int[] k; try { k = Counts(c, r); } catch (SqlException) { k = new[] { 0, 0, 0 }; }
-            sb.Append("<tr><td>").Append(++n).Append("</td><td><a class='sa-link' href='").Append(b).Append("'>").Append(SA.H(Name(r))).Append("</a></td><td>").Append(SA.S(r["PlanName"]).Length > 0 ? SA.H(PlanLabel(SA.S(r["PlanName"]))) : "&mdash;")
+            sb.Append("<tr><td>").Append(++n).Append("</td><td><a class='sa-link sa-sub-name' href='").Append(b).Append("' title='Open subscriber details'>").Append(SA.H(Name(r))).Append("</a></td><td>").Append(SA.S(r["PlanName"]).Length > 0 ? SA.H(PlanLabel(SA.S(r["PlanName"]))) : "&mdash;")
               .Append("</td><td class='sa-c'>").Append(k[0]).Append("</td><td class='sa-c'>").Append(k[1]).Append("</td><td class='sa-c'>").Append(k[2]).Append("</td><td>").Append(SA.Pill(sts, Tone(sts)))
               .Append("</td><td class='sa-c sa-nowrap'><a class='sa-btn sa-btn-sm sa-btn-outline' href='").Append(b).Append("'>View</a> <details class='sa-menu'><summary class='sa-kebab' aria-label='Subscriber actions'>").Append(Ic("vmore"))
               .Append("</summary><div class='sa-menu-pop'><h4>Subscriber Actions</h4><small>").Append(SA.H(Name(r))).Append("</small>").Append(Menu(u)).Append("</div></details></td></tr>");
@@ -365,7 +366,8 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
         if (Rsl != null) // v55 Reseller PPT s5: Businesses / Employees / Projects / Subscription & Billing / Login & Access / Activity Log
             return "<nav class='sa-tabs sa-tabs45'>" + t("businesses", "Businesses" + k(0), u + "businesses") + t("employees", "Employees" + k(1), u + "employees") + t("projects", "Projects" + k(2), u + "projects")
                 + t("billing", "Subscription &amp; Billing", u + "billing") + t("access", "Login &amp; Access", u + "access") + t("activity", "Activity Log", u + "activity") + "</nav>"; // v61: Activity Log tab = view=activity
-        return "<nav class='sa-tabs sa-tabs45'>" + t("businesses", "Businesses" + k(0), u + "businesses") + t("employees", "Employees" + k(1), u + "employees") + t("projects", "Projects" + k(2), u + "projects")
+        // v76: Locations tab (Support Admin) — office locations from AddBusiness + BusinessAddress + policy timezone.
+        return "<nav class='sa-tabs sa-tabs45'>" + t("businesses", "Businesses" + k(0), u + "businesses") + t("locations", "Locations" + k(0), u + "locations") + t("employees", "Employees" + k(1), u + "employees") + t("projects", "Projects" + k(2), u + "projects")
             + t("billing", "Subscription &amp; Billing", u + "billing") + t("access", "Login &amp; Access", u + "access") + t("support", "Support History", u + "support") + t("history", "Login Activity History", u + "history") + "</nav>";
     }
     // Businesses tab (PPT 01 s3/s4): "Businesses" + "List of businesses under this subscriber." + "+ Add Business";
@@ -1197,6 +1199,126 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
         if (errs.Count > 0) { Flash.Text = "<div class='sa-flash sa-warn'>" + String.Join("<br/>", errs.Select(e => SA.H(e)).ToArray()) + "</div>"; Content.Text = Details(c, r) + "<div class='sa-tabbed'>" + DTabs(c, r, "businesses") + BizAdd(c, r, new[] { name, contact, SA.Form("bz_phone"), email, "post" }) + "</div>"; return; }
         SA.Flash("Business added." + (vst == "Pending" ? " The business address was sent to Address Verification (Pending Verification)." : "")); Back(u, "businesses");
     }
+
+    // v76 (held notes image5): Locations in Support Admin Subscriber Details — real AddBusiness / BusinessAddress /
+    // AnyminuteBusinessPolicy rows only; empty cells stay dashes; Add Location reuses Add Business (no invented offices).
+    static string LocName(DataRow x)
+    {
+        string city = SA.S(x.Table.Columns.Contains("City") ? x["City"] : null).Trim();
+        string op = SA.S(x.Table.Columns.Contains("OperatingName") ? x["OperatingName"] : null).Trim();
+        string co = SA.S(x["CompanyName"]).Trim();
+        return city.Length > 0 ? city : (op.Length > 0 ? op : co);
+    }
+    static string LocAddr(DataRow x)
+    {
+        Func<string, string> col = k => x.Table.Columns.Contains(k) ? SA.S(x[k]) : "";
+        string country = col("Country"); if (country != "United States" && country != "Canada") country = country.Length > 0 ? country : "Canada";
+        var a = new AD.Addr {
+            StreetNo = col("StreetNo"), Line1 = col("StreetName"), Line2 = col("StreetType"), SuiteNo = col("SuiteNumber"),
+            SuiteType = col("SuitType"), City = col("City"), Province = col("Province"), Postal = col("Postalcode"), Country = country
+        };
+        string s = AD.Compose(a); return s;
+    }
+    static string LocTz(DataRow x)
+    {
+        if (!x.Table.Columns.Contains("TimeZoneID")) return "";
+        return SA.S(x["TimeZoneID"]).Trim();
+    }
+    List<DataRow> LocRows(SqlConnection c, DataRow r)
+    {
+        try
+        {
+            bool pol = SA.Has(c, "AnyminuteBusinessPolicy");
+            string sql = BizCte + @"SELECT b.BusinessID,b.CompanyName,b.OperatingName,b.PrimaryContactNumber,b.Status,
+                ba.StreetNo,ba.StreetName,ba.StreetType,ba.SuiteNumber,ba.SuitType,ba.City,ba.Province,ba.Postalcode,ba.MainEmail,ba.MainPhone" +
+                (AnyminuteTimesheetRepair.Query(c, null, "SELECT COL_LENGTH('dbo.BusinessAddress','Country')").Rows[0][0] != DBNull.Value ? ",ba.Country" : ",CAST(NULL AS nvarchar(50)) Country") +
+                (pol ? ",p.TimeZoneID" : ",CAST(NULL AS nvarchar(100)) TimeZoneID") + @"
+                FROM AddBusiness b JOIN biz ON biz.BusinessID=b.BusinessID
+                LEFT JOIN BusinessAddress ba ON ba.BusinessAddressId=b.ADDRESSID
+                " + (pol ? "LEFT JOIN AnyminuteBusinessPolicy p ON p.BusinessID=b.BusinessID " : "") + @"
+                WHERE ISNULL(b.Status,'')<>'2' ORDER BY ISNULL(ba.City,b.CompanyName),b.CompanyName";
+            return SA.Q(c, sql, ScopeArgs(r)).Rows.Cast<DataRow>().ToList();
+        }
+        catch (SqlException) { return new List<DataRow>(); }
+    }
+    string Locations(SqlConnection c, DataRow r)
+    {
+        int user = Convert.ToInt32(r["UserId"]); string b = "SupportSubscribers.aspx?user=" + user;
+        string q = SA.Get("q"), st = SA.Get("locstatus");
+        var all = LocRows(c, r);
+        var rows = all.Where(x => {
+            string hay = (LocName(x) + " " + SA.S(x["CompanyName"]) + " " + LocAddr(x) + " " + LocTz(x)).ToLowerInvariant();
+            if (q.Length > 0 && hay.IndexOf(q.ToLowerInvariant(), StringComparison.Ordinal) < 0) return false;
+            string sts = SA.S(x["Status"]) == "2" ? "Inactive" : "Active";
+            if (st == "Active" && sts != "Active") return false;
+            if (st == "Inactive" && sts != "Inactive") return false;
+            return true;
+        }).ToList();
+        int sel; Int32.TryParse(SA.Get("biz"), out sel);
+        var sb = new StringBuilder("<div class='sa-card sa-loc'><div class='sa-panel-head sa-biz-head'><div><h2>Locations</h2><small>Manage the offices connected to this subscriber's businesses.</small></div>");
+        if (!NoBiz) sb.Append("<a class='sa-btn sa-addbiz' href='").Append(b).Append("&amp;view=bizadd'>").Append(Ic("plus")).Append(" Add Location</a>");
+        sb.Append("</div><div class='sa-filters' data-sa-get='").Append(b).Append("&amp;view=locations'><input type='hidden' name='view' value='locations' /><input type='hidden' name='user' value='").Append(user).Append("' />")
+          .Append("<label class='sa-grow sa-search'><span class='sr-only'>Search</span><i aria-hidden='true'>").Append(Ic("search")).Append("</i><input type='search' name='q' value='").Append(SA.A(q)).Append("' placeholder='Search locations' /></label>")
+          .Append("<label><span>Status</span><select name='locstatus'>").Append(SA.Options(new[] { "Active", "Inactive" }, st, "All locations")).Append("</select></label>")
+          .Append("<button type='button' class='sa-btn' data-sa-apply='1'>").Append(Ic("search")).Append(" Search</button></div>");
+        sb.Append("<div class='sa-table-wrap'><table class='sa-table sa-loc-table'><thead><tr><th>Location</th><th>Business Name</th><th>Address</th><th>Time Zone</th><th>Status</th><th class='sa-c'>Actions</th></tr></thead><tbody>");
+        foreach (var x in rows)
+        {
+            int id = Convert.ToInt32(x["BusinessID"]); string name = LocName(x), biz = SA.S(x["CompanyName"]), addr = LocAddr(x), tz = LocTz(x);
+            string sts = SA.S(x["Status"]) == "2" ? "Inactive" : "Active";
+            bool on = sel == id;
+            sb.Append("<tr").Append(on ? " class='sa-loc-on'" : "").Append("><td><a class='sa-link' href='").Append(b).Append("&amp;view=locations&amp;biz=").Append(id).Append("'>").Append(SA.H(name.Length > 0 ? name : "—")).Append("</a></td><td>")
+              .Append(SA.H(biz.Length > 0 ? biz : "—")).Append("</td><td>").Append(addr.Length > 0 ? SA.H(addr) : "&mdash;").Append("</td><td>").Append(tz.Length > 0 ? SA.H(tz) : "&mdash;").Append("</td><td>")
+              .Append(SA.Pill(sts, sts == "Active" ? "green" : "grey")).Append("</td><td class='sa-c sa-nowrap'><a class='sa-icon-btn' href='").Append(b).Append("&amp;view=locview&amp;biz=").Append(id).Append("' title='View location' aria-label='View location'>").Append(Ic("eye")).Append("</a> ")
+              .Append(NoBiz ? "" : "<a class='sa-icon-btn' href='" + b + "&amp;view=bizedit&amp;biz=" + id + "' title='Edit location' aria-label='Edit location'>" + Ic("edit") + "</a> ")
+              .Append("<details class='sa-menu'><summary class='sa-kebab' aria-label='Location actions'>").Append(Ic("vmore")).Append("</summary><div class='sa-menu-pop'><h4>Location Actions</h4><small>").Append(SA.H(name)).Append("</small>")
+              .Append("<a class='sa-menu-item' href='").Append(b).Append("&amp;view=locview&amp;biz=").Append(id).Append("'><span><b>View Location</b><small>Address, contact and time zone</small></span></a>")
+              .Append(NoBiz ? "" : "<a class='sa-menu-item' href='" + b + "&amp;view=bizedit&amp;biz=" + id + "'><span><b>Edit Business</b><small>Name and primary contact</small></span></a>")
+              .Append("<a class='sa-menu-item' href='").Append(b).Append("&amp;view=bizview&amp;biz=").Append(id).Append("'><span><b>View Business</b><small>Full business record</small></span></a>")
+              .Append("</div></details></td></tr>");
+        }
+        if (rows.Count == 0) sb.Append("<tr><td colspan='6' class='sa-empty'>").Append(all.Count == 0 ? "No locations yet. Use + Add Location to add a business office for this subscriber." : "No locations found.").Append("</td></tr>");
+        sb.Append("</tbody></table></div>");
+        if (sel > 0)
+        {
+            var hit = all.FirstOrDefault(x => Convert.ToInt32(x["BusinessID"]) == sel);
+            if (hit != null) sb.Append(LocDetailsCard(c, r, hit, false));
+        }
+        return sb.Append("</div>").ToString();
+    }
+    string LocView(SqlConnection c, DataRow r, int biz)
+    {
+        int user = Convert.ToInt32(r["UserId"]); string b = "SupportSubscribers.aspx?user=" + user;
+        var hit = LocRows(c, r).FirstOrDefault(x => Convert.ToInt32(x["BusinessID"]) == biz);
+        if (hit == null) return "<div class='sa-card'><p>This location does not belong to this subscriber.</p><a class='sa-btn sa-btn-outline' href='" + b + "&amp;view=locations'>Back to Locations</a></div>";
+        return LocDetailsCard(c, r, hit, true);
+    }
+    string LocDetailsCard(SqlConnection c, DataRow r, DataRow x, bool standalone)
+    {
+        int user = Convert.ToInt32(r["UserId"]), id = Convert.ToInt32(x["BusinessID"]); string b = "SupportSubscribers.aspx?user=" + user;
+        string loc = LocName(x), phone = SA.S(x["PrimaryContactNumber"]).Trim(); if (phone.Length == 0) phone = SA.S(x.Table.Columns.Contains("MainPhone") ? x["MainPhone"] : null).Trim();
+        string email = SA.S(x.Table.Columns.Contains("MainEmail") ? x["MainEmail"] : null).Trim();
+        string line1 = (SA.S(x.Table.Columns.Contains("StreetNo") ? x["StreetNo"] : null).Trim() + " " + SA.S(x.Table.Columns.Contains("StreetName") ? x["StreetName"] : null).Trim()).Trim();
+        string line2 = SA.S(x.Table.Columns.Contains("StreetType") ? x["StreetType"] : null).Trim();
+        string suite = (SA.S(x.Table.Columns.Contains("SuitType") ? x["SuitType"] : null).Trim() + " " + SA.S(x.Table.Columns.Contains("SuiteNumber") ? x["SuiteNumber"] : null).Trim()).Trim();
+        if (suite.Length > 0) line2 = (line2.Length > 0 ? line2 + ", " : "") + suite;
+        string city = SA.S(x.Table.Columns.Contains("City") ? x["City"] : null).Trim();
+        string prov = SA.S(x.Table.Columns.Contains("Province") ? x["Province"] : null).Trim();
+        string postal = SA.S(x.Table.Columns.Contains("Postalcode") ? x["Postalcode"] : null).Trim();
+        string country = SA.S(x.Table.Columns.Contains("Country") ? x["Country"] : null).Trim(); if (country.Length == 0) country = "Canada";
+        string tz = LocTz(x);
+        Func<string, string, string> f = (label, val) => "<label class='sa-field'><span>" + label + "</span><input type='text' readonly value='" + SA.A(val) + "' /></label>";
+        var sb = new StringBuilder("<div class='sa-card sa-loc-details'><div class='sa-panel-head'><div><h2>Location Details</h2><small>").Append(SA.H(SA.S(x["CompanyName"]))).Append("</small></div></div><div class='sa-grid2'>")
+          .Append(f("Location name", loc)).Append(f("Phone", phone)).Append(f("Email", email)).Append(f("Address line 1", line1))
+          .Append(f("Address line 2", line2)).Append(f("City", city)).Append(f("Province", prov)).Append(f("Postal code", postal))
+          .Append(f("Country", country)).Append(f("Time zone", tz)).Append("</div>")
+          .Append("<div class='sa-flash sa-info'>&#9432; Deactivating a location preserves its history. Location data comes from the linked business record.</div>")
+          .Append("<div class='sa-panel-foot'><a class='sa-btn sa-btn-outline' href='").Append(b).Append("&amp;view=locations'>").Append(standalone ? "Back to Locations" : "Close").Append("</a>")
+          .Append(NoBiz ? "" : "<a class='sa-btn' href='" + b + "&amp;view=bizedit&amp;biz=" + id + "'>" + Ic("edit") + " Edit Business</a>")
+          .Append("<a class='sa-btn sa-btn-outline' href='").Append(b).Append("&amp;view=bizview&amp;biz=").Append(id).Append("'>View Business</a></div></div>");
+        return sb.ToString();
+    }
+
     // v57 (PPT s2 "View instead of Edit"): read-only business card inside the Subscriber Details shell, limited to this subscriber's businesses.
     string BizView(SqlConnection c, DataRow r, int biz)
     {

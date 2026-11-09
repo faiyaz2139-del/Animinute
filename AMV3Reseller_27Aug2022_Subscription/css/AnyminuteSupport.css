@@ -357,3 +357,13 @@ html body .sa-card.sa-plan-up{box-shadow:0 0 0 2px #2563eb,0 4px 14px rgba(37,99
 .sa-head-btns{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .sa-av71{max-width:600px}.sa-av71 h2{margin:0 0 4px}.sa-av71 .sa-field{margin-top:10px}.sa-av71 .sa-panel-foot{margin-top:16px}
 .sa-av-errs{margin:6px 0 0 18px;padding:0;max-height:220px;overflow:auto;font-size:13px}
+
+/* v76 Locations tab + subscriber-name open details */
+.sa-page a.sa-sub-name{color:var(--sa-blue);font-weight:600;text-decoration:none;cursor:pointer}
+.sa-page a.sa-sub-name:hover{text-decoration:underline}
+.sa-page .sa-loc .sa-panel-head{align-items:flex-start}
+.sa-page .sa-loc-table tr.sa-loc-on{background:#e8f7f4}
+.sa-page .sa-loc-details .sa-grid2{grid-template-columns:1fr 1fr;gap:14px 18px;margin:8px 0 16px}
+.sa-page .sa-loc-details .sa-field input[readonly]{background:#f7f9fc;color:var(--sa-ink)}
+.sa-page .sa-loc-details .sa-flash{margin:0 0 16px}
+@media (max-width:720px){.sa-page .sa-loc-details .sa-grid2{grid-template-columns:1fr}}

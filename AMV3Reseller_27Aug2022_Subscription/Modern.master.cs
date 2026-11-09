@@ -50,7 +50,11 @@ public partial class AnyminuteModernMaster : System.Web.UI.MasterPage
   var rslCtx=AnyminuteResellerPortal.Current();
   if(rslCtx!=null){LogoDefault.Visible=false;Brand.Text=AnyminuteResellerPortal.Brand;context="Reseller";HeaderHelp.Text=AnyminuteUiNavigation.HeaderHelp(menu);accountantHeader=false;AccountHelp.Text="";
    if(rslCtx.Name.Length>0){Welcome.Text=HttpUtility.HtmlEncode(rslCtx.Name);AccountAvatar.Text="<span class='am-ap-avatar' title='"+HttpUtility.HtmlAttributeEncode(rslCtx.Name)+"' aria-hidden='true'>"+HttpUtility.HtmlEncode(AnyminuteAccountantDashboard.Initials(rslCtx.Name))+"</span>";}}
-  if(supportAdmin&&rslCtx==null){Welcome.Text="Support Admin";context=null;}
+  if(supportAdmin&&rslCtx==null){
+   // v76: Support Admin uses the same clear SVG wordmark as Accountant; logo.jpg was unreadably small in the top bar.
+   Welcome.Text="Support Admin";context=null;LogoDefault.Visible=false;
+   Brand.Text="<span class='am-ap-brand'><svg viewBox='0 0 40 40' width='28' height='28' aria-hidden='true' focusable='false'><circle cx='20' cy='21' r='15' fill='none' stroke='#1f6fe5' stroke-width='4'/><path d='M20 12v9.5l6 3.5' fill='none' stroke='#1f6fe5' stroke-width='3.6' stroke-linecap='round' stroke-linejoin='round'/><path d='M15 3.5h10' stroke='#1f6fe5' stroke-width='3.6' stroke-linecap='round'/></svg><span class='am-ap-brand-text'>AnyMinute</span></span>";
+  }
   if(!String.IsNullOrEmpty(context))WelcomeContext.Text="<small class='am-welcome-context' style='display:block;font-size:12px;font-weight:500;color:#5b6778;line-height:1.3'>"+HttpUtility.HtmlEncode(context)+"</small>";
 
   int business;

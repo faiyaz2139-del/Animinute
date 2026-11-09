@@ -347,7 +347,7 @@ public static class AnyminuteUiNavigation
     public static string HeaderHelp(IEnumerable<MenuViewModel> permitted)
     {
         var items=permitted.ToList();var html=new StringBuilder();
-        html.Append("<details class='am-header-help'><summary aria-label='Help and support'><span data-am-icon='help' aria-hidden='true'></span></summary><div class='am-account-popover'><strong>Need help using AnyMinute?</strong>");
+        html.Append("<details class='am-header-help'><summary aria-label='Help and support'><svg class='am-help-mark' viewBox='0 0 24 24' width='18' height='18' aria-hidden='true' focusable='false'><circle cx='12' cy='12' r='10' fill='currentColor' opacity='.12'/><path d='M9.2 9.1a2.9 2.9 0 0 1 5.5 1.2c0 1.5-1.3 2.1-2.1 2.6-.7.4-1.1.9-1.1 1.7' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round'/><circle cx='12' cy='17.2' r='1.15' fill='currentColor'/></svg></summary><div class='am-account-popover'><strong>Need help using AnyMinute?</strong>");
         HeaderLink(html,VirtualPathUtility.ToAbsolute("~/Help.aspx"),"Help Center","help");
         string tickets=PermittedHref(items,"Ticket_List.aspx","Raise_Ticket_By_User.aspx");
         // v26: the SupportAdmin role uses the deck ticket console instead of the legacy ticket pages.

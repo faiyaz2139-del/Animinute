@@ -123,3 +123,66 @@ html body.am-reference.am-typography .input-validation-error{border-color:#b4231
 @media print{html body.am-reference.am-typography .am-quick-actions{display:none!important}}
 /* Remove the old console's extra 4/8px inset so every role shares the measured content edge. */
 html body.am-reference.am-typography .sa-page{--sa-ink:#172c3b;--sa-line:#dce4e8;--sa-bg:#fff;font-size:14px;padding:0 0 32px}
+
+/* v76-20261109: Support Admin shell — restore readable nav width (v37), kill page-level
+   horizontal scroll without clipping table scroll, solid sidebar, clearer logo/help. */
+html body.am-reference.am-typography.am-drawer-nav.am-sa-navbody{--am-sidebar:252px}
+html body.am-reference.am-typography.am-drawer-nav.am-sa-navbody .am-sidebar,
+html body.am-reference.am-typography.am-drawer-nav.am-sa-navbody #sidebar-wrapper,
+html body.am-reference.am-typography.am-drawer-nav.am-sa-navbody #wrapper.active #sidebar-wrapper{
+  width:252px!important;max-width:86vw;background:#fff!important;opacity:1!important;
+  overflow-x:hidden!important;overflow-y:auto!important;z-index:1035!important
+}
+html body.am-reference.am-typography.am-drawer-nav.am-sa-navbody li.am-sa-nav>a{
+  white-space:nowrap!important;overflow:visible!important;color:#18374c!important;
+  font-size:13px!important;font-weight:500!important;opacity:1!important
+}
+html body.am-reference.am-typography.am-drawer-nav.am-sa-navbody li.am-sa-nav>a>span:not(.am-nav-badge){
+  overflow:visible!important;text-overflow:clip!important;white-space:nowrap!important;color:inherit!important
+}
+html body.am-reference.am-typography.am-drawer-nav.am-sa-navbody li.am-sa-nav>a svg{color:#69acd1!important;opacity:1!important}
+html,body.am-reference.am-typography{overflow-x:hidden!important;max-width:100%}
+html body.am-reference.am-typography .am-main,
+html body.am-reference.am-typography #page-content-wrapper,
+html body.am-reference.am-typography #wrapper,
+html body.am-reference.am-typography #wrapper.active{max-width:100%;min-width:0;box-sizing:border-box}
+@media(min-width:992px){
+html body.am-reference.am-typography.am-drawer-nav.am-sa-navbody.am-sa-pinned.am-drawer-open .am-main,
+html body.am-reference.am-typography.am-drawer-nav.am-sa-navbody.am-sa-pinned.am-drawer-open #page-content-wrapper,
+html body.am-reference.am-typography.am-drawer-nav.am-sa-navbody.am-sa-pinned.am-drawer-open #wrapper.active #page-content-wrapper{
+  margin-left:252px!important;width:auto!important;max-width:none!important;
+  box-sizing:border-box!important;overflow-x:clip
+}
+html body.am-reference.am-typography:not(.am-drawer-nav) .am-main{margin-left:188px!important;width:auto!important}
+html body.am-reference.am-typography.am-drawer-nav.am-sa-pinned.am-drawer-open .am-main,
+html body.am-reference.am-typography.am-drawer-nav.am-sa-pinned.am-drawer-open #page-content-wrapper,
+html body.am-reference.am-typography.am-drawer-nav.am-sa-pinned.am-drawer-open #wrapper.active #page-content-wrapper{
+  width:auto!important;box-sizing:border-box!important
+}
+}
+/* Logo: Support Admin uses SVG wordmark (.am-ap-brand); keep img logos sharp when present. */
+html body.am-reference.am-typography .am-topbar>a.am-brand{display:inline-flex!important;align-items:center;gap:8px;height:40px!important;flex:0 0 auto!important;width:auto!important;min-width:0;padding:0 10px 0 4px!important}
+html body.am-reference.am-typography .am-logo{max-width:140px!important;width:auto!important;height:36px!important;object-fit:contain!important;image-rendering:auto}
+html body.am-reference.am-typography .am-ap-brand{display:inline-flex!important;align-items:center;gap:8px}
+html body.am-reference.am-typography .am-ap-brand svg{width:28px!important;height:28px!important;flex:0 0 28px!important}
+html body.am-reference.am-typography .am-ap-brand-text{font-size:18px!important;font-weight:700!important;letter-spacing:-.3px;color:#172c3b!important;line-height:1;white-space:nowrap}
+/* Help control redesign: solid circular action, clearer ? mark. */
+html body.am-reference.am-typography .am-header-help{position:relative;flex-shrink:0;margin-left:auto}
+html body.am-reference.am-typography .am-header-help>summary{
+  display:inline-flex!important;align-items:center;justify-content:center;list-style:none;cursor:pointer;
+  width:36px!important;height:36px!important;border-radius:50%!important;box-sizing:border-box;
+  border:1.5px solid #9ec3de!important;background:linear-gradient(180deg,#f7fbff 0%,#e8f3fb 100%)!important;
+  color:#155c98!important;box-shadow:0 1px 0 #fff inset;transition:background .15s,border-color .15s,color .15s
+}
+html body.am-reference.am-typography .am-header-help>summary:hover,
+html body.am-reference.am-typography .am-header-help[open]>summary{
+  background:linear-gradient(180deg,#e8f3fb 0%,#d5ebf8 100%)!important;border-color:#2b74be!important;color:#0f4f86!important
+}
+html body.am-reference.am-typography .am-header-help>summary::-webkit-details-marker{display:none}
+html body.am-reference.am-typography .am-header-help>summary .am-help-mark,
+html body.am-reference.am-typography .am-header-help>summary svg{width:18px!important;height:18px!important;display:block}
+html body.am-reference.am-typography .am-header-help .am-account-popover{right:0;left:auto}
+html body.am-reference.am-typography .sa-page .sa-table-wrap{overflow-x:auto;max-width:100%}
+html body.am-reference.am-typography .sa-page .sa-kpis,
+html body.am-reference.am-typography .sa-page .sa-filters,
+html body.am-reference.am-typography .sa-page .sa-card{max-width:100%;min-width:0}
