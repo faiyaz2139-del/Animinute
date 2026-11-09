@@ -1,0 +1,14 @@
+## compile_Main.master.txt
+
+## compile_MasterWithoutMenu.master.txt
+
+## compile_Modern.master.txt
+
+## compile_SupportSubscribers.aspx.txt
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx.cs(337,19): warning CS0108: `AnyminuteSupportSubscribersPage.Header(System.Data.SqlClient.SqlConnection, System.Data.DataRow, bool)' hides inherited member `System.Web.UI.Page.Header'. Use the new keyword if hiding was intended
+/opt/monoenv/lib/mono/4.5-api/System.Web.dll (Location of the symbol related to previous warning)
+Compilation succeeded - 1 warning(s)
+
+## compile_app.txt
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/CommanClass.cs(245,13): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+Compilation succeeded - 1 warning(s)
