@@ -1,0 +1,125 @@
+/* v74: measured from the supplied 1600x789 reference; AnyMinute content/brand retained.
+   STIX Two Text is selected, not identified from screenshot pixels. SIL OFL bundled beside font.
+   Marketing-site evidence: wave-apps.shared.5e8a2d235.min.css names STIX Two Text / Dinero Sans.
+   Dinero is NOT redistributed: no verified reuse licence. UI uses system Arial instead. */
+@font-face{font-family:"AnyMinute Editorial";src:url("fonts/STIXTwoText-Variable.ttf") format("truetype");font-style:normal;font-weight:400 700;font-display:swap}
+html body.am-reference.am-typography{--am-font-ui:Arial,Helvetica,sans-serif;--am-font-editorial:"AnyMinute Editorial","Times New Roman",serif;--am-sidebar:188px;--am-text:#172c3b;--am-ink:#172c3b;--sa-ink:#172c3b;--am-muted:#526674;--am-line:#dce4e8;--am-border:#dce4e8;--am-bg:#fff;background:#fff!important;color:#172c3b;font-size:14px;line-height:1.45}
+/* All shared shell variants; navigation state and existing JS toggle semantics are unchanged. */
+html body.am-reference.am-typography .am-topbar,
+html body.am-reference.am-typography .navbar-fixed-top{height:48px!important;min-height:48px!important;background:#f6fbff!important;border-bottom:1px solid #e1e8ed!important;box-shadow:none!important;padding:0 16px!important;gap:12px!important}
+html body.am-reference.am-typography .navbar>.container-fluid{height:48px!important;min-height:48px!important;padding:0 12px!important;display:flex;align-items:center}
+html body.am-reference.am-typography .am-topbar>a.am-brand{height:40px!important;flex:0 0 auto!important;width:auto!important;padding:0 8px!important;border-right:0!important}
+html body.am-reference.am-typography .am-topbar>span{font-size:14px!important;line-height:1.2!important;padding-left:8px!important;font-weight:400!important}
+html body.am-reference.am-typography .am-logo{max-width:112px!important;width:auto!important;height:32px!important;object-fit:contain}
+html body.am-reference.am-typography a.logo img{width:auto!important;height:30px!important;max-width:112px!important}
+html body.am-reference.am-typography .am-ap-brand svg,
+html body.am-reference.am-typography .am-rsl-brand svg{width:26px!important;height:26px!important;flex-basis:26px!important}
+html body.am-reference.am-typography .am-ap-brand-text,
+html body.am-reference.am-typography .am-rsl-brand-text{font-size:18px!important;letter-spacing:normal!important}
+html body.am-reference.am-typography .am-account-avatar,
+html body.am-reference.am-typography .am-ap-avatar{width:30px!important;height:30px!important;flex-basis:30px!important;font-size:12px!important}
+html body.am-reference.am-typography .am-icon-button,
+html body.am-reference.am-typography .am-topbar>[data-toggle-sidebar]{height:32px!important;width:28px!important;min-height:0!important;margin:0!important;padding:0!important;font-size:20px!important}
+html body.am-reference.am-typography #menu-toggle{margin:0 10px 0 0!important}
+html body.am-reference.am-typography .am-sidebar,
+html body.am-reference.am-typography #sidebar-wrapper,
+html body.am-reference.am-typography #wrapper.active #sidebar-wrapper{top:48px!important;width:188px!important;background:#fff!important;border-right:1px solid #e1e8ed!important;box-shadow:none!important;padding:10px 8px!important}
+html body.am-reference.am-typography .sidebar-nav{padding:0!important;margin:0!important;list-style:none}
+html body.am-reference.am-typography .sidebar-nav>li{margin:0 0 3px!important;padding:0!important;line-height:normal!important}
+html body.am-reference.am-typography .sidebar-nav>li>a,
+html body.am-reference.am-typography .am-sidebar nav>a{display:flex!important;align-items:center;gap:9px!important;min-height:34px!important;padding:7px 8px!important;margin:0!important;border-radius:5px!important;font-size:13px!important;font-weight:400!important;line-height:1.4!important;color:#18374c!important;white-space:normal!important}
+html body.am-reference.am-typography .sidebar-nav>li>a[aria-current=page],
+html body.am-reference.am-typography .am-sidebar nav>a[aria-current=page]{background:#e0f2ff!important;color:#143c64!important;font-weight:600!important}
+html body.am-reference.am-typography .sidebar-nav>li>a:hover{background:#f0f8fd!important}
+html body.am-reference.am-typography .sidebar-nav>li>a svg,
+html body.am-reference.am-typography .am-sidebar nav>a svg{width:16px!important;height:16px!important;flex:0 0 16px!important;color:#69acd1}
+html body.am-reference.am-typography .am-main{margin-top:48px!important;padding:32px clamp(24px,5.5vw,88px)!important;max-width:none!important;min-width:0}
+html body.am-reference.am-typography #wrapper,
+html body.am-reference.am-typography #wrapper.active{margin-top:48px!important}
+html body.am-reference.am-typography #page-content-wrapper{padding:32px clamp(24px,5.5vw,88px)!important;min-width:0}
+/* Pin/content alignment must outrank historic 240/288px role-specific rules. */
+@media(min-width:992px){
+html body.am-reference.am-typography:not(.am-drawer-nav) .am-main{margin-left:188px!important}
+html body.am-reference.am-typography.am-drawer-nav.am-sa-pinned.am-drawer-open .am-main,
+html body.am-reference.am-typography.am-drawer-nav.am-sa-pinned.am-drawer-open #page-content-wrapper,
+html body.am-reference.am-typography.am-drawer-nav.am-sa-pinned.am-drawer-open #wrapper.active #page-content-wrapper{margin-left:188px!important;width:calc(100% - 188px)!important;box-sizing:border-box}
+html body.am-reference.am-typography.am-drawer-nav.am-sa-pinned.am-drawer-open .am-sidebar{box-shadow:none!important}
+}
+/* Editorial title and section hierarchy. Cards/forms remain compact sans. */
+html body.am-reference.am-typography h1{font-size:42px!important;line-height:1.16!important;font-weight:400!important;color:#182b33!important;letter-spacing:normal!important}
+html body.am-reference.am-typography .am-heading,
+html body.am-reference.am-typography .am-title,
+html body.am-reference.am-typography .sa-head,
+html body.am-reference.am-typography .am-ap-head{margin-bottom:32px!important}
+html body.am-reference.am-typography .am-ap-sechead h2{font-size:30px!important;line-height:1.2!important;font-weight:400!important}
+html body.am-reference.am-typography .am-card,
+html body.am-reference.am-typography .sa-card,
+html body.am-reference.am-typography .panel{background:#fff!important;border:1px solid #dce4e8!important;border-radius:6px!important;box-shadow:none!important}
+html body.am-reference.am-typography .am-card,
+html body.am-reference.am-typography .sa-card{padding:16px!important;margin-bottom:20px!important}
+html body.am-reference.am-typography .am-card h2,
+html body.am-reference.am-typography .sa-card h2{font-size:18px;line-height:1.3;font-weight:600}
+html body.am-reference.am-typography .am-ap-sechead{margin-bottom:20px!important}
+html body.am-reference.am-typography .am-notice,
+html body.am-reference.am-typography .sa-flash:not(.sa-warn){background:#f6fbff!important;border:1px solid #d4e9f5!important;border-left:4px solid #1261a0!important;border-radius:5px!important;color:#173e57!important;padding:16px 20px!important;box-shadow:none!important}
+/* Respect warning/error/destructive semantics rather than repainting every action pastel. */
+html body.am-reference.am-typography .am-button,
+html body.am-reference.am-typography .sa-btn,
+html body.am-reference.am-typography .am-action{border-radius:18px!important;min-height:32px;padding:6px 16px!important;font-size:13px!important;line-height:1.35!important;box-shadow:none!important}
+html body.am-reference.am-typography .am-button.secondary,
+html body.am-reference.am-typography .sa-btn-outline,
+html body.am-reference.am-typography .am-secondary{background:#fff!important;border:1px solid #2b74be!important;color:#155c98!important}
+html body.am-reference.am-typography input:not([type=checkbox]):not([type=radio]):not([type=hidden]):not([type=submit]):not([type=button]),
+html body.am-reference.am-typography select,
+html body.am-reference.am-typography textarea{border-radius:5px!important;border-color:#d8e2e9!important;font-size:14px!important}
+html body.am-reference.am-typography .am-table th,
+html body.am-reference.am-typography .sa-table th{background:#f6fbff!important;color:#294554;font-size:13px!important;font-weight:600!important}
+html body.am-reference.am-typography .am-table td,
+html body.am-reference.am-typography .sa-table td{font-size:14px!important;border-color:#e1e8ed!important}
+html body.am-reference.am-typography .am-table-wrap,
+html body.am-reference.am-typography .sa-table-wrap{border-radius:6px!important;border-color:#dce4e8!important;box-shadow:none!important}
+/* Pastels only for existing dashboard quick-action links, never delete/reset controls. */
+html body.am-reference.am-typography .am-quick>a{border:0!important;border-radius:8px!important;min-height:38px;padding:10px 16px!important;color:#172c3b!important;font-size:13px!important;font-weight:600!important;background:#eafef3!important}
+html body.am-reference.am-typography .am-quick>a:nth-child(4n+2){background:#e0f2ff!important}
+html body.am-reference.am-typography .am-quick>a:nth-child(4n+3){background:#f1e8fb!important}
+html body.am-reference.am-typography .am-quick>a:nth-child(4n){background:#fdf0e7!important}
+html body.am-reference.am-typography .am-dialog-head h1,
+html body.am-reference.am-typography .am-modal h1,
+html body.am-reference.am-typography .sa-modal h1{font-size:24px!important;font-weight:600!important}
+@media(max-width:991px){
+html body.am-reference.am-typography .am-main{margin-left:0!important;width:100%!important;padding:24px!important}
+html body.am-reference.am-typography .am-sidebar,
+html body.am-reference.am-typography #sidebar-wrapper{width:220px!important;max-width:86vw}
+html body.am-reference.am-typography h1{font-size:34px!important}
+}
+@media(max-width:720px){
+html body.am-reference.am-typography .am-main,
+html body.am-reference.am-typography #page-content-wrapper{padding:20px 14px!important}
+html body.am-reference.am-typography .am-topbar>span{font-size:12px!important}
+html body.am-reference.am-typography h1{font-size:30px!important}
+html body.am-reference.am-typography .am-ap-sechead h2{font-size:25px!important}
+html body.am-reference.am-typography .am-heading,
+html body.am-reference.am-typography .am-title,
+html body.am-reference.am-typography .sa-head{margin-bottom:24px!important}
+}
+@media print{
+html body.am-reference.am-typography .am-main,
+html body.am-reference.am-typography #page-content-wrapper{margin:0!important;width:100%!important;padding:0!important}
+}
+/* The owner dashboard's existing Quick Actions uses a grid rather than .am-quick. */
+html body.am-reference.am-typography #businesses.am-card{border:0!important;padding:0!important;background:transparent!important}
+html body.am-reference.am-typography .am-businesses-header{flex-wrap:wrap!important;gap:20px!important}
+html body.am-reference.am-typography .am-businesses-header>div{flex:1 1 100%}
+html body.am-reference.am-typography .am-quick-actions.am-card{width:100%;border:0!important;padding:0!important;margin:0!important;background:transparent!important}
+html body.am-reference.am-typography .am-quick-grid{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(160px,1fr))!important;gap:20px!important}
+html body.am-reference.am-typography .am-quick-grid>a{border:0!important;border-radius:8px!important;min-height:38px!important;padding:10px 16px!important;color:#172c3b!important;font-size:13px!important;font-weight:600!important;background:#eafef3!important}
+html body.am-reference.am-typography .am-quick-grid>a:nth-child(4n+2){background:#e0f2ff!important}
+html body.am-reference.am-typography .am-quick-grid>a:nth-child(4n+3){background:#f1e8fb!important}
+html body.am-reference.am-typography .am-quick-grid>a:nth-child(4n){background:#fdf0e7!important}
+html body.am-reference.am-typography .sa-rsl-grid{gap:32px!important}
+html body.am-reference.am-typography input[aria-invalid=true],
+html body.am-reference.am-typography .input-validation-error{border-color:#b42318!important}
+/* Preserve print behavior after dashboard-specific rules. */
+@media print{html body.am-reference.am-typography .am-quick-actions{display:none!important}}
+/* Remove the old console's extra 4/8px inset so every role shares the measured content edge. */
+html body.am-reference.am-typography .sa-page{--sa-ink:#172c3b;--sa-line:#dce4e8;--sa-bg:#fff;font-size:14px;padding:0 0 32px}
