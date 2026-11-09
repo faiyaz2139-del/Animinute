@@ -120,7 +120,7 @@ html body.am-modern .am-topbar:has(.am-rsl-brand){height:64px!important;display:
 html body.am-modern .am-topbar:has(.am-rsl-brand)>[data-toggle-sidebar]{order:0!important;display:inline-flex;align-items:center;justify-content:center;height:40px;width:40px;margin:0 4px 0 12px!important;padding:0;line-height:1}
 html body.am-modern .am-topbar:has(.am-rsl-brand)>a.am-brand{order:1!important;display:flex!important;align-items:center;height:40px;padding:0 20px 0 8px;margin:0;border-right:1px solid #e2e8f0;text-decoration:none!important;flex:0 0 auto}
 html body.am-modern .am-topbar .am-rsl-brand{display:inline-flex!important;align-items:center;gap:10px;height:40px;line-height:1;white-space:nowrap}
-html body.am-modern .am-topbar .am-rsl-brand>svg{display:block;flex:0 0 34px}
+html body.am-modern .am-topbar .am-rsl-brand>svg,html body.am-modern .am-topbar .am-rsl-brand>img.am-logo{display:block;flex:0 0 auto;width:auto!important;height:36px!important;max-width:140px;object-fit:contain}
 html body.am-modern .am-topbar .am-rsl-brand .am-ap-brand-text{display:inline-flex;align-items:center;font-size:22px;font-weight:800;color:#14233c;line-height:1}
 html body.am-modern .am-topbar .am-rsl-brand .am-rsl-brand-role{display:inline-flex!important;align-items:center;height:28px;margin-left:8px!important;padding-left:18px!important;line-height:1!important}
 html body.am-modern .am-topbar:has(.am-rsl-brand)>span{order:2!important;display:flex!important;flex-direction:column;justify-content:center;height:40px;margin:0 auto 0 0!important;padding-left:20px!important;font-size:16px!important;font-weight:600!important;color:#0f172a!important;line-height:1.25!important;white-space:nowrap}

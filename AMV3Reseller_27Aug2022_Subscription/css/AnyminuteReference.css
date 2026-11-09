@@ -12,8 +12,8 @@ html body.am-reference.am-typography .am-topbar>a.am-brand{height:40px!important
 html body.am-reference.am-typography .am-topbar>span{font-size:14px!important;line-height:1.2!important;padding-left:8px!important;font-weight:400!important}
 html body.am-reference.am-typography .am-logo{max-width:112px!important;width:auto!important;height:32px!important;object-fit:contain}
 html body.am-reference.am-typography a.logo img{width:auto!important;height:30px!important;max-width:112px!important}
-html body.am-reference.am-typography .am-ap-brand svg,
-html body.am-reference.am-typography .am-rsl-brand svg{width:26px!important;height:26px!important;flex-basis:26px!important}
+html body.am-reference.am-typography .am-ap-brand .am-logo,
+html body.am-reference.am-typography .am-rsl-brand .am-logo{width:auto!important;height:36px!important;max-width:140px!important;object-fit:contain!important;flex-basis:auto!important}
 html body.am-reference.am-typography .am-ap-brand-text,
 html body.am-reference.am-typography .am-rsl-brand-text{font-size:18px!important;letter-spacing:normal!important}
 html body.am-reference.am-typography .am-account-avatar,
@@ -160,11 +160,12 @@ html body.am-reference.am-typography.am-drawer-nav.am-sa-pinned.am-drawer-open #
   width:auto!important;box-sizing:border-box!important
 }
 }
-/* Logo: Support Admin uses SVG wordmark (.am-ap-brand); keep img logos sharp when present. */
+/* Logo: v77 every login uses Assets/assets/img/logo.jpg (old round mark); identical size/position. */
 html body.am-reference.am-typography .am-topbar>a.am-brand{display:inline-flex!important;align-items:center;gap:8px;height:40px!important;flex:0 0 auto!important;width:auto!important;min-width:0;padding:0 10px 0 4px!important}
-html body.am-reference.am-typography .am-logo{max-width:140px!important;width:auto!important;height:36px!important;object-fit:contain!important;image-rendering:auto}
+html body.am-reference.am-typography .am-logo,
+html body.am-reference.am-typography .am-ap-brand .am-logo,
+html body.am-reference.am-typography .am-rsl-brand .am-logo{max-width:140px!important;width:auto!important;height:36px!important;object-fit:contain!important;image-rendering:auto}
 html body.am-reference.am-typography .am-ap-brand{display:inline-flex!important;align-items:center;gap:8px}
-html body.am-reference.am-typography .am-ap-brand svg{width:28px!important;height:28px!important;flex:0 0 28px!important}
 html body.am-reference.am-typography .am-ap-brand-text{font-size:18px!important;font-weight:700!important;letter-spacing:-.3px;color:#172c3b!important;line-height:1;white-space:nowrap}
 /* Help control redesign: solid circular action, clearer ? mark. */
 html body.am-reference.am-typography .am-header-help{position:relative;flex-shrink:0;margin-left:auto}

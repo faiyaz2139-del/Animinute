@@ -36,11 +36,9 @@ public partial class AnyminuteModernMaster : System.Web.UI.MasterPage
    if(firm.Length>0)Welcome.Text=HttpUtility.HtmlEncode(firm);
    AccountAvatar.Text="<span class='am-ap-avatar' aria-hidden='true'>"+HttpUtility.HtmlEncode(AnyminuteAccountantDashboard.Initials(who))+"</span><span class='am-ap-avatar-name'>"+HttpUtility.HtmlEncode(who)+"</span>";
    accountantHeader=true;
-   // v38 (DOCX "Top header of the Accountant user login is not aligned properly", PPT s1): AnyMinute clock mark + wordmark
-   // in a sidebar-wide brand block with a divider, Welcome block left-aligned after it; on the right only bell, initials,
-   // firm name and chevron (the "?" help button is not in the PPT header, so Help moves into the account menu).
-   LogoDefault.Visible=false;
-   Brand.Text="<span class='am-ap-brand'><svg viewBox='0 0 40 40' width='34' height='34' aria-hidden='true' focusable='false'><circle cx='20' cy='21' r='15' fill='none' stroke='#1f6fe5' stroke-width='4'/><path d='M20 12v9.5l6 3.5' fill='none' stroke='#1f6fe5' stroke-width='3.6' stroke-linecap='round' stroke-linejoin='round'/><path d='M15 3.5h10' stroke='#1f6fe5' stroke-width='3.6' stroke-linecap='round'/></svg><span class='am-ap-brand-text'>AnyMinute</span></span>";
+   // v77: same old round logo.jpg as every other login (no SVG clock/wordmark).
+   // v38 layout kept otherwise: Welcome left; right = bell, initials, firm name, chevron; Help stays in the account menu.
+   Brand.Text="";
    HeaderHelp.Text="";
    AccountHelp.Text="<a href='"+HttpUtility.HtmlAttributeEncode(VirtualPathUtility.ToAbsolute("~/Help.aspx"))+"'><span data-am-icon='help' aria-hidden='true'></span>Help Center</a>";
   }
@@ -51,9 +49,8 @@ public partial class AnyminuteModernMaster : System.Web.UI.MasterPage
   if(rslCtx!=null){LogoDefault.Visible=false;Brand.Text=AnyminuteResellerPortal.Brand;context="Reseller";HeaderHelp.Text=AnyminuteUiNavigation.HeaderHelp(menu);accountantHeader=false;AccountHelp.Text="";
    if(rslCtx.Name.Length>0){Welcome.Text=HttpUtility.HtmlEncode(rslCtx.Name);AccountAvatar.Text="<span class='am-ap-avatar' title='"+HttpUtility.HtmlAttributeEncode(rslCtx.Name)+"' aria-hidden='true'>"+HttpUtility.HtmlEncode(AnyminuteAccountantDashboard.Initials(rslCtx.Name))+"</span>";}}
   if(supportAdmin&&rslCtx==null){
-   // v76: Support Admin uses the same clear SVG wordmark as Accountant; logo.jpg was unreadably small in the top bar.
-   Welcome.Text="Support Admin";context=null;LogoDefault.Visible=false;
-   Brand.Text="<span class='am-ap-brand'><svg viewBox='0 0 40 40' width='28' height='28' aria-hidden='true' focusable='false'><circle cx='20' cy='21' r='15' fill='none' stroke='#1f6fe5' stroke-width='4'/><path d='M20 12v9.5l6 3.5' fill='none' stroke='#1f6fe5' stroke-width='3.6' stroke-linecap='round' stroke-linejoin='round'/><path d='M15 3.5h10' stroke='#1f6fe5' stroke-width='3.6' stroke-linecap='round'/></svg><span class='am-ap-brand-text'>AnyMinute</span></span>";
+   // v77: Support Admin uses the same old round logo.jpg as Subscriber/Employee (revert v76 SVG wordmark).
+   Welcome.Text="Support Admin";context=null;Brand.Text="";
   }
   if(!String.IsNullOrEmpty(context))WelcomeContext.Text="<small class='am-welcome-context' style='display:block;font-size:12px;font-weight:500;color:#5b6778;line-height:1.3'>"+HttpUtility.HtmlEncode(context)+"</small>";
 
