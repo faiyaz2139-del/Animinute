@@ -1,0 +1,48 @@
+## compile_app.txt
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/SearchAddressController.cs(17,12): warning CS0169: The private field `SearchAddressController.loginfo' is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/StreetMasterClass.cs(15,20): warning CS0414: The private field `StreetMasterClass.da' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/StreetMasterClass.cs(18,13): warning CS0414: The private field `StreetMasterClass.ds' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/StreetMasterClass.cs(21,9): warning CS0169: The private field `StreetMasterClass.i' is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/SuperAdminController.cs(13,20): warning CS0414: The private field `SuperAdminController.da' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/SuperAdminController.cs(14,17): warning CS0414: The private field `SuperAdminController.Comm' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/SupportAdminCtrl.cs(13,20): warning CS0414: The private field `SupportAdminCtrl.da' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/TimeSheetController.cs(13,20): warning CS0414: The private field `TimeSheetController.da' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/TimeSheetControllerClass.cs(13,20): warning CS0414: The private field `TimeSheetControllerClass.da' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/TimeSheetControllerClass.cs(16,13): warning CS0414: The private field `TimeSheetControllerClass.ds' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/TimeSheetControllerClass.cs(19,9): warning CS0169: The private field `TimeSheetControllerClass.i' is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/UserAccController.cs(14,20): warning CS0414: The private field `UserAccController.da' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/UserAccController.cs(16,16): warning CS0414: The private field `UserAccController.cmd' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/UserAccController.cs(17,13): warning CS0414: The private field `UserAccController.ds' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/UserAccController.cs(20,9): warning CS0169: The private field `UserAccController.i' is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/clsGlobalVar.cs(18,19): warning CS0414: The private field `clsGlobalVar.objSqlConn' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/h.cs(13,20): warning CS0414: The private field `AddressMasterController.da' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/h.cs(18,16): warning CS0414: The private field `AddressMasterController.cmd' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/App_Code/h.cs(19,13): warning CS0414: The private field `AddressMasterController.ds' is assigned but its value is never used
+Compilation succeeded - 102 warning(s)
+
+## compile_Modern.master.txt
+
+## compile_Main.master.txt
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/Main.master.cs(196,19): warning CS0219: The variable `dt' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/Main.master.cs(277,16): warning CS0168: The variable `linkis' is declared but never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/Main.master.cs(284,20): warning CS0219: The variable `DomainTitle' is assigned but its value is never used
+/tmp/v77build/stub_Main.master.cs(35,29): warning CS0219: The variable `Container' is assigned but its value is never used
+/tmp/v77build/stub_Main.master.cs(36,29): warning CS0219: The variable `Container' is assigned but its value is never used
+/tmp/v77build/stub_Main.master.cs(37,29): warning CS0219: The variable `Container' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/Main.master.cs(13,12): warning CS0169: The private field `MasterPage._usertype' is never used
+Compilation succeeded - 7 warning(s)
+
+## compile_MasterWithoutMenu.master.txt
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master.cs(12,12): warning CS0169: The private field `MasterWithoutMenu._usertype' is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master.cs(13,17): warning CS0414: The private field `MasterWithoutMenu.comm' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master.cs(14,15): warning CS0414: The private field `MasterWithoutMenu.MenusDomain' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master.cs(15,15): warning CS0414: The private field `MasterWithoutMenu.AllMenu' is assigned but its value is never used
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master.cs(16,21): warning CS0414: The private field `MasterWithoutMenu.cl' is assigned but its value is never used
+Compilation succeeded - 5 warning(s)
+
+## compile_SupportSubscribers.aspx.txt
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx.cs(337,19): warning CS0108: `AnyminuteSupportSubscribersPage.Header(System.Data.SqlClient.SqlConnection, System.Data.DataRow, bool)' hides inherited member `System.Web.UI.Page.Header'. Use the new keyword if hiding was intended
+/opt/monoenv/lib/mono/4.5-api/System.Web.dll (Location of the symbol related to previous warning)
+/workspace/anymin/src/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx.cs(900,30): warning CS0414: The private field `AnyminuteSupportSubscribersPage.Provinces' is assigned but its value is never used
+Compilation succeeded - 2 warning(s)
+

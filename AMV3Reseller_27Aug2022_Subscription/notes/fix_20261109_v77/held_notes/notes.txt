@@ -1,0 +1,2 @@
+Logo must be same across all login types; subscriber Dashboard shows old round AMV logo (see subscriber_logo.jpg)
+UPDATE: user wants the OLD round AnyMinute logo everywhere (revert v76 Support Admin SVG clock/wordmark logo to old logo).
