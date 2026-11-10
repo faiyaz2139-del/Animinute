@@ -1,0 +1,277 @@
+diff --git a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteSubscriberCreate.cs b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteSubscriberCreate.cs
+index f276b77..576be1a 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteSubscriberCreate.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteSubscriberCreate.cs
+@@ -46,6 +46,57 @@ public static class AnyminuteSubscriberCreate
+         var rate = new RateDetailsEntity { IsEmployeeEIExempty = "NO", IsEmployeeCPPExempty = "NO", RetainVacation = "NO" };
+         int empId = new AddEmployeeControlerClass().InsertPersonalDetails(emp, "1", rate);
+         if (empId <= 0) throw new InvalidOperationException("The subscriber profile could not be created.");
++        // v79: the legacy stored procedures open their own connections, so one SQL transaction cannot span them (it would escalate
++        // to MSDTC). Instead every row this attempt wrote is removed again if any later step fails (compensating rollback), so a
++        // failed Add Subscriber never leaves a half-created login that blocks the email on the next try.
++        int user = 0;
++        try { return CreateRest(x, name, empId, ref user); }
++        catch (Exception ex)
++        {
++            log4net.LogManager.GetLogger("Log").Error("Support Add Subscriber failed for employee " + empId + " / user " + user + "; rolling back this attempt", ex);
++            Undo(empId, user);
++            throw;
++        }
++    }
++    // v79: compensating rollback of ONE failed Create attempt (only the EmployeeID / UserId it just created; nothing else).
++    static void Undo(int empId, int user)
++    {
++        try
++        {
++            using (var c = SA.Open())
++            {
++                Action<string, object[]> run = (sql, a) => { try { SA.X(c, null, sql, a); } catch (Exception e) { log4net.LogManager.GetLogger("Log").Error("Add Subscriber rollback step failed: " + sql, e); } };
++                if (user > 0)
++                {
++                    run("DELETE FROM MappingTable WHERE USERID=@u", new object[] { "@u", user });
++                    if (SA.Has(c, "AnyminuteLoginSecurity")) run("DELETE FROM AnyminuteLoginSecurity WHERE UserId=@u", new object[] { "@u", user });
++                    run("DELETE FROM UserAcc WHERE UserId=@u", new object[] { "@u", user });
++                }
++                run("DELETE FROM MappingTable WHERE EmployeeID=@e", new object[] { "@e", empId });
++                run("DELETE FROM PlanHistory WHERE EmpId=@e AND TransId='SUPPORT'", new object[] { "@e", empId });
++                run("DELETE FROM AssginBussiness WHERE EmployeeID=@e", new object[] { "@e", empId });
++                run("DELETE FROM UserAcc WHERE EmployeeId=@e AND UserTypeid=1", new object[] { "@e", empId });
++                run("DELETE ea FROM EmpAddress ea JOIN AddEmployee ae ON ae.ADDRESSID=ea.EmpAddressId WHERE ae.EmployeeID=@e", new object[] { "@e", empId });
++                run("DELETE FROM AddEmployee WHERE EmployeeID=@e", new object[] { "@e", empId });
++                if (user > 0 && SA.Has(c, "AnyminuteSupportAudit"))
++                    run("UPDATE AnyminuteSupportAudit SET Comments=LEFT(ISNULL(Comments,'')+' [rolled back: Add Subscriber did not finish]',1000) WHERE Entity='Login' AND EntityKey=@k", new object[] { "@k", user.ToString(CultureInfo.InvariantCulture) });
++            }
++        }
++        catch (Exception ex) { log4net.LogManager.GetLogger("Log").Error("Add Subscriber rollback failed for employee " + empId + " / user " + user, ex); }
++    }
++    // v79: who already owns this login email (case-insensitive, trimmed). Null = free. Pending = activation not finished
++    // (Is_First_Time_Login=1, i.e. the subscriber never set a password) - Support is offered Resend Invitation instead of a new account.
++    public sealed class Owner { public int UserId; public string Name; public bool Pending; public bool Subscriber; }
++    public static Owner EmailOwner(SqlConnection c, string email)
++    {
++        var t = SA.Q(c, @"SELECT TOP 1 u.UserId,u.UserTypeid,u.Is_First_Time_Login,LTRIM(RTRIM(ISNULL(ae.FirstName,'')+' '+ISNULL(ae.LastName,''))) Nm
++            FROM UserAcc u LEFT JOIN AddEmployee ae ON ae.EmployeeID=u.EmployeeId WHERE LOWER(LTRIM(RTRIM(u.Email)))=LOWER(@m) ORDER BY u.UserId DESC", "@m", (email ?? "").Trim());
++        if (t.Rows.Count == 0) return null;
++        var r = t.Rows[0];
++        return new Owner { UserId = Convert.ToInt32(r["UserId"]), Name = SA.S(r["Nm"]), Subscriber = SA.S(r["UserTypeid"]) == "1", Pending = SA.S(r["Is_First_Time_Login"]) == "True" || SA.S(r["Is_First_Time_Login"]) == "1" };
++    }
++    static int CreateRest(Input x, string name, int empId, ref int user)
++    {
+         using (var c = SA.Open())
+         {
+             SA.X(c, null, "UPDATE AddEmployee SET EMPLOYEETYPE='NEW_AC_BO',UserType=1 WHERE EmployeeID=@e", "@e", empId);
+@@ -60,7 +111,8 @@ public static class AnyminuteSubscriberCreate
+                 SA.X(c, null, "UPDATE ea SET Country=@k FROM EmpAddress ea JOIN AddEmployee ae ON ae.ADDRESSID=ea.EmpAddressId WHERE ae.EmployeeID=@e", "@k", x.Country, "@e", empId);
+             var uac = new UserAccController();
+             var ue = new UserAccEntity { Email = x.Email, EmployeeId = empId, MotherOrgid = MotherOrg, UserType = "BUSINESS OWNER", UserTypeid = 1, ProfileImageName = "" };
+-            int user = Int32.Parse(uac.Sp_InsertUserAccFromAddress(ue), CultureInfo.InvariantCulture);
++            string uid = uac.Sp_InsertUserAccFromAddress(ue);
++            if (!Int32.TryParse(uid, NumberStyles.Integer, CultureInfo.InvariantCulture, out user) || user <= 0) { user = 0; throw new InvalidOperationException("The subscriber login could not be created."); }
+             SA.X(c, null, "INSERT INTO AssginBussiness(EmployeeID,EmployeeName,UserTypeId) VALUES(@e,@n,1)", "@e", empId, "@n", x.First);
+             ue.UserId = user; ue.BusinessID = 0; uac.Sp_InsertMapping(ue);
+             string code = PlanCode(x.PlanName);
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Main.master b/AMV3Reseller_27Aug2022_Subscription/Main.master
+index 66ac39b..27c37f3 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Main.master
++++ b/AMV3Reseller_27Aug2022_Subscription/Main.master
+@@ -5,7 +5,7 @@
+ <!DOCTYPE html>
+ 
+ <html>
+-<head runat="server"><meta name="anyminute-build" content="v78-20261109" />
++<head runat="server"><meta name="anyminute-build" content="v79-20261110" />
+     <title>AnyMinute | Record From Anywhere</title>
+     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+@@ -139,7 +139,7 @@
+     </asp:ContentPlaceHolder>
+     <link href="css/AnyminuteUI2026.css?v=20261017" rel="stylesheet" />
+ <link href="css/AnyminuteUIUnified.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUiBugFixes.css?v=20261026v17" rel="stylesheet" />
+-<link href="css/AnyminuteNavDrawer.css?v=20261106v67" rel="stylesheet" /><link href="css/AnyminuteTypography.css?v=20261109v78" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261109v78" rel="stylesheet" /></head>
++<link href="css/AnyminuteNavDrawer.css?v=20261106v67" rel="stylesheet" /><link href="css/AnyminuteTypography.css?v=20261110v79" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261110v79" rel="stylesheet" /></head>
+ <script type="text/javascript">  
+     window.onload = window.history.forward(0);
+ </script>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master b/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master
+index 45ff716..9f4f4cd 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master
++++ b/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master
+@@ -2,7 +2,7 @@
+ <!DOCTYPE html>
+ 
+ <html>
+-<head runat="server"><meta name="anyminute-build" content="v78-20261109" />
++<head runat="server"><meta name="anyminute-build" content="v79-20261110" />
+     <title>AnyMinute | Record From Anywhere</title>
+     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+@@ -28,7 +28,7 @@
+                        
+     </asp:ContentPlaceHolder>
+     
+-<link href="css/AnyminuteTypography.css?v=20261109v78" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261109v78" rel="stylesheet" /></head>
++<link href="css/AnyminuteTypography.css?v=20261110v79" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261110v79" rel="stylesheet" /></head>
+     <script type="text/javascript">  
+ 
+     window.onload = window.history.forward(0);
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Modern.master b/AMV3Reseller_27Aug2022_Subscription/Modern.master
+index b5839d3..f43276a 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Modern.master
++++ b/AMV3Reseller_27Aug2022_Subscription/Modern.master
+@@ -1,6 +1,6 @@
+ <%@ Master Language="C#" AutoEventWireup="true" CodeFile="Modern.master.cs" Inherits="AnyminuteModernMaster" %>
+ <!DOCTYPE html>
+-<html lang="en"><head runat="server"><meta charset="utf-8" /><meta name="anyminute-build" content="v78-20261109" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>AnyMinute</title><link href="css/bootstrap.min.css" rel="stylesheet" /><script src="Assets/assets/js/core/jquery.3.2.1.min.js"></script><script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script><script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" /><script src="Assets/assets/js/plugin/datatables/datatables.min.js"></script><script src="Assets/assets/js/SweetAlert.js"></script><link href="css/AnyminuteModern.css" rel="stylesheet" /><asp:ContentPlaceHolder ID="head" runat="server" /><link href="css/AnyminuteUI2026.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUIUnified.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUiBugFixes.css?v=20261026v17" rel="stylesheet" /><link href="css/AnyminuteNavDrawer.css?v=20261106v67" rel="stylesheet" /><link href="css/AnyminuteTypography.css?v=20261109v78" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261109v78" rel="stylesheet" /></head>
++<html lang="en"><head runat="server"><meta charset="utf-8" /><meta name="anyminute-build" content="v79-20261110" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>AnyMinute</title><link href="css/bootstrap.min.css" rel="stylesheet" /><script src="Assets/assets/js/core/jquery.3.2.1.min.js"></script><script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script><script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" /><script src="Assets/assets/js/plugin/datatables/datatables.min.js"></script><script src="Assets/assets/js/SweetAlert.js"></script><link href="css/AnyminuteModern.css" rel="stylesheet" /><asp:ContentPlaceHolder ID="head" runat="server" /><link href="css/AnyminuteUI2026.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUIUnified.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUiBugFixes.css?v=20261026v17" rel="stylesheet" /><link href="css/AnyminuteNavDrawer.css?v=20261106v67" rel="stylesheet" /><link href="css/AnyminuteTypography.css?v=20261110v79" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261110v79" rel="stylesheet" /></head>
+ <body class="am-reference am-typography am-modern"><form id="frmMaster" runat="server"><asp:ScriptManager ID="ScriptManager1" runat="server" />
+ <header class="am-topbar"><button type="button" class="am-icon-button" data-toggle-sidebar aria-controls="am-main-navigation" aria-expanded="true" aria-label="Toggle navigation">&#9776;</button><a href="Dashboard.aspx" class="am-brand"><asp:PlaceHolder ID="LogoDefault" runat="server"><img src="Assets/assets/img/logo.jpg" alt="AnyMinute" class="am-logo" /></asp:PlaceHolder><asp:Literal ID="Brand" runat="server" /></a><span>Welcome! <asp:Literal ID="Welcome" runat="server" /><asp:Literal ID="WelcomeContext" runat="server" /></span><asp:Literal ID="HeaderHelp" runat="server" /><asp:Literal ID="HeaderBell" runat="server" /><details class="am-account-menu"><summary aria-label="Account menu"><asp:Literal ID="AccountAvatar" runat="server" /><span class="am-account-chevron" aria-hidden="true"></span><span class="sr-only">Account</span></summary><div class="am-account-popover"><a href="MyProfile.aspx"><span data-am-icon="profile" aria-hidden="true"></span>My profile</a><a href="LoginSecurity.aspx"><span data-am-icon="settings" aria-hidden="true"></span>Login &amp; security</a><asp:LinkButton ID="SignOut" runat="server" CausesValidation="false" OnClick="SignOut_Click"><span data-am-icon="signout" aria-hidden="true"></span>Sign out</asp:LinkButton>
+    <a href="Change%20Password.aspx"><span data-am-icon="settings" aria-hidden="true"></span>Change password</a><asp:Literal ID="AccountHelp" runat="server" /><asp:Literal ID="AccountUpgrade" runat="server" /></div></details></header>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Scripts/AnyminuteSupport.js b/AMV3Reseller_27Aug2022_Subscription/Scripts/AnyminuteSupport.js
+index 5c7a030..3674c56 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Scripts/AnyminuteSupport.js
++++ b/AMV3Reseller_27Aug2022_Subscription/Scripts/AnyminuteSupport.js
+@@ -278,7 +278,9 @@
+       });
+     });
+     // v43 PPT 01 s5: "Creating Subscriber Account" overlay while the account is created.
+-    $all('[data-sa-busy]').forEach(function (b) { b.addEventListener('click', function () { var o = document.querySelector('[data-sa-busy-box]'); setTimeout(function () { if (o) o.hidden = false; b.disabled = true; }, 0); }); });
++    // v79: one submit only - a second click / Enter while the account is being created is ignored (the button is disabled after
++    // the browser has captured its name/value; the form refuses any further submit).
++    $all('[data-sa-busy]').forEach(function (b) { b.addEventListener('click', function (e) { var f = b.form; if (b.getAttribute('data-sa-sent') === '1' || (f && f.getAttribute('data-sa-sending') === '1')) { e.preventDefault(); return; } b.setAttribute('data-sa-sent', '1'); if (f) f.setAttribute('data-sa-sending', '1'); var o = document.querySelector('[data-sa-busy-box]'); setTimeout(function () { if (o) o.hidden = false; b.disabled = true; }, 0); }); if (b.form && !b.form.getAttribute('data-sa-once')) { b.form.setAttribute('data-sa-once', '1'); var f0 = b.form, n = 0; f0.addEventListener('submit', function (e) { if (f0.getAttribute('data-sa-sending') === '1' && ++n > 1) e.preventDefault(); }); } });
+     // v78 Address Verification selection bar (Reject/Restore/Delete Selected; no Edit Selected)
+     (function () {
+       var bar = document.querySelector('[data-sa-selbar]'); if (!bar) return;
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx b/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx
+index 168e470..1ce2ebe 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="SupportSubscribers.aspx.cs" Inherits="AnyminuteSupportSubscribersPage" Title="Subscribers" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteAddressLookup.css?v=20261106v67" rel="stylesheet" /><link href="css/AnyminuteSupport.css?v=20261109v76" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261109v76" defer="defer"></script></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteAddressLookup.css?v=20261106v67" rel="stylesheet" /><link href="css/AnyminuteSupport.css?v=20261109v76" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261110v79" defer="defer"></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section class="sa-page">
+  <asp:Literal ID="Crumbs" runat="server" />
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx.cs b/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx.cs
+index a2c0b05..2b0cac9 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportSubscribers.aspx.cs
+@@ -157,7 +157,19 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+         int user; Int32.TryParse(SA.Get("user"), out user);
+         if (SA.Get("lookup") == "1") { Lookup(); return; }
+         string op0 = SA.Form("sa_op");
+-        if (IsPostBack && (op0 == "add" || op0 == "addsave" || op0 == "addback")) { AddPost(); return; }
++        if (IsPostBack && (op0 == "add" || op0 == "addsave" || op0 == "addback"))
++        {
++            // v79: no exception from Add Subscriber reaches ErrorPages/index.aspx - it is logged and shown on the form.
++            try { AddPost(); }
++            catch (System.Threading.ThreadAbortException) { throw; }
++            catch (Exception ex)
++            {
++                log4net.LogManager.GetLogger("Log").Error("Support Add Subscriber postback failed", ex);
++                Flash.Text = "<div class='sa-flash sa-warn'>Something went wrong while adding the subscriber: " + SA.H(ex.Message) + " Check the Subscribers list before trying again.</div>";
++                try { using (var c = SA.Open()) AddView(c, AF.Select(k => SA.Form(k).Trim()).ToArray()); } catch (Exception ex2) { log4net.LogManager.GetLogger("Log").Error("Add Subscriber form re-render failed", ex2); }
++            }
++            return;
++        }
+         if (IsPostBack && op0.Length > 0) { Act(user); return; }
+         Flash.Text = SA.TakeFlash();
+         using (var c = SA.Open())
+@@ -966,13 +978,30 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+         using (var c = SA.Open())
+         {
+             if (op == "addback") { AddView(c, v); return; }
++            // v79: double-submit guard. The confirm dialog carries a one-time token; a second Confirm click / refresh of the same
++            // dialog is not processed again (Session requests are serialized, so the second one sees the token already used).
++            if (op == "addsave")
++            {
++                string tok = SA.Form("ad_tok"), want = Convert.ToString(Session["sa_add_tok"]), last = Convert.ToString(Session["sa_add_last"]);
++                if (tok.Length > 0 && last.StartsWith(tok + "|", StringComparison.Ordinal))
++                { Response.Redirect("SupportSubscribers.aspx?user=" + last.Substring(tok.Length + 1) + "&view=created&inv=0", false); Context.ApplicationInstance.CompleteRequest(); return; }
++                if (tok.Length == 0 || tok != want) op = "add"; // stale / missing token: show the confirm dialog again instead of creating
++            }
+             var plans = Plans(c); var pr = PlanRow(plans, v[6]);
+             if (pr != null) { if (Lim(pr, "MaxBusinesses").Length > 0) v[7] = Lim(pr, "MaxBusinesses"); if (Lim(pr, "MaxEmployees").Length > 0) v[8] = Lim(pr, "MaxEmployees"); v[6] = SA.PlanKey(SA.S(pr["PlanName"])) + " PLAN"; }
+-            var errs = new List<string>(); int nb = 0, ne = 0; DateTime d1, d2;
++            var errs = new List<string>(); int nb = 0, ne = 0; DateTime d1, d2; string dupHtml = "";
+             if (!SA.Has(c, "AnyminuteSupportAudit")) errs.Add(SA.MissingTables);
+             if (v[0].Length == 0) errs.Add("First name is required."); if (v[2].Length == 0) errs.Add("Last name is required.");
+             if (!AnyminuteLoginEmail.ValidFormat(v[3])) errs.Add("Enter a valid email address (up to 50 characters).");
+-            else if (AnyminuteSubscriberCreate.EmailTaken(c, v[3])) errs.Add("This email address is already registered to another AnyMinute account.");
++            else
++            {
++                // v79: accurate duplicate check (trimmed, case-insensitive). An unfinished Pending Activation subscriber with this
++                // email (e.g. from an earlier attempt) gets a Resend Invitation link instead of the generic block. Nothing is deleted.
++                var own = AnyminuteSubscriberCreate.EmailOwner(c, v[3]);
++                if (own != null && own.Subscriber && own.Pending)
++                    dupHtml = "<li>This email address already belongs to subscriber " + Sub(own.UserId) + (own.Name.Length > 0 ? " (" + SA.H(own.Name) + ")" : "") + ", which is still Pending Activation - probably from an earlier Add Subscriber attempt. Do not add it again: <a class='sa-link' href='SupportSubscribers.aspx?user=" + own.UserId + "&amp;view=access'>open the subscriber and use Resend Invitation</a>.</li>";
++                else if (own != null) errs.Add("This email address is already registered to another AnyMinute account.");
++            }
+             if (v[4].Length == 0) errs.Add("Contact phone is required.");
+             foreach (int i in new[] { 4, 5 }) if (v[i].Length > 0 && !System.Text.RegularExpressions.Regex.IsMatch(v[i], @"^[0-9+()\-.\s]{7,30}$")) errs.Add((i == 4 ? "Contact phone" : "Mobile phone") + " is not valid.");
+             if (pr == null) errs.Add("Select a plan.");
+@@ -983,7 +1012,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+             var rsl = Rsl; // v55: reseller subscriber limit (AnyminuteReseller.MaxSubscribers, NULL = unlimited)
+             if (rsl != null && rsl.MaxSubscribers.HasValue && Convert.ToInt32(SA.Q(c, "SELECT COUNT(*) FROM AnyminuteResellerSubscriber WHERE ResellerID=@r", "@r", rsl.ResellerId).Rows[0][0]) >= rsl.MaxSubscribers.Value)
+                 errs.Add("Your reseller account has reached its subscriber limit (" + rsl.MaxSubscribers.Value + "). Contact AnyMinute Support to raise it.");
+-            if (errs.Count > 0) { Flash.Text = "<div class='sa-flash sa-warn'>Please fix the following:<ul>" + String.Join("", errs.Select(m => "<li>" + SA.H(m) + "</li>").ToArray()) + "</ul></div>"; AddView(c, v); return; }
++            if (errs.Count > 0 || dupHtml.Length > 0) { Flash.Text = "<div class='sa-flash sa-warn'>Please fix the following:<ul>" + dupHtml + String.Join("", errs.Select(m => "<li>" + SA.H(m) + "</li>").ToArray()) + "</ul></div>"; AddView(c, v); return; }
+             var adr = AddrOf(v); v[20] = adr.Postal;
+             string addr = AnyminuteSupportAddress.Compose(adr);
+             if (op != "addsave")
+@@ -991,6 +1020,8 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+                 AddHead();
+                 var sb = new StringBuilder();
+                 for (int i = 0; i < AF.Length; i++) sb.Append("<input type='hidden' name='").Append(AF[i]).Append("' value='").Append(SA.A(v[i])).Append("' />");
++                string tk = Guid.NewGuid().ToString("N"); Session["sa_add_tok"] = tk; sb.Append("<input type='hidden' name='ad_tok' value='").Append(tk).Append("' />"); // v79 one-time token
++                string src0 = AD.Source("ad_addr"); if (src0.Length > 0) sb.Append("<input type='hidden' name='ad_addr_src' value='").Append(SA.A(src0)).Append("' />");
+                 string pp = Lim(pr, "MaxProjects");
+                 Func<string, string, string> row = (k, val) => "<tr><th>" + k + "</th><td>" + (val.Length > 0 ? val : "&mdash;") + "</td></tr>";
+                 sb.Append("<div class='sa-modal-back'><div class='sa-modal-box' role='dialog' aria-labelledby='sa-cf-h'><div class='sa-panel-head'><h2 id='sa-cf-h'>Confirm and Send Activation Invitation</h2><button type='submit' class='sa-x' name='sa_op' value='addback' formnovalidate aria-label='Close'>&times;</button></div>")
+@@ -1008,23 +1039,39 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
+                 First = v[0], Middle = v[1], Last = v[2], Email = v[3], Phone = v[4], Mobile = v[5], PlanName = v[6], Businesses = nb, Employees = ne, Start = d1, NextBilling = d2, Invite = v[10] == "1",
+                 Status = v[9] == AStatus[0] ? "Pending" : v[9], StreetNo = adr.StreetNo, Street = adr.Line1, Line2 = adr.Line2, SuiteType = adr.SuiteType, SuiteNo = adr.SuiteNo, City = adr.City, Province = adr.Province, Postal = adr.Postal, Country = adr.Any ? adr.Country : ""
+             };
+-            int user;
+-            try { user = AnyminuteSubscriberCreate.Create(input); }
++            int user; string tok1 = SA.Form("ad_tok"); Session.Remove("sa_add_tok"); // v79: token used once, before anything is written
++            try { user = AnyminuteSubscriberCreate.Create(input); } // v79: rolls its own rows back on failure
+             catch (Exception ex)
+             {
+                 log4net.LogManager.GetLogger("Log").Error("Support Add Subscriber failed", ex);
+-                Flash.Text = "<div class='sa-flash sa-warn'>The subscriber could not be created: " + SA.H(ex.Message) + "</div>"; AddView(c, v); return;
++                Flash.Text = "<div class='sa-flash sa-warn'>The subscriber could not be created and nothing was saved: " + SA.H(ex.Message) + " Please try again.</div>"; AddView(c, v); return;
+             }
++            Session["sa_add_last"] = tok1 + "|" + user;
+             // v57 (PPT s4): an address entered on Add Subscriber is queued for Address Verification the same way as Edit Subscriber.
++            // v79 ROOT CAUSE: AD.ReviewReady(c) was evaluated inside c.BeginTransaction() without the transaction, which throws
++            // InvalidOperationException (not SqlException) -> uncaught -> ErrorPages/index.aspx, AFTER the subscriber login already
++            // existed, so the retry said "email already registered". ReviewReady is now read before the transaction, and any
++            // failure of these follow-up steps is logged without losing the created subscriber.
+             if (adr.Any)
+-                try { using (var tx = c.BeginTransaction()) { AD.QueuePending(c, tx, adr, AD.ReviewReady(c) , String.Join(" ", new[] { v[0], v[2] }.Where(x => x.Length > 0).ToArray()) + " (Subscriber)", AD.Source("ad_addr") == "lookup" ? "Selected from address lookup in Support Admin > Add Subscriber (not yet verified)." : "Entered manually in Support Admin > Add Subscriber."); tx.Commit(); } }
+-                catch (SqlException ex) { log4net.LogManager.GetLogger("Log").Error("Address verification queue failed for user " + user, ex); }
++                try
++                {
++                    bool rv = AD.ReviewReady(c);
++                    string by = String.Join(" ", new[] { v[0], v[2] }.Where(x => x.Length > 0).ToArray()) + " (Subscriber)";
++                    string note = AD.Source("ad_addr") == "lookup" ? "Selected from address lookup in Support Admin > Add Subscriber (not yet verified)." : "Entered manually in Support Admin > Add Subscriber.";
++                    using (var tx = c.BeginTransaction()) { AD.QueuePending(c, tx, adr, rv, by, note); tx.Commit(); }
++                }
++                catch (Exception ex) { log4net.LogManager.GetLogger("Log").Error("Address verification queue failed for user " + user, ex); }
+             // v55: a subscriber created by a reseller is assigned to that reseller (same row Support Admin > Resellers > Assign writes).
+             if (rsl != null)
+                 try { SA.X(c, null, "IF NOT EXISTS(SELECT 1 FROM AnyminuteResellerSubscriber WHERE UserId=@u) INSERT AnyminuteResellerSubscriber(UserId,ResellerID,AssignedBy) VALUES(@u,@i,@b)", "@u", user, "@i", rsl.ResellerId, "@b", SA.ActorName()); }
+-                catch (SqlException ex) { log4net.LogManager.GetLogger("Log").Error("Reseller subscriber assignment failed for user " + user, ex); }
++                catch (Exception ex) { log4net.LogManager.GetLogger("Log").Error("Reseller subscriber assignment failed for user " + user, ex); }
+             string sent = null;
+-            if (input.Invite) { try { sent = AnyminuteSubscriberCreate.SendInvitation(c, user, input.TempPassword); } catch (Exception ex) { sent = "The invitation email could not be sent: " + ex.Message; } }
++            if (input.Invite)
++            {
++                try { sent = AnyminuteSubscriberCreate.SendInvitation(c, user, input.TempPassword); }
++                catch (Exception ex) { log4net.LogManager.GetLogger("Log").Error("Add Subscriber invitation email failed for user " + user, ex); sent = ex.Message; }
++                if (sent != null) sent = "Subscriber created but the invitation email could not be sent \u2014 use Resend Invitation. (" + sent + ")";
++            }
+             // v45: the temporary password is shown once to Support (like the v44 reseller screen) and is in the welcome email.
+             SA.Flash((sent != null ? sent + " " : "") + "Sign-in email: " + input.Email + ". Temporary password (shown once): " + input.TempPassword);
+             Response.Redirect("SupportSubscribers.aspx?user=" + user + "&view=created&inv=" + (input.Invite && sent == null ? "1" : "0"), false); Context.ApplicationInstance.CompleteRequest();

@@ -1,0 +1,8 @@
+## compile_app.txt (App_Code, mcs /opt/monoenv, cc.sh)
+Compilation succeeded - 1 warning(s) (pre-existing)
+## compile_SupportSubscribers.aspx.txt
+Compilation succeeded - 0 warning(s)
+## compile_Main.master / Modern.master / MasterWithoutMenu.master
+Compilation succeeded - 0 errors
+## Scripts/AnyminuteSupport.js
+node --check OK
