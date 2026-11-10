@@ -29,4 +29,4 @@ No CloudAgent, push, live site or database actions.
 ## Ship
 Zip: `/workspace/anymin/AnyMinute_Fix_20261109_v78.zip`
 Code: `07396d1722c18ac86e17043ee68d7ec7d01aac2d`
-SHA256: see AnyMinute_Fix_20261109_v78.zip.sha256
+SHA256: `accbb74863fdfb641b9549a2c9cc23158d2d32a412885836a1ad9c1f2721db6c`
