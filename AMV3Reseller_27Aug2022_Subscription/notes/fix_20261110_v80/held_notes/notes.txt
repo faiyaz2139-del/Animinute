@@ -1,0 +1,1 @@
+- An address that is already Verified must not be added to Pending Verification again (e.g., Add Subscriber / business / profile address saves): reuse the verified address and mark the record verified, no new pending row.

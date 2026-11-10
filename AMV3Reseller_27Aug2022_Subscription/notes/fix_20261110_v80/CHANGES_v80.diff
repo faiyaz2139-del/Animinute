@@ -1,0 +1,291 @@
+diff --git a/AMV3Reseller_27Aug2022_Subscription/App_Code/AddBusinessControllerClass.cs b/AMV3Reseller_27Aug2022_Subscription/App_Code/AddBusinessControllerClass.cs
+index 21064fa..21dfccb 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/App_Code/AddBusinessControllerClass.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/App_Code/AddBusinessControllerClass.cs
+@@ -572,7 +572,10 @@ public class AddBusinessControllerClass
+             CmdBusinessAddress.Parameters.AddWithValue("@StreetNo", BusinessAddressEntity.StreetNo);
+             CmdBusinessAddress.Parameters.AddWithValue("@Cityid", BusinessAddressEntity.Cityid);
+             CmdBusinessAddress.Parameters.AddWithValue("@Provinceid", BusinessAddressEntity.Provinceid);
++            int amBefore = AnyminuteSupportAddress.MaxMasterId(con, null); // v80: see AnyminuteSupportAddress.AfterLegacyInsert
+             CmdBusinessAddress.ExecuteNonQuery();
++            AnyminuteSupportAddress.AfterLegacyInsert(con, null, amBefore, AnyminuteSupportAddress.FromLegacy(con, null, BusinessAddressEntity.StreetNo, BusinessAddressEntity.StreetName, BusinessAddressEntity.StreetType,
++                BusinessAddressEntity.SuitType, BusinessAddressEntity.SuiteNumber, BusinessAddressEntity.City, BusinessAddressEntity.Cityid, BusinessAddressEntity.Province, BusinessAddressEntity.Provinceid, BusinessAddressEntity.Postalcode));
+             loginfo = "InsertBusinessAddress(" + BusinessAddressEntity + ", " + BusinessID + ") end";
+             Logger.Info(loginfo);
+         }
+diff --git a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteSupportAddress.cs b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteSupportAddress.cs
+index 578d056..174d481 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteSupportAddress.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteSupportAddress.cs
+@@ -192,12 +192,12 @@ public static class AnyminuteSupportAddress
+         {
+             var t = AnyminuteTimesheetRepair.Query(c, tx, rv
+                 ? @"SELECT TOP 1 CASE WHEN a.Verifed=1 THEN 'Verified' WHEN r.Status='Rejected' THEN 'Rejected' ELSE 'Pending' END St FROM AddressMaster a LEFT JOIN AnyminuteAddressReview r ON r.AddressMasterId=a.AddressMasterId
+-                    WHERE (REPLACE(REPLACE(UPPER(a.PostalCode),' ',''),'-','')=@p AND UPPER(LTRIM(RTRIM(a.Street_Name))) IN (UPPER(@l1),UPPER(@f)))
+-                       OR (REPLACE(REPLACE(UPPER(ISNULL(r.OrigPostal,'')),' ',''),'-','')=@p AND UPPER(LTRIM(RTRIM(ISNULL(r.OrigStreet,'')))) IN (UPPER(@l1),UPPER(@f),UPPER(@o)))
++                    WHERE (REPLACE(REPLACE(UPPER(a.PostalCode),' ',''),'-','')=@p AND UPPER(LTRIM(RTRIM(a.Street_Name))) IN (UPPER(@l1),UPPER(@f),UPPER(@b)))
++                       OR (REPLACE(REPLACE(UPPER(ISNULL(r.OrigPostal,'')),' ',''),'-','')=@p AND UPPER(LTRIM(RTRIM(ISNULL(r.OrigStreet,'')))) IN (UPPER(@l1),UPPER(@f),UPPER(@o),UPPER(@b)))
+                     ORDER BY CASE WHEN a.Verifed=1 THEN 0 WHEN ISNULL(r.Status,'Pending')='Pending' THEN 1 ELSE 2 END, a.AddressMasterId DESC"
+                 : @"SELECT TOP 1 CASE WHEN a.Verifed=1 THEN 'Verified' ELSE 'Pending' END St FROM AddressMaster a
+-                    WHERE REPLACE(REPLACE(UPPER(a.PostalCode),' ',''),'-','')=@p AND UPPER(LTRIM(RTRIM(a.Street_Name))) IN (UPPER(@l1),UPPER(@f)) ORDER BY CASE WHEN a.Verifed=1 THEN 0 ELSE 1 END, a.AddressMasterId DESC",
+-                "@p", Cp(a.Postal), "@l1", a.Line1.Trim(), "@f", Full(a), "@o", Orig(a));
++                    WHERE REPLACE(REPLACE(UPPER(a.PostalCode),' ',''),'-','')=@p AND UPPER(LTRIM(RTRIM(a.Street_Name))) IN (UPPER(@l1),UPPER(@f),UPPER(@b)) ORDER BY CASE WHEN a.Verifed=1 THEN 0 ELSE 1 END, a.AddressMasterId DESC",
++                "@p", Cp(a.Postal), "@l1", a.Line1.Trim(), "@f", Full(a), "@o", Orig(a), "@b", NoNum(a.Line1));
+             return t.Rows.Count == 1 ? Convert.ToString(t.Rows[0][0]) : "";
+         }
+         catch (SqlException ex) { log4net.LogManager.GetLogger("Log").Warn("Address status lookup failed", ex); return ""; }
+@@ -216,8 +216,8 @@ public static class AnyminuteSupportAddress
+         if (st == "Pending")
+         {
+             if (rv) AnyminuteTimesheetRepair.Execute(c, tx, @"UPDATE r SET SubmittedBy=@w FROM AnyminuteAddressReview r JOIN AddressMaster a ON a.AddressMasterId=r.AddressMasterId
+-                WHERE ISNULL(a.Verifed,0)<>1 AND r.Status='Pending' AND ISNULL(r.SubmittedBy,'')='' AND REPLACE(REPLACE(UPPER(a.PostalCode),' ',''),'-','')=@p AND UPPER(LTRIM(RTRIM(a.Street_Name))) IN (UPPER(@l1),UPPER(@f))",
+-                "@w", who, "@p", Cp(a.Postal), "@l1", a.Line1.Trim(), "@f", Full(a));
++                WHERE ISNULL(a.Verifed,0)<>1 AND r.Status='Pending' AND ISNULL(r.SubmittedBy,'')='' AND REPLACE(REPLACE(UPPER(a.PostalCode),' ',''),'-','')=@p AND UPPER(LTRIM(RTRIM(a.Street_Name))) IN (UPPER(@l1),UPPER(@f),UPPER(@b))",
++                "@w", who, "@p", Cp(a.Postal), "@l1", a.Line1.Trim(), "@f", Full(a), "@b", NoNum(a.Line1));
+             return st;
+         }
+         object id = AnyminuteTimesheetRepair.Query(c, tx, "INSERT AddressMaster(Street_Name,City,Province,PostalCode,Verifed) VALUES(@s,@c,@pr,@pc,0); SELECT CAST(SCOPE_IDENTITY() AS int)",
+@@ -229,6 +229,69 @@ public static class AnyminuteSupportAddress
+             "@i", id, "@w", who, "@o", Orig(a), "@c", a.City, "@pr", a.Province, "@co", a.Country, "@pc", a.Postal, "@n", n);
+         return "Pending";
+     }
++    // v80: "19 Neelands Cres" typed in Address Line 1 (no separate Street Number) still matches the street row "NEELANDS CRES".
++    static string NoNum(string s) { s = (s ?? "").Trim(); var m = Regex.Match(s, @"^\d+[A-Za-z]?(-\d+)?\s+(.+)$"); return m.Success ? m.Groups[2].Value.Trim() : s; }
++    // City / Province name for a legacy value that may be a CityMaster / ProvinceMaster id (or 0 = none).
++    static string MasterName(SqlConnection c, SqlTransaction tx, string value, int fallbackId, bool city)
++    {
++        value = (value ?? "").Trim(); int id;
++        if (value.Length > 0 && !Int32.TryParse(value, out id)) return value;
++        if (!Int32.TryParse(value, out id) || id <= 0) id = fallbackId;
++        if (id <= 0) return "";
++        var t = AnyminuteTimesheetRepair.Query(c, tx, city ? "SELECT CityName FROM CityMaster WHERE CityId=@i" : "SELECT ProvinceName FROM ProvinceMaster WHERE ProvinceId=@i", "@i", id);
++        return t.Rows.Count == 1 ? Convert.ToString(t.Rows[0][0]).Trim() : "";
++    }
++    public static Addr FromLegacy(SqlConnection c, SqlTransaction tx, string streetNo, string street, string line2, string suiteType, string suiteNo, string city, int cityId, string prov, int provId, string postal)
++    {
++        var a = new Addr { StreetNo = (streetNo ?? "").Trim(), Line1 = (street ?? "").Trim(), Line2 = (line2 ?? "").Trim(), SuiteNo = (suiteNo ?? "").Trim(),
++            SuiteType = SuiteTypes.FirstOrDefault(t => t.Equals((suiteType ?? "").Trim(), StringComparison.OrdinalIgnoreCase)) ?? "" };
++        a.Country = Regex.IsMatch(Cp(postal), @"^\d{5}(\d{4})?$") ? "United States" : "Canada";
++        a.Postal = NormalPostal(postal, a.Country);
++        a.City = MasterName(c, tx, city, cityId, true); a.Province = MasterName(c, tx, prov, provId, false);
++        if (a.StreetNo.Length == 0 && NoNum(a.Line1) != a.Line1) { a.StreetNo = a.Line1.Substring(0, a.Line1.Length - NoNum(a.Line1).Length).Trim(); a.Line1 = NoNum(a.Line1); }
++        return a;
++    }
++    public static int MaxMasterId(SqlConnection c, SqlTransaction tx)
++    {
++        try { return Convert.ToInt32(AnyminuteTimesheetRepair.Query(c, tx, "SELECT ISNULL(MAX(AddressMasterId),0) FROM AddressMaster").Rows[0][0]); }
++        catch (Exception ex) { log4net.LogManager.GetLogger("Log").Warn("AddressMaster max id read failed", ex); return -1; }
++    }
++    // v80 root cause fix (Fawaz Thakor, "19 Neelands Cres ... M1E 0B6" already Verified but listed Pending with City 0 / Prov 0):
++    // the legacy Sp_InsertEmpAddress / Sp_InsertBusinessAddress add an AddressMaster row whenever no row has the EXACT postal
++    // text (verified rows hold "M1E0B6", forms send "M1E 0B6") or the exact street, storing @CityId/@ProvinceId (0 when the caller
++    // did not set them) and Street_Name without the number; TR_AnyminuteAddressMaster_Submitted then makes it Pending.
++    // Call right after those SPs with the MAX(AddressMasterId) read before: rows they just added for this address are removed when
++    // the address is already Verified (or already waiting in Pending), else kept once with real names + the full submitted street.
++    public static void AfterLegacyInsert(SqlConnection c, SqlTransaction tx, int afterId, Addr a)
++    {
++        if (afterId < 0 || a == null || !a.Any || Cp(a.Postal).Length == 0) return;
++        try
++        {
++            const string Same = "REPLACE(REPLACE(UPPER(a.PostalCode),' ',''),'-','')=@p AND UPPER(LTRIM(RTRIM(a.Street_Name))) IN (UPPER(@l1),UPPER(@f),UPPER(@b))";
++            object[] args = { "@m", afterId, "@p", Cp(a.Postal), "@l1", a.Line1.Trim(), "@f", Full(a), "@b", NoNum(a.Line1) };
++            var fresh = AnyminuteTimesheetRepair.Query(c, tx, "SELECT a.AddressMasterId FROM AddressMaster a WHERE a.AddressMasterId>@m AND ISNULL(a.Verifed,0)<>1 AND " + Same + " ORDER BY a.AddressMasterId", args)
++                .Rows.Cast<DataRow>().Select(r => Convert.ToInt32(r[0])).ToList();
++            if (fresh.Count == 0) return;
++            bool rv = AnyminuteEmployeeEditor.HasTable(c, tx, "AnyminuteAddressReview");
++            string ids = String.Join(",", fresh.Select(x => x.ToString(CultureInfo.InvariantCulture)).ToArray());
++            bool known = AnyminuteTimesheetRepair.Query(c, tx, "SELECT TOP 1 1 FROM AddressMaster a" + (rv ? " LEFT JOIN AnyminuteAddressReview r ON r.AddressMasterId=a.AddressMasterId" : "")
++                + " WHERE a.AddressMasterId NOT IN (" + ids + ") AND " + Same + " AND (a.Verifed=1" + (rv ? " OR ISNULL(r.Status,'Pending')='Pending'" : " OR 1=1") + ")", args).Rows.Count == 1;
++            var drop = known ? fresh : fresh.Skip(1).ToList();
++            if (drop.Count > 0)
++            {
++                string d = String.Join(",", drop.Select(x => x.ToString(CultureInfo.InvariantCulture)).ToArray());
++                if (rv) AnyminuteTimesheetRepair.Execute(c, tx, "DELETE FROM AnyminuteAddressReview WHERE AddressMasterId IN (" + d + ")");
++                AnyminuteTimesheetRepair.Execute(c, tx, "DELETE FROM AddressMaster WHERE AddressMasterId IN (" + d + ") AND ISNULL(Verifed,0)<>1");
++            }
++            if (known) return;
++            int keep = fresh[0];
++            AnyminuteTimesheetRepair.Execute(c, tx, "UPDATE AddressMaster SET Street_Name=@s,City=@c,Province=@pr,PostalCode=@pc WHERE AddressMasterId=@i",
++                "@s", a.Line1.Trim(), "@c", a.City, "@pr", a.Province, "@pc", a.Postal, "@i", keep);
++            if (rv) AnyminuteTimesheetRepair.Execute(c, tx, "UPDATE AnyminuteAddressReview SET OrigStreet=@o,OrigCity=@c,OrigProvince=@pr,OrigPostal=@pc,OrigCountry=@co,Country=@co WHERE AddressMasterId=@i",
++                "@o", Orig(a), "@c", a.City, "@pr", a.Province, "@pc", a.Postal, "@co", a.Country, "@i", keep);
++        }
++        catch (Exception ex) { log4net.LogManager.GetLogger("Log").Warn("Legacy address reconcile failed", ex); }
++    }
+     // JSON for the lookup endpoint: [{street,city,province}] (title case), up to 20 rows.
+     public static string LookupJson(string postal)
+     {
+diff --git a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteSupportBusinessCreate.cs b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteSupportBusinessCreate.cs
+index c0bd322..75b8dba 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteSupportBusinessCreate.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteSupportBusinessCreate.cs
+@@ -49,11 +49,13 @@ public static class AnyminuteSupportBusinessCreate
+         using (var cmd = Proc(c, tx, "dbo.Sp_InsertAssginBussiness", new Dictionary<string, object> {
+             {"BusinessID", business}, {"EmployeeID", owner}, {"BusinessName", name}, {"EmployeeName", ownerName}, {"UserTypeId", 1}, {"MotherOrgID", mother} })) cmd.ExecuteNonQuery();
+         AnyminuteTimesheetRepair.Execute(c, tx, "UPDATE dbo.MappingTable SET BusinessID=@b WHERE EmployeeID=@e", "@b", business, "@e", owner);
++        int amBefore = AnyminuteSupportAddress.MaxMasterId(c, tx); // v80: see AnyminuteSupportAddress.AfterLegacyInsert
+         using (var cmd = Proc(c, tx, "dbo.Sp_InsertBusinessAddress", new Dictionary<string, object> {
+             {"BusinessID", business}, {"Postalcode", AnyminuteBusinessAddressInput.Postal(a.Postal)}, {"NumberSuffix", "Please Select"}, {"StreetName", a.Line1}, {"StreetType", a.Line2},
+             {"StreetDirection", ""}, {"SuitType", a.SuiteType.Length > 0 ? a.SuiteType : "Please Select"}, {"SuiteNumber", a.SuiteNo}, {"SuitSuffix", "Please Select"}, {"City", a.City}, {"Province", a.Province},
+             {"MainPhone", phone}, {"WorkPhone", ""}, {"Mobile", ""}, {"Fax", ""}, {"MainEmail", email}, {"CCEmail", ""}, {"Website", ""}, {"StreetNo", a.StreetNo}, {"Other1", ""},
+             {"Cityid", MasterId(c, tx, "CityMaster", "CityName", "CityId", a.City)}, {"Provinceid", MasterId(c, tx, "ProvinceMaster", "ProvinceName", "ProvinceId", a.Province)} })) cmd.ExecuteNonQuery();
++        AnyminuteSupportAddress.AfterLegacyInsert(c, tx, amBefore, a);
+         bool countryColumn = AnyminuteTimesheetRepair.Query(c, tx, "SELECT COL_LENGTH('dbo.BusinessAddress','Country')").Rows[0][0] != DBNull.Value;
+         int linked = Convert.ToInt32(AnyminuteTimesheetRepair.Query(c, tx, countryColumn
+             ? "UPDATE ba SET Country=@k FROM dbo.BusinessAddress ba JOIN dbo.AddBusiness b ON b.ADDRESSID=ba.BusinessAddressId WHERE b.BusinessID=@b; SELECT @@ROWCOUNT"
+diff --git a/AMV3Reseller_27Aug2022_Subscription/App_Code/EmpAddressController.cs b/AMV3Reseller_27Aug2022_Subscription/App_Code/EmpAddressController.cs
+index 19756bb..b4540ec 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/App_Code/EmpAddressController.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/App_Code/EmpAddressController.cs
+@@ -68,7 +68,10 @@ public class EmpAddressController
+ 
+             CmdInsertEmpAddress.Parameters.AddWithValue("@StreetNo", EmpAddEnity.StreetNo);
+             CmdInsertEmpAddress.Parameters.AddWithValue("@MotherOrgId", EmpAddEnity.MotherOrgId);
++            int amBefore = AnyminuteSupportAddress.MaxMasterId(con, null); // v80: see AnyminuteSupportAddress.AfterLegacyInsert
+             result = CmdInsertEmpAddress.ExecuteNonQuery();
++            AnyminuteSupportAddress.AfterLegacyInsert(con, null, amBefore, AnyminuteSupportAddress.FromLegacy(con, null, EmpAddEnity.StreetNo, EmpAddEnity.StreetName, EmpAddEnity.StreetType,
++                EmpAddEnity.SuitType, EmpAddEnity.SuiteNumber, EmpAddEnity.City, EmpAddEnity.CityId, EmpAddEnity.Province, EmpAddEnity.ProvinceId, EmpAddEnity.Postalcode));
+ 
+             loginfo = "InsertEmpAddress(" + EmpAddEnity + "," + EmpID + ") end";
+             Logger.Info(loginfo);
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Main.master b/AMV3Reseller_27Aug2022_Subscription/Main.master
+index 27c37f3..780368c 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Main.master
++++ b/AMV3Reseller_27Aug2022_Subscription/Main.master
+@@ -5,7 +5,7 @@
+ <!DOCTYPE html>
+ 
+ <html>
+-<head runat="server"><meta name="anyminute-build" content="v79-20261110" />
++<head runat="server"><meta name="anyminute-build" content="v80-20261110" />
+     <title>AnyMinute | Record From Anywhere</title>
+     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+@@ -139,7 +139,7 @@
+     </asp:ContentPlaceHolder>
+     <link href="css/AnyminuteUI2026.css?v=20261017" rel="stylesheet" />
+ <link href="css/AnyminuteUIUnified.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUiBugFixes.css?v=20261026v17" rel="stylesheet" />
+-<link href="css/AnyminuteNavDrawer.css?v=20261106v67" rel="stylesheet" /><link href="css/AnyminuteTypography.css?v=20261110v79" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261110v79" rel="stylesheet" /></head>
++<link href="css/AnyminuteNavDrawer.css?v=20261106v67" rel="stylesheet" /><link href="css/AnyminuteTypography.css?v=20261110v80" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261110v80" rel="stylesheet" /></head>
+ <script type="text/javascript">  
+     window.onload = window.history.forward(0);
+ </script>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master b/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master
+index 9f4f4cd..2299e0d 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master
++++ b/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master
+@@ -2,7 +2,7 @@
+ <!DOCTYPE html>
+ 
+ <html>
+-<head runat="server"><meta name="anyminute-build" content="v79-20261110" />
++<head runat="server"><meta name="anyminute-build" content="v80-20261110" />
+     <title>AnyMinute | Record From Anywhere</title>
+     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+@@ -28,7 +28,7 @@
+                        
+     </asp:ContentPlaceHolder>
+     
+-<link href="css/AnyminuteTypography.css?v=20261110v79" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261110v79" rel="stylesheet" /></head>
++<link href="css/AnyminuteTypography.css?v=20261110v80" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261110v80" rel="stylesheet" /></head>
+     <script type="text/javascript">  
+ 
+     window.onload = window.history.forward(0);
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Modern.master b/AMV3Reseller_27Aug2022_Subscription/Modern.master
+index f43276a..2fd451e 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Modern.master
++++ b/AMV3Reseller_27Aug2022_Subscription/Modern.master
+@@ -1,6 +1,6 @@
+ <%@ Master Language="C#" AutoEventWireup="true" CodeFile="Modern.master.cs" Inherits="AnyminuteModernMaster" %>
+ <!DOCTYPE html>
+-<html lang="en"><head runat="server"><meta charset="utf-8" /><meta name="anyminute-build" content="v79-20261110" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>AnyMinute</title><link href="css/bootstrap.min.css" rel="stylesheet" /><script src="Assets/assets/js/core/jquery.3.2.1.min.js"></script><script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script><script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" /><script src="Assets/assets/js/plugin/datatables/datatables.min.js"></script><script src="Assets/assets/js/SweetAlert.js"></script><link href="css/AnyminuteModern.css" rel="stylesheet" /><asp:ContentPlaceHolder ID="head" runat="server" /><link href="css/AnyminuteUI2026.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUIUnified.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUiBugFixes.css?v=20261026v17" rel="stylesheet" /><link href="css/AnyminuteNavDrawer.css?v=20261106v67" rel="stylesheet" /><link href="css/AnyminuteTypography.css?v=20261110v79" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261110v79" rel="stylesheet" /></head>
++<html lang="en"><head runat="server"><meta charset="utf-8" /><meta name="anyminute-build" content="v80-20261110" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>AnyMinute</title><link href="css/bootstrap.min.css" rel="stylesheet" /><script src="Assets/assets/js/core/jquery.3.2.1.min.js"></script><script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script><script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" /><script src="Assets/assets/js/plugin/datatables/datatables.min.js"></script><script src="Assets/assets/js/SweetAlert.js"></script><link href="css/AnyminuteModern.css" rel="stylesheet" /><asp:ContentPlaceHolder ID="head" runat="server" /><link href="css/AnyminuteUI2026.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUIUnified.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUiBugFixes.css?v=20261026v17" rel="stylesheet" /><link href="css/AnyminuteNavDrawer.css?v=20261106v67" rel="stylesheet" /><link href="css/AnyminuteTypography.css?v=20261110v80" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261110v80" rel="stylesheet" /></head>
+ <body class="am-reference am-typography am-modern"><form id="frmMaster" runat="server"><asp:ScriptManager ID="ScriptManager1" runat="server" />
+ <header class="am-topbar"><button type="button" class="am-icon-button" data-toggle-sidebar aria-controls="am-main-navigation" aria-expanded="true" aria-label="Toggle navigation">&#9776;</button><a href="Dashboard.aspx" class="am-brand"><asp:PlaceHolder ID="LogoDefault" runat="server"><img src="Assets/assets/img/logo.jpg" alt="AnyMinute" class="am-logo" /></asp:PlaceHolder><asp:Literal ID="Brand" runat="server" /></a><span>Welcome! <asp:Literal ID="Welcome" runat="server" /><asp:Literal ID="WelcomeContext" runat="server" /></span><asp:Literal ID="HeaderHelp" runat="server" /><asp:Literal ID="HeaderBell" runat="server" /><details class="am-account-menu"><summary aria-label="Account menu"><asp:Literal ID="AccountAvatar" runat="server" /><span class="am-account-chevron" aria-hidden="true"></span><span class="sr-only">Account</span></summary><div class="am-account-popover"><a href="MyProfile.aspx"><span data-am-icon="profile" aria-hidden="true"></span>My profile</a><a href="LoginSecurity.aspx"><span data-am-icon="settings" aria-hidden="true"></span>Login &amp; security</a><asp:LinkButton ID="SignOut" runat="server" CausesValidation="false" OnClick="SignOut_Click"><span data-am-icon="signout" aria-hidden="true"></span>Sign out</asp:LinkButton>
+    <a href="Change%20Password.aspx"><span data-am-icon="settings" aria-hidden="true"></span>Change password</a><asp:Literal ID="AccountHelp" runat="server" /><asp:Literal ID="AccountUpgrade" runat="server" /></div></details></header>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx.cs b/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx.cs
+index 9846da5..0f531c7 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx.cs
+@@ -38,7 +38,7 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
+             if (!ready) Flash.Text += SA.Notice(c, "AnyminuteAddressReview", "AnyminuteSupportAudit");
+             string rj = ready ? " LEFT JOIN AnyminuteAddressReview r ON r.AddressMasterId=a.AddressMasterId" : "";
+             string status = ready ? "CASE WHEN a.Verifed=1 THEN 'Verified' WHEN r.Status='Rejected' THEN 'Rejected' ELSE 'Pending' END" : "CASE WHEN a.Verifed=1 THEN 'Verified' ELSE 'Pending' END";
+-            string cols = ready ? ",r.SubmittedBy,r.SubmittedAtUTC,r.Country,r.ReviewedAtUTC,r.ReviewedByName,r.Notes" : ",CAST(NULL AS nvarchar(150)) SubmittedBy,CAST(NULL AS datetime2) SubmittedAtUTC,CAST(NULL AS nvarchar(60)) Country,CAST(NULL AS datetime2) ReviewedAtUTC,CAST(NULL AS nvarchar(150)) ReviewedByName,CAST(NULL AS nvarchar(500)) Notes";
++            string cols = ready ? ",r.SubmittedBy,r.SubmittedAtUTC,r.Country,r.ReviewedAtUTC,r.ReviewedByName,r.Notes,r.OrigStreet,r.OrigCity,r.OrigProvince" : ",CAST(NULL AS nvarchar(200)) OrigStreet,CAST(NULL AS nvarchar(200)) OrigCity,CAST(NULL AS nvarchar(200)) OrigProvince,CAST(NULL AS nvarchar(150)) SubmittedBy,CAST(NULL AS datetime2) SubmittedAtUTC,CAST(NULL AS nvarchar(60)) Country,CAST(NULL AS datetime2) ReviewedAtUTC,CAST(NULL AS nvarchar(150)) ReviewedByName,CAST(NULL AS nvarchar(500)) Notes";
+             var all = SA.Q(c, "SELECT a.AddressMasterId,a.Street_Name," + Names + ",a.PostalCode," + status + " St" + cols + " FROM AddressMaster a" + NameJoins + rj);
+             Func<string, int> count = s => all.Rows.Cast<DataRow>().Count(r => SA.S(r["St"]) == s);
+             string wanted = tab == "verified" ? "Verified" : tab == "rejected" ? "Rejected" : "Pending";
+@@ -73,8 +73,10 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
+             {
+                 int rid = Convert.ToInt32(r["AddressMasterId"]); string ctry = SA.S(r["Country"]); if (ctry.Length == 0) ctry = SA.GuessCountry(SA.S(r["PostalCode"]));
+                 string who = Submitter(c, r);
+-                sb.Append("<tr").Append(rid == id ? " class='sa-selected'" : "").Append("><td><input type='checkbox' name='sa_pick' value='").Append(rid).Append("' aria-label='Select' /></td><td>").Append(SA.H(r["Street_Name"])).Append("</td><td>").Append(SA.H(r["City"]))
+-                  .Append("</td><td>").Append(SA.H(r["Province"])).Append("</td><td>").Append(SA.H(ctry)).Append("</td><td>").Append(SA.H(r["PostalCode"])).Append("</td><td>")
++                var shown = Shown(c, null, r, tab != "verified");
++                Func<string, string> cell = v => v.Length > 0 ? SA.H(v) : "<span class='sa-muted' title='Not recorded'>&mdash;</span>";
++                sb.Append("<tr").Append(rid == id ? " class='sa-selected'" : "").Append("><td><input type='checkbox' name='sa_pick' value='").Append(rid).Append("' aria-label='Select' /></td><td>").Append(cell(shown[0])).Append("</td><td>").Append(cell(shown[1]))
++                  .Append("</td><td>").Append(cell(shown[2])).Append("</td><td>").Append(SA.H(ctry)).Append("</td><td>").Append(SA.H(r["PostalCode"])).Append("</td><td>")
+                   .Append(who != null ? SA.H(who) : "<span class='sa-muted' title='No subscriber, employee, business or reseller address uses this address'>Not linked</span>").Append("</td><td>").Append(r["SubmittedAtUTC"] != DBNull.Value ? SA.Day(r["SubmittedAtUTC"]) : "<span class='sa-muted' title='Added before submission dates were recorded'>&mdash;</span>").Append("</td><td class='sa-actions sa-nowrap'>")
+                   .Append(RowActions(tab, rid, baseQ, page)).Append("</td></tr>");
+             }
+@@ -92,6 +94,45 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
+     const string NameJoins = " LEFT JOIN CityMaster ci ON CAST(ci.CityId AS nvarchar(50))=CAST(a.City AS nvarchar(50)) LEFT JOIN ProvinceMaster pr ON CAST(pr.ProvinceId AS nvarchar(50))=CAST(a.Province AS nvarchar(50))";
+     // Recorded submitter, else the subscriber / employee whose own address is this address (same postal code and street).
+     static string Submitter(SqlConnection c, DataRow r) { return Submitter(c, null, r); }
++    // v80 (Pending row "Neelands Cres | 0 | 0"): legacy Sp_InsertEmpAddress / Sp_InsertBusinessAddress stored CityId / ProvinceId
++    // (0 = not set) and the street without its number. Show the submitted street (with number) and names: the review row's
++    // original values, else the subscriber / employee / business address that uses this postal code + street.
++    static bool Unresolved(string v) { int x; v = (v ?? "").Trim(); return v.Length == 0 || Int32.TryParse(v, out x); }
++    static string NameOf(SqlConnection c, SqlTransaction tx, string v, bool city)
++    {
++        v = (v ?? "").Trim(); int x; if (!Int32.TryParse(v, out x)) return v; if (x <= 0) return "";
++        var t = AnyminuteTimesheetRepair.Query(c, tx, city ? "SELECT CityName FROM CityMaster WHERE CityId=@i" : "SELECT ProvinceName FROM ProvinceMaster WHERE ProvinceId=@i", "@i", x);
++        return t.Rows.Count == 1 ? SA.S(t.Rows[0][0]).Trim() : "";
++    }
++    static string Col(DataRow r, string n) { return r.Table.Columns.Contains(n) ? SA.S(r[n]).Trim() : ""; }
++    static string[] Shown(SqlConnection c, SqlTransaction tx, DataRow r, bool linked)
++    {
++        string st = SA.S(r["Street_Name"]).Trim(), city = SA.S(r["City"]).Trim(), prov = SA.S(r["Province"]).Trim(), os = Col(r, "OrigStreet");
++        if (os.Length > 0 && char.IsDigit(os[0]) && os.IndexOf(st, StringComparison.OrdinalIgnoreCase) >= 0) st = os;
++        if (Unresolved(city)) city = NameOf(c, tx, Col(r, "OrigCity"), true);
++        if (Unresolved(prov)) prov = NameOf(c, tx, Col(r, "OrigProvince"), false);
++        bool noNum = st.Length > 0 && !char.IsDigit(st[0]);
++        if (linked && (noNum || city.Length == 0 || prov.Length == 0))
++        {
++            try
++            {
++                var t = AnyminuteTimesheetRepair.Query(c, tx, @"SELECT TOP 1 * FROM (
++                    SELECT 0 k,e.EmpAddressId i,LTRIM(RTRIM(ISNULL(e.StreetNo,''))) No,e.City,e.Province FROM EmpAddress e WHERE REPLACE(REPLACE(UPPER(e.Postalcode),' ',''),'-','')=@p AND UPPER(LTRIM(RTRIM(e.StreetName)))=UPPER(LTRIM(RTRIM(@s)))
++                    UNION ALL SELECT 1,e.BusinessAddressId,LTRIM(RTRIM(ISNULL(e.StreetNo,''))),e.City,e.Province FROM BusinessAddress e WHERE REPLACE(REPLACE(UPPER(e.Postalcode),' ',''),'-','')=@p AND UPPER(LTRIM(RTRIM(e.StreetName)))=UPPER(LTRIM(RTRIM(@s)))) x ORDER BY k,i DESC",
++                    "@p", SA.CompactPostal(SA.S(r["PostalCode"])), "@s", SA.S(r["Street_Name"]));
++                if (t.Rows.Count == 1)
++                {
++                    string no = SA.S(t.Rows[0]["No"]);
++                    if (noNum && no.Length > 0 && no.Length <= 20) st = no + " " + st;
++                    if (city.Length == 0) city = NameOf(c, tx, SA.S(t.Rows[0]["City"]), true);
++                    if (prov.Length == 0) prov = NameOf(c, tx, SA.S(t.Rows[0]["Province"]), false);
++                }
++            }
++            catch (SqlException) { }
++            catch (InvalidOperationException) { }
++        }
++        return new[] { st, city, prov };
++    }
+     // v42 (PPT 05 s2-3, "When I try to approve I got below message"): Approve / Reject run inside a transaction, so every
+     // lookup on that connection must enlist in it (a non-enlisted command threw InvalidOperationException -> error page).
+     static string Submitter(SqlConnection c, SqlTransaction tx, DataRow r)
+@@ -156,6 +197,12 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
+         // Original values were captured as stored (ids); show names.
+         if (oc == SA.S(r["CityRaw"])) oc = SA.S(r["City"]); else { int x; if (Int32.TryParse(oc, out x)) { var n = SA.Q(c, "SELECT CityName FROM CityMaster WHERE CityId=@i", "@i", x); if (n.Rows.Count == 1) oc = SA.S(n.Rows[0][0]); } }
+         if (op == SA.S(r["ProvRaw"])) op = SA.S(r["Province"]); else { int x; if (Int32.TryParse(op, out x)) { var n = SA.Q(c, "SELECT ProvinceName FROM ProvinceMaster WHERE ProvinceId=@i", "@i", x); if (n.Rows.Count == 1) op = SA.S(n.Rows[0][0]); } }
++        if (Unresolved(oc) || Unresolved(op) || (os.Length > 0 && !char.IsDigit(os[0])))
++        {
++            var shown = Shown(c, null, r, true);
++            if (Unresolved(oc)) oc = shown[1]; if (Unresolved(op)) op = shown[2];
++            if (os.Length == 0 || (!char.IsDigit(os[0]) && shown[0].EndsWith(os, StringComparison.OrdinalIgnoreCase))) os = shown[0];
++        }
+         string who = Submitter(c, r);
+         string octry = review != null && SA.S(review["OrigCountry"]).Length > 0 ? SA.S(review["OrigCountry"]) : SA.GuessCountry(opc);
+         string ctry = SA.S(r["Country"]).Length > 0 ? SA.S(r["Country"]) : SA.GuessCountry(SA.S(r["PostalCode"]));

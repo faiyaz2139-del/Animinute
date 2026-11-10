@@ -1,0 +1,8 @@
+## compile_app.txt (App_Code, mcs /opt/monoenv, cc.sh)
+Compilation succeeded - 1 warning(s) (pre-existing)
+## SupportAddresses.aspx (pc.sh)
+Compilation succeeded - 0 errors, 0 warnings
+## SupportSubscribers.aspx (pc.sh, unchanged page against new App_Code)
+Compilation succeeded - 0 errors, 0 warnings
+## Main.master / Modern.master / MasterWithoutMenu.master
+stamp + ?v= text change only
