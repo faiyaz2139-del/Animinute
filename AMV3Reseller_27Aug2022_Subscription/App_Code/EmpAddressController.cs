@@ -68,7 +68,10 @@ public class EmpAddressController
 
             CmdInsertEmpAddress.Parameters.AddWithValue("@StreetNo", EmpAddEnity.StreetNo);
             CmdInsertEmpAddress.Parameters.AddWithValue("@MotherOrgId", EmpAddEnity.MotherOrgId);
+            int amBefore = AnyminuteSupportAddress.MaxMasterId(con, null); // v80: see AnyminuteSupportAddress.AfterLegacyInsert
             result = CmdInsertEmpAddress.ExecuteNonQuery();
+            AnyminuteSupportAddress.AfterLegacyInsert(con, null, amBefore, AnyminuteSupportAddress.FromLegacy(con, null, EmpAddEnity.StreetNo, EmpAddEnity.StreetName, EmpAddEnity.StreetType,
+                EmpAddEnity.SuitType, EmpAddEnity.SuiteNumber, EmpAddEnity.City, EmpAddEnity.CityId, EmpAddEnity.Province, EmpAddEnity.ProvinceId, EmpAddEnity.Postalcode));
 
             loginfo = "InsertEmpAddress(" + EmpAddEnity + "," + EmpID + ") end";
             Logger.Info(loginfo);

@@ -38,7 +38,7 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
             if (!ready) Flash.Text += SA.Notice(c, "AnyminuteAddressReview", "AnyminuteSupportAudit");
             string rj = ready ? " LEFT JOIN AnyminuteAddressReview r ON r.AddressMasterId=a.AddressMasterId" : "";
             string status = ready ? "CASE WHEN a.Verifed=1 THEN 'Verified' WHEN r.Status='Rejected' THEN 'Rejected' ELSE 'Pending' END" : "CASE WHEN a.Verifed=1 THEN 'Verified' ELSE 'Pending' END";
-            string cols = ready ? ",r.SubmittedBy,r.SubmittedAtUTC,r.Country,r.ReviewedAtUTC,r.ReviewedByName,r.Notes" : ",CAST(NULL AS nvarchar(150)) SubmittedBy,CAST(NULL AS datetime2) SubmittedAtUTC,CAST(NULL AS nvarchar(60)) Country,CAST(NULL AS datetime2) ReviewedAtUTC,CAST(NULL AS nvarchar(150)) ReviewedByName,CAST(NULL AS nvarchar(500)) Notes";
+            string cols = ready ? ",r.SubmittedBy,r.SubmittedAtUTC,r.Country,r.ReviewedAtUTC,r.ReviewedByName,r.Notes,r.OrigStreet,r.OrigCity,r.OrigProvince" : ",CAST(NULL AS nvarchar(200)) OrigStreet,CAST(NULL AS nvarchar(200)) OrigCity,CAST(NULL AS nvarchar(200)) OrigProvince,CAST(NULL AS nvarchar(150)) SubmittedBy,CAST(NULL AS datetime2) SubmittedAtUTC,CAST(NULL AS nvarchar(60)) Country,CAST(NULL AS datetime2) ReviewedAtUTC,CAST(NULL AS nvarchar(150)) ReviewedByName,CAST(NULL AS nvarchar(500)) Notes";
             var all = SA.Q(c, "SELECT a.AddressMasterId,a.Street_Name," + Names + ",a.PostalCode," + status + " St" + cols + " FROM AddressMaster a" + NameJoins + rj);
             Func<string, int> count = s => all.Rows.Cast<DataRow>().Count(r => SA.S(r["St"]) == s);
             string wanted = tab == "verified" ? "Verified" : tab == "rejected" ? "Rejected" : "Pending";
@@ -73,8 +73,10 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
             {
                 int rid = Convert.ToInt32(r["AddressMasterId"]); string ctry = SA.S(r["Country"]); if (ctry.Length == 0) ctry = SA.GuessCountry(SA.S(r["PostalCode"]));
                 string who = Submitter(c, r);
-                sb.Append("<tr").Append(rid == id ? " class='sa-selected'" : "").Append("><td><input type='checkbox' name='sa_pick' value='").Append(rid).Append("' aria-label='Select' /></td><td>").Append(SA.H(r["Street_Name"])).Append("</td><td>").Append(SA.H(r["City"]))
-                  .Append("</td><td>").Append(SA.H(r["Province"])).Append("</td><td>").Append(SA.H(ctry)).Append("</td><td>").Append(SA.H(r["PostalCode"])).Append("</td><td>")
+                var shown = Shown(c, null, r, tab != "verified");
+                Func<string, string> cell = v => v.Length > 0 ? SA.H(v) : "<span class='sa-muted' title='Not recorded'>&mdash;</span>";
+                sb.Append("<tr").Append(rid == id ? " class='sa-selected'" : "").Append("><td><input type='checkbox' name='sa_pick' value='").Append(rid).Append("' aria-label='Select' /></td><td>").Append(cell(shown[0])).Append("</td><td>").Append(cell(shown[1]))
+                  .Append("</td><td>").Append(cell(shown[2])).Append("</td><td>").Append(SA.H(ctry)).Append("</td><td>").Append(SA.H(r["PostalCode"])).Append("</td><td>")
                   .Append(who != null ? SA.H(who) : "<span class='sa-muted' title='No subscriber, employee, business or reseller address uses this address'>Not linked</span>").Append("</td><td>").Append(r["SubmittedAtUTC"] != DBNull.Value ? SA.Day(r["SubmittedAtUTC"]) : "<span class='sa-muted' title='Added before submission dates were recorded'>&mdash;</span>").Append("</td><td class='sa-actions sa-nowrap'>")
                   .Append(RowActions(tab, rid, baseQ, page)).Append("</td></tr>");
             }
@@ -92,6 +94,45 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
     const string NameJoins = " LEFT JOIN CityMaster ci ON CAST(ci.CityId AS nvarchar(50))=CAST(a.City AS nvarchar(50)) LEFT JOIN ProvinceMaster pr ON CAST(pr.ProvinceId AS nvarchar(50))=CAST(a.Province AS nvarchar(50))";
     // Recorded submitter, else the subscriber / employee whose own address is this address (same postal code and street).
     static string Submitter(SqlConnection c, DataRow r) { return Submitter(c, null, r); }
+    // v80 (Pending row "Neelands Cres | 0 | 0"): legacy Sp_InsertEmpAddress / Sp_InsertBusinessAddress stored CityId / ProvinceId
+    // (0 = not set) and the street without its number. Show the submitted street (with number) and names: the review row's
+    // original values, else the subscriber / employee / business address that uses this postal code + street.
+    static bool Unresolved(string v) { int x; v = (v ?? "").Trim(); return v.Length == 0 || Int32.TryParse(v, out x); }
+    static string NameOf(SqlConnection c, SqlTransaction tx, string v, bool city)
+    {
+        v = (v ?? "").Trim(); int x; if (!Int32.TryParse(v, out x)) return v; if (x <= 0) return "";
+        var t = AnyminuteTimesheetRepair.Query(c, tx, city ? "SELECT CityName FROM CityMaster WHERE CityId=@i" : "SELECT ProvinceName FROM ProvinceMaster WHERE ProvinceId=@i", "@i", x);
+        return t.Rows.Count == 1 ? SA.S(t.Rows[0][0]).Trim() : "";
+    }
+    static string Col(DataRow r, string n) { return r.Table.Columns.Contains(n) ? SA.S(r[n]).Trim() : ""; }
+    static string[] Shown(SqlConnection c, SqlTransaction tx, DataRow r, bool linked)
+    {
+        string st = SA.S(r["Street_Name"]).Trim(), city = SA.S(r["City"]).Trim(), prov = SA.S(r["Province"]).Trim(), os = Col(r, "OrigStreet");
+        if (os.Length > 0 && char.IsDigit(os[0]) && os.IndexOf(st, StringComparison.OrdinalIgnoreCase) >= 0) st = os;
+        if (Unresolved(city)) city = NameOf(c, tx, Col(r, "OrigCity"), true);
+        if (Unresolved(prov)) prov = NameOf(c, tx, Col(r, "OrigProvince"), false);
+        bool noNum = st.Length > 0 && !char.IsDigit(st[0]);
+        if (linked && (noNum || city.Length == 0 || prov.Length == 0))
+        {
+            try
+            {
+                var t = AnyminuteTimesheetRepair.Query(c, tx, @"SELECT TOP 1 * FROM (
+                    SELECT 0 k,e.EmpAddressId i,LTRIM(RTRIM(ISNULL(e.StreetNo,''))) No,e.City,e.Province FROM EmpAddress e WHERE REPLACE(REPLACE(UPPER(e.Postalcode),' ',''),'-','')=@p AND UPPER(LTRIM(RTRIM(e.StreetName)))=UPPER(LTRIM(RTRIM(@s)))
+                    UNION ALL SELECT 1,e.BusinessAddressId,LTRIM(RTRIM(ISNULL(e.StreetNo,''))),e.City,e.Province FROM BusinessAddress e WHERE REPLACE(REPLACE(UPPER(e.Postalcode),' ',''),'-','')=@p AND UPPER(LTRIM(RTRIM(e.StreetName)))=UPPER(LTRIM(RTRIM(@s)))) x ORDER BY k,i DESC",
+                    "@p", SA.CompactPostal(SA.S(r["PostalCode"])), "@s", SA.S(r["Street_Name"]));
+                if (t.Rows.Count == 1)
+                {
+                    string no = SA.S(t.Rows[0]["No"]);
+                    if (noNum && no.Length > 0 && no.Length <= 20) st = no + " " + st;
+                    if (city.Length == 0) city = NameOf(c, tx, SA.S(t.Rows[0]["City"]), true);
+                    if (prov.Length == 0) prov = NameOf(c, tx, SA.S(t.Rows[0]["Province"]), false);
+                }
+            }
+            catch (SqlException) { }
+            catch (InvalidOperationException) { }
+        }
+        return new[] { st, city, prov };
+    }
     // v42 (PPT 05 s2-3, "When I try to approve I got below message"): Approve / Reject run inside a transaction, so every
     // lookup on that connection must enlist in it (a non-enlisted command threw InvalidOperationException -> error page).
     static string Submitter(SqlConnection c, SqlTransaction tx, DataRow r)
@@ -156,6 +197,12 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
         // Original values were captured as stored (ids); show names.
         if (oc == SA.S(r["CityRaw"])) oc = SA.S(r["City"]); else { int x; if (Int32.TryParse(oc, out x)) { var n = SA.Q(c, "SELECT CityName FROM CityMaster WHERE CityId=@i", "@i", x); if (n.Rows.Count == 1) oc = SA.S(n.Rows[0][0]); } }
         if (op == SA.S(r["ProvRaw"])) op = SA.S(r["Province"]); else { int x; if (Int32.TryParse(op, out x)) { var n = SA.Q(c, "SELECT ProvinceName FROM ProvinceMaster WHERE ProvinceId=@i", "@i", x); if (n.Rows.Count == 1) op = SA.S(n.Rows[0][0]); } }
+        if (Unresolved(oc) || Unresolved(op) || (os.Length > 0 && !char.IsDigit(os[0])))
+        {
+            var shown = Shown(c, null, r, true);
+            if (Unresolved(oc)) oc = shown[1]; if (Unresolved(op)) op = shown[2];
+            if (os.Length == 0 || (!char.IsDigit(os[0]) && shown[0].EndsWith(os, StringComparison.OrdinalIgnoreCase))) os = shown[0];
+        }
         string who = Submitter(c, r);
         string octry = review != null && SA.S(review["OrigCountry"]).Length > 0 ? SA.S(review["OrigCountry"]) : SA.GuessCountry(opc);
         string ctry = SA.S(r["Country"]).Length > 0 ? SA.S(r["Country"]) : SA.GuessCountry(SA.S(r["PostalCode"]));

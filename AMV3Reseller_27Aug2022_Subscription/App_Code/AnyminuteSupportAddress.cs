@@ -192,12 +192,12 @@ public static class AnyminuteSupportAddress
         {
             var t = AnyminuteTimesheetRepair.Query(c, tx, rv
                 ? @"SELECT TOP 1 CASE WHEN a.Verifed=1 THEN 'Verified' WHEN r.Status='Rejected' THEN 'Rejected' ELSE 'Pending' END St FROM AddressMaster a LEFT JOIN AnyminuteAddressReview r ON r.AddressMasterId=a.AddressMasterId
-                    WHERE (REPLACE(REPLACE(UPPER(a.PostalCode),' ',''),'-','')=@p AND UPPER(LTRIM(RTRIM(a.Street_Name))) IN (UPPER(@l1),UPPER(@f)))
-                       OR (REPLACE(REPLACE(UPPER(ISNULL(r.OrigPostal,'')),' ',''),'-','')=@p AND UPPER(LTRIM(RTRIM(ISNULL(r.OrigStreet,'')))) IN (UPPER(@l1),UPPER(@f),UPPER(@o)))
+                    WHERE (REPLACE(REPLACE(UPPER(a.PostalCode),' ',''),'-','')=@p AND UPPER(LTRIM(RTRIM(a.Street_Name))) IN (UPPER(@l1),UPPER(@f),UPPER(@b)))
+                       OR (REPLACE(REPLACE(UPPER(ISNULL(r.OrigPostal,'')),' ',''),'-','')=@p AND UPPER(LTRIM(RTRIM(ISNULL(r.OrigStreet,'')))) IN (UPPER(@l1),UPPER(@f),UPPER(@o),UPPER(@b)))
                     ORDER BY CASE WHEN a.Verifed=1 THEN 0 WHEN ISNULL(r.Status,'Pending')='Pending' THEN 1 ELSE 2 END, a.AddressMasterId DESC"
                 : @"SELECT TOP 1 CASE WHEN a.Verifed=1 THEN 'Verified' ELSE 'Pending' END St FROM AddressMaster a
-                    WHERE REPLACE(REPLACE(UPPER(a.PostalCode),' ',''),'-','')=@p AND UPPER(LTRIM(RTRIM(a.Street_Name))) IN (UPPER(@l1),UPPER(@f)) ORDER BY CASE WHEN a.Verifed=1 THEN 0 ELSE 1 END, a.AddressMasterId DESC",
-                "@p", Cp(a.Postal), "@l1", a.Line1.Trim(), "@f", Full(a), "@o", Orig(a));
+                    WHERE REPLACE(REPLACE(UPPER(a.PostalCode),' ',''),'-','')=@p AND UPPER(LTRIM(RTRIM(a.Street_Name))) IN (UPPER(@l1),UPPER(@f),UPPER(@b)) ORDER BY CASE WHEN a.Verifed=1 THEN 0 ELSE 1 END, a.AddressMasterId DESC",
+                "@p", Cp(a.Postal), "@l1", a.Line1.Trim(), "@f", Full(a), "@o", Orig(a), "@b", NoNum(a.Line1));
             return t.Rows.Count == 1 ? Convert.ToString(t.Rows[0][0]) : "";
         }
         catch (SqlException ex) { log4net.LogManager.GetLogger("Log").Warn("Address status lookup failed", ex); return ""; }
@@ -216,8 +216,8 @@ public static class AnyminuteSupportAddress
         if (st == "Pending")
         {
             if (rv) AnyminuteTimesheetRepair.Execute(c, tx, @"UPDATE r SET SubmittedBy=@w FROM AnyminuteAddressReview r JOIN AddressMaster a ON a.AddressMasterId=r.AddressMasterId
-                WHERE ISNULL(a.Verifed,0)<>1 AND r.Status='Pending' AND ISNULL(r.SubmittedBy,'')='' AND REPLACE(REPLACE(UPPER(a.PostalCode),' ',''),'-','')=@p AND UPPER(LTRIM(RTRIM(a.Street_Name))) IN (UPPER(@l1),UPPER(@f))",
-                "@w", who, "@p", Cp(a.Postal), "@l1", a.Line1.Trim(), "@f", Full(a));
+                WHERE ISNULL(a.Verifed,0)<>1 AND r.Status='Pending' AND ISNULL(r.SubmittedBy,'')='' AND REPLACE(REPLACE(UPPER(a.PostalCode),' ',''),'-','')=@p AND UPPER(LTRIM(RTRIM(a.Street_Name))) IN (UPPER(@l1),UPPER(@f),UPPER(@b))",
+                "@w", who, "@p", Cp(a.Postal), "@l1", a.Line1.Trim(), "@f", Full(a), "@b", NoNum(a.Line1));
             return st;
         }
         object id = AnyminuteTimesheetRepair.Query(c, tx, "INSERT AddressMaster(Street_Name,City,Province,PostalCode,Verifed) VALUES(@s,@c,@pr,@pc,0); SELECT CAST(SCOPE_IDENTITY() AS int)",
@@ -228,6 +228,69 @@ public static class AnyminuteSupportAddress
             ELSE UPDATE AnyminuteAddressReview SET SubmittedBy=@w,SubmittedAtUTC=ISNULL(SubmittedAtUTC,SYSUTCDATETIME()),OrigStreet=@o,OrigCountry=@co,Country=@co,Status='Pending',Notes=@n WHERE AddressMasterId=@i",
             "@i", id, "@w", who, "@o", Orig(a), "@c", a.City, "@pr", a.Province, "@co", a.Country, "@pc", a.Postal, "@n", n);
         return "Pending";
+    }
+    // v80: "19 Neelands Cres" typed in Address Line 1 (no separate Street Number) still matches the street row "NEELANDS CRES".
+    static string NoNum(string s) { s = (s ?? "").Trim(); var m = Regex.Match(s, @"^\d+[A-Za-z]?(-\d+)?\s+(.+)$"); return m.Success ? m.Groups[2].Value.Trim() : s; }
+    // City / Province name for a legacy value that may be a CityMaster / ProvinceMaster id (or 0 = none).
+    static string MasterName(SqlConnection c, SqlTransaction tx, string value, int fallbackId, bool city)
+    {
+        value = (value ?? "").Trim(); int id;
+        if (value.Length > 0 && !Int32.TryParse(value, out id)) return value;
+        if (!Int32.TryParse(value, out id) || id <= 0) id = fallbackId;
+        if (id <= 0) return "";
+        var t = AnyminuteTimesheetRepair.Query(c, tx, city ? "SELECT CityName FROM CityMaster WHERE CityId=@i" : "SELECT ProvinceName FROM ProvinceMaster WHERE ProvinceId=@i", "@i", id);
+        return t.Rows.Count == 1 ? Convert.ToString(t.Rows[0][0]).Trim() : "";
+    }
+    public static Addr FromLegacy(SqlConnection c, SqlTransaction tx, string streetNo, string street, string line2, string suiteType, string suiteNo, string city, int cityId, string prov, int provId, string postal)
+    {
+        var a = new Addr { StreetNo = (streetNo ?? "").Trim(), Line1 = (street ?? "").Trim(), Line2 = (line2 ?? "").Trim(), SuiteNo = (suiteNo ?? "").Trim(),
+            SuiteType = SuiteTypes.FirstOrDefault(t => t.Equals((suiteType ?? "").Trim(), StringComparison.OrdinalIgnoreCase)) ?? "" };
+        a.Country = Regex.IsMatch(Cp(postal), @"^\d{5}(\d{4})?$") ? "United States" : "Canada";
+        a.Postal = NormalPostal(postal, a.Country);
+        a.City = MasterName(c, tx, city, cityId, true); a.Province = MasterName(c, tx, prov, provId, false);
+        if (a.StreetNo.Length == 0 && NoNum(a.Line1) != a.Line1) { a.StreetNo = a.Line1.Substring(0, a.Line1.Length - NoNum(a.Line1).Length).Trim(); a.Line1 = NoNum(a.Line1); }
+        return a;
+    }
+    public static int MaxMasterId(SqlConnection c, SqlTransaction tx)
+    {
+        try { return Convert.ToInt32(AnyminuteTimesheetRepair.Query(c, tx, "SELECT ISNULL(MAX(AddressMasterId),0) FROM AddressMaster").Rows[0][0]); }
+        catch (Exception ex) { log4net.LogManager.GetLogger("Log").Warn("AddressMaster max id read failed", ex); return -1; }
+    }
+    // v80 root cause fix (Fawaz Thakor, "19 Neelands Cres ... M1E 0B6" already Verified but listed Pending with City 0 / Prov 0):
+    // the legacy Sp_InsertEmpAddress / Sp_InsertBusinessAddress add an AddressMaster row whenever no row has the EXACT postal
+    // text (verified rows hold "M1E0B6", forms send "M1E 0B6") or the exact street, storing @CityId/@ProvinceId (0 when the caller
+    // did not set them) and Street_Name without the number; TR_AnyminuteAddressMaster_Submitted then makes it Pending.
+    // Call right after those SPs with the MAX(AddressMasterId) read before: rows they just added for this address are removed when
+    // the address is already Verified (or already waiting in Pending), else kept once with real names + the full submitted street.
+    public static void AfterLegacyInsert(SqlConnection c, SqlTransaction tx, int afterId, Addr a)
+    {
+        if (afterId < 0 || a == null || !a.Any || Cp(a.Postal).Length == 0) return;
+        try
+        {
+            const string Same = "REPLACE(REPLACE(UPPER(a.PostalCode),' ',''),'-','')=@p AND UPPER(LTRIM(RTRIM(a.Street_Name))) IN (UPPER(@l1),UPPER(@f),UPPER(@b))";
+            object[] args = { "@m", afterId, "@p", Cp(a.Postal), "@l1", a.Line1.Trim(), "@f", Full(a), "@b", NoNum(a.Line1) };
+            var fresh = AnyminuteTimesheetRepair.Query(c, tx, "SELECT a.AddressMasterId FROM AddressMaster a WHERE a.AddressMasterId>@m AND ISNULL(a.Verifed,0)<>1 AND " + Same + " ORDER BY a.AddressMasterId", args)
+                .Rows.Cast<DataRow>().Select(r => Convert.ToInt32(r[0])).ToList();
+            if (fresh.Count == 0) return;
+            bool rv = AnyminuteEmployeeEditor.HasTable(c, tx, "AnyminuteAddressReview");
+            string ids = String.Join(",", fresh.Select(x => x.ToString(CultureInfo.InvariantCulture)).ToArray());
+            bool known = AnyminuteTimesheetRepair.Query(c, tx, "SELECT TOP 1 1 FROM AddressMaster a" + (rv ? " LEFT JOIN AnyminuteAddressReview r ON r.AddressMasterId=a.AddressMasterId" : "")
+                + " WHERE a.AddressMasterId NOT IN (" + ids + ") AND " + Same + " AND (a.Verifed=1" + (rv ? " OR ISNULL(r.Status,'Pending')='Pending'" : " OR 1=1") + ")", args).Rows.Count == 1;
+            var drop = known ? fresh : fresh.Skip(1).ToList();
+            if (drop.Count > 0)
+            {
+                string d = String.Join(",", drop.Select(x => x.ToString(CultureInfo.InvariantCulture)).ToArray());
+                if (rv) AnyminuteTimesheetRepair.Execute(c, tx, "DELETE FROM AnyminuteAddressReview WHERE AddressMasterId IN (" + d + ")");
+                AnyminuteTimesheetRepair.Execute(c, tx, "DELETE FROM AddressMaster WHERE AddressMasterId IN (" + d + ") AND ISNULL(Verifed,0)<>1");
+            }
+            if (known) return;
+            int keep = fresh[0];
+            AnyminuteTimesheetRepair.Execute(c, tx, "UPDATE AddressMaster SET Street_Name=@s,City=@c,Province=@pr,PostalCode=@pc WHERE AddressMasterId=@i",
+                "@s", a.Line1.Trim(), "@c", a.City, "@pr", a.Province, "@pc", a.Postal, "@i", keep);
+            if (rv) AnyminuteTimesheetRepair.Execute(c, tx, "UPDATE AnyminuteAddressReview SET OrigStreet=@o,OrigCity=@c,OrigProvince=@pr,OrigPostal=@pc,OrigCountry=@co,Country=@co WHERE AddressMasterId=@i",
+                "@o", Orig(a), "@c", a.City, "@pr", a.Province, "@pc", a.Postal, "@co", a.Country, "@i", keep);
+        }
+        catch (Exception ex) { log4net.LogManager.GetLogger("Log").Warn("Legacy address reconcile failed", ex); }
     }
     // JSON for the lookup endpoint: [{street,city,province}] (title case), up to 20 rows.
     public static string LookupJson(string postal)

@@ -572,7 +572,10 @@ public class AddBusinessControllerClass
             CmdBusinessAddress.Parameters.AddWithValue("@StreetNo", BusinessAddressEntity.StreetNo);
             CmdBusinessAddress.Parameters.AddWithValue("@Cityid", BusinessAddressEntity.Cityid);
             CmdBusinessAddress.Parameters.AddWithValue("@Provinceid", BusinessAddressEntity.Provinceid);
+            int amBefore = AnyminuteSupportAddress.MaxMasterId(con, null); // v80: see AnyminuteSupportAddress.AfterLegacyInsert
             CmdBusinessAddress.ExecuteNonQuery();
+            AnyminuteSupportAddress.AfterLegacyInsert(con, null, amBefore, AnyminuteSupportAddress.FromLegacy(con, null, BusinessAddressEntity.StreetNo, BusinessAddressEntity.StreetName, BusinessAddressEntity.StreetType,
+                BusinessAddressEntity.SuitType, BusinessAddressEntity.SuiteNumber, BusinessAddressEntity.City, BusinessAddressEntity.Cityid, BusinessAddressEntity.Province, BusinessAddressEntity.Provinceid, BusinessAddressEntity.Postalcode));
             loginfo = "InsertBusinessAddress(" + BusinessAddressEntity + ", " + BusinessID + ") end";
             Logger.Info(loginfo);
         }

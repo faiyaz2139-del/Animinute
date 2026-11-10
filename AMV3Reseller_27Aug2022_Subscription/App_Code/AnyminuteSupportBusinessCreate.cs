@@ -49,11 +49,13 @@ public static class AnyminuteSupportBusinessCreate
         using (var cmd = Proc(c, tx, "dbo.Sp_InsertAssginBussiness", new Dictionary<string, object> {
             {"BusinessID", business}, {"EmployeeID", owner}, {"BusinessName", name}, {"EmployeeName", ownerName}, {"UserTypeId", 1}, {"MotherOrgID", mother} })) cmd.ExecuteNonQuery();
         AnyminuteTimesheetRepair.Execute(c, tx, "UPDATE dbo.MappingTable SET BusinessID=@b WHERE EmployeeID=@e", "@b", business, "@e", owner);
+        int amBefore = AnyminuteSupportAddress.MaxMasterId(c, tx); // v80: see AnyminuteSupportAddress.AfterLegacyInsert
         using (var cmd = Proc(c, tx, "dbo.Sp_InsertBusinessAddress", new Dictionary<string, object> {
             {"BusinessID", business}, {"Postalcode", AnyminuteBusinessAddressInput.Postal(a.Postal)}, {"NumberSuffix", "Please Select"}, {"StreetName", a.Line1}, {"StreetType", a.Line2},
             {"StreetDirection", ""}, {"SuitType", a.SuiteType.Length > 0 ? a.SuiteType : "Please Select"}, {"SuiteNumber", a.SuiteNo}, {"SuitSuffix", "Please Select"}, {"City", a.City}, {"Province", a.Province},
             {"MainPhone", phone}, {"WorkPhone", ""}, {"Mobile", ""}, {"Fax", ""}, {"MainEmail", email}, {"CCEmail", ""}, {"Website", ""}, {"StreetNo", a.StreetNo}, {"Other1", ""},
             {"Cityid", MasterId(c, tx, "CityMaster", "CityName", "CityId", a.City)}, {"Provinceid", MasterId(c, tx, "ProvinceMaster", "ProvinceName", "ProvinceId", a.Province)} })) cmd.ExecuteNonQuery();
+        AnyminuteSupportAddress.AfterLegacyInsert(c, tx, amBefore, a);
         bool countryColumn = AnyminuteTimesheetRepair.Query(c, tx, "SELECT COL_LENGTH('dbo.BusinessAddress','Country')").Rows[0][0] != DBNull.Value;
         int linked = Convert.ToInt32(AnyminuteTimesheetRepair.Query(c, tx, countryColumn
             ? "UPDATE ba SET Country=@k FROM dbo.BusinessAddress ba JOIN dbo.AddBusiness b ON b.ADDRESSID=ba.BusinessAddressId WHERE b.BusinessID=@b; SELECT @@ROWCOUNT"
