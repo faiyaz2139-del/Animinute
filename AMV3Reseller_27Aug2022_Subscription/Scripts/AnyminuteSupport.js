@@ -278,7 +278,9 @@
       });
     });
     // v43 PPT 01 s5: "Creating Subscriber Account" overlay while the account is created.
-    $all('[data-sa-busy]').forEach(function (b) { b.addEventListener('click', function () { var o = document.querySelector('[data-sa-busy-box]'); setTimeout(function () { if (o) o.hidden = false; b.disabled = true; }, 0); }); });
+    // v79: one submit only - a second click / Enter while the account is being created is ignored (the button is disabled after
+    // the browser has captured its name/value; the form refuses any further submit).
+    $all('[data-sa-busy]').forEach(function (b) { b.addEventListener('click', function (e) { var f = b.form; if (b.getAttribute('data-sa-sent') === '1' || (f && f.getAttribute('data-sa-sending') === '1')) { e.preventDefault(); return; } b.setAttribute('data-sa-sent', '1'); if (f) f.setAttribute('data-sa-sending', '1'); var o = document.querySelector('[data-sa-busy-box]'); setTimeout(function () { if (o) o.hidden = false; b.disabled = true; }, 0); }); if (b.form && !b.form.getAttribute('data-sa-once')) { b.form.setAttribute('data-sa-once', '1'); var f0 = b.form, n = 0; f0.addEventListener('submit', function (e) { if (f0.getAttribute('data-sa-sending') === '1' && ++n > 1) e.preventDefault(); }); } });
     // v78 Address Verification selection bar (Reject/Restore/Delete Selected; no Edit Selected)
     (function () {
       var bar = document.querySelector('[data-sa-selbar]'); if (!bar) return;

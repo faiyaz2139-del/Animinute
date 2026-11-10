@@ -157,7 +157,19 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
         int user; Int32.TryParse(SA.Get("user"), out user);
         if (SA.Get("lookup") == "1") { Lookup(); return; }
         string op0 = SA.Form("sa_op");
-        if (IsPostBack && (op0 == "add" || op0 == "addsave" || op0 == "addback")) { AddPost(); return; }
+        if (IsPostBack && (op0 == "add" || op0 == "addsave" || op0 == "addback"))
+        {
+            // v79: no exception from Add Subscriber reaches ErrorPages/index.aspx - it is logged and shown on the form.
+            try { AddPost(); }
+            catch (System.Threading.ThreadAbortException) { throw; }
+            catch (Exception ex)
+            {
+                log4net.LogManager.GetLogger("Log").Error("Support Add Subscriber postback failed", ex);
+                Flash.Text = "<div class='sa-flash sa-warn'>Something went wrong while adding the subscriber: " + SA.H(ex.Message) + " Check the Subscribers list before trying again.</div>";
+                try { using (var c = SA.Open()) AddView(c, AF.Select(k => SA.Form(k).Trim()).ToArray()); } catch (Exception ex2) { log4net.LogManager.GetLogger("Log").Error("Add Subscriber form re-render failed", ex2); }
+            }
+            return;
+        }
         if (IsPostBack && op0.Length > 0) { Act(user); return; }
         Flash.Text = SA.TakeFlash();
         using (var c = SA.Open())
@@ -966,13 +978,30 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
         using (var c = SA.Open())
         {
             if (op == "addback") { AddView(c, v); return; }
+            // v79: double-submit guard. The confirm dialog carries a one-time token; a second Confirm click / refresh of the same
+            // dialog is not processed again (Session requests are serialized, so the second one sees the token already used).
+            if (op == "addsave")
+            {
+                string tok = SA.Form("ad_tok"), want = Convert.ToString(Session["sa_add_tok"]), last = Convert.ToString(Session["sa_add_last"]);
+                if (tok.Length > 0 && last.StartsWith(tok + "|", StringComparison.Ordinal))
+                { Response.Redirect("SupportSubscribers.aspx?user=" + last.Substring(tok.Length + 1) + "&view=created&inv=0", false); Context.ApplicationInstance.CompleteRequest(); return; }
+                if (tok.Length == 0 || tok != want) op = "add"; // stale / missing token: show the confirm dialog again instead of creating
+            }
             var plans = Plans(c); var pr = PlanRow(plans, v[6]);
             if (pr != null) { if (Lim(pr, "MaxBusinesses").Length > 0) v[7] = Lim(pr, "MaxBusinesses"); if (Lim(pr, "MaxEmployees").Length > 0) v[8] = Lim(pr, "MaxEmployees"); v[6] = SA.PlanKey(SA.S(pr["PlanName"])) + " PLAN"; }
-            var errs = new List<string>(); int nb = 0, ne = 0; DateTime d1, d2;
+            var errs = new List<string>(); int nb = 0, ne = 0; DateTime d1, d2; string dupHtml = "";
             if (!SA.Has(c, "AnyminuteSupportAudit")) errs.Add(SA.MissingTables);
             if (v[0].Length == 0) errs.Add("First name is required."); if (v[2].Length == 0) errs.Add("Last name is required.");
             if (!AnyminuteLoginEmail.ValidFormat(v[3])) errs.Add("Enter a valid email address (up to 50 characters).");
-            else if (AnyminuteSubscriberCreate.EmailTaken(c, v[3])) errs.Add("This email address is already registered to another AnyMinute account.");
+            else
+            {
+                // v79: accurate duplicate check (trimmed, case-insensitive). An unfinished Pending Activation subscriber with this
+                // email (e.g. from an earlier attempt) gets a Resend Invitation link instead of the generic block. Nothing is deleted.
+                var own = AnyminuteSubscriberCreate.EmailOwner(c, v[3]);
+                if (own != null && own.Subscriber && own.Pending)
+                    dupHtml = "<li>This email address already belongs to subscriber " + Sub(own.UserId) + (own.Name.Length > 0 ? " (" + SA.H(own.Name) + ")" : "") + ", which is still Pending Activation - probably from an earlier Add Subscriber attempt. Do not add it again: <a class='sa-link' href='SupportSubscribers.aspx?user=" + own.UserId + "&amp;view=access'>open the subscriber and use Resend Invitation</a>.</li>";
+                else if (own != null) errs.Add("This email address is already registered to another AnyMinute account.");
+            }
             if (v[4].Length == 0) errs.Add("Contact phone is required.");
             foreach (int i in new[] { 4, 5 }) if (v[i].Length > 0 && !System.Text.RegularExpressions.Regex.IsMatch(v[i], @"^[0-9+()\-.\s]{7,30}$")) errs.Add((i == 4 ? "Contact phone" : "Mobile phone") + " is not valid.");
             if (pr == null) errs.Add("Select a plan.");
@@ -983,7 +1012,7 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
             var rsl = Rsl; // v55: reseller subscriber limit (AnyminuteReseller.MaxSubscribers, NULL = unlimited)
             if (rsl != null && rsl.MaxSubscribers.HasValue && Convert.ToInt32(SA.Q(c, "SELECT COUNT(*) FROM AnyminuteResellerSubscriber WHERE ResellerID=@r", "@r", rsl.ResellerId).Rows[0][0]) >= rsl.MaxSubscribers.Value)
                 errs.Add("Your reseller account has reached its subscriber limit (" + rsl.MaxSubscribers.Value + "). Contact AnyMinute Support to raise it.");
-            if (errs.Count > 0) { Flash.Text = "<div class='sa-flash sa-warn'>Please fix the following:<ul>" + String.Join("", errs.Select(m => "<li>" + SA.H(m) + "</li>").ToArray()) + "</ul></div>"; AddView(c, v); return; }
+            if (errs.Count > 0 || dupHtml.Length > 0) { Flash.Text = "<div class='sa-flash sa-warn'>Please fix the following:<ul>" + dupHtml + String.Join("", errs.Select(m => "<li>" + SA.H(m) + "</li>").ToArray()) + "</ul></div>"; AddView(c, v); return; }
             var adr = AddrOf(v); v[20] = adr.Postal;
             string addr = AnyminuteSupportAddress.Compose(adr);
             if (op != "addsave")
@@ -991,6 +1020,8 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
                 AddHead();
                 var sb = new StringBuilder();
                 for (int i = 0; i < AF.Length; i++) sb.Append("<input type='hidden' name='").Append(AF[i]).Append("' value='").Append(SA.A(v[i])).Append("' />");
+                string tk = Guid.NewGuid().ToString("N"); Session["sa_add_tok"] = tk; sb.Append("<input type='hidden' name='ad_tok' value='").Append(tk).Append("' />"); // v79 one-time token
+                string src0 = AD.Source("ad_addr"); if (src0.Length > 0) sb.Append("<input type='hidden' name='ad_addr_src' value='").Append(SA.A(src0)).Append("' />");
                 string pp = Lim(pr, "MaxProjects");
                 Func<string, string, string> row = (k, val) => "<tr><th>" + k + "</th><td>" + (val.Length > 0 ? val : "&mdash;") + "</td></tr>";
                 sb.Append("<div class='sa-modal-back'><div class='sa-modal-box' role='dialog' aria-labelledby='sa-cf-h'><div class='sa-panel-head'><h2 id='sa-cf-h'>Confirm and Send Activation Invitation</h2><button type='submit' class='sa-x' name='sa_op' value='addback' formnovalidate aria-label='Close'>&times;</button></div>")
@@ -1008,23 +1039,39 @@ public partial class AnyminuteSupportSubscribersPage : System.Web.UI.Page
                 First = v[0], Middle = v[1], Last = v[2], Email = v[3], Phone = v[4], Mobile = v[5], PlanName = v[6], Businesses = nb, Employees = ne, Start = d1, NextBilling = d2, Invite = v[10] == "1",
                 Status = v[9] == AStatus[0] ? "Pending" : v[9], StreetNo = adr.StreetNo, Street = adr.Line1, Line2 = adr.Line2, SuiteType = adr.SuiteType, SuiteNo = adr.SuiteNo, City = adr.City, Province = adr.Province, Postal = adr.Postal, Country = adr.Any ? adr.Country : ""
             };
-            int user;
-            try { user = AnyminuteSubscriberCreate.Create(input); }
+            int user; string tok1 = SA.Form("ad_tok"); Session.Remove("sa_add_tok"); // v79: token used once, before anything is written
+            try { user = AnyminuteSubscriberCreate.Create(input); } // v79: rolls its own rows back on failure
             catch (Exception ex)
             {
                 log4net.LogManager.GetLogger("Log").Error("Support Add Subscriber failed", ex);
-                Flash.Text = "<div class='sa-flash sa-warn'>The subscriber could not be created: " + SA.H(ex.Message) + "</div>"; AddView(c, v); return;
+                Flash.Text = "<div class='sa-flash sa-warn'>The subscriber could not be created and nothing was saved: " + SA.H(ex.Message) + " Please try again.</div>"; AddView(c, v); return;
             }
+            Session["sa_add_last"] = tok1 + "|" + user;
             // v57 (PPT s4): an address entered on Add Subscriber is queued for Address Verification the same way as Edit Subscriber.
+            // v79 ROOT CAUSE: AD.ReviewReady(c) was evaluated inside c.BeginTransaction() without the transaction, which throws
+            // InvalidOperationException (not SqlException) -> uncaught -> ErrorPages/index.aspx, AFTER the subscriber login already
+            // existed, so the retry said "email already registered". ReviewReady is now read before the transaction, and any
+            // failure of these follow-up steps is logged without losing the created subscriber.
             if (adr.Any)
-                try { using (var tx = c.BeginTransaction()) { AD.QueuePending(c, tx, adr, AD.ReviewReady(c) , String.Join(" ", new[] { v[0], v[2] }.Where(x => x.Length > 0).ToArray()) + " (Subscriber)", AD.Source("ad_addr") == "lookup" ? "Selected from address lookup in Support Admin > Add Subscriber (not yet verified)." : "Entered manually in Support Admin > Add Subscriber."); tx.Commit(); } }
-                catch (SqlException ex) { log4net.LogManager.GetLogger("Log").Error("Address verification queue failed for user " + user, ex); }
+                try
+                {
+                    bool rv = AD.ReviewReady(c);
+                    string by = String.Join(" ", new[] { v[0], v[2] }.Where(x => x.Length > 0).ToArray()) + " (Subscriber)";
+                    string note = AD.Source("ad_addr") == "lookup" ? "Selected from address lookup in Support Admin > Add Subscriber (not yet verified)." : "Entered manually in Support Admin > Add Subscriber.";
+                    using (var tx = c.BeginTransaction()) { AD.QueuePending(c, tx, adr, rv, by, note); tx.Commit(); }
+                }
+                catch (Exception ex) { log4net.LogManager.GetLogger("Log").Error("Address verification queue failed for user " + user, ex); }
             // v55: a subscriber created by a reseller is assigned to that reseller (same row Support Admin > Resellers > Assign writes).
             if (rsl != null)
                 try { SA.X(c, null, "IF NOT EXISTS(SELECT 1 FROM AnyminuteResellerSubscriber WHERE UserId=@u) INSERT AnyminuteResellerSubscriber(UserId,ResellerID,AssignedBy) VALUES(@u,@i,@b)", "@u", user, "@i", rsl.ResellerId, "@b", SA.ActorName()); }
-                catch (SqlException ex) { log4net.LogManager.GetLogger("Log").Error("Reseller subscriber assignment failed for user " + user, ex); }
+                catch (Exception ex) { log4net.LogManager.GetLogger("Log").Error("Reseller subscriber assignment failed for user " + user, ex); }
             string sent = null;
-            if (input.Invite) { try { sent = AnyminuteSubscriberCreate.SendInvitation(c, user, input.TempPassword); } catch (Exception ex) { sent = "The invitation email could not be sent: " + ex.Message; } }
+            if (input.Invite)
+            {
+                try { sent = AnyminuteSubscriberCreate.SendInvitation(c, user, input.TempPassword); }
+                catch (Exception ex) { log4net.LogManager.GetLogger("Log").Error("Add Subscriber invitation email failed for user " + user, ex); sent = ex.Message; }
+                if (sent != null) sent = "Subscriber created but the invitation email could not be sent \u2014 use Resend Invitation. (" + sent + ")";
+            }
             // v45: the temporary password is shown once to Support (like the v44 reseller screen) and is in the welcome email.
             SA.Flash((sent != null ? sent + " " : "") + "Sign-in email: " + input.Email + ". Temporary password (shown once): " + input.TempPassword);
             Response.Redirect("SupportSubscribers.aspx?user=" + user + "&view=created&inv=" + (input.Invite && sent == null ? "1" : "0"), false); Context.ApplicationInstance.CompleteRequest();

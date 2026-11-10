@@ -46,6 +46,57 @@ public static class AnyminuteSubscriberCreate
         var rate = new RateDetailsEntity { IsEmployeeEIExempty = "NO", IsEmployeeCPPExempty = "NO", RetainVacation = "NO" };
         int empId = new AddEmployeeControlerClass().InsertPersonalDetails(emp, "1", rate);
         if (empId <= 0) throw new InvalidOperationException("The subscriber profile could not be created.");
+        // v79: the legacy stored procedures open their own connections, so one SQL transaction cannot span them (it would escalate
+        // to MSDTC). Instead every row this attempt wrote is removed again if any later step fails (compensating rollback), so a
+        // failed Add Subscriber never leaves a half-created login that blocks the email on the next try.
+        int user = 0;
+        try { return CreateRest(x, name, empId, ref user); }
+        catch (Exception ex)
+        {
+            log4net.LogManager.GetLogger("Log").Error("Support Add Subscriber failed for employee " + empId + " / user " + user + "; rolling back this attempt", ex);
+            Undo(empId, user);
+            throw;
+        }
+    }
+    // v79: compensating rollback of ONE failed Create attempt (only the EmployeeID / UserId it just created; nothing else).
+    static void Undo(int empId, int user)
+    {
+        try
+        {
+            using (var c = SA.Open())
+            {
+                Action<string, object[]> run = (sql, a) => { try { SA.X(c, null, sql, a); } catch (Exception e) { log4net.LogManager.GetLogger("Log").Error("Add Subscriber rollback step failed: " + sql, e); } };
+                if (user > 0)
+                {
+                    run("DELETE FROM MappingTable WHERE USERID=@u", new object[] { "@u", user });
+                    if (SA.Has(c, "AnyminuteLoginSecurity")) run("DELETE FROM AnyminuteLoginSecurity WHERE UserId=@u", new object[] { "@u", user });
+                    run("DELETE FROM UserAcc WHERE UserId=@u", new object[] { "@u", user });
+                }
+                run("DELETE FROM MappingTable WHERE EmployeeID=@e", new object[] { "@e", empId });
+                run("DELETE FROM PlanHistory WHERE EmpId=@e AND TransId='SUPPORT'", new object[] { "@e", empId });
+                run("DELETE FROM AssginBussiness WHERE EmployeeID=@e", new object[] { "@e", empId });
+                run("DELETE FROM UserAcc WHERE EmployeeId=@e AND UserTypeid=1", new object[] { "@e", empId });
+                run("DELETE ea FROM EmpAddress ea JOIN AddEmployee ae ON ae.ADDRESSID=ea.EmpAddressId WHERE ae.EmployeeID=@e", new object[] { "@e", empId });
+                run("DELETE FROM AddEmployee WHERE EmployeeID=@e", new object[] { "@e", empId });
+                if (user > 0 && SA.Has(c, "AnyminuteSupportAudit"))
+                    run("UPDATE AnyminuteSupportAudit SET Comments=LEFT(ISNULL(Comments,'')+' [rolled back: Add Subscriber did not finish]',1000) WHERE Entity='Login' AND EntityKey=@k", new object[] { "@k", user.ToString(CultureInfo.InvariantCulture) });
+            }
+        }
+        catch (Exception ex) { log4net.LogManager.GetLogger("Log").Error("Add Subscriber rollback failed for employee " + empId + " / user " + user, ex); }
+    }
+    // v79: who already owns this login email (case-insensitive, trimmed). Null = free. Pending = activation not finished
+    // (Is_First_Time_Login=1, i.e. the subscriber never set a password) - Support is offered Resend Invitation instead of a new account.
+    public sealed class Owner { public int UserId; public string Name; public bool Pending; public bool Subscriber; }
+    public static Owner EmailOwner(SqlConnection c, string email)
+    {
+        var t = SA.Q(c, @"SELECT TOP 1 u.UserId,u.UserTypeid,u.Is_First_Time_Login,LTRIM(RTRIM(ISNULL(ae.FirstName,'')+' '+ISNULL(ae.LastName,''))) Nm
+            FROM UserAcc u LEFT JOIN AddEmployee ae ON ae.EmployeeID=u.EmployeeId WHERE LOWER(LTRIM(RTRIM(u.Email)))=LOWER(@m) ORDER BY u.UserId DESC", "@m", (email ?? "").Trim());
+        if (t.Rows.Count == 0) return null;
+        var r = t.Rows[0];
+        return new Owner { UserId = Convert.ToInt32(r["UserId"]), Name = SA.S(r["Nm"]), Subscriber = SA.S(r["UserTypeid"]) == "1", Pending = SA.S(r["Is_First_Time_Login"]) == "True" || SA.S(r["Is_First_Time_Login"]) == "1" };
+    }
+    static int CreateRest(Input x, string name, int empId, ref int user)
+    {
         using (var c = SA.Open())
         {
             SA.X(c, null, "UPDATE AddEmployee SET EMPLOYEETYPE='NEW_AC_BO',UserType=1 WHERE EmployeeID=@e", "@e", empId);
@@ -60,7 +111,8 @@ public static class AnyminuteSubscriberCreate
                 SA.X(c, null, "UPDATE ea SET Country=@k FROM EmpAddress ea JOIN AddEmployee ae ON ae.ADDRESSID=ea.EmpAddressId WHERE ae.EmployeeID=@e", "@k", x.Country, "@e", empId);
             var uac = new UserAccController();
             var ue = new UserAccEntity { Email = x.Email, EmployeeId = empId, MotherOrgid = MotherOrg, UserType = "BUSINESS OWNER", UserTypeid = 1, ProfileImageName = "" };
-            int user = Int32.Parse(uac.Sp_InsertUserAccFromAddress(ue), CultureInfo.InvariantCulture);
+            string uid = uac.Sp_InsertUserAccFromAddress(ue);
+            if (!Int32.TryParse(uid, NumberStyles.Integer, CultureInfo.InvariantCulture, out user) || user <= 0) { user = 0; throw new InvalidOperationException("The subscriber login could not be created."); }
             SA.X(c, null, "INSERT INTO AssginBussiness(EmployeeID,EmployeeName,UserTypeId) VALUES(@e,@n,1)", "@e", empId, "@n", x.First);
             ue.UserId = user; ue.BusinessID = 0; uac.Sp_InsertMapping(ue);
             string code = PlanCode(x.PlanName);
