@@ -1,0 +1,6 @@
+Address Verification:
+- Rejected tab row Actions: keep View inline; move Restore and Delete under the three-dot (⋮) menu.
+- Pending/Verified rows: front (inline) shows View, three dots holds Reject and Delete (per user: 'For Font and three Dots put Reject and Delete').
+- Verified tab bulk bar: remove 'Edit Selected' (crossed out in image6).
+- Block duplicate addresses: Add Address (and Import) must reject an address that already exists (same line/city/prov/country/postal); show a message.
+- Increase font sizes (Address Verification page / app-wide table, tabs, filters, buttons text looks too small).

@@ -1,0 +1,36 @@
+AnyMinute v78 strict checklist (held_20261109_v78) — verified against code after compile
+=== NOTES ===
+[PASS] N1 Rejected: View inline; Restore+Delete under ⋮ only (RowActions rejected branch)
+[PASS] N2a Inline View on all tab rows
+[PASS] N2b Pending ⋮ Reject + Delete
+[PASS] N2c Verified ⋮ Edit + Reject (images 1/6)
+[PASS] N3 Edit Selected removed (red X image6) — no markup/handler
+[PASS] N3b Reject Selected + Clear Selection (pending/verified bulk)
+[PASS] N3c Rejected bulk Restore Selected + Delete Selected
+[PASS] N4 Duplicate block street/city/prov/country/postal (Add+Import)
+[PASS] N5 Font sizes increased (page 15px, table/btn/tabs 14px)
+=== RED X ===
+[PASS] Only Edit Selected in image6 marked for removal; removed fully
+[PASS] image3 red box is move-to-⋮ callout, not a remove-X
+=== BUTTONS ===
+[PASS] B1 + Add Address → tab=verified&add=1
+[PASS] B2 Import Address → import=1
+[PASS] B3 View Verified Addresses → tab=verified
+[PASS] B4 Search → data-sa-apply
+[PASS] B5 Pagination → SA.Pager
+[PASS] B6 Inline View → id= panel
+[PASS] B7 ⋮ Restore → sa_op=restore
+[PASS] B8 ⋮ Delete → sa_op=delete
+[PASS] B9 ⋮ Reject → reject=1 panel
+[PASS] B10 ⋮ Edit (verified) → panel href
+[PASS] B11 Reject Selected → bulk_reject
+[PASS] B12 Restore Selected → bulk_restore
+[PASS] B13 Delete Selected → bulk_delete
+[PASS] B14 Clear Selection → JS
+[PASS] B15 Save Address → addaddr
+[PASS] B16 Import → importaddr
+[PASS] B17 Cancel links
+[PASS] B18 Verify + Approve panel
+[PASS] B19 Handlers Act/Bulk/Restore/Delete present
+[PASS] B20 No Edit Selected handler
+SUMMARY: 29/29 PASS

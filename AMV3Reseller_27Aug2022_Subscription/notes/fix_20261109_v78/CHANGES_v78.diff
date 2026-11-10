@@ -1,0 +1,503 @@
+diff --git a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteAddressImport.cs b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteAddressImport.cs
+index 9e1f318..f9c5d7f 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteAddressImport.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteAddressImport.cs
+@@ -49,10 +49,20 @@ public static class AnyminuteAddressImport
+         string err = SA.VerifyAddress(street, city, prov, ctry, postal ?? "");
+         if (err != null) return err;
+         postal = SA.NormalizePostal(ctry, postal);
++        // v78 notes: reject Add/Import when same street/city/prov/country/postal already exists (any status).
+         var dup = AnyminuteTimesheetRepair.Query(c, tx, @"SELECT TOP 1 a.AddressMasterId FROM AddressMaster a WITH (UPDLOCK,HOLDLOCK)
+             LEFT JOIN CityMaster ci ON CAST(ci.CityId AS nvarchar(50))=CAST(a.City AS nvarchar(50))
+-            WHERE a.Verifed=1 AND REPLACE(REPLACE(UPPER(a.PostalCode),' ',''),'-','')=@p AND UPPER(LTRIM(RTRIM(a.Street_Name)))=UPPER(@s) AND UPPER(LTRIM(RTRIM(COALESCE(ci.CityName,a.City))))=UPPER(@c)",
+-            "@p", SA.CompactPostal(postal), "@s", street, "@c", city);
++            LEFT JOIN ProvinceMaster pr ON CAST(pr.ProvinceId AS nvarchar(50))=CAST(a.Province AS nvarchar(50))
++            LEFT JOIN AnyminuteAddressReview r ON r.AddressMasterId=a.AddressMasterId
++            WHERE REPLACE(REPLACE(UPPER(ISNULL(a.PostalCode,'')),' ',''),'-','')=@p
++              AND UPPER(LTRIM(RTRIM(ISNULL(a.Street_Name,''))))=UPPER(@s)
++              AND UPPER(LTRIM(RTRIM(COALESCE(ci.CityName,a.City,''))))=UPPER(@c)
++              AND UPPER(LTRIM(RTRIM(COALESCE(pr.ProvinceName,a.Province,''))))=UPPER(@pr)
++              AND (
++                    UPPER(LTRIM(RTRIM(ISNULL(r.Country,''))))=UPPER(@co)
++                    OR (r.Country IS NULL AND @co<>'')
++                  )",
++            "@p", SA.CompactPostal(postal), "@s", street, "@c", city, "@pr", prov, "@co", ctry);
+         if (dup.Rows.Count > 0) return "duplicate";
+         id = Convert.ToInt32(AnyminuteTimesheetRepair.Query(c, tx, "INSERT AddressMaster(Street_Name,City,Province,PostalCode,Verifed) VALUES(@s,@c,@pr,@pc,1); SELECT CAST(SCOPE_IDENTITY() AS int)",
+             "@s", street, "@c", city, "@pr", prov, "@pc", postal).Rows[0][0], CultureInfo.InvariantCulture);
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Main.master b/AMV3Reseller_27Aug2022_Subscription/Main.master
+index 8e010a9..66ac39b 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Main.master
++++ b/AMV3Reseller_27Aug2022_Subscription/Main.master
+@@ -5,7 +5,7 @@
+ <!DOCTYPE html>
+ 
+ <html>
+-<head runat="server"><meta name="anyminute-build" content="v77-20261109" />
++<head runat="server"><meta name="anyminute-build" content="v78-20261109" />
+     <title>AnyMinute | Record From Anywhere</title>
+     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+@@ -139,7 +139,7 @@
+     </asp:ContentPlaceHolder>
+     <link href="css/AnyminuteUI2026.css?v=20261017" rel="stylesheet" />
+ <link href="css/AnyminuteUIUnified.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUiBugFixes.css?v=20261026v17" rel="stylesheet" />
+-<link href="css/AnyminuteNavDrawer.css?v=20261106v67" rel="stylesheet" /><link href="css/AnyminuteTypography.css?v=20261109v77" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261109v77" rel="stylesheet" /></head>
++<link href="css/AnyminuteNavDrawer.css?v=20261106v67" rel="stylesheet" /><link href="css/AnyminuteTypography.css?v=20261109v78" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261109v78" rel="stylesheet" /></head>
+ <script type="text/javascript">  
+     window.onload = window.history.forward(0);
+ </script>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master b/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master
+index fa4606b..45ff716 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master
++++ b/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master
+@@ -2,7 +2,7 @@
+ <!DOCTYPE html>
+ 
+ <html>
+-<head runat="server"><meta name="anyminute-build" content="v77-20261109" />
++<head runat="server"><meta name="anyminute-build" content="v78-20261109" />
+     <title>AnyMinute | Record From Anywhere</title>
+     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+@@ -28,7 +28,7 @@
+                        
+     </asp:ContentPlaceHolder>
+     
+-<link href="css/AnyminuteTypography.css?v=20261109v77" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261109v77" rel="stylesheet" /></head>
++<link href="css/AnyminuteTypography.css?v=20261109v78" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261109v78" rel="stylesheet" /></head>
+     <script type="text/javascript">  
+ 
+     window.onload = window.history.forward(0);
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Modern.master b/AMV3Reseller_27Aug2022_Subscription/Modern.master
+index 1b2a4bd..b5839d3 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Modern.master
++++ b/AMV3Reseller_27Aug2022_Subscription/Modern.master
+@@ -1,6 +1,6 @@
+ <%@ Master Language="C#" AutoEventWireup="true" CodeFile="Modern.master.cs" Inherits="AnyminuteModernMaster" %>
+ <!DOCTYPE html>
+-<html lang="en"><head runat="server"><meta charset="utf-8" /><meta name="anyminute-build" content="v77-20261109" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>AnyMinute</title><link href="css/bootstrap.min.css" rel="stylesheet" /><script src="Assets/assets/js/core/jquery.3.2.1.min.js"></script><script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script><script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" /><script src="Assets/assets/js/plugin/datatables/datatables.min.js"></script><script src="Assets/assets/js/SweetAlert.js"></script><link href="css/AnyminuteModern.css" rel="stylesheet" /><asp:ContentPlaceHolder ID="head" runat="server" /><link href="css/AnyminuteUI2026.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUIUnified.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUiBugFixes.css?v=20261026v17" rel="stylesheet" /><link href="css/AnyminuteNavDrawer.css?v=20261106v67" rel="stylesheet" /><link href="css/AnyminuteTypography.css?v=20261109v77" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261109v77" rel="stylesheet" /></head>
++<html lang="en"><head runat="server"><meta charset="utf-8" /><meta name="anyminute-build" content="v78-20261109" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>AnyMinute</title><link href="css/bootstrap.min.css" rel="stylesheet" /><script src="Assets/assets/js/core/jquery.3.2.1.min.js"></script><script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script><script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" /><script src="Assets/assets/js/plugin/datatables/datatables.min.js"></script><script src="Assets/assets/js/SweetAlert.js"></script><link href="css/AnyminuteModern.css" rel="stylesheet" /><asp:ContentPlaceHolder ID="head" runat="server" /><link href="css/AnyminuteUI2026.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUIUnified.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUiBugFixes.css?v=20261026v17" rel="stylesheet" /><link href="css/AnyminuteNavDrawer.css?v=20261106v67" rel="stylesheet" /><link href="css/AnyminuteTypography.css?v=20261109v78" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261109v78" rel="stylesheet" /></head>
+ <body class="am-reference am-typography am-modern"><form id="frmMaster" runat="server"><asp:ScriptManager ID="ScriptManager1" runat="server" />
+ <header class="am-topbar"><button type="button" class="am-icon-button" data-toggle-sidebar aria-controls="am-main-navigation" aria-expanded="true" aria-label="Toggle navigation">&#9776;</button><a href="Dashboard.aspx" class="am-brand"><asp:PlaceHolder ID="LogoDefault" runat="server"><img src="Assets/assets/img/logo.jpg" alt="AnyMinute" class="am-logo" /></asp:PlaceHolder><asp:Literal ID="Brand" runat="server" /></a><span>Welcome! <asp:Literal ID="Welcome" runat="server" /><asp:Literal ID="WelcomeContext" runat="server" /></span><asp:Literal ID="HeaderHelp" runat="server" /><asp:Literal ID="HeaderBell" runat="server" /><details class="am-account-menu"><summary aria-label="Account menu"><asp:Literal ID="AccountAvatar" runat="server" /><span class="am-account-chevron" aria-hidden="true"></span><span class="sr-only">Account</span></summary><div class="am-account-popover"><a href="MyProfile.aspx"><span data-am-icon="profile" aria-hidden="true"></span>My profile</a><a href="LoginSecurity.aspx"><span data-am-icon="settings" aria-hidden="true"></span>Login &amp; security</a><asp:LinkButton ID="SignOut" runat="server" CausesValidation="false" OnClick="SignOut_Click"><span data-am-icon="signout" aria-hidden="true"></span>Sign out</asp:LinkButton>
+    <a href="Change%20Password.aspx"><span data-am-icon="settings" aria-hidden="true"></span>Change password</a><asp:Literal ID="AccountHelp" runat="server" /><asp:Literal ID="AccountUpgrade" runat="server" /></div></details></header>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Scripts/AnyminuteSupport.js b/AMV3Reseller_27Aug2022_Subscription/Scripts/AnyminuteSupport.js
+index dc54c10..5c7a030 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Scripts/AnyminuteSupport.js
++++ b/AMV3Reseller_27Aug2022_Subscription/Scripts/AnyminuteSupport.js
+@@ -279,5 +279,31 @@
+     });
+     // v43 PPT 01 s5: "Creating Subscriber Account" overlay while the account is created.
+     $all('[data-sa-busy]').forEach(function (b) { b.addEventListener('click', function () { var o = document.querySelector('[data-sa-busy-box]'); setTimeout(function () { if (o) o.hidden = false; b.disabled = true; }, 0); }); });
++    // v78 Address Verification selection bar (Reject/Restore/Delete Selected; no Edit Selected)
++    (function () {
++      var bar = document.querySelector('[data-sa-selbar]'); if (!bar) return;
++      var table = document.querySelector('[data-sa-avtable]'); if (!table) return;
++      var count = bar.querySelector('[data-sa-selcount]');
++      var sync = function () {
++        var boxes = table.querySelectorAll('tbody input[name="sa_pick"]');
++        var n = 0; for (var i = 0; i < boxes.length; i++) if (boxes[i].checked) n++;
++        if (count) count.textContent = n + ' address' + (n === 1 ? '' : 'es') + ' selected';
++        if (n > 0) bar.removeAttribute('hidden'); else bar.setAttribute('hidden', 'hidden');
++        var all = table.querySelector('[data-sa-all]');
++        if (all && boxes.length) {
++          var allOn = n === boxes.length; all.checked = allOn; all.indeterminate = n > 0 && !allOn;
++        }
++      };
++      table.addEventListener('change', function (e) {
++        if (e.target && (e.target.name === 'sa_pick' || e.target.getAttribute('data-sa-all'))) sync();
++      });
++      var clear = bar.querySelector('[data-sa-clear]');
++      if (clear) clear.addEventListener('click', function () {
++        table.querySelectorAll('input[name="sa_pick"]').forEach(function (c) { c.checked = false; });
++        var all = table.querySelector('[data-sa-all]'); if (all) { all.checked = false; all.indeterminate = false; }
++        sync();
++      });
++      sync();
++    })();
+   });
+ })();
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx b/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx
+index 4decd10..9bd8c24 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="SupportAddresses.aspx.cs" Inherits="AnyminuteSupportAddressesPage" Title="Address Verification" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261108v72" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261108v72" defer="defer"></script></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261109v78" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261109v78" defer="defer"></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section class="sa-page">
+  <header class="sa-head"><div><h1>Address Verification</h1><p>Review, correct and verify manually entered addresses.</p></div>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx.cs b/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx.cs
+index 32624e2..9846da5 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx.cs
+@@ -26,7 +26,7 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
+         if (SA.Get("template") == "1") { Template(); return; }
+         if (Form != null) Form.Enctype = "multipart/form-data"; // v71: Import Address file upload
+         if (IsPostBack && (SA.Form("sa_op") == "addaddr" || SA.Form("sa_op") == "importaddr")) { if (SA.Form("sa_op") == "addaddr") AddAddress(); else ImportAddress(); return; }
+-        if (IsPostBack && SA.Form("sa_op").Length > 0) { Act(); return; }
++        if (IsPostBack && SA.Form("sa_op").Length > 0) { Act(); return; } // v78: Act also handles restore/delete/bulk_*
+         string tab = SA.Get("tab"); if (tab != "verified" && tab != "rejected") tab = "pending";
+         string q = SA.Get("q"), country = SA.Get("country"), prov = SA.Get("prov"), date = SA.Get("date");
+         int page; if (!Int32.TryParse(SA.Get("page"), out page) || page < 1) page = 1;
+@@ -59,7 +59,7 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
+             Func<string, string, string, int, string> tabLink = (key, label, tone, n) => "<a href='SupportAddresses.aspx?tab=" + key + "' class='" + (tab == key ? "on" : "") + "'" + (tab == key ? " aria-current='page'" : "") + ">" + label + " <span class='sa-count sa-" + tone + "'>" + n.ToString("#,0", CultureInfo.InvariantCulture) + "</span></a>";
+             Tabs.Text = "<nav class='sa-tabs'>" + tabLink("pending", "Pending Verification", "red", count("Pending")) + tabLink("verified", "Verified Addresses", "green", count("Verified")) + tabLink("rejected", "Rejected Addresses", "grey", count("Rejected")) + "</nav>";
+             var provinces = all.Rows.Cast<DataRow>().Select(r => SA.S(r["Province"])).Where(p => p.Length > 0).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(p => p).Take(80);
+-            Filters.Text = "<div class='sa-filters' data-sa-get='SupportAddresses.aspx'>"
++            Filters.Text = SelBar(tab) + "<div class='sa-filters' data-sa-get='SupportAddresses.aspx'>"
+                 + "<label class='sa-grow'><span class='sr-only'>Search</span><input type='search' name='q' value='" + SA.A(q) + "' placeholder='Search address, city, or subscriber...' /></label>"
+                 + "<label><span>Country</span><select name='country'>" + SA.Options(SA.Countries, country, "All") + "</select></label>"
+                 + "<label><span>Province/State</span><select name='prov'>" + SA.Options(provinces, prov, "All") + "</select></label>"
+@@ -68,24 +68,22 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
+                 + "<button type='button' class='sa-btn' data-sa-apply='1'>Search</button></div>";
+ 
+             string baseQ = "tab=" + tab + "&q=" + HttpUtility.UrlEncode(q) + "&country=" + HttpUtility.UrlEncode(country) + "&prov=" + HttpUtility.UrlEncode(prov) + "&date=" + date;
+-            var sb = new StringBuilder("<div class='sa-table-wrap'><table class='sa-table'><thead><tr><th><input type='checkbox' aria-label='Select all' data-sa-all='1' /></th><th>Address (Submitted)</th><th>City</th><th>Prov/State</th><th>Country</th><th>Postal Code</th><th>Submitted By</th><th>Date</th><th>Actions</th></tr></thead><tbody>");
++            var sb = new StringBuilder("<input type='hidden' name='sa_id' value='0' data-sa-id='1' /><div class='sa-table-wrap sa-av-wrap'><table class='sa-table' data-sa-avtable='1'><thead><tr><th><input type='checkbox' aria-label='Select all' data-sa-all='sa_pick' /></th><th>Address (Submitted)</th><th>City</th><th>Prov/State</th><th>Country</th><th>Postal Code</th><th>Submitted By</th><th>Date</th><th>Actions</th></tr></thead><tbody>");
+             foreach (var r in rows.Skip((page - 1) * PageSize).Take(PageSize))
+             {
+                 int rid = Convert.ToInt32(r["AddressMasterId"]); string ctry = SA.S(r["Country"]); if (ctry.Length == 0) ctry = SA.GuessCountry(SA.S(r["PostalCode"]));
+                 string who = Submitter(c, r);
+-                sb.Append("<tr").Append(rid == id ? " class='sa-selected'" : "").Append("><td><input type='checkbox' aria-label='Select' /></td><td>").Append(SA.H(r["Street_Name"])).Append("</td><td>").Append(SA.H(r["City"]))
++                sb.Append("<tr").Append(rid == id ? " class='sa-selected'" : "").Append("><td><input type='checkbox' name='sa_pick' value='").Append(rid).Append("' aria-label='Select' /></td><td>").Append(SA.H(r["Street_Name"])).Append("</td><td>").Append(SA.H(r["City"]))
+                   .Append("</td><td>").Append(SA.H(r["Province"])).Append("</td><td>").Append(SA.H(ctry)).Append("</td><td>").Append(SA.H(r["PostalCode"])).Append("</td><td>")
+-                  .Append(who != null ? SA.H(who) : "<span class='sa-muted' title='No subscriber, employee, business or reseller address uses this address'>Not linked</span>").Append("</td><td>").Append(r["SubmittedAtUTC"] != DBNull.Value ? SA.Day(r["SubmittedAtUTC"]) : "<span class='sa-muted' title='Added before submission dates were recorded'>&mdash;</span>").Append("</td><td class='sa-actions'>")
+-                  .Append("<a class='sa-btn sa-btn-sm sa-btn-outline' href='SupportAddresses.aspx?").Append(SA.A(baseQ)).Append("&amp;page=").Append(page).Append("&amp;id=").Append(rid).Append("'>").Append(tab == "pending" ? "Edit" : "View").Append("</a>");
+-                if (tab == "pending") sb.Append(" <a class='sa-btn sa-btn-sm sa-btn-danger' href='SupportAddresses.aspx?").Append(SA.A(baseQ)).Append("&amp;page=").Append(page).Append("&amp;id=").Append(rid).Append("&amp;reject=1#sa-edit'>Reject</a>");
+-                sb.Append("</td></tr>");
++                  .Append(who != null ? SA.H(who) : "<span class='sa-muted' title='No subscriber, employee, business or reseller address uses this address'>Not linked</span>").Append("</td><td>").Append(r["SubmittedAtUTC"] != DBNull.Value ? SA.Day(r["SubmittedAtUTC"]) : "<span class='sa-muted' title='Added before submission dates were recorded'>&mdash;</span>").Append("</td><td class='sa-actions sa-nowrap'>")
++                  .Append(RowActions(tab, rid, baseQ, page)).Append("</td></tr>");
+             }
+             if (rows.Count == 0) sb.Append("<tr><td colspan='9' class='sa-empty'>No addresses in this list.</td></tr>");
+             Table.Text = sb.Append("</tbody></table></div>").ToString() + SA.Pager(rows.Count, page, PageSize, baseQ);
+ 
+             var pick = id > 0 ? all.Rows.Cast<DataRow>().FirstOrDefault(r => Convert.ToInt32(r["AddressMasterId"]) == id) : null;
+             Panel.Text = pick == null ? "" : EditPanel(c, pick, ready, baseQ + "&page=" + page);
+-            if (SA.Get("add") == "1") Panel.Text += AddModal(ready);
++                        if (SA.Get("add") == "1") Panel.Text += AddModal(ready);
+             else if (SA.Get("import") == "1") Panel.Text += ImportModal(ready);
+         }
+     }
+@@ -161,8 +159,9 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
+         string who = Submitter(c, r);
+         string octry = review != null && SA.S(review["OrigCountry"]).Length > 0 ? SA.S(review["OrigCountry"]) : SA.GuessCountry(opc);
+         string ctry = SA.S(r["Country"]).Length > 0 ? SA.S(r["Country"]) : SA.GuessCountry(SA.S(r["PostalCode"]));
+-        bool pending = SA.S(r["St"]) == "Pending";
+-        string dis = pending && ready ? "" : " disabled";
++        bool pending = SA.S(r["St"]) == "Pending", verified = SA.S(r["St"]) == "Verified";
++        bool rejectMode = SA.Get("reject") == "1" && (pending || verified);
++        string dis = (pending || rejectMode) && ready ? "" : " disabled";
+         var sb = new StringBuilder("<aside class='sa-card sa-panel' id='sa-edit' aria-label='Edit and verify address'><div class='sa-panel-head'><h2>Edit &amp; Verify Address</h2><a href='SupportAddresses.aspx?" + SA.A(back) + "' class='sa-x' aria-label='Close'>&times;</a></div>");
+         sb.Append("<h3>Original Submitted Address</h3><div class='sa-original'><p>").Append(SA.H(os + ", " + oc + ", " + op + ", " + octry + ", " + opc)).Append("</p><dl><dt>Submitted By:</dt><dd>")
+           .Append(who != null ? SA.H(who) : "Not linked to a subscriber, employee, business or reseller address").Append("</dd><dt>Submitted Date:</dt><dd>")
+@@ -176,18 +175,18 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
+           .Append("<button type='button' class='sa-btn sa-btn-outline' data-sa-verify='1'").Append(dis).Append(">&#9679; Verify Address</button></div>")
+           .Append("<p class='sa-verify-result' data-sa-verify-result='1' role='status'></p>")
+           ;
+-        // v42 (PPT 05 s4, strict): no Reject in the edit panel; "Approve & Add to Database" and "Cancel" on one line above the
+-        // notes box, which is now labelled "Note"; the helper text and the panel Activity History are removed. The row
+-        // "Reject" action opens the panel in reject mode (reject=1) so rejecting with a reason still works.
+-        bool rejectMode = pending && SA.Get("reject") == "1";
+-        if (pending && rejectMode)
++        // v42/v78: Reject opens the panel in reject mode (reject=1) for Pending or Verified so a reason can be entered.
++        // Approve stays pending-only. Verified View/Edit stays read-only unless reject mode.
++        if (rejectMode)
+             sb.Append("<div class='sa-panel-foot sa-one-line'><button type='submit' id='sa-reject' class='sa-btn sa-btn-danger' name='sa_op' value='reject' data-sa-need-notes='Enter the reason for rejecting this address in Note.'").Append(dis).Append(">&#10005; Reject</button>")
+               .Append("<a class='sa-btn sa-btn-outline' href='SupportAddresses.aspx?").Append(SA.A(back)).Append("'>Cancel</a></div>");
+         else if (pending)
+             sb.Append("<div class='sa-panel-foot sa-one-line'><button type='submit' class='sa-btn sa-btn-success' name='sa_op' value='approve' data-sa-approve='1' disabled>&#10003; Approve &amp; Add to Database</button>")
+               .Append("<a class='sa-btn sa-btn-outline' href='SupportAddresses.aspx?").Append(SA.A(back)).Append("'>Cancel</a></div>");
++        else
++            sb.Append("<div class='sa-panel-foot sa-one-line'><a class='sa-btn sa-btn-outline' href='SupportAddresses.aspx?").Append(SA.A(back)).Append("'>Close</a></div>");
+         sb.Append("<label class='sa-field'><span>Note</span><textarea name='sa_notes' maxlength='500' rows='3' data-sa-counter='500'").Append(dis).Append(">").Append(review != null ? SA.H(review["Notes"]) : "").Append("</textarea><small data-sa-count='1'>0/500</small></label>");
+-        if (pending) { }
++        if (pending || rejectMode) { }
+         else if (review != null)
+             sb.Append("<p class='sa-muted'>").Append(SA.H(SA.S(r["St"]) + " by " + SA.S(review["ReviewedByName"]))).Append(" &middot; ").Append(SA.When(review["ReviewedAtUTC"]).Replace("<br />", " ")).Append("</p>");
+         sb.Append("</div><datalist id='sa-prov-list'>");
+@@ -195,9 +194,61 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
+         sb.Append("</datalist>");
+         return sb.Append("</aside>").ToString();
+     }
++    // v78: row View + ⋮ actions and bulk bar (no Edit Selected).
++    static string SelBar(string tab)
++    {
++        var sb = new StringBuilder("<div class='sa-selbar' data-sa-selbar='1' hidden><div class='sa-selbar-left'><span data-sa-selcount='1'>0 addresses selected</span></div><div class='sa-selbar-btns'>");
++        if (tab == "rejected")
++        {
++            sb.Append("<button type='submit' class='sa-btn sa-btn-outline' name='sa_op' value='bulk_restore' data-sa-confirm='Restore the selected addresses to Pending Verification?'>&#8634; Restore Selected</button>");
++            sb.Append("<button type='submit' class='sa-btn sa-btn-solid-danger' name='sa_op' value='bulk_delete' data-sa-confirm='Permanently delete the selected addresses? This cannot be undone.'>&#128465; Delete Selected</button>");
++        }
++        else
++        {
++            // Pending + Verified: Reject Selected only. Edit Selected removed (red X in held image6).
++            sb.Append("<button type='submit' class='sa-btn sa-btn-danger' name='sa_op' value='bulk_reject' data-sa-confirm='Reject the selected addresses?'>&#10005; Reject Selected</button>");
++        }
++        return sb.Append("</div><button type='button' class='sa-selbar-clear' data-sa-clear='1'>&#10005; Clear Selection</button></div>").ToString();
++    }
++    static string RowActions(string tab, int rid, string baseQ, int page)
++    {
++        string href = "SupportAddresses.aspx?" + SA.A(baseQ) + "&amp;page=" + page + "&amp;id=" + rid;
++        var sb = new StringBuilder("<a class='sa-btn sa-btn-sm sa-btn-outline' href='").Append(href).Append("'>View</a> ");
++        sb.Append("<details class='sa-menu'><summary class='sa-kebab' aria-label='Address actions'>&#8942;</summary><div class='sa-menu-pop'><h4>Address Actions</h4>");
++        if (tab == "rejected")
++        {
++            // Notes: keep View inline; Restore + Delete under ⋮ (images 2/3 showed them inline — move them).
++            sb.Append("<button type='submit' class='sa-menu-item' name='sa_op' value='restore' formnovalidate='formnovalidate' data-sa-set='sa_id=").Append(rid).Append("' data-sa-confirm='Restore this address to Pending Verification?'><i aria-hidden='true'>&#8634;</i><span><b>Restore</b></span></button>");
++            sb.Append("<button type='submit' class='sa-menu-item sa-menu-danger' name='sa_op' value='delete' formnovalidate='formnovalidate' data-sa-set='sa_id=").Append(rid).Append("' data-sa-confirm='Permanently delete this address? This cannot be undone.'><i aria-hidden='true'>&#128465;</i><span><b>Delete</b></span></button>");
++        }
++        else if (tab == "verified")
++        {
++            // Images 1 & 6: ⋮ = Edit, Reject. No Edit Selected in bulk bar.
++            sb.Append("<a class='sa-menu-item' href='").Append(href).Append("'><i aria-hidden='true'>&#9998;</i><span><b>Edit</b></span></a>");
++            sb.Append("<a class='sa-menu-item sa-menu-danger' href='").Append(href).Append("&amp;reject=1#sa-edit'><i aria-hidden='true'>&#128683;</i><span><b>Reject</b></span></a>");
++        }
++        else
++        {
++            // Notes: Pending front=View; ⋮ = Reject and Delete.
++            sb.Append("<a class='sa-menu-item sa-menu-danger' href='").Append(href).Append("&amp;reject=1#sa-edit'><i aria-hidden='true'>&#128683;</i><span><b>Reject</b></span></a>");
++            sb.Append("<button type='submit' class='sa-menu-item sa-menu-danger' name='sa_op' value='delete' formnovalidate='formnovalidate' data-sa-set='sa_id=").Append(rid).Append("' data-sa-confirm='Permanently delete this address? This cannot be undone.'><i aria-hidden='true'>&#128465;</i><span><b>Delete</b></span></button>");
++        }
++        return sb.Append("</div></details>").ToString();
++    }
++    static int[] PickedIds()
++    {
++        var vals = System.Web.HttpContext.Current.Request.Form.GetValues("sa_pick");
++        var ids = new List<int>();
++        if (vals != null) foreach (var v in vals) { int n; if (Int32.TryParse((v ?? "").Trim(), out n) && n > 0 && !ids.Contains(n)) ids.Add(n); }
++        return ids.ToArray();
++    }
+     void Act()
+     {
+-        string op = SA.Form("sa_op"); int id = SA.FormId("sa_id"); // v60: duplicate-safe
++        string op = SA.Form("sa_op");
++        if (op == "bulk_reject" || op == "bulk_restore" || op == "bulk_delete") { BulkAct(op); return; }
++        int id = SA.FormId("sa_id");
++        if (op == "restore") { RestoreOne(id); return; }
++        if (op == "delete") { DeleteOne(id); return; }
+         string street = SA.Form("sa_street"), city = SA.Form("sa_city"), prov = SA.Form("sa_prov"), country = SA.Form("sa_country"), postal = SA.Form("sa_postal"), notes = SA.Form("sa_notes");
+         if (notes.Length > 500) notes = notes.Substring(0, 500);
+         using (var c = SA.Open())
+@@ -208,9 +259,10 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
+                 var cur = AnyminuteTimesheetRepair.Query(c, tx, "SELECT a.AddressMasterId,a.Street_Name,a.PostalCode,a.Verifed," + Names + ",r.Status RStatus,r.SubmittedBy FROM AddressMaster a WITH (UPDLOCK)" + NameJoins + " LEFT JOIN AnyminuteAddressReview r ON r.AddressMasterId=a.AddressMasterId WHERE a.AddressMasterId=@i", "@i", id);
+                 if (cur.Rows.Count != 1) { SA.Flash("That address was not found."); tx.Rollback(); Back(0); return; }
+                 var a = cur.Rows[0];
+-                if (SA.S(a["Verifed"]) == "1" || SA.S(a["RStatus"]) == "Rejected") { SA.Flash("This address was already reviewed by another Support Admin."); tx.Rollback(); Back(id); return; }
++                string st = SA.S(a["Verifed"]) == "1" ? "Verified" : (SA.S(a["RStatus"]) == "Rejected" ? "Rejected" : "Pending");
++                if (op == "approve" && st != "Pending") { SA.Flash("This address was already reviewed by another Support Admin."); tx.Rollback(); Back(id); return; }
++                if (op == "reject" && st == "Rejected") { SA.Flash("This address was already rejected."); tx.Rollback(); Back(id); return; }
+                 string before = SA.S(a["Street_Name"]) + ", " + SA.S(a["City"]) + ", " + SA.S(a["Province"]) + ", " + SA.S(a["PostalCode"]);
+-                // The original submitted address is captured once and never overwritten (audit requirement).
+                 AnyminuteTimesheetRepair.Execute(c, tx, @"IF NOT EXISTS(SELECT 1 FROM AnyminuteAddressReview WHERE AddressMasterId=@i)
+                     INSERT AnyminuteAddressReview(AddressMasterId,OrigStreet,OrigCity,OrigProvince,OrigCountry,OrigPostal,Status) VALUES(@i,@s,@c,@p,@co,@pc,'Pending')",
+                     "@i", id, "@s", SA.S(a["Street_Name"]), "@c", SA.S(a["City"]), "@p", SA.S(a["Province"]), "@co", SA.GuessCountry(SA.S(a["PostalCode"])), "@pc", SA.S(a["PostalCode"]));
+@@ -235,9 +287,10 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
+                 else if (op == "reject")
+                 {
+                     if (notes.Length == 0) { tx.Rollback(); SA.Flash("Enter the reason for rejecting this address in Note."); Back(id); return; }
++                    AnyminuteTimesheetRepair.Execute(c, tx, "UPDATE AddressMaster SET Verifed=0 WHERE AddressMasterId=@i", "@i", id);
+                     AnyminuteTimesheetRepair.Execute(c, tx, "UPDATE AnyminuteAddressReview SET Status='Rejected',Notes=@n,ReviewedBy=@b,ReviewedByName=@bn,ReviewedAtUTC=SYSUTCDATETIME() WHERE AddressMasterId=@i",
+                         "@n", notes, "@b", SA.ActorId(), "@bn", SA.ActorName(), "@i", id);
+-                    SA.Audit(c, tx, "Address", id.ToString(CultureInfo.InvariantCulture), "Rejected", "Pending", "Rejected", before, null, notes);
++                    SA.Audit(c, tx, "Address", id.ToString(CultureInfo.InvariantCulture), "Rejected", st, "Rejected", before, null, notes);
+                     tx.Commit(); SA.Flash("Address rejected and returned for correction.");
+                 }
+                 else tx.Rollback();
+@@ -245,7 +298,96 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
+         }
+         Back(0);
+     }
+-    // ---- v71 (t206u/t207ua0): Verified Addresses > Add Address / Import Address (AnyminuteAddressImport) ----
++    void BulkAct(string op)
++    {
++        var ids = PickedIds();
++        if (ids.Length == 0) { SA.Flash("Select at least one address."); Go("SupportAddresses.aspx?tab=" + (op == "bulk_restore" || op == "bulk_delete" ? "rejected" : SA.Get("tab"))); return; }
++        int ok = 0; var errors = new List<string>();
++        using (var c = SA.Open())
++        {
++            if (!SA.Has(c, "AnyminuteAddressReview") || !SA.Has(c, "AnyminuteSupportAudit")) { SA.Flash(SA.MissingTables); Go("SupportAddresses.aspx"); return; }
++            foreach (int id in ids)
++            {
++                try
++                {
++                    if (op == "bulk_restore") { if (RestoreOneCore(c, id, false)) ok++; else errors.Add("#" + id + " not restored"); }
++                    else if (op == "bulk_delete") { string err; if (DeleteOneCore(c, id, out err)) ok++; else errors.Add("#" + id + ": " + err); }
++                    else if (op == "bulk_reject") { if (RejectOneCore(c, id, "Bulk rejected from Address Verification list.")) ok++; else errors.Add("#" + id + " not rejected"); }
++                }
++                catch (SqlException ex) { log4net.LogManager.GetLogger("Log").Error("Bulk address op failed " + id, ex); errors.Add("#" + id + ": database error"); }
++            }
++        }
++        string msg = ok + " address" + (ok == 1 ? "" : "es") + " " + (op == "bulk_restore" ? "restored" : op == "bulk_delete" ? "deleted" : "rejected") + ".";
++        if (errors.Count > 0) msg += " " + errors.Count + " skipped (" + string.Join("; ", errors.Take(5)) + (errors.Count > 5 ? "…" : "") + ").";
++        SA.Flash(msg);
++        string tab = op == "bulk_restore" || op == "bulk_delete" ? "rejected" : (op == "bulk_reject" && SA.Get("tab") == "verified" ? "verified" : "pending");
++        // Prefer the tab of the page that posted (hidden via filters select name=tab may be present)
++        string postedTab = SA.Form("tab"); if (postedTab == "pending" || postedTab == "verified" || postedTab == "rejected") tab = postedTab;
++        if (op == "bulk_restore") tab = "pending";
++        if (op == "bulk_delete") tab = "rejected";
++        Go("SupportAddresses.aspx?tab=" + tab);
++    }
++    void RestoreOne(int id) { using (var c = SA.Open()) { if (!RestoreOneCore(c, id, true)) SA.Flash("That address could not be restored."); } Go("SupportAddresses.aspx?tab=pending"); }
++    bool RestoreOneCore(SqlConnection c, int id, bool flash)
++    {
++        if (!SA.Has(c, "AnyminuteAddressReview") || !SA.Has(c, "AnyminuteSupportAudit")) { if (flash) SA.Flash(SA.MissingTables); return false; }
++        using (var tx = c.BeginTransaction(IsolationLevel.Serializable))
++        {
++            var cur = AnyminuteTimesheetRepair.Query(c, tx, "SELECT a.AddressMasterId,a.Street_Name,a.PostalCode,a.Verifed,r.Status RStatus FROM AddressMaster a WITH (UPDLOCK) LEFT JOIN AnyminuteAddressReview r ON r.AddressMasterId=a.AddressMasterId WHERE a.AddressMasterId=@i", "@i", id);
++            if (cur.Rows.Count != 1) { tx.Rollback(); return false; }
++            if (SA.S(cur.Rows[0]["RStatus"]) != "Rejected") { tx.Rollback(); return false; }
++            AnyminuteTimesheetRepair.Execute(c, tx, "UPDATE AddressMaster SET Verifed=0 WHERE AddressMasterId=@i", "@i", id);
++            AnyminuteTimesheetRepair.Execute(c, tx, "UPDATE AnyminuteAddressReview SET Status='Pending',Notes=NULL,ReviewedBy=NULL,ReviewedByName=NULL,ReviewedAtUTC=NULL WHERE AddressMasterId=@i", "@i", id);
++            SA.Audit(c, tx, "Address", id.ToString(CultureInfo.InvariantCulture), "Restored", "Rejected", "Pending", null, null, "Restored to Pending Verification");
++            tx.Commit();
++        }
++        if (flash) SA.Flash("Address restored to Pending Verification.");
++        return true;
++    }
++    void DeleteOne(int id) { string err; using (var c = SA.Open()) { if (!DeleteOneCore(c, id, out err)) SA.Flash(err); else SA.Flash("Address deleted."); } Go("SupportAddresses.aspx?tab=" + (SA.Form("tab").Length > 0 ? SA.Form("tab") : "rejected")); }
++    bool DeleteOneCore(SqlConnection c, int id, out string err)
++    {
++        err = "That address could not be deleted.";
++        if (!SA.Has(c, "AnyminuteAddressReview") || !SA.Has(c, "AnyminuteSupportAudit")) { err = SA.MissingTables; return false; }
++        using (var tx = c.BeginTransaction(IsolationLevel.Serializable))
++        {
++            var cur = AnyminuteTimesheetRepair.Query(c, tx, "SELECT a.AddressMasterId,a.Street_Name," + Names + ",a.PostalCode,a.Verifed,r.Status RStatus,r.SubmittedBy,r.Country FROM AddressMaster a WITH (UPDLOCK)" + NameJoins + " LEFT JOIN AnyminuteAddressReview r ON r.AddressMasterId=a.AddressMasterId WHERE a.AddressMasterId=@i", "@i", id);
++            if (cur.Rows.Count != 1) { tx.Rollback(); err = "Address not found."; return false; }
++            var a = cur.Rows[0];
++            string st = SA.S(a["Verifed"]) == "1" ? "Verified" : (SA.S(a["RStatus"]) == "Rejected" ? "Rejected" : "Pending");
++            if (st == "Verified") { tx.Rollback(); err = "Verified addresses cannot be deleted here. Reject them first."; return false; }
++            string who = Submitter(c, tx, a);
++            if (who != null && !who.StartsWith("Added by Support", StringComparison.OrdinalIgnoreCase) && !who.StartsWith("Imported by Support", StringComparison.OrdinalIgnoreCase))
++            { tx.Rollback(); err = "Address is linked (" + who + ") and was not deleted."; return false; }
++            string before = SA.S(a["Street_Name"]) + ", " + SA.S(a["City"]) + ", " + SA.S(a["Province"]) + ", " + SA.S(a["PostalCode"]);
++            AnyminuteTimesheetRepair.Execute(c, tx, "DELETE FROM AnyminuteAddressReview WHERE AddressMasterId=@i", "@i", id);
++            AnyminuteTimesheetRepair.Execute(c, tx, "DELETE FROM AddressMaster WHERE AddressMasterId=@i", "@i", id);
++            SA.Audit(c, tx, "Address", id.ToString(CultureInfo.InvariantCulture), "Deleted", st, null, before, null, "Deleted from Address Verification");
++            tx.Commit();
++        }
++        err = null; return true;
++    }
++    bool RejectOneCore(SqlConnection c, int id, string notes)
++    {
++        using (var tx = c.BeginTransaction(IsolationLevel.Serializable))
++        {
++            var cur = AnyminuteTimesheetRepair.Query(c, tx, "SELECT a.AddressMasterId,a.Street_Name,a.PostalCode,a.Verifed,a.City,a.Province,r.Status RStatus,r.SubmittedBy FROM AddressMaster a WITH (UPDLOCK) LEFT JOIN AnyminuteAddressReview r ON r.AddressMasterId=a.AddressMasterId WHERE a.AddressMasterId=@i", "@i", id);
++            if (cur.Rows.Count != 1) { tx.Rollback(); return false; }
++            var a = cur.Rows[0];
++            string st = SA.S(a["Verifed"]) == "1" ? "Verified" : (SA.S(a["RStatus"]) == "Rejected" ? "Rejected" : "Pending");
++            if (st == "Rejected") { tx.Rollback(); return false; }
++            AnyminuteTimesheetRepair.Execute(c, tx, @"IF NOT EXISTS(SELECT 1 FROM AnyminuteAddressReview WHERE AddressMasterId=@i)
++                INSERT AnyminuteAddressReview(AddressMasterId,OrigStreet,OrigCity,OrigProvince,OrigCountry,OrigPostal,Status) VALUES(@i,@s,@c,@p,@co,@pc,'Pending')",
++                "@i", id, "@s", SA.S(a["Street_Name"]), "@c", SA.S(a["City"]), "@p", SA.S(a["Province"]), "@co", SA.GuessCountry(SA.S(a["PostalCode"])), "@pc", SA.S(a["PostalCode"]));
++            AnyminuteTimesheetRepair.Execute(c, tx, "UPDATE AddressMaster SET Verifed=0 WHERE AddressMasterId=@i", "@i", id);
++            AnyminuteTimesheetRepair.Execute(c, tx, "UPDATE AnyminuteAddressReview SET Status='Rejected',Notes=@n,ReviewedBy=@b,ReviewedByName=@bn,ReviewedAtUTC=SYSUTCDATETIME() WHERE AddressMasterId=@i",
++                "@n", notes, "@b", SA.ActorId(), "@bn", SA.ActorName(), "@i", id);
++            SA.Audit(c, tx, "Address", id.ToString(CultureInfo.InvariantCulture), "Rejected", st, "Rejected", null, null, notes);
++            tx.Commit();
++        }
++        return true;
++    }
++        // ---- v71 (t206u/t207ua0): Verified Addresses > Add Address / Import Address (AnyminuteAddressImport) ----
+     const string Back71 = "SupportAddresses.aspx?tab=verified";
+     static string Inp(string label, string name, string val, string extra) { return "<label class='sa-field'><span>" + label + "</span><input name='" + name + "' value='" + SA.A(val) + "'" + extra + " /></label>"; }
+     string[] kept;
+@@ -296,7 +438,7 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
+                 using (var tx = c.BeginTransaction(IsolationLevel.Serializable))
+                 {
+                     int id; string err = AnyminuteAddressImport.AddVerified(c, tx, street, city, prov, country, postal, "Added by Support (" + SA.ActorName() + ")", "Added by Support Admin", out id);
+-                    if (err != null) { tx.Rollback(); ModalError(err == "duplicate" ? "This address is already in the Verified Address Database." : "Address not added: " + err, "add"); return; }
++                    if (err != null) { tx.Rollback(); ModalError(err == "duplicate" ? "This address already exists (same street, city, province/state, country and postal code)." : "Address not added: " + err, "add"); return; }
+                     string after = street + ", " + city + ", " + prov + ", " + AnyminuteAddressImport.Country(country) + ", " + postal;
+                     SA.Audit(c, tx, "Address", id.ToString(CultureInfo.InvariantCulture), "Added (Verified)", null, "Verified", null, after, "Added by Support Admin");
+                     tx.Commit();
+diff --git a/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteSupport.css b/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteSupport.css
+index 4bd687d..7ef7d47 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteSupport.css
++++ b/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteSupport.css
+@@ -1,18 +1,18 @@
+ /* 2026-10-28 v25 Support Admin console (Shamsu decks 1-4): Address Verification, Support Tickets,
+    Subscription Plans, Subscriber Login & Access. Scoped to .sa-page so no other page changes. */
+-.sa-page{--sa-blue:#1366e8;--sa-ink:#13234b;--sa-mute:#5b6778;--sa-line:#e3e8f0;--sa-bg:#f6f8fc;color:var(--sa-ink);font-size:13px;padding:8px 4px 32px}
++.sa-page{--sa-blue:#1366e8;--sa-ink:#13234b;--sa-mute:#5b6778;--sa-line:#e3e8f0;--sa-bg:#f6f8fc;color:var(--sa-ink);font-size:15px;padding:8px 4px 32px}
+ .sa-page h1{font-size:26px;font-weight:800;margin:0 0 4px;color:var(--sa-ink)}
+ .sa-page h2{font-size:17px;font-weight:700;margin:0 0 10px;color:var(--sa-ink)}
+ .sa-page h3{font-size:13px;font-weight:700;margin:16px 0 8px}
+ .sa-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:16px}
+ .sa-head p{margin:0;color:var(--sa-mute)}
+ .sa-card{background:#fff;border:1px solid var(--sa-line);border-radius:12px;padding:16px;box-shadow:0 1px 3px rgba(19,35,75,.05);margin-bottom:16px}
+-.sa-btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--sa-blue);background:var(--sa-blue);color:#fff!important;border-radius:8px;padding:8px 14px;font-weight:600;font-size:13px;line-height:1.2;cursor:pointer;text-decoration:none!important;white-space:nowrap}
++.sa-btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--sa-blue);background:var(--sa-blue);color:#fff!important;border-radius:8px;padding:8px 14px;font-weight:600;font-size:14px;line-height:1.2;cursor:pointer;text-decoration:none!important;white-space:nowrap}
+ .sa-btn:disabled{opacity:.5;cursor:not-allowed}
+ .sa-btn-outline{background:#fff;color:var(--sa-blue)!important}
+ .sa-btn-danger{background:#fff0f0;border-color:#f3a5a5;color:#d92d2d!important}
+ .sa-btn-success{background:#1f9d55;border-color:#1f9d55}
+-.sa-btn-sm{padding:5px 12px;font-size:12px}
++.sa-btn-sm{padding:6px 12px;font-size:13px}
+ .sa-link{color:var(--sa-blue);font-weight:600}
+ .sa-muted{color:var(--sa-mute)}.sa-small{font-size:11px;margin-top:6px}
+ .sa-flash{background:#eef5ff;border:1px solid #c9dcff;border-radius:8px;padding:10px 12px;margin:0 0 14px}
+@@ -22,7 +22,7 @@
+ .sa-green{background:#e8f7ee;color:#1f8a4c;border-color:#bfe6cd}.sa-red{background:#fdecec;color:#d92d2d;border-color:#f6c2c2}
+ .sa-amber{background:#fff4e0;color:#c27a00;border-color:#f6d9a3}.sa-blue{background:#eaf2ff;color:#1366e8;border-color:#c5d9ff}
+ .sa-grey{background:#eef0f4;color:#5b6778;border-color:#d8dce4}.sa-purple{background:#f1ecff;color:#6a3fe0;border-color:#d9cdfd}
+-.sa-count{display:inline-block;min-width:22px;padding:1px 7px;border-radius:999px;font-size:11px;font-weight:700;color:#fff;margin-left:4px}
++.sa-count{display:inline-block;min-width:22px;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:700;color:#fff;margin-left:4px}
+ .sa-count.sa-red{background:#e5484d}.sa-count.sa-green{background:#1f9d55}.sa-count.sa-grey{background:#8a94a6}
+ /* workflow strip (deck 1) */
+ .sa-flow{list-style:none;display:grid;grid-template-columns:repeat(5,1fr);gap:22px;margin:0 0 18px;padding:0}
+@@ -47,7 +47,7 @@
+ .sa-original dl{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;margin:0;color:var(--sa-mute);font-size:12px}.sa-original dd{margin:0}
+ .sa-field{display:block;margin:0 0 10px;font-weight:600;border:0;padding:0}
+ .sa-field>span,.sa-field>legend{display:block;font-size:12px;margin-bottom:4px;font-weight:600;border:0;width:auto}
+-.sa-field input,.sa-field select,.sa-field textarea,.sa-filters input,.sa-filters select{width:100%;border:1px solid #cfd6e2;border-radius:8px;padding:7px 10px;font-size:13px;font-weight:400;background:#fff;color:var(--sa-ink)}
++.sa-field input,.sa-field select,.sa-field textarea,.sa-filters input,.sa-filters select{width:100%;border:1px solid #cfd6e2;border-radius:8px;padding:8px 10px;font-size:14px;font-weight:400;background:#fff;color:var(--sa-ink)}
+ .sa-field small{display:block;text-align:right;color:var(--sa-mute);font-weight:400}
+ .sa-row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.sa-row3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+ .sa-verify-row{align-items:end}.sa-verify-row .sa-btn{margin-bottom:10px;justify-content:center}
+@@ -57,23 +57,23 @@
+ .sa-check{display:inline-flex;align-items:center;gap:6px;font-weight:500}
+ /* tabs, filters, tables */
+ .sa-tabs{display:flex;gap:4px;border-bottom:1px solid var(--sa-line);margin-bottom:14px;flex-wrap:wrap}
+-.sa-tabs a{padding:10px 14px;color:var(--sa-ink);font-weight:600;text-decoration:none!important;border-bottom:2px solid transparent}
++.sa-tabs a{padding:10px 14px;color:var(--sa-ink);font-weight:600;font-size:14px;text-decoration:none!important;border-bottom:2px solid transparent}
+ .sa-tabs a.on{color:var(--sa-blue);border-bottom-color:var(--sa-blue)}
+ .sa-subtabs{display:flex;flex-wrap:wrap;gap:4px;margin:0 0 12px}.sa-subtabs a{font-size:11px;padding:4px 8px;border-radius:6px;background:var(--sa-bg);color:var(--sa-ink);text-decoration:none!important}
+ .sa-subtabs a.on{background:var(--sa-blue);color:#fff}
+ .sa-filters{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-bottom:14px}
+-.sa-filters label{display:flex;flex-direction:column;gap:3px;font-size:11px;font-weight:600;min-width:120px;margin:0}
++.sa-filters label{display:flex;flex-direction:column;gap:3px;font-size:12px;font-weight:600;min-width:120px;margin:0}
+ .sa-filters .sa-grow{flex:1;min-width:220px}.sa-filters .sa-range>span:last-child{display:flex;align-items:center;gap:4px}
+ .sa-filters .sa-check{flex-direction:row;min-width:0;align-self:center}
+ .sa-grow{flex:1;min-width:0}
+ .sa-table-wrap{overflow:auto;border:1px solid var(--sa-line);border-radius:10px}
+-.sa-table{width:100%;border-collapse:collapse;font-size:12.5px}
++.sa-table{width:100%;border-collapse:collapse;font-size:14px}
+ .sa-table th{background:#f3f6fb;text-align:left;font-weight:700;padding:10px;border-bottom:1px solid var(--sa-line);white-space:nowrap}
+ .sa-table td{padding:10px;border-bottom:1px solid var(--sa-line);vertical-align:middle}
+ .sa-table tr:last-child td{border-bottom:0}.sa-table tr.sa-selected td{background:#eef4ff}
+ .sa-table small{color:var(--sa-mute)}.sa-actions{white-space:nowrap}.sa-empty{text-align:center;color:var(--sa-mute);padding:24px!important}
+ .sa-old{color:var(--sa-mute);text-decoration:line-through}
+-.sa-pager{display:flex;justify-content:space-between;align-items:center;margin-top:12px;color:var(--sa-mute)}
++.sa-pager{display:flex;justify-content:space-between;align-items:center;margin-top:12px;color:var(--sa-mute);font-size:13px}
+ .sa-pager nav{display:flex;gap:4px}.sa-pager a{min-width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--sa-line);border-radius:6px;color:var(--sa-ink);text-decoration:none!important}
+ .sa-pager a.on{border-color:var(--sa-blue);color:var(--sa-blue);font-weight:700}
+ /* KPIs (deck 2) */
+@@ -367,3 +367,16 @@ html body .sa-card.sa-plan-up{box-shadow:0 0 0 2px #2563eb,0 4px 14px rgba(37,99
+ .sa-page .sa-loc-details .sa-field input[readonly]{background:#f7f9fc;color:var(--sa-ink)}
+ .sa-page .sa-loc-details .sa-flash{margin:0 0 16px}
+ @media (max-width:720px){.sa-page .sa-loc-details .sa-grid2{grid-template-columns:1fr}}
++
++/* v78 Address Verification: selection bar + readable actions; kebab not clipped */
++.sa-av-wrap{overflow:visible}
++.sa-selbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:#eef4ff;border:1px solid #c9dcff;border-radius:10px;padding:10px 12px;margin:0 0 12px}
++.sa-selbar[hidden]{display:none!important}
++.sa-selbar-left{font-weight:700;color:var(--sa-ink);font-size:14px}
++.sa-selbar-btns{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
++.sa-selbar-btns::before{content:'';width:1px;height:22px;background:#c9dcff;margin:0 4px}
++.sa-selbar-clear{margin-left:auto;background:none;border:0;color:var(--sa-mute);font-weight:600;cursor:pointer;font-size:13px}
++.sa-selbar-clear:hover{color:var(--sa-ink)}
++.sa-btn-solid-danger{background:#d92d2d;border-color:#d92d2d;color:#fff!important}
++.sa-nowrap{white-space:nowrap}
++.sa-menu-pop .sa-menu-item{font-size:14px}
