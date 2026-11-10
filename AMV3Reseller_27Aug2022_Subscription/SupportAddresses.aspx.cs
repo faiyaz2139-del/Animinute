@@ -26,7 +26,7 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
         if (SA.Get("template") == "1") { Template(); return; }
         if (Form != null) Form.Enctype = "multipart/form-data"; // v71: Import Address file upload
         if (IsPostBack && (SA.Form("sa_op") == "addaddr" || SA.Form("sa_op") == "importaddr")) { if (SA.Form("sa_op") == "addaddr") AddAddress(); else ImportAddress(); return; }
-        if (IsPostBack && SA.Form("sa_op").Length > 0) { Act(); return; }
+        if (IsPostBack && SA.Form("sa_op").Length > 0) { Act(); return; } // v78: Act also handles restore/delete/bulk_*
         string tab = SA.Get("tab"); if (tab != "verified" && tab != "rejected") tab = "pending";
         string q = SA.Get("q"), country = SA.Get("country"), prov = SA.Get("prov"), date = SA.Get("date");
         int page; if (!Int32.TryParse(SA.Get("page"), out page) || page < 1) page = 1;
@@ -59,7 +59,7 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
             Func<string, string, string, int, string> tabLink = (key, label, tone, n) => "<a href='SupportAddresses.aspx?tab=" + key + "' class='" + (tab == key ? "on" : "") + "'" + (tab == key ? " aria-current='page'" : "") + ">" + label + " <span class='sa-count sa-" + tone + "'>" + n.ToString("#,0", CultureInfo.InvariantCulture) + "</span></a>";
             Tabs.Text = "<nav class='sa-tabs'>" + tabLink("pending", "Pending Verification", "red", count("Pending")) + tabLink("verified", "Verified Addresses", "green", count("Verified")) + tabLink("rejected", "Rejected Addresses", "grey", count("Rejected")) + "</nav>";
             var provinces = all.Rows.Cast<DataRow>().Select(r => SA.S(r["Province"])).Where(p => p.Length > 0).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(p => p).Take(80);
-            Filters.Text = "<div class='sa-filters' data-sa-get='SupportAddresses.aspx'>"
+            Filters.Text = SelBar(tab) + "<div class='sa-filters' data-sa-get='SupportAddresses.aspx'>"
                 + "<label class='sa-grow'><span class='sr-only'>Search</span><input type='search' name='q' value='" + SA.A(q) + "' placeholder='Search address, city, or subscriber...' /></label>"
                 + "<label><span>Country</span><select name='country'>" + SA.Options(SA.Countries, country, "All") + "</select></label>"
                 + "<label><span>Province/State</span><select name='prov'>" + SA.Options(provinces, prov, "All") + "</select></label>"
@@ -68,24 +68,22 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
                 + "<button type='button' class='sa-btn' data-sa-apply='1'>Search</button></div>";
 
             string baseQ = "tab=" + tab + "&q=" + HttpUtility.UrlEncode(q) + "&country=" + HttpUtility.UrlEncode(country) + "&prov=" + HttpUtility.UrlEncode(prov) + "&date=" + date;
-            var sb = new StringBuilder("<div class='sa-table-wrap'><table class='sa-table'><thead><tr><th><input type='checkbox' aria-label='Select all' data-sa-all='1' /></th><th>Address (Submitted)</th><th>City</th><th>Prov/State</th><th>Country</th><th>Postal Code</th><th>Submitted By</th><th>Date</th><th>Actions</th></tr></thead><tbody>");
+            var sb = new StringBuilder("<input type='hidden' name='sa_id' value='0' data-sa-id='1' /><div class='sa-table-wrap sa-av-wrap'><table class='sa-table' data-sa-avtable='1'><thead><tr><th><input type='checkbox' aria-label='Select all' data-sa-all='sa_pick' /></th><th>Address (Submitted)</th><th>City</th><th>Prov/State</th><th>Country</th><th>Postal Code</th><th>Submitted By</th><th>Date</th><th>Actions</th></tr></thead><tbody>");
             foreach (var r in rows.Skip((page - 1) * PageSize).Take(PageSize))
             {
                 int rid = Convert.ToInt32(r["AddressMasterId"]); string ctry = SA.S(r["Country"]); if (ctry.Length == 0) ctry = SA.GuessCountry(SA.S(r["PostalCode"]));
                 string who = Submitter(c, r);
-                sb.Append("<tr").Append(rid == id ? " class='sa-selected'" : "").Append("><td><input type='checkbox' aria-label='Select' /></td><td>").Append(SA.H(r["Street_Name"])).Append("</td><td>").Append(SA.H(r["City"]))
+                sb.Append("<tr").Append(rid == id ? " class='sa-selected'" : "").Append("><td><input type='checkbox' name='sa_pick' value='").Append(rid).Append("' aria-label='Select' /></td><td>").Append(SA.H(r["Street_Name"])).Append("</td><td>").Append(SA.H(r["City"]))
                   .Append("</td><td>").Append(SA.H(r["Province"])).Append("</td><td>").Append(SA.H(ctry)).Append("</td><td>").Append(SA.H(r["PostalCode"])).Append("</td><td>")
-                  .Append(who != null ? SA.H(who) : "<span class='sa-muted' title='No subscriber, employee, business or reseller address uses this address'>Not linked</span>").Append("</td><td>").Append(r["SubmittedAtUTC"] != DBNull.Value ? SA.Day(r["SubmittedAtUTC"]) : "<span class='sa-muted' title='Added before submission dates were recorded'>&mdash;</span>").Append("</td><td class='sa-actions'>")
-                  .Append("<a class='sa-btn sa-btn-sm sa-btn-outline' href='SupportAddresses.aspx?").Append(SA.A(baseQ)).Append("&amp;page=").Append(page).Append("&amp;id=").Append(rid).Append("'>").Append(tab == "pending" ? "Edit" : "View").Append("</a>");
-                if (tab == "pending") sb.Append(" <a class='sa-btn sa-btn-sm sa-btn-danger' href='SupportAddresses.aspx?").Append(SA.A(baseQ)).Append("&amp;page=").Append(page).Append("&amp;id=").Append(rid).Append("&amp;reject=1#sa-edit'>Reject</a>");
-                sb.Append("</td></tr>");
+                  .Append(who != null ? SA.H(who) : "<span class='sa-muted' title='No subscriber, employee, business or reseller address uses this address'>Not linked</span>").Append("</td><td>").Append(r["SubmittedAtUTC"] != DBNull.Value ? SA.Day(r["SubmittedAtUTC"]) : "<span class='sa-muted' title='Added before submission dates were recorded'>&mdash;</span>").Append("</td><td class='sa-actions sa-nowrap'>")
+                  .Append(RowActions(tab, rid, baseQ, page)).Append("</td></tr>");
             }
             if (rows.Count == 0) sb.Append("<tr><td colspan='9' class='sa-empty'>No addresses in this list.</td></tr>");
             Table.Text = sb.Append("</tbody></table></div>").ToString() + SA.Pager(rows.Count, page, PageSize, baseQ);
 
             var pick = id > 0 ? all.Rows.Cast<DataRow>().FirstOrDefault(r => Convert.ToInt32(r["AddressMasterId"]) == id) : null;
             Panel.Text = pick == null ? "" : EditPanel(c, pick, ready, baseQ + "&page=" + page);
-            if (SA.Get("add") == "1") Panel.Text += AddModal(ready);
+                        if (SA.Get("add") == "1") Panel.Text += AddModal(ready);
             else if (SA.Get("import") == "1") Panel.Text += ImportModal(ready);
         }
     }
@@ -161,8 +159,9 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
         string who = Submitter(c, r);
         string octry = review != null && SA.S(review["OrigCountry"]).Length > 0 ? SA.S(review["OrigCountry"]) : SA.GuessCountry(opc);
         string ctry = SA.S(r["Country"]).Length > 0 ? SA.S(r["Country"]) : SA.GuessCountry(SA.S(r["PostalCode"]));
-        bool pending = SA.S(r["St"]) == "Pending";
-        string dis = pending && ready ? "" : " disabled";
+        bool pending = SA.S(r["St"]) == "Pending", verified = SA.S(r["St"]) == "Verified";
+        bool rejectMode = SA.Get("reject") == "1" && (pending || verified);
+        string dis = (pending || rejectMode) && ready ? "" : " disabled";
         var sb = new StringBuilder("<aside class='sa-card sa-panel' id='sa-edit' aria-label='Edit and verify address'><div class='sa-panel-head'><h2>Edit &amp; Verify Address</h2><a href='SupportAddresses.aspx?" + SA.A(back) + "' class='sa-x' aria-label='Close'>&times;</a></div>");
         sb.Append("<h3>Original Submitted Address</h3><div class='sa-original'><p>").Append(SA.H(os + ", " + oc + ", " + op + ", " + octry + ", " + opc)).Append("</p><dl><dt>Submitted By:</dt><dd>")
           .Append(who != null ? SA.H(who) : "Not linked to a subscriber, employee, business or reseller address").Append("</dd><dt>Submitted Date:</dt><dd>")
@@ -176,18 +175,18 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
           .Append("<button type='button' class='sa-btn sa-btn-outline' data-sa-verify='1'").Append(dis).Append(">&#9679; Verify Address</button></div>")
           .Append("<p class='sa-verify-result' data-sa-verify-result='1' role='status'></p>")
           ;
-        // v42 (PPT 05 s4, strict): no Reject in the edit panel; "Approve & Add to Database" and "Cancel" on one line above the
-        // notes box, which is now labelled "Note"; the helper text and the panel Activity History are removed. The row
-        // "Reject" action opens the panel in reject mode (reject=1) so rejecting with a reason still works.
-        bool rejectMode = pending && SA.Get("reject") == "1";
-        if (pending && rejectMode)
+        // v42/v78: Reject opens the panel in reject mode (reject=1) for Pending or Verified so a reason can be entered.
+        // Approve stays pending-only. Verified View/Edit stays read-only unless reject mode.
+        if (rejectMode)
             sb.Append("<div class='sa-panel-foot sa-one-line'><button type='submit' id='sa-reject' class='sa-btn sa-btn-danger' name='sa_op' value='reject' data-sa-need-notes='Enter the reason for rejecting this address in Note.'").Append(dis).Append(">&#10005; Reject</button>")
               .Append("<a class='sa-btn sa-btn-outline' href='SupportAddresses.aspx?").Append(SA.A(back)).Append("'>Cancel</a></div>");
         else if (pending)
             sb.Append("<div class='sa-panel-foot sa-one-line'><button type='submit' class='sa-btn sa-btn-success' name='sa_op' value='approve' data-sa-approve='1' disabled>&#10003; Approve &amp; Add to Database</button>")
               .Append("<a class='sa-btn sa-btn-outline' href='SupportAddresses.aspx?").Append(SA.A(back)).Append("'>Cancel</a></div>");
+        else
+            sb.Append("<div class='sa-panel-foot sa-one-line'><a class='sa-btn sa-btn-outline' href='SupportAddresses.aspx?").Append(SA.A(back)).Append("'>Close</a></div>");
         sb.Append("<label class='sa-field'><span>Note</span><textarea name='sa_notes' maxlength='500' rows='3' data-sa-counter='500'").Append(dis).Append(">").Append(review != null ? SA.H(review["Notes"]) : "").Append("</textarea><small data-sa-count='1'>0/500</small></label>");
-        if (pending) { }
+        if (pending || rejectMode) { }
         else if (review != null)
             sb.Append("<p class='sa-muted'>").Append(SA.H(SA.S(r["St"]) + " by " + SA.S(review["ReviewedByName"]))).Append(" &middot; ").Append(SA.When(review["ReviewedAtUTC"]).Replace("<br />", " ")).Append("</p>");
         sb.Append("</div><datalist id='sa-prov-list'>");
@@ -195,9 +194,61 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
         sb.Append("</datalist>");
         return sb.Append("</aside>").ToString();
     }
+    // v78: row View + ⋮ actions and bulk bar (no Edit Selected).
+    static string SelBar(string tab)
+    {
+        var sb = new StringBuilder("<div class='sa-selbar' data-sa-selbar='1' hidden><div class='sa-selbar-left'><span data-sa-selcount='1'>0 addresses selected</span></div><div class='sa-selbar-btns'>");
+        if (tab == "rejected")
+        {
+            sb.Append("<button type='submit' class='sa-btn sa-btn-outline' name='sa_op' value='bulk_restore' data-sa-confirm='Restore the selected addresses to Pending Verification?'>&#8634; Restore Selected</button>");
+            sb.Append("<button type='submit' class='sa-btn sa-btn-solid-danger' name='sa_op' value='bulk_delete' data-sa-confirm='Permanently delete the selected addresses? This cannot be undone.'>&#128465; Delete Selected</button>");
+        }
+        else
+        {
+            // Pending + Verified: Reject Selected only. Edit Selected removed (red X in held image6).
+            sb.Append("<button type='submit' class='sa-btn sa-btn-danger' name='sa_op' value='bulk_reject' data-sa-confirm='Reject the selected addresses?'>&#10005; Reject Selected</button>");
+        }
+        return sb.Append("</div><button type='button' class='sa-selbar-clear' data-sa-clear='1'>&#10005; Clear Selection</button></div>").ToString();
+    }
+    static string RowActions(string tab, int rid, string baseQ, int page)
+    {
+        string href = "SupportAddresses.aspx?" + SA.A(baseQ) + "&amp;page=" + page + "&amp;id=" + rid;
+        var sb = new StringBuilder("<a class='sa-btn sa-btn-sm sa-btn-outline' href='").Append(href).Append("'>View</a> ");
+        sb.Append("<details class='sa-menu'><summary class='sa-kebab' aria-label='Address actions'>&#8942;</summary><div class='sa-menu-pop'><h4>Address Actions</h4>");
+        if (tab == "rejected")
+        {
+            // Notes: keep View inline; Restore + Delete under ⋮ (images 2/3 showed them inline — move them).
+            sb.Append("<button type='submit' class='sa-menu-item' name='sa_op' value='restore' formnovalidate='formnovalidate' data-sa-set='sa_id=").Append(rid).Append("' data-sa-confirm='Restore this address to Pending Verification?'><i aria-hidden='true'>&#8634;</i><span><b>Restore</b></span></button>");
+            sb.Append("<button type='submit' class='sa-menu-item sa-menu-danger' name='sa_op' value='delete' formnovalidate='formnovalidate' data-sa-set='sa_id=").Append(rid).Append("' data-sa-confirm='Permanently delete this address? This cannot be undone.'><i aria-hidden='true'>&#128465;</i><span><b>Delete</b></span></button>");
+        }
+        else if (tab == "verified")
+        {
+            // Images 1 & 6: ⋮ = Edit, Reject. No Edit Selected in bulk bar.
+            sb.Append("<a class='sa-menu-item' href='").Append(href).Append("'><i aria-hidden='true'>&#9998;</i><span><b>Edit</b></span></a>");
+            sb.Append("<a class='sa-menu-item sa-menu-danger' href='").Append(href).Append("&amp;reject=1#sa-edit'><i aria-hidden='true'>&#128683;</i><span><b>Reject</b></span></a>");
+        }
+        else
+        {
+            // Notes: Pending front=View; ⋮ = Reject and Delete.
+            sb.Append("<a class='sa-menu-item sa-menu-danger' href='").Append(href).Append("&amp;reject=1#sa-edit'><i aria-hidden='true'>&#128683;</i><span><b>Reject</b></span></a>");
+            sb.Append("<button type='submit' class='sa-menu-item sa-menu-danger' name='sa_op' value='delete' formnovalidate='formnovalidate' data-sa-set='sa_id=").Append(rid).Append("' data-sa-confirm='Permanently delete this address? This cannot be undone.'><i aria-hidden='true'>&#128465;</i><span><b>Delete</b></span></button>");
+        }
+        return sb.Append("</div></details>").ToString();
+    }
+    static int[] PickedIds()
+    {
+        var vals = System.Web.HttpContext.Current.Request.Form.GetValues("sa_pick");
+        var ids = new List<int>();
+        if (vals != null) foreach (var v in vals) { int n; if (Int32.TryParse((v ?? "").Trim(), out n) && n > 0 && !ids.Contains(n)) ids.Add(n); }
+        return ids.ToArray();
+    }
     void Act()
     {
-        string op = SA.Form("sa_op"); int id = SA.FormId("sa_id"); // v60: duplicate-safe
+        string op = SA.Form("sa_op");
+        if (op == "bulk_reject" || op == "bulk_restore" || op == "bulk_delete") { BulkAct(op); return; }
+        int id = SA.FormId("sa_id");
+        if (op == "restore") { RestoreOne(id); return; }
+        if (op == "delete") { DeleteOne(id); return; }
         string street = SA.Form("sa_street"), city = SA.Form("sa_city"), prov = SA.Form("sa_prov"), country = SA.Form("sa_country"), postal = SA.Form("sa_postal"), notes = SA.Form("sa_notes");
         if (notes.Length > 500) notes = notes.Substring(0, 500);
         using (var c = SA.Open())
@@ -208,9 +259,10 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
                 var cur = AnyminuteTimesheetRepair.Query(c, tx, "SELECT a.AddressMasterId,a.Street_Name,a.PostalCode,a.Verifed," + Names + ",r.Status RStatus,r.SubmittedBy FROM AddressMaster a WITH (UPDLOCK)" + NameJoins + " LEFT JOIN AnyminuteAddressReview r ON r.AddressMasterId=a.AddressMasterId WHERE a.AddressMasterId=@i", "@i", id);
                 if (cur.Rows.Count != 1) { SA.Flash("That address was not found."); tx.Rollback(); Back(0); return; }
                 var a = cur.Rows[0];
-                if (SA.S(a["Verifed"]) == "1" || SA.S(a["RStatus"]) == "Rejected") { SA.Flash("This address was already reviewed by another Support Admin."); tx.Rollback(); Back(id); return; }
+                string st = SA.S(a["Verifed"]) == "1" ? "Verified" : (SA.S(a["RStatus"]) == "Rejected" ? "Rejected" : "Pending");
+                if (op == "approve" && st != "Pending") { SA.Flash("This address was already reviewed by another Support Admin."); tx.Rollback(); Back(id); return; }
+                if (op == "reject" && st == "Rejected") { SA.Flash("This address was already rejected."); tx.Rollback(); Back(id); return; }
                 string before = SA.S(a["Street_Name"]) + ", " + SA.S(a["City"]) + ", " + SA.S(a["Province"]) + ", " + SA.S(a["PostalCode"]);
-                // The original submitted address is captured once and never overwritten (audit requirement).
                 AnyminuteTimesheetRepair.Execute(c, tx, @"IF NOT EXISTS(SELECT 1 FROM AnyminuteAddressReview WHERE AddressMasterId=@i)
                     INSERT AnyminuteAddressReview(AddressMasterId,OrigStreet,OrigCity,OrigProvince,OrigCountry,OrigPostal,Status) VALUES(@i,@s,@c,@p,@co,@pc,'Pending')",
                     "@i", id, "@s", SA.S(a["Street_Name"]), "@c", SA.S(a["City"]), "@p", SA.S(a["Province"]), "@co", SA.GuessCountry(SA.S(a["PostalCode"])), "@pc", SA.S(a["PostalCode"]));
@@ -235,9 +287,10 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
                 else if (op == "reject")
                 {
                     if (notes.Length == 0) { tx.Rollback(); SA.Flash("Enter the reason for rejecting this address in Note."); Back(id); return; }
+                    AnyminuteTimesheetRepair.Execute(c, tx, "UPDATE AddressMaster SET Verifed=0 WHERE AddressMasterId=@i", "@i", id);
                     AnyminuteTimesheetRepair.Execute(c, tx, "UPDATE AnyminuteAddressReview SET Status='Rejected',Notes=@n,ReviewedBy=@b,ReviewedByName=@bn,ReviewedAtUTC=SYSUTCDATETIME() WHERE AddressMasterId=@i",
                         "@n", notes, "@b", SA.ActorId(), "@bn", SA.ActorName(), "@i", id);
-                    SA.Audit(c, tx, "Address", id.ToString(CultureInfo.InvariantCulture), "Rejected", "Pending", "Rejected", before, null, notes);
+                    SA.Audit(c, tx, "Address", id.ToString(CultureInfo.InvariantCulture), "Rejected", st, "Rejected", before, null, notes);
                     tx.Commit(); SA.Flash("Address rejected and returned for correction.");
                 }
                 else tx.Rollback();
@@ -245,7 +298,96 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
         }
         Back(0);
     }
-    // ---- v71 (t206u/t207ua0): Verified Addresses > Add Address / Import Address (AnyminuteAddressImport) ----
+    void BulkAct(string op)
+    {
+        var ids = PickedIds();
+        if (ids.Length == 0) { SA.Flash("Select at least one address."); Go("SupportAddresses.aspx?tab=" + (op == "bulk_restore" || op == "bulk_delete" ? "rejected" : SA.Get("tab"))); return; }
+        int ok = 0; var errors = new List<string>();
+        using (var c = SA.Open())
+        {
+            if (!SA.Has(c, "AnyminuteAddressReview") || !SA.Has(c, "AnyminuteSupportAudit")) { SA.Flash(SA.MissingTables); Go("SupportAddresses.aspx"); return; }
+            foreach (int id in ids)
+            {
+                try
+                {
+                    if (op == "bulk_restore") { if (RestoreOneCore(c, id, false)) ok++; else errors.Add("#" + id + " not restored"); }
+                    else if (op == "bulk_delete") { string err; if (DeleteOneCore(c, id, out err)) ok++; else errors.Add("#" + id + ": " + err); }
+                    else if (op == "bulk_reject") { if (RejectOneCore(c, id, "Bulk rejected from Address Verification list.")) ok++; else errors.Add("#" + id + " not rejected"); }
+                }
+                catch (SqlException ex) { log4net.LogManager.GetLogger("Log").Error("Bulk address op failed " + id, ex); errors.Add("#" + id + ": database error"); }
+            }
+        }
+        string msg = ok + " address" + (ok == 1 ? "" : "es") + " " + (op == "bulk_restore" ? "restored" : op == "bulk_delete" ? "deleted" : "rejected") + ".";
+        if (errors.Count > 0) msg += " " + errors.Count + " skipped (" + string.Join("; ", errors.Take(5)) + (errors.Count > 5 ? "…" : "") + ").";
+        SA.Flash(msg);
+        string tab = op == "bulk_restore" || op == "bulk_delete" ? "rejected" : (op == "bulk_reject" && SA.Get("tab") == "verified" ? "verified" : "pending");
+        // Prefer the tab of the page that posted (hidden via filters select name=tab may be present)
+        string postedTab = SA.Form("tab"); if (postedTab == "pending" || postedTab == "verified" || postedTab == "rejected") tab = postedTab;
+        if (op == "bulk_restore") tab = "pending";
+        if (op == "bulk_delete") tab = "rejected";
+        Go("SupportAddresses.aspx?tab=" + tab);
+    }
+    void RestoreOne(int id) { using (var c = SA.Open()) { if (!RestoreOneCore(c, id, true)) SA.Flash("That address could not be restored."); } Go("SupportAddresses.aspx?tab=pending"); }
+    bool RestoreOneCore(SqlConnection c, int id, bool flash)
+    {
+        if (!SA.Has(c, "AnyminuteAddressReview") || !SA.Has(c, "AnyminuteSupportAudit")) { if (flash) SA.Flash(SA.MissingTables); return false; }
+        using (var tx = c.BeginTransaction(IsolationLevel.Serializable))
+        {
+            var cur = AnyminuteTimesheetRepair.Query(c, tx, "SELECT a.AddressMasterId,a.Street_Name,a.PostalCode,a.Verifed,r.Status RStatus FROM AddressMaster a WITH (UPDLOCK) LEFT JOIN AnyminuteAddressReview r ON r.AddressMasterId=a.AddressMasterId WHERE a.AddressMasterId=@i", "@i", id);
+            if (cur.Rows.Count != 1) { tx.Rollback(); return false; }
+            if (SA.S(cur.Rows[0]["RStatus"]) != "Rejected") { tx.Rollback(); return false; }
+            AnyminuteTimesheetRepair.Execute(c, tx, "UPDATE AddressMaster SET Verifed=0 WHERE AddressMasterId=@i", "@i", id);
+            AnyminuteTimesheetRepair.Execute(c, tx, "UPDATE AnyminuteAddressReview SET Status='Pending',Notes=NULL,ReviewedBy=NULL,ReviewedByName=NULL,ReviewedAtUTC=NULL WHERE AddressMasterId=@i", "@i", id);
+            SA.Audit(c, tx, "Address", id.ToString(CultureInfo.InvariantCulture), "Restored", "Rejected", "Pending", null, null, "Restored to Pending Verification");
+            tx.Commit();
+        }
+        if (flash) SA.Flash("Address restored to Pending Verification.");
+        return true;
+    }
+    void DeleteOne(int id) { string err; using (var c = SA.Open()) { if (!DeleteOneCore(c, id, out err)) SA.Flash(err); else SA.Flash("Address deleted."); } Go("SupportAddresses.aspx?tab=" + (SA.Form("tab").Length > 0 ? SA.Form("tab") : "rejected")); }
+    bool DeleteOneCore(SqlConnection c, int id, out string err)
+    {
+        err = "That address could not be deleted.";
+        if (!SA.Has(c, "AnyminuteAddressReview") || !SA.Has(c, "AnyminuteSupportAudit")) { err = SA.MissingTables; return false; }
+        using (var tx = c.BeginTransaction(IsolationLevel.Serializable))
+        {
+            var cur = AnyminuteTimesheetRepair.Query(c, tx, "SELECT a.AddressMasterId,a.Street_Name," + Names + ",a.PostalCode,a.Verifed,r.Status RStatus,r.SubmittedBy,r.Country FROM AddressMaster a WITH (UPDLOCK)" + NameJoins + " LEFT JOIN AnyminuteAddressReview r ON r.AddressMasterId=a.AddressMasterId WHERE a.AddressMasterId=@i", "@i", id);
+            if (cur.Rows.Count != 1) { tx.Rollback(); err = "Address not found."; return false; }
+            var a = cur.Rows[0];
+            string st = SA.S(a["Verifed"]) == "1" ? "Verified" : (SA.S(a["RStatus"]) == "Rejected" ? "Rejected" : "Pending");
+            if (st == "Verified") { tx.Rollback(); err = "Verified addresses cannot be deleted here. Reject them first."; return false; }
+            string who = Submitter(c, tx, a);
+            if (who != null && !who.StartsWith("Added by Support", StringComparison.OrdinalIgnoreCase) && !who.StartsWith("Imported by Support", StringComparison.OrdinalIgnoreCase))
+            { tx.Rollback(); err = "Address is linked (" + who + ") and was not deleted."; return false; }
+            string before = SA.S(a["Street_Name"]) + ", " + SA.S(a["City"]) + ", " + SA.S(a["Province"]) + ", " + SA.S(a["PostalCode"]);
+            AnyminuteTimesheetRepair.Execute(c, tx, "DELETE FROM AnyminuteAddressReview WHERE AddressMasterId=@i", "@i", id);
+            AnyminuteTimesheetRepair.Execute(c, tx, "DELETE FROM AddressMaster WHERE AddressMasterId=@i", "@i", id);
+            SA.Audit(c, tx, "Address", id.ToString(CultureInfo.InvariantCulture), "Deleted", st, null, before, null, "Deleted from Address Verification");
+            tx.Commit();
+        }
+        err = null; return true;
+    }
+    bool RejectOneCore(SqlConnection c, int id, string notes)
+    {
+        using (var tx = c.BeginTransaction(IsolationLevel.Serializable))
+        {
+            var cur = AnyminuteTimesheetRepair.Query(c, tx, "SELECT a.AddressMasterId,a.Street_Name,a.PostalCode,a.Verifed,a.City,a.Province,r.Status RStatus,r.SubmittedBy FROM AddressMaster a WITH (UPDLOCK) LEFT JOIN AnyminuteAddressReview r ON r.AddressMasterId=a.AddressMasterId WHERE a.AddressMasterId=@i", "@i", id);
+            if (cur.Rows.Count != 1) { tx.Rollback(); return false; }
+            var a = cur.Rows[0];
+            string st = SA.S(a["Verifed"]) == "1" ? "Verified" : (SA.S(a["RStatus"]) == "Rejected" ? "Rejected" : "Pending");
+            if (st == "Rejected") { tx.Rollback(); return false; }
+            AnyminuteTimesheetRepair.Execute(c, tx, @"IF NOT EXISTS(SELECT 1 FROM AnyminuteAddressReview WHERE AddressMasterId=@i)
+                INSERT AnyminuteAddressReview(AddressMasterId,OrigStreet,OrigCity,OrigProvince,OrigCountry,OrigPostal,Status) VALUES(@i,@s,@c,@p,@co,@pc,'Pending')",
+                "@i", id, "@s", SA.S(a["Street_Name"]), "@c", SA.S(a["City"]), "@p", SA.S(a["Province"]), "@co", SA.GuessCountry(SA.S(a["PostalCode"])), "@pc", SA.S(a["PostalCode"]));
+            AnyminuteTimesheetRepair.Execute(c, tx, "UPDATE AddressMaster SET Verifed=0 WHERE AddressMasterId=@i", "@i", id);
+            AnyminuteTimesheetRepair.Execute(c, tx, "UPDATE AnyminuteAddressReview SET Status='Rejected',Notes=@n,ReviewedBy=@b,ReviewedByName=@bn,ReviewedAtUTC=SYSUTCDATETIME() WHERE AddressMasterId=@i",
+                "@n", notes, "@b", SA.ActorId(), "@bn", SA.ActorName(), "@i", id);
+            SA.Audit(c, tx, "Address", id.ToString(CultureInfo.InvariantCulture), "Rejected", st, "Rejected", null, null, notes);
+            tx.Commit();
+        }
+        return true;
+    }
+        // ---- v71 (t206u/t207ua0): Verified Addresses > Add Address / Import Address (AnyminuteAddressImport) ----
     const string Back71 = "SupportAddresses.aspx?tab=verified";
     static string Inp(string label, string name, string val, string extra) { return "<label class='sa-field'><span>" + label + "</span><input name='" + name + "' value='" + SA.A(val) + "'" + extra + " /></label>"; }
     string[] kept;
@@ -296,7 +438,7 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
                 using (var tx = c.BeginTransaction(IsolationLevel.Serializable))
                 {
                     int id; string err = AnyminuteAddressImport.AddVerified(c, tx, street, city, prov, country, postal, "Added by Support (" + SA.ActorName() + ")", "Added by Support Admin", out id);
-                    if (err != null) { tx.Rollback(); ModalError(err == "duplicate" ? "This address is already in the Verified Address Database." : "Address not added: " + err, "add"); return; }
+                    if (err != null) { tx.Rollback(); ModalError(err == "duplicate" ? "This address already exists (same street, city, province/state, country and postal code)." : "Address not added: " + err, "add"); return; }
                     string after = street + ", " + city + ", " + prov + ", " + AnyminuteAddressImport.Country(country) + ", " + postal;
                     SA.Audit(c, tx, "Address", id.ToString(CultureInfo.InvariantCulture), "Added (Verified)", null, "Verified", null, after, "Added by Support Admin");
                     tx.Commit();

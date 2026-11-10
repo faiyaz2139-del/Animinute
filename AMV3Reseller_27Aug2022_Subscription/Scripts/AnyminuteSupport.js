@@ -279,5 +279,31 @@
     });
     // v43 PPT 01 s5: "Creating Subscriber Account" overlay while the account is created.
     $all('[data-sa-busy]').forEach(function (b) { b.addEventListener('click', function () { var o = document.querySelector('[data-sa-busy-box]'); setTimeout(function () { if (o) o.hidden = false; b.disabled = true; }, 0); }); });
+    // v78 Address Verification selection bar (Reject/Restore/Delete Selected; no Edit Selected)
+    (function () {
+      var bar = document.querySelector('[data-sa-selbar]'); if (!bar) return;
+      var table = document.querySelector('[data-sa-avtable]'); if (!table) return;
+      var count = bar.querySelector('[data-sa-selcount]');
+      var sync = function () {
+        var boxes = table.querySelectorAll('tbody input[name="sa_pick"]');
+        var n = 0; for (var i = 0; i < boxes.length; i++) if (boxes[i].checked) n++;
+        if (count) count.textContent = n + ' address' + (n === 1 ? '' : 'es') + ' selected';
+        if (n > 0) bar.removeAttribute('hidden'); else bar.setAttribute('hidden', 'hidden');
+        var all = table.querySelector('[data-sa-all]');
+        if (all && boxes.length) {
+          var allOn = n === boxes.length; all.checked = allOn; all.indeterminate = n > 0 && !allOn;
+        }
+      };
+      table.addEventListener('change', function (e) {
+        if (e.target && (e.target.name === 'sa_pick' || e.target.getAttribute('data-sa-all'))) sync();
+      });
+      var clear = bar.querySelector('[data-sa-clear]');
+      if (clear) clear.addEventListener('click', function () {
+        table.querySelectorAll('input[name="sa_pick"]').forEach(function (c) { c.checked = false; });
+        var all = table.querySelector('[data-sa-all]'); if (all) { all.checked = false; all.indeterminate = false; }
+        sync();
+      });
+      sync();
+    })();
   });
 })();

@@ -49,10 +49,20 @@ public static class AnyminuteAddressImport
         string err = SA.VerifyAddress(street, city, prov, ctry, postal ?? "");
         if (err != null) return err;
         postal = SA.NormalizePostal(ctry, postal);
+        // v78 notes: reject Add/Import when same street/city/prov/country/postal already exists (any status).
         var dup = AnyminuteTimesheetRepair.Query(c, tx, @"SELECT TOP 1 a.AddressMasterId FROM AddressMaster a WITH (UPDLOCK,HOLDLOCK)
             LEFT JOIN CityMaster ci ON CAST(ci.CityId AS nvarchar(50))=CAST(a.City AS nvarchar(50))
-            WHERE a.Verifed=1 AND REPLACE(REPLACE(UPPER(a.PostalCode),' ',''),'-','')=@p AND UPPER(LTRIM(RTRIM(a.Street_Name)))=UPPER(@s) AND UPPER(LTRIM(RTRIM(COALESCE(ci.CityName,a.City))))=UPPER(@c)",
-            "@p", SA.CompactPostal(postal), "@s", street, "@c", city);
+            LEFT JOIN ProvinceMaster pr ON CAST(pr.ProvinceId AS nvarchar(50))=CAST(a.Province AS nvarchar(50))
+            LEFT JOIN AnyminuteAddressReview r ON r.AddressMasterId=a.AddressMasterId
+            WHERE REPLACE(REPLACE(UPPER(ISNULL(a.PostalCode,'')),' ',''),'-','')=@p
+              AND UPPER(LTRIM(RTRIM(ISNULL(a.Street_Name,''))))=UPPER(@s)
+              AND UPPER(LTRIM(RTRIM(COALESCE(ci.CityName,a.City,''))))=UPPER(@c)
+              AND UPPER(LTRIM(RTRIM(COALESCE(pr.ProvinceName,a.Province,''))))=UPPER(@pr)
+              AND (
+                    UPPER(LTRIM(RTRIM(ISNULL(r.Country,''))))=UPPER(@co)
+                    OR (r.Country IS NULL AND @co<>'')
+                  )",
+            "@p", SA.CompactPostal(postal), "@s", street, "@c", city, "@pr", prov, "@co", ctry);
         if (dup.Rows.Count > 0) return "duplicate";
         id = Convert.ToInt32(AnyminuteTimesheetRepair.Query(c, tx, "INSERT AddressMaster(Street_Name,City,Province,PostalCode,Verifed) VALUES(@s,@c,@pr,@pc,1); SELECT CAST(SCOPE_IDENTITY() AS int)",
             "@s", street, "@c", city, "@pr", prov, "@pc", postal).Rows[0][0], CultureInfo.InvariantCulture);
