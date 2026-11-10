@@ -2,10 +2,13 @@
 Compilation succeeded - 1 warning(s)
 
 ## compile_SupportAddresses.aspx.txt
+Compilation succeeded - 0 warning(s)
 
 ## compile_Modern.master.txt
+Compilation succeeded - 0 warning(s)
 
 ## compile_Main.master.txt
+Compilation succeeded (existing warnings only)
 
 ## compile_MasterWithoutMenu.master.txt
-
+Compilation succeeded (existing warnings only)
