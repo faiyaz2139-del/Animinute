@@ -1,0 +1,12 @@
+## App_Code (all .cs including AnyminuteAddressDup.cs)
+Compilation succeeded - 0 errors, 0 warnings
+## SupportAddresses.aspx
+Compilation succeeded - 0 errors, 0 warnings
+## SupportSubscribers.aspx (unchanged page against new App_Code)
+Compilation succeeded - 0 errors, 0 warnings
+## Main.master / Modern.master / MasterWithoutMenu.master
+stamp + ?v= text change only
+## Compiler
+/opt/monoenv was not present on this box. Compile used Roslyn csc (dotnet SDK 8.0.428) with
+-langversion:5 -nostdlib and Microsoft.NETFramework.ReferenceAssemblies.net45 1.0.3, plus the
+site Bin third-party dlls. Same file set as cc.sh / pc.sh.

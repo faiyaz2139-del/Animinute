@@ -1,0 +1,1030 @@
+diff --git a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteAddressDup.cs b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteAddressDup.cs
+new file mode 100644
+index 0000000..08cd700
+--- /dev/null
++++ b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteAddressDup.cs
+@@ -0,0 +1,249 @@
++using System;
++using System.Collections.Generic;
++using System.Data;
++using System.Data.SqlClient;
++using System.Globalization;
++using System.Linq;
++using System.Text;
++using System.Text.RegularExpressions;
++using SA = AnyminuteSupportAdmin;
++
++// 2026-11-14 v81: Duplicate Addresses tab (PPT slides 1-3). A Potential Duplicate is 2+ AddressMaster
++// rows in the same country whose standardized Street Address and Postal/ZIP Code both match. Decisions
++// (Original / Duplicate / Dismissed / Deleted) are stored in AnyminuteAddressDup when that table exists
++// (DB_REQUIRED/REQUIRED_10_AddressDuplicates.sql, also created on first use if the login can CREATE TABLE).
++public static class AnyminuteAddressDup
++{
++    public const string Table = "AnyminuteAddressDup";
++    public const string NeedTable = "Database update needed: run DB_REQUIRED/REQUIRED_10_AddressDuplicates.sql to save Duplicate Addresses decisions.";
++    public class Group
++    {
++        public string Code, Key;
++        public List<DataRow> Rows = new List<DataRow>();
++        public int OriginalId;
++    }
++
++    public static string NormStreet(string s)
++    {
++        s = Regex.Replace((s ?? "").ToUpperInvariant(), @"[^A-Z0-9]+", " ");
++        return Regex.Replace(s, @"\s+", " ").Trim();
++    }
++    public static string NormCountry(string country, string postal)
++    {
++        string k = AnyminuteAddressImport.Country(country);
++        return k.Length > 0 ? k : SA.GuessCountry(postal);
++    }
++    public static string StreetOf(DataRow r)
++    {
++        string orig = r.Table.Columns.Contains("OrigStreet") ? SA.S(r["OrigStreet"]).Trim() : "";
++        string st = SA.S(r["Street_Name"]).Trim();
++        if (orig.Length > 0 && (st.Length == 0 || (char.IsDigit(orig[0]) && orig.IndexOf(st, StringComparison.OrdinalIgnoreCase) >= 0))) return orig;
++        return st.Length > 0 ? st : orig;
++    }
++    public static string CountryOf(DataRow r)
++    {
++        string ctry = r.Table.Columns.Contains("Country") ? SA.S(r["Country"]) : "";
++        return NormCountry(ctry, SA.S(r["PostalCode"]));
++    }
++    public static string KeyOf(DataRow r)
++    {
++        return CountryOf(r) + "|" + SA.CompactPostal(SA.S(r["PostalCode"])) + "|" + NormStreet(StreetOf(r));
++    }
++    public static string PostalOf(DataRow r) { return SA.NormalizePostal(CountryOf(r), SA.S(r["PostalCode"])); }
++    public static string StatusOf(DataRow r)
++    {
++        string st = r.Table.Columns.Contains("St") ? SA.S(r["St"]) : "";
++        if (st.Length == 0) st = SA.S(r["Verifed"]) == "1" ? "Verified" : (r.Table.Columns.Contains("RStatus") && SA.S(r["RStatus"]) == "Rejected" ? "Rejected" : "Pending");
++        return st;
++    }
++    public static string StatusLabel(string st) { return st == "Pending" ? "Pending Review" : st; }
++
++    public static bool Ready(SqlConnection c, SqlTransaction tx)
++    {
++        try { return AnyminuteEmployeeEditor.HasTable(c, tx, Table); }
++        catch (SqlException) { return false; }
++    }
++    public static void Ensure(SqlConnection c)
++    {
++        try
++        {
++            if (Ready(c, null)) return;
++            AnyminuteTimesheetRepair.Execute(c, null, @"IF OBJECT_ID('dbo.AnyminuteAddressDup','U') IS NULL
++CREATE TABLE dbo.AnyminuteAddressDup(
++    DupId int IDENTITY(1,1) NOT NULL CONSTRAINT PK_AnyminuteAddressDup PRIMARY KEY,
++    AddressMasterId int NOT NULL,
++    PeerId int NOT NULL CONSTRAINT DF_AnyminuteAddressDup_Peer DEFAULT 0,
++    Action varchar(20) NOT NULL,
++    ActorId int NULL,
++    ActorName nvarchar(150) NULL,
++    ActedAtUTC datetime2(0) NOT NULL CONSTRAINT DF_AnyminuteAddressDup_At DEFAULT SYSUTCDATETIME(),
++    Notes nvarchar(500) NULL);
++IF NOT EXISTS(SELECT 1 FROM sys.indexes WHERE name='IX_AnyminuteAddressDup_Addr')
++CREATE INDEX IX_AnyminuteAddressDup_Addr ON dbo.AnyminuteAddressDup(AddressMasterId,Action,ActedAtUTC);");
++        }
++        catch (SqlException ex) { log4net.LogManager.GetLogger("Log").Warn("AnyminuteAddressDup.Ensure failed", ex); }
++    }
++
++    public static HashSet<int> DeletedIds(SqlConnection c) { return DeletedIds(c, null); }
++    public static HashSet<int> DeletedIds(SqlConnection c, SqlTransaction tx)
++    {
++        var set = new HashSet<int>();
++        if (!Ready(c, tx)) return set;
++        try
++        {
++            var t = AnyminuteTimesheetRepair.Query(c, tx, @"SELECT AddressMasterId FROM (
++                SELECT AddressMasterId, Action, ROW_NUMBER() OVER (PARTITION BY AddressMasterId ORDER BY ActedAtUTC DESC, DupId DESC) n
++                FROM dbo.AnyminuteAddressDup WHERE Action='Deleted' AND PeerId=0) x WHERE n=1");
++            foreach (DataRow r in t.Rows) set.Add(Convert.ToInt32(r[0]));
++        }
++        catch (SqlException ex) { log4net.LogManager.GetLogger("Log").Warn("AnyminuteAddressDup.DeletedIds failed", ex); }
++        return set;
++    }
++
++    class Pair
++    {
++        public string Action;
++        public int Peer;
++        public DateTime At;
++        public int Id;
++    }
++
++    static List<Pair> Load(SqlConnection c, SqlTransaction tx)
++    {
++        var list = new List<Pair>();
++        if (!Ready(c, tx)) return list;
++        try
++        {
++            var t = AnyminuteTimesheetRepair.Query(c, tx, "SELECT DupId,AddressMasterId,PeerId,Action,ActedAtUTC FROM dbo.AnyminuteAddressDup");
++            foreach (DataRow r in t.Rows)
++                list.Add(new Pair { Id = Convert.ToInt32(r["AddressMasterId"]), Peer = Convert.ToInt32(r["PeerId"]), Action = SA.S(r["Action"]), At = r["ActedAtUTC"] == DBNull.Value ? DateTime.MinValue : Convert.ToDateTime(r["ActedAtUTC"]) });
++        }
++        catch (SqlException ex) { log4net.LogManager.GetLogger("Log").Warn("AnyminuteAddressDup.Load failed", ex); }
++        return list;
++    }
++    static bool PairDismissed(List<Pair> ev, int a, int b)
++    {
++        var hits = ev.Where(x => x.Action == "Dismissed" && ((x.Id == a && x.Peer == b) || (x.Id == b && x.Peer == a) || (x.Id == a && x.Peer == 0) || (x.Id == b && x.Peer == 0))).OrderByDescending(x => x.At).ToList();
++        return hits.Count > 0;
++    }
++    static int OriginalOf(List<Pair> ev, IEnumerable<int> ids)
++    {
++        var set = new HashSet<int>(ids);
++        var hit = ev.Where(x => x.Action == "Original" && x.Peer == 0 && set.Contains(x.Id)).OrderByDescending(x => x.At).FirstOrDefault();
++        return hit != null ? hit.Id : 0;
++    }
++
++    public static List<Group> Groups(SqlConnection c, IList<DataRow> rows) { return Groups(c, null, rows); }
++    public static List<Group> Groups(SqlConnection c, SqlTransaction tx, IList<DataRow> rows)
++    {
++        var deleted = DeletedIds(c, tx);
++        var ev = Load(c, tx);
++        var buckets = new Dictionary<string, List<DataRow>>(StringComparer.Ordinal);
++        foreach (DataRow r in rows)
++        {
++            int id = Convert.ToInt32(r["AddressMasterId"]);
++            if (deleted.Contains(id)) continue;
++            string key = KeyOf(r);
++            if (key.EndsWith("|") || SA.CompactPostal(SA.S(r["PostalCode"])).Length == 0 || NormStreet(StreetOf(r)).Length == 0) continue;
++            List<DataRow> list;
++            if (!buckets.TryGetValue(key, out list)) { list = new List<DataRow>(); buckets[key] = list; }
++            list.Add(r);
++        }
++        var groups = new List<Group>();
++        foreach (var kv in buckets.OrderBy(x => x.Value.Min(r => Convert.ToInt32(r["AddressMasterId"]))))
++        {
++            var members = kv.Value.OrderBy(r => !r.Table.Columns.Contains("SubmittedAtUTC") || r["SubmittedAtUTC"] == DBNull.Value ? DateTime.MaxValue : Convert.ToDateTime(r["SubmittedAtUTC"])).ThenBy(r => Convert.ToInt32(r["AddressMasterId"])).ToList();
++            if (members.Count < 2) continue;
++            var keep = new List<DataRow>();
++            for (int i = 0; i < members.Count; i++)
++            {
++                int a = Convert.ToInt32(members[i]["AddressMasterId"]);
++                bool any = false;
++                for (int j = 0; j < members.Count; j++)
++                {
++                    if (i == j) continue;
++                    int b = Convert.ToInt32(members[j]["AddressMasterId"]);
++                    if (!PairDismissed(ev, a, b)) { any = true; break; }
++                }
++                if (any) keep.Add(members[i]);
++            }
++            if (keep.Count < 2) continue;
++            groups.Add(new Group { Key = kv.Key, Rows = keep, OriginalId = OriginalOf(ev, keep.Select(r => Convert.ToInt32(r["AddressMasterId"]))) });
++        }
++        for (int i = 0; i < groups.Count; i++)
++            groups[i].Code = "DUP-" + (i + 1).ToString("000", CultureInfo.InvariantCulture);
++        return groups;
++    }
++    public static Group GroupOf(List<Group> groups, int id)
++    {
++        return groups.FirstOrDefault(g => g.Rows.Any(r => Convert.ToInt32(r["AddressMasterId"]) == id));
++    }
++    public static int CountRows(List<Group> groups) { return groups.Sum(g => g.Rows.Count); }
++
++    public static bool Matches(SqlConnection c, SqlTransaction tx, int excludeId, string street, string postal, string country)
++    {
++        string keyC = NormCountry(country, postal), keyP = SA.CompactPostal(postal), keyS = NormStreet(street);
++        if (keyP.Length == 0 || keyS.Length == 0) return false;
++        try
++        {
++            var deleted = DeletedIds(c, tx);
++            var t = AnyminuteTimesheetRepair.Query(c, tx, @"SELECT a.AddressMasterId,a.Street_Name,a.PostalCode,r.Country,r.OrigStreet
++                FROM AddressMaster a LEFT JOIN AnyminuteAddressReview r ON r.AddressMasterId=a.AddressMasterId
++                WHERE a.AddressMasterId<>@i AND REPLACE(REPLACE(UPPER(ISNULL(a.PostalCode,'')),' ',''),'-','')=@p",
++                "@i", excludeId, "@p", keyP);
++            foreach (DataRow r in t.Rows)
++            {
++                if (deleted.Contains(Convert.ToInt32(r["AddressMasterId"]))) continue;
++                if (CountryOf(r) == keyC && NormStreet(StreetOf(r)) == keyS) return true;
++            }
++        }
++        catch (SqlException ex) { log4net.LogManager.GetLogger("Log").Warn("AnyminuteAddressDup.Matches failed", ex); }
++        return false;
++    }
++
++    public static string Record(SqlConnection c, SqlTransaction tx, int id, int peer, string action, string notes)
++    {
++        if (!Ready(c, tx)) return NeedTable;
++        AnyminuteTimesheetRepair.Execute(c, tx, "INSERT dbo.AnyminuteAddressDup(AddressMasterId,PeerId,Action,ActorId,ActorName,ActedAtUTC,Notes) VALUES(@i,@p,@a,@b,@n,SYSUTCDATETIME(),@c)",
++            "@i", id, "@p", peer, "@a", action, "@b", SA.ActorId(), "@n", Cut(SA.ActorName(), 150), "@c", Cut(notes ?? "", 500));
++        return null;
++    }
++    static string Cut(string s, int n) { s = s ?? ""; return s.Length > n ? s.Substring(0, n) : s; }
++
++    public static string Card(Group g, int focusId, Func<DataRow, string> who)
++    {
++        if (g == null || g.Rows.Count == 0) return "";
++        var sb = new StringBuilder();
++        sb.Append("<div class='sa-dup-card'><div class='sa-dup-card-head'><strong>Duplicate Group #").Append(SA.H(g.Code)).Append("</strong>")
++          .Append("<span class='sa-pill sa-purple'>").Append(g.Rows.Count.ToString(CultureInfo.InvariantCulture)).Append(" Matching Records</span></div>");
++        sb.Append("<table class='sa-dup-cmp'><thead><tr><th>Field</th>");
++        for (int i = 0; i < g.Rows.Count && i < 4; i++)
++        {
++            string label = "Record " + (char)('A' + i);
++            int rid = Convert.ToInt32(g.Rows[i]["AddressMasterId"]);
++            if (rid == focusId) label += " (this)";
++            if (g.OriginalId == rid) label += " — Original";
++            sb.Append("<th>").Append(SA.H(label)).Append("</th>");
++        }
++        if (g.Rows.Count > 4) sb.Append("<th>+").Append(g.Rows.Count - 4).Append(" more</th>");
++        sb.Append("</tr></thead><tbody>");
++        Action<string, Func<DataRow, string>> row = (field, val) =>
++        {
++            sb.Append("<tr><th>").Append(SA.H(field)).Append("</th>");
++            for (int i = 0; i < g.Rows.Count && i < 4; i++) sb.Append("<td>").Append(val(g.Rows[i])).Append("</td>");
++            if (g.Rows.Count > 4) sb.Append("<td></td>");
++            sb.Append("</tr>");
++        };
++        row("Address", r => SA.H(StreetOf(r)));
++        row("Postal Code", r => SA.H(PostalOf(r)));
++        row("Status", r =>
++        {
++            string st = StatusOf(r);
++            string tone = st == "Verified" ? "sa-green" : st == "Rejected" ? "sa-grey" : "sa-amber";
++            return "<span class='sa-pill " + tone + "'>" + SA.H(StatusLabel(st)) + "</span>";
++        });
++        row("Submitted By", r => SA.H(who(r) ?? "Not linked"));
++        sb.Append("</tbody></table></div>");
++        return sb.ToString();
++    }
++}
+diff --git a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteAddressImport.cs b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteAddressImport.cs
+index f9c5d7f..d1812e6 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteAddressImport.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteAddressImport.cs
+@@ -14,7 +14,7 @@ using SA = AnyminuteSupportAdmin;
+ // Both add rows straight to the Verified Address Database (AddressMaster Verifed=1) with an AnyminuteAddressReview row
+ // (Status=Verified, SubmittedBy = "Added by Support (<name>)" / "Imported by Support (<name>)", submitted/reviewed now), so they
+ // show in the Verified Addresses list. Same validation as Approve (SA.VerifyAddress: street, city, prov/state, country,
+-// postal format per country). Duplicate = an already verified row with the same street + city + postal code.
++// postal format per country). v81: a matching Street Address + Postal/ZIP in the same country is added and flagged as a Potential Duplicate (Duplicate Addresses tab), not blocked.
+ // Import reads CSV or .xlsx (all worksheets; minimal zip reader on DeflateStream from System.dll - no new assembly / package).
+ public static class AnyminuteAddressImport
+ {
+@@ -35,7 +35,7 @@ public static class AnyminuteAddressImport
+     }
+     static string Cut(string s, int n) { s = (s ?? "").Trim(); return s.Length > n ? s.Substring(0, n) : s; }
+ 
+-    // Returns null when added (id set), "duplicate" when already verified, otherwise the validation error.
++    // Returns null when added with no match, "potential" when added and it matches an existing street+postal+country, otherwise the validation error.
+     public static string AddVerified(SqlConnection c, SqlTransaction tx, string street, string city, string prov, string country, string postal, string by, string note, out int id)
+     {
+         id = 0;
+@@ -49,21 +49,8 @@ public static class AnyminuteAddressImport
+         string err = SA.VerifyAddress(street, city, prov, ctry, postal ?? "");
+         if (err != null) return err;
+         postal = SA.NormalizePostal(ctry, postal);
+-        // v78 notes: reject Add/Import when same street/city/prov/country/postal already exists (any status).
+-        var dup = AnyminuteTimesheetRepair.Query(c, tx, @"SELECT TOP 1 a.AddressMasterId FROM AddressMaster a WITH (UPDLOCK,HOLDLOCK)
+-            LEFT JOIN CityMaster ci ON CAST(ci.CityId AS nvarchar(50))=CAST(a.City AS nvarchar(50))
+-            LEFT JOIN ProvinceMaster pr ON CAST(pr.ProvinceId AS nvarchar(50))=CAST(a.Province AS nvarchar(50))
+-            LEFT JOIN AnyminuteAddressReview r ON r.AddressMasterId=a.AddressMasterId
+-            WHERE REPLACE(REPLACE(UPPER(ISNULL(a.PostalCode,'')),' ',''),'-','')=@p
+-              AND UPPER(LTRIM(RTRIM(ISNULL(a.Street_Name,''))))=UPPER(@s)
+-              AND UPPER(LTRIM(RTRIM(COALESCE(ci.CityName,a.City,''))))=UPPER(@c)
+-              AND UPPER(LTRIM(RTRIM(COALESCE(pr.ProvinceName,a.Province,''))))=UPPER(@pr)
+-              AND (
+-                    UPPER(LTRIM(RTRIM(ISNULL(r.Country,''))))=UPPER(@co)
+-                    OR (r.Country IS NULL AND @co<>'')
+-                  )",
+-            "@p", SA.CompactPostal(postal), "@s", street, "@c", city, "@pr", prov, "@co", ctry);
+-        if (dup.Rows.Count > 0) return "duplicate";
++        // v81: do not block a matching street+postal (same country). The new row is added and listed on Duplicate Addresses.
++        bool potential = AnyminuteAddressDup.Matches(c, tx, 0, street, postal, ctry);
+         id = Convert.ToInt32(AnyminuteTimesheetRepair.Query(c, tx, "INSERT AddressMaster(Street_Name,City,Province,PostalCode,Verifed) VALUES(@s,@c,@pr,@pc,1); SELECT CAST(SCOPE_IDENTITY() AS int)",
+             "@s", street, "@c", city, "@pr", prov, "@pc", postal).Rows[0][0], CultureInfo.InvariantCulture);
+         // TR_AnyminuteAddressMaster_Submitted (REQUIRED_08) may already have written the review row; either way it ends Verified.
+@@ -72,7 +59,7 @@ public static class AnyminuteAddressImport
+                 VALUES(@i,@w,SYSUTCDATETIME(),@s,@c,@pr,@co,@pc,'Verified',@co,@n,@b,@bn,SYSUTCDATETIME())
+             ELSE UPDATE AnyminuteAddressReview SET SubmittedBy=@w,SubmittedAtUTC=SYSUTCDATETIME(),OrigCountry=@co,Country=@co,Status='Verified',Notes=@n,ReviewedBy=@b,ReviewedByName=@bn,ReviewedAtUTC=SYSUTCDATETIME() WHERE AddressMasterId=@i",
+             "@i", id, "@w", Cut(by, 150), "@s", street, "@c", city, "@pr", prov, "@co", ctry, "@pc", postal, "@n", Cut(note, 500), "@b", SA.ActorId(), "@bn", Cut(SA.ActorName(), 150));
+-        return null;
++        return potential ? "potential" : null;
+     }
+ 
+     // ---- file reading: rows of cells (header row included) ----
+diff --git a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteSupportAdmin.cs b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteSupportAdmin.cs
+index 32b0270..20131e0 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteSupportAdmin.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteSupportAdmin.cs
+@@ -221,9 +221,12 @@ public static class AnyminuteSupportAdmin
+         try
+         {
+             using (var c = Open())
++            {
++                string hide = Has(c, AnyminuteAddressDup.Table) ? " AND a.AddressMasterId NOT IN (SELECT d.AddressMasterId FROM (SELECT AddressMasterId, Action, ROW_NUMBER() OVER (PARTITION BY AddressMasterId ORDER BY ActedAtUTC DESC, DupId DESC) n FROM dbo.AnyminuteAddressDup WHERE Action='Deleted' AND PeerId=0) d WHERE d.n=1)" : "";
+                 return Convert.ToInt32(Q(c, Has(c, "AnyminuteAddressReview")
+-                    ? "SELECT COUNT(*) FROM AddressMaster a LEFT JOIN AnyminuteAddressReview r ON r.AddressMasterId=a.AddressMasterId WHERE ISNULL(a.Verifed,0)<>1 AND ISNULL(r.Status,'Pending')='Pending'"
+-                    : "SELECT COUNT(*) FROM AddressMaster WHERE ISNULL(Verifed,0)<>1").Rows[0][0]);
++                    ? "SELECT COUNT(*) FROM AddressMaster a LEFT JOIN AnyminuteAddressReview r ON r.AddressMasterId=a.AddressMasterId WHERE ISNULL(a.Verifed,0)<>1 AND ISNULL(r.Status,'Pending')='Pending'" + hide
++                    : "SELECT COUNT(*) FROM AddressMaster a WHERE ISNULL(a.Verifed,0)<>1" + hide).Rows[0][0]);
++            }
+         }
+         catch (SqlException) { return 0; }
+     }
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Main.master b/AMV3Reseller_27Aug2022_Subscription/Main.master
+index 780368c..fddc05e 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Main.master
++++ b/AMV3Reseller_27Aug2022_Subscription/Main.master
+@@ -5,7 +5,7 @@
+ <!DOCTYPE html>
+ 
+ <html>
+-<head runat="server"><meta name="anyminute-build" content="v80-20261110" />
++<head runat="server"><meta name="anyminute-build" content="v81-20261114" />
+     <title>AnyMinute | Record From Anywhere</title>
+     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+@@ -139,7 +139,7 @@
+     </asp:ContentPlaceHolder>
+     <link href="css/AnyminuteUI2026.css?v=20261017" rel="stylesheet" />
+ <link href="css/AnyminuteUIUnified.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUiBugFixes.css?v=20261026v17" rel="stylesheet" />
+-<link href="css/AnyminuteNavDrawer.css?v=20261106v67" rel="stylesheet" /><link href="css/AnyminuteTypography.css?v=20261110v80" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261110v80" rel="stylesheet" /></head>
++<link href="css/AnyminuteNavDrawer.css?v=20261106v67" rel="stylesheet" /><link href="css/AnyminuteTypography.css?v=20261114v81" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261114v81" rel="stylesheet" /></head>
+ <script type="text/javascript">  
+     window.onload = window.history.forward(0);
+ </script>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master b/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master
+index 2299e0d..7abd1b6 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master
++++ b/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master
+@@ -1,71 +1,71 @@
+-﻿<%@ Master Language="C#" AutoEventWireup="true" CodeFile="MasterWithoutMenu.master.cs" Inherits="MasterWithoutMenu" runat="server" %>
+-<!DOCTYPE html>
+-
+-<html>
+-<head runat="server"><meta name="anyminute-build" content="v80-20261110" />
+-    <title>AnyMinute | Record From Anywhere</title>
+-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+-    <meta charset="utf-8">
+-    <meta http-equiv="X-UA-Compatible" content="IE=9" />
+-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+-    <meta content='width=device-width, initial-scale=1.0, shrink-to-fit=no' name='viewport' />
+-    <meta http-equiv="Cache-Control" content="no-cache" />
+-    <meta http-equiv="Pragma" content="no-cache" />
+-    <meta http-equiv="Expires" content="0" />
+-
+-    <link rel="icon" href="Assets/assets/img/logo.jpg" type="image/x-icon" />
+-    <link href="css/header.css" rel="stylesheet" />
+-    <link href="css/footer.css" rel="stylesheet" />
+-    <link href="css/SiteStyle.css" rel="stylesheet" />
+-    <link href="css/sidebar.css" rel="stylesheet" />
+-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+-    
+-    <script src="https://use.fontawesome.com/4fed6e96ae.js"></script>
+-    <!-- Fonts and icons -->
+-    <script src="https://use.fontawesome.com/5b6dc8cc46.js"></script>
+-    <asp:ContentPlaceHolder ID="head" runat="server">
+-                       
+-    </asp:ContentPlaceHolder>
+-    
+-<link href="css/AnyminuteTypography.css?v=20261110v80" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261110v80" rel="stylesheet" /></head>
+-    <script type="text/javascript">  
+-
+-    window.onload = window.history.forward(0);
+-
+-    </script>
+-<body style="background-color: whitesmoke;" class="am-reference am-typography">
+-
+-    <form id="frmMaster" runat="server">
+-        <asp:ScriptManager ID="ScriptManager1" runat="server"></asp:ScriptManager>
+-
+-
+-        <div class="header" style="display:none;">
+-            <nav class="navbar navbar-default navbar-fixed-top">
+-                <div class="container-fluid">
+-                    <div class="navbar-header">
+-                        <div style="text-align:left; float:left;">
+-                            <asp:Label ID="lblwelcome" runat="server" Font-Size="X-Large" Style="margin-top: 100px;"></asp:Label>
+-                        </div>
+-                    </div>                    
+-                </div>
+-            </nav>
+-        </div>
+-
+-
+-        <%--Child Page Content--%>
+-        <div id="page-content-wrapper">
+-            <!-- Keep all page content within the page-content inset div! -->
+-            <div class="page-content inset">
+-                <div class="row">
+-                    <%--<br />--%>
+-                    <asp:ContentPlaceHolder ID="ContentPlaceHolder1" runat="server">
+-                    </asp:ContentPlaceHolder>
+-                </div>
+-            </div>
+-        </div>
+-
+-    </form>   
+-
+-</body>
+-</html>
++﻿<%@ Master Language="C#" AutoEventWireup="true" CodeFile="MasterWithoutMenu.master.cs" Inherits="MasterWithoutMenu" runat="server" %>
++<!DOCTYPE html>
++
++<html>
++<head runat="server"><meta name="anyminute-build" content="v81-20261114" />
++    <title>AnyMinute | Record From Anywhere</title>
++    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
++    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
++    <meta charset="utf-8">
++    <meta http-equiv="X-UA-Compatible" content="IE=9" />
++    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
++    <meta content='width=device-width, initial-scale=1.0, shrink-to-fit=no' name='viewport' />
++    <meta http-equiv="Cache-Control" content="no-cache" />
++    <meta http-equiv="Pragma" content="no-cache" />
++    <meta http-equiv="Expires" content="0" />
++
++    <link rel="icon" href="Assets/assets/img/logo.jpg" type="image/x-icon" />
++    <link href="css/header.css" rel="stylesheet" />
++    <link href="css/footer.css" rel="stylesheet" />
++    <link href="css/SiteStyle.css" rel="stylesheet" />
++    <link href="css/sidebar.css" rel="stylesheet" />
++    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
++    
++    <script src="https://use.fontawesome.com/4fed6e96ae.js"></script>
++    <!-- Fonts and icons -->
++    <script src="https://use.fontawesome.com/5b6dc8cc46.js"></script>
++    <asp:ContentPlaceHolder ID="head" runat="server">
++                       
++    </asp:ContentPlaceHolder>
++    
++<link href="css/AnyminuteTypography.css?v=20261114v81" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261114v81" rel="stylesheet" /></head>
++    <script type="text/javascript">  
++
++    window.onload = window.history.forward(0);
++
++    </script>
++<body style="background-color: whitesmoke;" class="am-reference am-typography">
++
++    <form id="frmMaster" runat="server">
++        <asp:ScriptManager ID="ScriptManager1" runat="server"></asp:ScriptManager>
++
++
++        <div class="header" style="display:none;">
++            <nav class="navbar navbar-default navbar-fixed-top">
++                <div class="container-fluid">
++                    <div class="navbar-header">
++                        <div style="text-align:left; float:left;">
++                            <asp:Label ID="lblwelcome" runat="server" Font-Size="X-Large" Style="margin-top: 100px;"></asp:Label>
++                        </div>
++                    </div>                    
++                </div>
++            </nav>
++        </div>
++
++
++        <%--Child Page Content--%>
++        <div id="page-content-wrapper">
++            <!-- Keep all page content within the page-content inset div! -->
++            <div class="page-content inset">
++                <div class="row">
++                    <%--<br />--%>
++                    <asp:ContentPlaceHolder ID="ContentPlaceHolder1" runat="server">
++                    </asp:ContentPlaceHolder>
++                </div>
++            </div>
++        </div>
++
++    </form>   
++
++</body>
++</html>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Modern.master b/AMV3Reseller_27Aug2022_Subscription/Modern.master
+index 2fd451e..2f8fd4c 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Modern.master
++++ b/AMV3Reseller_27Aug2022_Subscription/Modern.master
+@@ -1,6 +1,6 @@
+ <%@ Master Language="C#" AutoEventWireup="true" CodeFile="Modern.master.cs" Inherits="AnyminuteModernMaster" %>
+ <!DOCTYPE html>
+-<html lang="en"><head runat="server"><meta charset="utf-8" /><meta name="anyminute-build" content="v80-20261110" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>AnyMinute</title><link href="css/bootstrap.min.css" rel="stylesheet" /><script src="Assets/assets/js/core/jquery.3.2.1.min.js"></script><script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script><script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" /><script src="Assets/assets/js/plugin/datatables/datatables.min.js"></script><script src="Assets/assets/js/SweetAlert.js"></script><link href="css/AnyminuteModern.css" rel="stylesheet" /><asp:ContentPlaceHolder ID="head" runat="server" /><link href="css/AnyminuteUI2026.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUIUnified.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUiBugFixes.css?v=20261026v17" rel="stylesheet" /><link href="css/AnyminuteNavDrawer.css?v=20261106v67" rel="stylesheet" /><link href="css/AnyminuteTypography.css?v=20261110v80" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261110v80" rel="stylesheet" /></head>
++<html lang="en"><head runat="server"><meta charset="utf-8" /><meta name="anyminute-build" content="v81-20261114" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>AnyMinute</title><link href="css/bootstrap.min.css" rel="stylesheet" /><script src="Assets/assets/js/core/jquery.3.2.1.min.js"></script><script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script><script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" /><script src="Assets/assets/js/plugin/datatables/datatables.min.js"></script><script src="Assets/assets/js/SweetAlert.js"></script><link href="css/AnyminuteModern.css" rel="stylesheet" /><asp:ContentPlaceHolder ID="head" runat="server" /><link href="css/AnyminuteUI2026.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUIUnified.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUiBugFixes.css?v=20261026v17" rel="stylesheet" /><link href="css/AnyminuteNavDrawer.css?v=20261106v67" rel="stylesheet" /><link href="css/AnyminuteTypography.css?v=20261114v81" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261114v81" rel="stylesheet" /></head>
+ <body class="am-reference am-typography am-modern"><form id="frmMaster" runat="server"><asp:ScriptManager ID="ScriptManager1" runat="server" />
+ <header class="am-topbar"><button type="button" class="am-icon-button" data-toggle-sidebar aria-controls="am-main-navigation" aria-expanded="true" aria-label="Toggle navigation">&#9776;</button><a href="Dashboard.aspx" class="am-brand"><asp:PlaceHolder ID="LogoDefault" runat="server"><img src="Assets/assets/img/logo.jpg" alt="AnyMinute" class="am-logo" /></asp:PlaceHolder><asp:Literal ID="Brand" runat="server" /></a><span>Welcome! <asp:Literal ID="Welcome" runat="server" /><asp:Literal ID="WelcomeContext" runat="server" /></span><asp:Literal ID="HeaderHelp" runat="server" /><asp:Literal ID="HeaderBell" runat="server" /><details class="am-account-menu"><summary aria-label="Account menu"><asp:Literal ID="AccountAvatar" runat="server" /><span class="am-account-chevron" aria-hidden="true"></span><span class="sr-only">Account</span></summary><div class="am-account-popover"><a href="MyProfile.aspx"><span data-am-icon="profile" aria-hidden="true"></span>My profile</a><a href="LoginSecurity.aspx"><span data-am-icon="settings" aria-hidden="true"></span>Login &amp; security</a><asp:LinkButton ID="SignOut" runat="server" CausesValidation="false" OnClick="SignOut_Click"><span data-am-icon="signout" aria-hidden="true"></span>Sign out</asp:LinkButton>
+    <a href="Change%20Password.aspx"><span data-am-icon="settings" aria-hidden="true"></span>Change password</a><asp:Literal ID="AccountHelp" runat="server" /><asp:Literal ID="AccountUpgrade" runat="server" /></div></details></header>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx b/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx
+index 9bd8c24..e305932 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="SupportAddresses.aspx.cs" Inherits="AnyminuteSupportAddressesPage" Title="Address Verification" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261109v78" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261109v78" defer="defer"></script></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSupport.css?v=20261114v81" rel="stylesheet" /><script src="Scripts/AnyminuteSupport.js?v=20261114v81" defer="defer"></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section class="sa-page">
+  <header class="sa-head"><div><h1>Address Verification</h1><p>Review, correct and verify manually entered addresses.</p></div>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx.cs b/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx.cs
+index 0f531c7..b71b787 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/SupportAddresses.aspx.cs
+@@ -27,7 +27,7 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
+         if (Form != null) Form.Enctype = "multipart/form-data"; // v71: Import Address file upload
+         if (IsPostBack && (SA.Form("sa_op") == "addaddr" || SA.Form("sa_op") == "importaddr")) { if (SA.Form("sa_op") == "addaddr") AddAddress(); else ImportAddress(); return; }
+         if (IsPostBack && SA.Form("sa_op").Length > 0) { Act(); return; } // v78: Act also handles restore/delete/bulk_*
+-        string tab = SA.Get("tab"); if (tab != "verified" && tab != "rejected") tab = "pending";
++        string tab = SA.Get("tab"); if (tab != "verified" && tab != "rejected" && tab != "duplicate") tab = "pending";
+         string q = SA.Get("q"), country = SA.Get("country"), prov = SA.Get("prov"), date = SA.Get("date");
+         int page; if (!Int32.TryParse(SA.Get("page"), out page) || page < 1) page = 1;
+         int id; Int32.TryParse(SA.Get("id"), out id);
+@@ -36,40 +36,70 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
+         {
+             bool ready = SA.Has(c, "AnyminuteAddressReview") && SA.Has(c, "AnyminuteSupportAudit");
+             if (!ready) Flash.Text += SA.Notice(c, "AnyminuteAddressReview", "AnyminuteSupportAudit");
++            AnyminuteAddressDup.Ensure(c);
++            if (tab == "duplicate" && !AnyminuteAddressDup.Ready(c, null)) Flash.Text += "<div class='sa-flash sa-warn' role='alert'>" + SA.H(AnyminuteAddressDup.NeedTable) + "</div>";
+             string rj = ready ? " LEFT JOIN AnyminuteAddressReview r ON r.AddressMasterId=a.AddressMasterId" : "";
+             string status = ready ? "CASE WHEN a.Verifed=1 THEN 'Verified' WHEN r.Status='Rejected' THEN 'Rejected' ELSE 'Pending' END" : "CASE WHEN a.Verifed=1 THEN 'Verified' ELSE 'Pending' END";
+             string cols = ready ? ",r.SubmittedBy,r.SubmittedAtUTC,r.Country,r.ReviewedAtUTC,r.ReviewedByName,r.Notes,r.OrigStreet,r.OrigCity,r.OrigProvince" : ",CAST(NULL AS nvarchar(200)) OrigStreet,CAST(NULL AS nvarchar(200)) OrigCity,CAST(NULL AS nvarchar(200)) OrigProvince,CAST(NULL AS nvarchar(150)) SubmittedBy,CAST(NULL AS datetime2) SubmittedAtUTC,CAST(NULL AS nvarchar(60)) Country,CAST(NULL AS datetime2) ReviewedAtUTC,CAST(NULL AS nvarchar(150)) ReviewedByName,CAST(NULL AS nvarchar(500)) Notes";
+             var all = SA.Q(c, "SELECT a.AddressMasterId,a.Street_Name," + Names + ",a.PostalCode," + status + " St" + cols + " FROM AddressMaster a" + NameJoins + rj);
+-            Func<string, int> count = s => all.Rows.Cast<DataRow>().Count(r => SA.S(r["St"]) == s);
+-            string wanted = tab == "verified" ? "Verified" : tab == "rejected" ? "Rejected" : "Pending";
+-            var rows = all.Rows.Cast<DataRow>().Where(r => SA.S(r["St"]) == wanted).Where(r =>
++            var deleted = AnyminuteAddressDup.DeletedIds(c);
++            var allList = all.Rows.Cast<DataRow>().Where(r => !deleted.Contains(Convert.ToInt32(r["AddressMasterId"]))).ToList();
++            var dupGroups = AnyminuteAddressDup.Groups(c, allList);
++            Func<string, int> count = s => allList.Count(r => SA.S(r["St"]) == s);
++            Func<DataRow, bool> pass = r =>
+             {
+                 string ctry = SA.S(r["Country"]); if (ctry.Length == 0) ctry = SA.GuessCountry(SA.S(r["PostalCode"]));
+-                if (country.Length > 0 && ctry != country) return false;
++                if (country.Length > 0 && ctry != country && AnyminuteAddressDup.NormCountry(ctry, SA.S(r["PostalCode"])) != country) return false;
+                 if (prov.Length > 0 && !SA.S(r["Province"]).Equals(prov, StringComparison.OrdinalIgnoreCase)) return false;
+-                if (q.Length > 0 && !(SA.S(r["Street_Name"]) + " " + SA.S(r["City"]) + " " + SA.S(r["PostalCode"]) + " " + SA.S(r["SubmittedBy"])).ToLowerInvariant().Contains(q.ToLowerInvariant())) return false;
++                if (q.Length > 0 && !(AnyminuteAddressDup.StreetOf(r) + " " + SA.S(r["City"]) + " " + SA.S(r["PostalCode"]) + " " + SA.S(r["SubmittedBy"])).ToLowerInvariant().Contains(q.ToLowerInvariant())) return false;
+                 if (date.Length > 0 && r["SubmittedAtUTC"] != DBNull.Value)
+                 {
+                     int days = date == "7" ? 7 : date == "30" ? 30 : 0;
+                     if (days > 0 && Convert.ToDateTime(r["SubmittedAtUTC"]) < DateTime.UtcNow.AddDays(-days)) return false;
+                 }
+                 return true;
+-            }).OrderByDescending(r => r["SubmittedAtUTC"] == DBNull.Value ? DateTime.MinValue : Convert.ToDateTime(r["SubmittedAtUTC"])).ThenByDescending(r => Convert.ToInt32(r["AddressMasterId"])).ToList();
++            };
++            string wanted = tab == "verified" ? "Verified" : tab == "rejected" ? "Rejected" : "Pending";
++            int listCount;
++            List<DataRow> rows;
++            if (tab == "duplicate")
++            {
++                var kept = new List<AnyminuteAddressDup.Group>();
++                foreach (var g in dupGroups) if (g.Rows.Any(pass)) kept.Add(g);
++                listCount = kept.Sum(g => g.Rows.Count);
++                int skipped = 0, start = (page - 1) * PageSize;
++                var pageGroups = new List<AnyminuteAddressDup.Group>();
++                foreach (var g in kept)
++                {
++                    if (skipped + g.Rows.Count <= start) { skipped += g.Rows.Count; continue; }
++                    if (pageGroups.Count > 0 && pageGroups.Sum(x => x.Rows.Count) >= PageSize) break;
++                    pageGroups.Add(g);
++                }
++                rows = pageGroups.SelectMany(g => g.Rows).ToList();
++            }
++            else
++            {
++                rows = allList.Where(r => SA.S(r["St"]) == wanted).Where(pass)
++                    .OrderByDescending(r => r["SubmittedAtUTC"] == DBNull.Value ? DateTime.MinValue : Convert.ToDateTime(r["SubmittedAtUTC"]))
++                    .ThenByDescending(r => Convert.ToInt32(r["AddressMasterId"])).ToList();
++                listCount = rows.Count;
++            }
+ 
+             Func<string, string, string, int, string> tabLink = (key, label, tone, n) => "<a href='SupportAddresses.aspx?tab=" + key + "' class='" + (tab == key ? "on" : "") + "'" + (tab == key ? " aria-current='page'" : "") + ">" + label + " <span class='sa-count sa-" + tone + "'>" + n.ToString("#,0", CultureInfo.InvariantCulture) + "</span></a>";
+-            Tabs.Text = "<nav class='sa-tabs'>" + tabLink("pending", "Pending Verification", "red", count("Pending")) + tabLink("verified", "Verified Addresses", "green", count("Verified")) + tabLink("rejected", "Rejected Addresses", "grey", count("Rejected")) + "</nav>";
+-            var provinces = all.Rows.Cast<DataRow>().Select(r => SA.S(r["Province"])).Where(p => p.Length > 0).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(p => p).Take(80);
++            Tabs.Text = "<nav class='sa-tabs'>" + tabLink("pending", "Pending Verification", "red", count("Pending")) + tabLink("verified", "Verified Addresses", "green", count("Verified")) + tabLink("rejected", "Rejected Addresses", "grey", count("Rejected")) + tabLink("duplicate", "Duplicate Addresses", "purple", AnyminuteAddressDup.CountRows(dupGroups)) + "</nav>";
++            var provinces = allList.Select(r => SA.S(r["Province"])).Where(p => p.Length > 0).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(p => p).Take(80);
+             Filters.Text = SelBar(tab) + "<div class='sa-filters' data-sa-get='SupportAddresses.aspx'>"
+                 + "<label class='sa-grow'><span class='sr-only'>Search</span><input type='search' name='q' value='" + SA.A(q) + "' placeholder='Search address, city, or subscriber...' /></label>"
+                 + "<label><span>Country</span><select name='country'>" + SA.Options(SA.Countries, country, "All") + "</select></label>"
+                 + "<label><span>Province/State</span><select name='prov'>" + SA.Options(provinces, prov, "All") + "</select></label>"
+-                + "<label><span>Status</span><select name='tab'>" + "<option value='pending'" + (tab == "pending" ? " selected" : "") + ">Pending Verification</option><option value='verified'" + (tab == "verified" ? " selected" : "") + ">Verified</option><option value='rejected'" + (tab == "rejected" ? " selected" : "") + ">Rejected</option></select></label>"
++                + "<label><span>Status</span><select name='tab'>" + "<option value='pending'" + (tab == "pending" ? " selected" : "") + ">Pending Verification</option><option value='verified'" + (tab == "verified" ? " selected" : "") + ">Verified</option><option value='rejected'" + (tab == "rejected" ? " selected" : "") + ">Rejected</option><option value='duplicate'" + (tab == "duplicate" ? " selected" : "") + ">Duplicate Addresses</option></select></label>"
+                 + "<label><span>Submitted Date</span><select name='date'>" + "<option value=''>All Dates</option><option value='7'" + (date == "7" ? " selected" : "") + ">Last 7 days</option><option value='30'" + (date == "30" ? " selected" : "") + ">Last 30 days</option></select></label>"
+                 + "<button type='button' class='sa-btn' data-sa-apply='1'>Search</button></div>";
+ 
+             string baseQ = "tab=" + tab + "&q=" + HttpUtility.UrlEncode(q) + "&country=" + HttpUtility.UrlEncode(country) + "&prov=" + HttpUtility.UrlEncode(prov) + "&date=" + date;
+             var sb = new StringBuilder("<input type='hidden' name='sa_id' value='0' data-sa-id='1' /><div class='sa-table-wrap sa-av-wrap'><table class='sa-table' data-sa-avtable='1'><thead><tr><th><input type='checkbox' aria-label='Select all' data-sa-all='sa_pick' /></th><th>Address (Submitted)</th><th>City</th><th>Prov/State</th><th>Country</th><th>Postal Code</th><th>Submitted By</th><th>Date</th><th>Actions</th></tr></thead><tbody>");
+-            foreach (var r in rows.Skip((page - 1) * PageSize).Take(PageSize))
++            IEnumerable<DataRow> pageRows = tab == "duplicate" ? rows : rows.Skip((page - 1) * PageSize).Take(PageSize);
++            foreach (var r in pageRows)
+             {
+                 int rid = Convert.ToInt32(r["AddressMasterId"]); string ctry = SA.S(r["Country"]); if (ctry.Length == 0) ctry = SA.GuessCountry(SA.S(r["PostalCode"]));
+                 string who = Submitter(c, r);
+@@ -80,12 +110,13 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
+                   .Append(who != null ? SA.H(who) : "<span class='sa-muted' title='No subscriber, employee, business or reseller address uses this address'>Not linked</span>").Append("</td><td>").Append(r["SubmittedAtUTC"] != DBNull.Value ? SA.Day(r["SubmittedAtUTC"]) : "<span class='sa-muted' title='Added before submission dates were recorded'>&mdash;</span>").Append("</td><td class='sa-actions sa-nowrap'>")
+                   .Append(RowActions(tab, rid, baseQ, page)).Append("</td></tr>");
+             }
+-            if (rows.Count == 0) sb.Append("<tr><td colspan='9' class='sa-empty'>No addresses in this list.</td></tr>");
+-            Table.Text = sb.Append("</tbody></table></div>").ToString() + SA.Pager(rows.Count, page, PageSize, baseQ);
++            if (listCount == 0) sb.Append("<tr><td colspan='9' class='sa-empty'>No addresses in this list.</td></tr>");
++            Table.Text = sb.Append("</tbody></table></div>").ToString() + SA.Pager(listCount, page, PageSize, baseQ);
+ 
+-            var pick = id > 0 ? all.Rows.Cast<DataRow>().FirstOrDefault(r => Convert.ToInt32(r["AddressMasterId"]) == id) : null;
+-            Panel.Text = pick == null ? "" : EditPanel(c, pick, ready, baseQ + "&page=" + page);
+-                        if (SA.Get("add") == "1") Panel.Text += AddModal(ready);
++            var pick = id > 0 ? allList.FirstOrDefault(r => Convert.ToInt32(r["AddressMasterId"]) == id) : null;
++            var pickGroup = pick != null ? AnyminuteAddressDup.GroupOf(dupGroups, id) : null;
++            Panel.Text = pick == null ? "" : EditPanel(c, pick, ready, baseQ + "&page=" + page, pickGroup);
++            if (SA.Get("add") == "1") Panel.Text += AddModal(ready);
+             else if (SA.Get("import") == "1") Panel.Text += ImportModal(ready);
+         }
+     }
+@@ -187,7 +218,8 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
+         var t = AnyminuteTimesheetRepair.Query(c, tx, "IF NOT EXISTS(SELECT 1 FROM dbo." + table + " WITH(UPDLOCK,HOLDLOCK) WHERE " + nameCol + "=@n) INSERT dbo." + table + "(" + nameCol + ",Duplicate) VALUES(@n,0); SELECT TOP(1) " + idCol + " FROM dbo." + table + " WHERE " + nameCol + "=@n ORDER BY " + idCol, "@n", name.Trim().ToUpperInvariant());
+         return Convert.ToString(t.Rows[0][0], CultureInfo.InvariantCulture);
+     }
+-    string EditPanel(SqlConnection c, DataRow r, bool ready, string back)
++    string EditPanel(SqlConnection c, DataRow r, bool ready, string back) { return EditPanel(c, r, ready, back, null); }
++    string EditPanel(SqlConnection c, DataRow r, bool ready, string back, AnyminuteAddressDup.Group group)
+     {
+         int id = Convert.ToInt32(r["AddressMasterId"]);
+         DataRow review = null;
+@@ -208,8 +240,11 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
+         string ctry = SA.S(r["Country"]).Length > 0 ? SA.S(r["Country"]) : SA.GuessCountry(SA.S(r["PostalCode"]));
+         bool pending = SA.S(r["St"]) == "Pending", verified = SA.S(r["St"]) == "Verified";
+         bool rejectMode = SA.Get("reject") == "1" && (pending || verified);
+-        string dis = (pending || rejectMode) && ready ? "" : " disabled";
+-        var sb = new StringBuilder("<aside class='sa-card sa-panel' id='sa-edit' aria-label='Edit and verify address'><div class='sa-panel-head'><h2>Edit &amp; Verify Address</h2><a href='SupportAddresses.aspx?" + SA.A(back) + "' class='sa-x' aria-label='Close'>&times;</a></div>");
++        bool dupEdit = group != null && SA.Get("edit") == "1";
++        string dis = ((pending || rejectMode || dupEdit) && ready) ? "" : " disabled";
++        string heading = dupEdit ? "Edit Address" : (group != null ? "View Address" : "Edit &amp; Verify Address");
++        var sb = new StringBuilder("<aside class='sa-card sa-panel' id='sa-edit' aria-label='Edit and verify address'><div class='sa-panel-head'><h2>" + heading + "</h2><a href='SupportAddresses.aspx?" + SA.A(back) + "' class='sa-x' aria-label='Close'>&times;</a></div>");
++        if (group != null) sb.Append(AnyminuteAddressDup.Card(group, id, rr => Submitter(c, rr)));
+         sb.Append("<h3>Original Submitted Address</h3><div class='sa-original'><p>").Append(SA.H(os + ", " + oc + ", " + op + ", " + octry + ", " + opc)).Append("</p><dl><dt>Submitted By:</dt><dd>")
+           .Append(who != null ? SA.H(who) : "Not linked to a subscriber, employee, business or reseller address").Append("</dd><dt>Submitted Date:</dt><dd>")
+           .Append(review != null && review["SubmittedAtUTC"] != DBNull.Value ? SA.When(review["SubmittedAtUTC"]).Replace("<br />", " ") : "Not recorded (added before v26)").Append("</dd></dl></div>");
+@@ -224,7 +259,10 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
+           ;
+         // v42/v78: Reject opens the panel in reject mode (reject=1) for Pending or Verified so a reason can be entered.
+         // Approve stays pending-only. Verified View/Edit stays read-only unless reject mode.
+-        if (rejectMode)
++        if (dupEdit)
++            sb.Append("<div class='sa-panel-foot sa-one-line'><button type='submit' class='sa-btn' name='sa_op' value='saveedit'").Append(dis).Append(">&#10003; Save Changes</button>")
++              .Append("<a class='sa-btn sa-btn-outline' href='SupportAddresses.aspx?").Append(SA.A(back)).Append("'>Cancel</a></div>");
++        else if (rejectMode)
+             sb.Append("<div class='sa-panel-foot sa-one-line'><button type='submit' id='sa-reject' class='sa-btn sa-btn-danger' name='sa_op' value='reject' data-sa-need-notes='Enter the reason for rejecting this address in Note.'").Append(dis).Append(">&#10005; Reject</button>")
+               .Append("<a class='sa-btn sa-btn-outline' href='SupportAddresses.aspx?").Append(SA.A(back)).Append("'>Cancel</a></div>");
+         else if (pending)
+@@ -250,6 +288,8 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
+             sb.Append("<button type='submit' class='sa-btn sa-btn-outline' name='sa_op' value='bulk_restore' data-sa-confirm='Restore the selected addresses to Pending Verification?'>&#8634; Restore Selected</button>");
+             sb.Append("<button type='submit' class='sa-btn sa-btn-solid-danger' name='sa_op' value='bulk_delete' data-sa-confirm='Permanently delete the selected addresses? This cannot be undone.'>&#128465; Delete Selected</button>");
+         }
++        else if (tab == "duplicate")
++            sb.Append("<button type='submit' class='sa-btn sa-btn-outline' name='sa_op' value='bulk_dismiss' data-sa-confirm='Mark the selected matches as legitimate and remove them from the Duplicate Addresses queue?'>Dismiss Selected</button>");
+         else
+         {
+             // Pending + Verified: Reject Selected only. Edit Selected removed (red X in held image6).
+@@ -268,6 +308,15 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
+             sb.Append("<button type='submit' class='sa-menu-item' name='sa_op' value='restore' formnovalidate='formnovalidate' data-sa-set='sa_id=").Append(rid).Append("' data-sa-confirm='Restore this address to Pending Verification?'><i aria-hidden='true'>&#8634;</i><span><b>Restore</b></span></button>");
+             sb.Append("<button type='submit' class='sa-menu-item sa-menu-danger' name='sa_op' value='delete' formnovalidate='formnovalidate' data-sa-set='sa_id=").Append(rid).Append("' data-sa-confirm='Permanently delete this address? This cannot be undone.'><i aria-hidden='true'>&#128465;</i><span><b>Delete</b></span></button>");
+         }
++        else if (tab == "duplicate")
++        {
++            // v81 PPT slide 3: View is inline; ⋮ = Edit, Keep as Original, Mark as Duplicate, Dismiss Duplicate, Delete Duplicate.
++            sb.Append("<a class='sa-menu-item' href='").Append(href).Append("&amp;edit=1#sa-edit'><i aria-hidden='true'>&#9998;</i><span><b>Edit</b><small>Correct spelling or postal code</small></span></a>");
++            sb.Append("<button type='submit' class='sa-menu-item' name='sa_op' value='keep_original' formnovalidate='formnovalidate' data-sa-set='sa_id=").Append(rid).Append("' data-sa-confirm='Mark this record as the preferred original for this duplicate group?'><i aria-hidden='true'>&#9733;</i><span><b>Keep as Original</b><small>Select the preferred verified record</small></span></button>");
++            sb.Append("<button type='submit' class='sa-menu-item' name='sa_op' value='mark_duplicate' formnovalidate='formnovalidate' data-sa-set='sa_id=").Append(rid).Append("' data-sa-confirm='Confirm that another record in this group represents the same address?'><i aria-hidden='true'>&#9734;</i><span><b>Mark as Duplicate</b><small>Confirm that another record represents the same address</small></span></button>");
++            sb.Append("<button type='submit' class='sa-menu-item' name='sa_op' value='dismiss_dup' formnovalidate='formnovalidate' data-sa-set='sa_id=").Append(rid).Append("' data-sa-confirm='Mark this match as legitimate and remove it from the Duplicate Addresses queue?'><i aria-hidden='true'>&#10005;</i><span><b>Dismiss Duplicate</b><small>Mark the match as legitimate and remove it from the queue</small></span></button>");
++            sb.Append("<button type='submit' class='sa-menu-item sa-menu-danger' name='sa_op' value='delete_dup' formnovalidate='formnovalidate' data-sa-set='sa_id=").Append(rid).Append("' data-sa-confirm='Soft-delete this redundant address? If it is linked to a subscriber, employee or business it will not be deleted.'><i aria-hidden='true'>&#128465;</i><span><b>Delete Duplicate</b><small>Soft-delete a redundant address, subject to permissions</small></span></button>");
++        }
+         else if (tab == "verified")
+         {
+             // Images 1 & 6: ⋮ = Edit, Reject. No Edit Selected in bulk bar.
+@@ -292,10 +341,12 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
+     void Act()
+     {
+         string op = SA.Form("sa_op");
+-        if (op == "bulk_reject" || op == "bulk_restore" || op == "bulk_delete") { BulkAct(op); return; }
++        if (op == "bulk_reject" || op == "bulk_restore" || op == "bulk_delete" || op == "bulk_dismiss") { BulkAct(op); return; }
+         int id = SA.FormId("sa_id");
+         if (op == "restore") { RestoreOne(id); return; }
+         if (op == "delete") { DeleteOne(id); return; }
++        if (op == "keep_original" || op == "mark_duplicate" || op == "dismiss_dup" || op == "delete_dup") { DupAct(op, id); return; }
++        if (op == "saveedit") { SaveEdit(id); return; }
+         string street = SA.Form("sa_street"), city = SA.Form("sa_city"), prov = SA.Form("sa_prov"), country = SA.Form("sa_country"), postal = SA.Form("sa_postal"), notes = SA.Form("sa_notes");
+         if (notes.Length > 500) notes = notes.Substring(0, 500);
+         using (var c = SA.Open())
+@@ -348,7 +399,7 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
+     void BulkAct(string op)
+     {
+         var ids = PickedIds();
+-        if (ids.Length == 0) { SA.Flash("Select at least one address."); Go("SupportAddresses.aspx?tab=" + (op == "bulk_restore" || op == "bulk_delete" ? "rejected" : SA.Get("tab"))); return; }
++        if (ids.Length == 0) { SA.Flash("Select at least one address."); Go("SupportAddresses.aspx?tab=" + (op == "bulk_restore" || op == "bulk_delete" ? "rejected" : op == "bulk_dismiss" ? "duplicate" : SA.Get("tab"))); return; }
+         int ok = 0; var errors = new List<string>();
+         using (var c = SA.Open())
+         {
+@@ -360,20 +411,161 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
+                     if (op == "bulk_restore") { if (RestoreOneCore(c, id, false)) ok++; else errors.Add("#" + id + " not restored"); }
+                     else if (op == "bulk_delete") { string err; if (DeleteOneCore(c, id, out err)) ok++; else errors.Add("#" + id + ": " + err); }
+                     else if (op == "bulk_reject") { if (RejectOneCore(c, id, "Bulk rejected from Address Verification list.")) ok++; else errors.Add("#" + id + " not rejected"); }
++                    else if (op == "bulk_dismiss") { string err; if (DismissDup(c, id, out err)) ok++; else errors.Add("#" + id + ": " + err); }
+                 }
+                 catch (SqlException ex) { log4net.LogManager.GetLogger("Log").Error("Bulk address op failed " + id, ex); errors.Add("#" + id + ": database error"); }
+             }
+         }
+-        string msg = ok + " address" + (ok == 1 ? "" : "es") + " " + (op == "bulk_restore" ? "restored" : op == "bulk_delete" ? "deleted" : "rejected") + ".";
++        string msg = ok + " address" + (ok == 1 ? "" : "es") + " " + (op == "bulk_restore" ? "restored" : op == "bulk_delete" ? "deleted" : op == "bulk_dismiss" ? "dismissed from the Duplicate Addresses queue" : "rejected") + ".";
+         if (errors.Count > 0) msg += " " + errors.Count + " skipped (" + string.Join("; ", errors.Take(5)) + (errors.Count > 5 ? "…" : "") + ").";
+         SA.Flash(msg);
+         string tab = op == "bulk_restore" || op == "bulk_delete" ? "rejected" : (op == "bulk_reject" && SA.Get("tab") == "verified" ? "verified" : "pending");
+         // Prefer the tab of the page that posted (hidden via filters select name=tab may be present)
+-        string postedTab = SA.Form("tab"); if (postedTab == "pending" || postedTab == "verified" || postedTab == "rejected") tab = postedTab;
++        string postedTab = SA.Form("tab"); if (postedTab == "pending" || postedTab == "verified" || postedTab == "rejected" || postedTab == "duplicate") tab = postedTab;
+         if (op == "bulk_restore") tab = "pending";
+         if (op == "bulk_delete") tab = "rejected";
++        if (op == "bulk_dismiss") tab = "duplicate";
+         Go("SupportAddresses.aspx?tab=" + tab);
+     }
++    void DupAct(string op, int id)
++    {
++        string err;
++        using (var c = SA.Open())
++        {
++            if (op == "keep_original") err = KeepOriginal(c, id);
++            else if (op == "mark_duplicate") err = MarkDuplicate(c, id);
++            else if (op == "dismiss_dup") { DismissDup(c, id, out err); if (err == null) SA.Flash("Match marked as legitimate and removed from the Duplicate Addresses queue."); }
++            else err = DeleteDup(c, id);
++            if (op != "dismiss_dup" && err == null) { /* flash set in helpers */ }
++            else if (op != "dismiss_dup" && err != null) SA.Flash(err);
++            else if (op == "dismiss_dup" && err != null) SA.Flash(err);
++        }
++        Go("SupportAddresses.aspx?tab=duplicate" + (op == "keep_original" || op == "mark_duplicate" ? "&id=" + id : ""));
++    }
++    string KeepOriginal(SqlConnection c, int id)
++    {
++        using (var tx = c.BeginTransaction(IsolationLevel.Serializable))
++        {
++            AnyminuteAddressDup.Ensure(c);
++            if (!AnyminuteAddressDup.Ready(c, tx)) { tx.Rollback(); return AnyminuteAddressDup.NeedTable; }
++            var all = RowsForDup(c, tx);
++            var g = AnyminuteAddressDup.GroupOf(AnyminuteAddressDup.Groups(c, tx, all), id);
++            if (g == null) { tx.Rollback(); return "That address is not in a duplicate group."; }
++            string err = AnyminuteAddressDup.Record(c, tx, id, 0, "Original", "Keep as Original");
++            if (err != null) { tx.Rollback(); return err; }
++            SA.Audit(c, tx, "Address", id.ToString(CultureInfo.InvariantCulture), "Keep as Original", AnyminuteAddressDup.StatusOf(g.Rows.First(r => Convert.ToInt32(r["AddressMasterId"]) == id)), "Original", null, AnyminuteAddressDup.StreetOf(g.Rows.First(r => Convert.ToInt32(r["AddressMasterId"]) == id)), "Preferred original for " + g.Code);
++            tx.Commit();
++        }
++        SA.Flash("This record is the preferred original for the duplicate group.");
++        return null;
++    }
++    string MarkDuplicate(SqlConnection c, int id)
++    {
++        using (var tx = c.BeginTransaction(IsolationLevel.Serializable))
++        {
++            AnyminuteAddressDup.Ensure(c);
++            if (!AnyminuteAddressDup.Ready(c, tx)) { tx.Rollback(); return AnyminuteAddressDup.NeedTable; }
++            var all = RowsForDup(c, tx);
++            var g = AnyminuteAddressDup.GroupOf(AnyminuteAddressDup.Groups(c, tx, all), id);
++            if (g == null) { tx.Rollback(); return "That address is not in a duplicate group."; }
++            int orig = g.OriginalId;
++            if (orig == id) { tx.Rollback(); return "This record is already the original. Choose another record to mark as a duplicate."; }
++            if (orig == 0 && g.Rows.Count == 2) orig = g.Rows.Select(r => Convert.ToInt32(r["AddressMasterId"])).First(x => x != id);
++            if (orig == 0) { tx.Rollback(); return "Choose Keep as Original on the preferred record first."; }
++            if (g.OriginalId == 0)
++            {
++                string e0 = AnyminuteAddressDup.Record(c, tx, orig, 0, "Original", "Implied original when a peer was marked as a duplicate");
++                if (e0 != null) { tx.Rollback(); return e0; }
++            }
++            string err = AnyminuteAddressDup.Record(c, tx, id, orig, "Duplicate", "Mark as Duplicate of " + orig.ToString(CultureInfo.InvariantCulture));
++            if (err != null) { tx.Rollback(); return err; }
++            SA.Audit(c, tx, "Address", id.ToString(CultureInfo.InvariantCulture), "Mark as Duplicate", AnyminuteAddressDup.StatusOf(g.Rows.First(r => Convert.ToInt32(r["AddressMasterId"]) == id)), "Duplicate", null, "Original #" + orig.ToString(CultureInfo.InvariantCulture), "Confirmed duplicate in " + g.Code);
++            tx.Commit();
++        }
++        SA.Flash("This record is confirmed as a duplicate of the original.");
++        return null;
++    }
++    bool DismissDup(SqlConnection c, int id, out string err)
++    {
++        err = null;
++        using (var tx = c.BeginTransaction(IsolationLevel.Serializable))
++        {
++            AnyminuteAddressDup.Ensure(c);
++            if (!AnyminuteAddressDup.Ready(c, tx)) { tx.Rollback(); err = AnyminuteAddressDup.NeedTable; return false; }
++            var all = RowsForDup(c, tx);
++            var g = AnyminuteAddressDup.GroupOf(AnyminuteAddressDup.Groups(c, tx, all), id);
++            if (g == null) { tx.Rollback(); err = "That address is not in a duplicate group."; return false; }
++            foreach (var r in g.Rows)
++            {
++                int peer = Convert.ToInt32(r["AddressMasterId"]);
++                if (peer == id) continue;
++                string e = AnyminuteAddressDup.Record(c, tx, id, peer, "Dismissed", "Dismiss Duplicate");
++                if (e != null) { tx.Rollback(); err = e; return false; }
++            }
++            SA.Audit(c, tx, "Address", id.ToString(CultureInfo.InvariantCulture), "Dismiss Duplicate", AnyminuteAddressDup.StatusOf(g.Rows.First(r => Convert.ToInt32(r["AddressMasterId"]) == id)), "Dismissed", null, g.Code, "Match marked legitimate and removed from the duplicate review queue");
++            tx.Commit();
++        }
++        return true;
++    }
++    string DeleteDup(SqlConnection c, int id)
++    {
++        using (var tx = c.BeginTransaction(IsolationLevel.Serializable))
++        {
++            AnyminuteAddressDup.Ensure(c);
++            if (!AnyminuteAddressDup.Ready(c, tx)) { tx.Rollback(); return AnyminuteAddressDup.NeedTable; }
++            var all = RowsForDup(c, tx);
++            var row = all.FirstOrDefault(r => Convert.ToInt32(r["AddressMasterId"]) == id);
++            if (row == null) { tx.Rollback(); return "Address not found."; }
++            string who = Submitter(c, tx, row);
++            if (who != null && !who.StartsWith("Added by Support", StringComparison.OrdinalIgnoreCase) && !who.StartsWith("Imported by Support", StringComparison.OrdinalIgnoreCase))
++            { tx.Rollback(); return "This address is linked to " + who + " and was not deleted. Keep the original, use Mark as Duplicate, or move the link through an authorized process."; }
++            string err = AnyminuteAddressDup.Record(c, tx, id, 0, "Deleted", "Delete Duplicate (soft-delete)");
++            if (err != null) { tx.Rollback(); return err; }
++            SA.Audit(c, tx, "Address", id.ToString(CultureInfo.InvariantCulture), "Delete Duplicate", AnyminuteAddressDup.StatusOf(row), "Deleted", AnyminuteAddressDup.StreetOf(row) + ", " + SA.S(row["PostalCode"]), null, "Soft-deleted from Duplicate Addresses; AddressMaster row kept");
++            tx.Commit();
++        }
++        SA.Flash("Address soft-deleted and hidden from Address Verification.");
++        return null;
++    }
++    List<DataRow> RowsForDup(SqlConnection c, SqlTransaction tx)
++    {
++        bool ready = AnyminuteEmployeeEditor.HasTable(c, tx, "AnyminuteAddressReview");
++        string rj = ready ? " LEFT JOIN AnyminuteAddressReview r ON r.AddressMasterId=a.AddressMasterId" : "";
++        string status = ready ? "CASE WHEN a.Verifed=1 THEN 'Verified' WHEN r.Status='Rejected' THEN 'Rejected' ELSE 'Pending' END" : "CASE WHEN a.Verifed=1 THEN 'Verified' ELSE 'Pending' END";
++        string cols = ready ? ",r.SubmittedBy,r.SubmittedAtUTC,r.Country,r.ReviewedAtUTC,r.ReviewedByName,r.Notes,r.OrigStreet,r.OrigCity,r.OrigProvince" : ",CAST(NULL AS nvarchar(200)) OrigStreet,CAST(NULL AS nvarchar(200)) OrigCity,CAST(NULL AS nvarchar(200)) OrigProvince,CAST(NULL AS nvarchar(150)) SubmittedBy,CAST(NULL AS datetime2) SubmittedAtUTC,CAST(NULL AS nvarchar(60)) Country,CAST(NULL AS datetime2) ReviewedAtUTC,CAST(NULL AS nvarchar(150)) ReviewedByName,CAST(NULL AS nvarchar(500)) Notes";
++        return AnyminuteTimesheetRepair.Query(c, tx, "SELECT a.AddressMasterId,a.Street_Name," + Names + ",a.PostalCode," + status + " St" + cols + " FROM AddressMaster a WITH (UPDLOCK)" + NameJoins + rj).Rows.Cast<DataRow>().ToList();
++    }
++    void SaveEdit(int id)
++    {
++        string street = SA.Form("sa_street"), city = SA.Form("sa_city"), prov = SA.Form("sa_prov"), country = SA.Form("sa_country"), postal = SA.Form("sa_postal"), notes = SA.Form("sa_notes");
++        if (notes.Length > 500) notes = notes.Substring(0, 500);
++        using (var c = SA.Open())
++        {
++            if (!SA.Has(c, "AnyminuteAddressReview") || !SA.Has(c, "AnyminuteSupportAudit")) { SA.Flash(SA.MissingTables); Back(id); return; }
++            using (var tx = c.BeginTransaction(IsolationLevel.Serializable))
++            {
++                var cur = AnyminuteTimesheetRepair.Query(c, tx, "SELECT a.AddressMasterId,a.Street_Name,a.PostalCode,a.Verifed," + Names + ",r.Status RStatus,r.SubmittedBy,r.Country FROM AddressMaster a WITH (UPDLOCK)" + NameJoins + " LEFT JOIN AnyminuteAddressReview r ON r.AddressMasterId=a.AddressMasterId WHERE a.AddressMasterId=@i", "@i", id);
++                if (cur.Rows.Count != 1) { tx.Rollback(); SA.Flash("That address was not found."); Back(0); return; }
++                var a = cur.Rows[0];
++                string err = SA.VerifyAddress(street, city, prov, country, postal);
++                if (err != null) { tx.Rollback(); SA.Flash("Not saved: " + err); Go("SupportAddresses.aspx?tab=duplicate&id=" + id + "&edit=1"); return; }
++                postal = SA.NormalizePostal(country, postal);
++                string cityValue = MasterValue(c, tx, SA.S(a["CityRaw"]), "CityMaster", "CityName", "CityId", city), provValue = MasterValue(c, tx, SA.S(a["ProvRaw"]), "ProvinceMaster", "ProvinceName", "ProvinceId", prov);
++                string before = SA.S(a["Street_Name"]) + ", " + SA.S(a["City"]) + ", " + SA.S(a["Province"]) + ", " + SA.S(a["PostalCode"]);
++                AnyminuteTimesheetRepair.Execute(c, tx, "UPDATE AddressMaster SET Street_Name=@s,City=@c,Province=@p,PostalCode=@pc WHERE AddressMasterId=@i", "@s", street, "@c", cityValue, "@p", provValue, "@pc", postal, "@i", id);
++                AnyminuteTimesheetRepair.Execute(c, tx, @"IF NOT EXISTS(SELECT 1 FROM AnyminuteAddressReview WHERE AddressMasterId=@i)
++                    INSERT AnyminuteAddressReview(AddressMasterId,OrigStreet,OrigCity,OrigProvince,OrigCountry,OrigPostal,Status,Country,Notes) VALUES(@i,@s,@c,@p,@co,@pc,'Pending',@co,@n)
++                    ELSE UPDATE AnyminuteAddressReview SET Country=@co,Notes=@n WHERE AddressMasterId=@i",
++                    "@i", id, "@s", street, "@c", city, "@p", prov, "@co", country, "@pc", postal, "@n", notes);
++                string after = street + ", " + city + ", " + prov + ", " + country + ", " + postal;
++                SA.Audit(c, tx, "Address", id.ToString(CultureInfo.InvariantCulture), "Edited (Duplicate)", AnyminuteAddressDup.StatusOf(a), AnyminuteAddressDup.StatusOf(a), before, after, notes);
++                tx.Commit();
++                bool match = AnyminuteAddressDup.Matches(c, null, id, street, postal, country);
++                SA.Flash(match ? "Address updated. It still matches another address and stays on the Duplicate Addresses tab." : "Address updated. If it no longer matches another address it leaves the Duplicate Addresses tab.");
++            }
++        }
++        Go("SupportAddresses.aspx?tab=duplicate&id=" + id);
++    }
+     void RestoreOne(int id) { using (var c = SA.Open()) { if (!RestoreOneCore(c, id, true)) SA.Flash("That address could not be restored."); } Go("SupportAddresses.aspx?tab=pending"); }
+     bool RestoreOneCore(SqlConnection c, int id, bool flash)
+     {
+@@ -458,7 +650,7 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
+         string dis = ready ? "" : " disabled";
+         return "<div class='sa-modal sa-modal45' data-sa-modal='1'><div class='sa-modal-box sa-av71' role='dialog' aria-modal='true' aria-labelledby='sa-ai-h'><a class='sa-x sa-x-abs' href='" + Back71 + "' aria-label='Close'>&times;</a>"
+             + "<h2 id='sa-ai-h'>Import Address</h2>" + TakeModalMessage() + "<p class='sa-muted'>Upload a CSV or Excel (.xlsx) file with the columns <b>Address, City, Prov/State, Country, Postal Code/PIN</b> (first row = header; all worksheets are read). "
+-            + "Valid rows are added to the Verified Address Database; blank rows and addresses already verified (same address, city and postal code) are skipped. Max 2 MB / " + AnyminuteAddressImport.MaxRows.ToString("#,0", CultureInfo.InvariantCulture) + " rows.</p>"
++            + "Valid rows are added to the Verified Address Database. A row that matches an existing Street Address and Postal/ZIP Code in the same country is still added and listed under Duplicate Addresses. Blank or invalid rows are skipped. Up to two copies of the same address from one file are added (further copies are skipped). Max 2 MB / " + AnyminuteAddressImport.MaxRows.ToString("#,0", CultureInfo.InvariantCulture) + " rows.</p>"
+             + "<p><a class='sa-link' href='SupportAddresses.aspx?template=1'>&#8595; Download template (CSV)</a></p>"
+             + "<label class='sa-field'><span>File *</span><input type='file' name='av_file' accept='.csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' required" + dis + " /></label>"
+             + "<div class='sa-panel-foot sa-one-line'><button type='submit' class='sa-btn' name='sa_op' value='importaddr'" + dis + ">&#8593; Import</button><a class='sa-btn sa-btn-outline' href='" + Back71 + "'>Cancel</a></div></div></div>";
+@@ -485,10 +677,12 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
+                 using (var tx = c.BeginTransaction(IsolationLevel.Serializable))
+                 {
+                     int id; string err = AnyminuteAddressImport.AddVerified(c, tx, street, city, prov, country, postal, "Added by Support (" + SA.ActorName() + ")", "Added by Support Admin", out id);
+-                    if (err != null) { tx.Rollback(); ModalError(err == "duplicate" ? "This address already exists (same street, city, province/state, country and postal code)." : "Address not added: " + err, "add"); return; }
++                    if (err != null && err != "potential") { tx.Rollback(); ModalError("Address not added: " + err, "add"); return; }
+                     string after = street + ", " + city + ", " + prov + ", " + AnyminuteAddressImport.Country(country) + ", " + postal;
+-                    SA.Audit(c, tx, "Address", id.ToString(CultureInfo.InvariantCulture), "Added (Verified)", null, "Verified", null, after, "Added by Support Admin");
++                    SA.Audit(c, tx, "Address", id.ToString(CultureInfo.InvariantCulture), err == "potential" ? "Added (Potential Duplicate)" : "Added (Verified)", null, "Verified", null, after, "Added by Support Admin");
+                     tx.Commit();
++                    Session.Remove("sa_av_vals"); Session.Remove("sa_av_message");
++                    if (err == "potential") { SA.Flash("Address added. It matches an existing address (same street and postal code in this country) and is listed under Duplicate Addresses."); Go("SupportAddresses.aspx?tab=duplicate&id=" + id); return; }
+                 }
+             }
+         }
+@@ -512,9 +706,9 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
+         catch (IndexOutOfRangeException) { ModalError("The .xlsx file could not be read. Nothing was imported.", "import"); return; }
+         catch (ArgumentException) { ModalError("The .xlsx file could not be read. Nothing was imported.", "import"); return; }
+         if (rows.Count == 0) { ModalError("The file has no data rows.", "import"); return; }
+-        int added = 0, verified = 0, fileDups = 0, blanks = 0, failed = 0;
++        int added = 0, potential = 0, fileDups = 0, blanks = 0, failed = 0;
+         bool rolledBack = false;
+-        var errors = new List<string>(); var reasons = new Dictionary<string, int>(); var seen = new HashSet<string>();
++        var errors = new List<string>(); var reasons = new Dictionary<string, int>(); var seen = new Dictionary<string, int>();
+         Func<string[], int, string> cell = (r, i) => i >= 0 && i < r.Length ? (r[i] ?? "").Trim() : "";
+         try
+         {
+@@ -531,21 +725,21 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
+                         var r = rows[i]; string street = cell(r, 0), city = cell(r, 1), prov = cell(r, 2), country = cell(r, 3), postal = cell(r, 4);
+                         if ((street + city + prov + country + postal).Length == 0) { blanks++; continue; }
+                         string key = SA.CompactPostal(postal) + "|" + System.Text.RegularExpressions.Regex.Replace(street, @"\s+", " ").ToUpperInvariant() + "|" + System.Text.RegularExpressions.Regex.Replace(city, @"\s+", " ").ToUpperInvariant();
+-                        if (!seen.Add(key)) { fileDups++; continue; }
++                        int n; if (!seen.TryGetValue(key, out n)) n = 0; n++; seen[key] = n; if (n > 2) { fileDups++; continue; }
+                         int id; string err = AnyminuteAddressImport.AddVerified(c, tx, street, city, prov, country, postal, by, note, out id);
+                         if (err == null) added++;
+-                        else if (err == "duplicate") verified++;
++                        else if (err == "potential") { added++; potential++; }
+                         else { errors.Add("Data row " + (i + 1) + ": " + err); reasons[err] = (reasons.ContainsKey(err) ? reasons[err] : 0) + 1; }
+                     }
+                     SA.Audit(c, tx, "Address", "import", "Imported (Verified)", null, "Verified", null,
+-                        rows.Count + " read, " + added + " added, " + verified + " already verified, " + fileDups + " within-file duplicates, " + blanks + " blank, " + errors.Count + " invalid, 0 failed", note);
++                        rows.Count + " read, " + added + " added, " + potential + " potential duplicates, " + fileDups + " extra within-file copies skipped, " + blanks + " blank, " + errors.Count + " invalid, 0 failed", note);
+                     tx.Commit();
+                 }
+                 catch (SqlException ex)
+                 {
+                     try { tx.Rollback(); } catch (InvalidOperationException) { }
+                     log4net.LogManager.GetLogger("Log").Error("Address import failed", ex);
+-                    rolledBack = true; added = 0; failed = rows.Count - verified - fileDups - blanks - errors.Count;
++                    rolledBack = true; added = 0; potential = 0; failed = rows.Count - added - fileDups - blanks - errors.Count;
+                 }
+             }
+         }
+@@ -553,19 +747,25 @@ public partial class AnyminuteSupportAddressesPage : System.Web.UI.Page
+         catch (SqlException ex)
+         {
+             log4net.LogManager.GetLogger("Log").Error("Address import connection/transaction failed", ex);
+-            rolledBack = true; added = 0; failed = rows.Count - verified - fileDups - blanks - errors.Count;
++            rolledBack = true; added = 0; potential = 0; failed = rows.Count - added - fileDups - blanks - errors.Count;
+         }
+         var sb = new StringBuilder("<div class='sa-flash' role='status'><strong>" + (rolledBack ? "Import rolled back: nothing added." : "Import complete.") + "</strong>");
+         sb.Append("<p>Source: ").Append(SA.H(sheets)).Append(" (data rows, excluding headers; Excel row-number gaps are not records).</p><ul>")
+             .Append("<li>Total rows read: ").Append(rows.Count).Append("</li><li>Added: ").Append(added)
+-            .Append("</li><li>Skipped — already verified: ").Append(verified).Append("</li><li>Skipped — duplicates within file: ").Append(fileDups)
++            .Append("</li><li>Flagged — potential duplicates: ").Append(potential).Append("</li><li>Skipped — extra copies within file: ").Append(fileDups)
+             .Append("</li><li>Skipped — blank/invalid: ").Append(blanks + errors.Count).Append(" (blank: ").Append(blanks).Append(", invalid: ").Append(errors.Count)
+             .Append(")</li><li>Failed: ").Append(failed).Append(rolledBack ? " (database failure: includes rolled-back additions and unprocessed rows)" : "").Append("</li></ul>");
+         if (reasons.Count > 0) { sb.Append("<p>Invalid reason counts:</p><ul>"); foreach (var reason in reasons) sb.Append("<li>").Append(SA.H(reason.Key)).Append(": ").Append(reason.Value).Append("</li>"); sb.Append("</ul>"); }
+         if (errors.Count > 0) { sb.Append("<ul class='sa-av-errs'>"); foreach (var e in errors.Take(50)) sb.Append("<li>").Append(SA.H(e)).Append("</li>"); if (errors.Count > 50) sb.Append("<li>... and ").Append(errors.Count - 50).Append(" more.</li>"); sb.Append("</ul>"); }
+         Session["sa_av_import"] = sb.Append("</div>").ToString();
+-        Go(Back71);
++        Go(potential > 0 && !rolledBack ? "SupportAddresses.aspx?tab=duplicate" : Back71);
+     }
+     string TakeImportSummary() { string s = Convert.ToString(Session["sa_av_import"]); Session.Remove("sa_av_import"); return s ?? ""; }
+-    void Back(int id) { Response.Redirect("SupportAddresses.aspx" + (id > 0 ? "?id=" + id : ""), false); Context.ApplicationInstance.CompleteRequest(); }
++    void Back(int id)
++    {
++        string tab = SA.Form("tab"); if (tab.Length == 0) tab = SA.Get("tab");
++        if (tab != "verified" && tab != "rejected" && tab != "duplicate") tab = "pending";
++        string url = "SupportAddresses.aspx?tab=" + tab + (id > 0 ? "&id=" + id : "");
++        Response.Redirect(url, false); Context.ApplicationInstance.CompleteRequest();
++    }
+ }
+diff --git a/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteSupport.css b/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteSupport.css
+index 7ef7d47..1a412fc 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteSupport.css
++++ b/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteSupport.css
+@@ -23,7 +23,7 @@
+ .sa-amber{background:#fff4e0;color:#c27a00;border-color:#f6d9a3}.sa-blue{background:#eaf2ff;color:#1366e8;border-color:#c5d9ff}
+ .sa-grey{background:#eef0f4;color:#5b6778;border-color:#d8dce4}.sa-purple{background:#f1ecff;color:#6a3fe0;border-color:#d9cdfd}
+ .sa-count{display:inline-block;min-width:22px;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:700;color:#fff;margin-left:4px}
+-.sa-count.sa-red{background:#e5484d}.sa-count.sa-green{background:#1f9d55}.sa-count.sa-grey{background:#8a94a6}
++.sa-count.sa-red{background:#e5484d}.sa-count.sa-green{background:#1f9d55}.sa-count.sa-grey{background:#8a94a6}.sa-count.sa-purple{background:#6a3fe0}
+ /* workflow strip (deck 1) */
+ .sa-flow{list-style:none;display:grid;grid-template-columns:repeat(5,1fr);gap:22px;margin:0 0 18px;padding:0}
+ .sa-flow>li{position:relative;background:#fff;border:1px solid var(--sa-line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:4px;min-height:110px}
+@@ -380,3 +380,12 @@ html body .sa-card.sa-plan-up{box-shadow:0 0 0 2px #2563eb,0 4px 14px rgba(37,99
+ .sa-btn-solid-danger{background:#d92d2d;border-color:#d92d2d;color:#fff!important}
+ .sa-nowrap{white-space:nowrap}
+ .sa-menu-pop .sa-menu-item{font-size:14px}
++
++/* v81 Duplicate Addresses (PPT slides 1-3) */
++.sa-dup-card{border:1px solid var(--sa-line);border-radius:12px;padding:14px 16px;margin:0 0 16px;background:#fff}
++.sa-dup-card-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0 0 10px}
++.sa-dup-card-head strong{font-size:15px}
++.sa-dup-cmp{width:100%;border-collapse:collapse;font-size:14px}
++.sa-dup-cmp th,.sa-dup-cmp td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--sa-line);vertical-align:top}
++.sa-dup-cmp thead th{font-weight:700;color:var(--sa-mute);font-size:12px;text-transform:none}
++.sa-dup-cmp tbody th{width:28%;font-weight:700;color:var(--sa-ink)}
+diff --git a/DB_REQUIRED/REQUIRED_10_AddressDuplicates.sql b/DB_REQUIRED/REQUIRED_10_AddressDuplicates.sql
+new file mode 100644
+index 0000000..1ee4cad
+--- /dev/null
++++ b/DB_REQUIRED/REQUIRED_10_AddressDuplicates.sql
+@@ -0,0 +1,24 @@
++/* AnyMinute v81 (2026-11-14) - Duplicate Addresses decisions
++   Additive and idempotent: creates dbo.AnyminuteAddressDup only if it does not exist.
++   No existing table, column, procedure or row is changed or deleted. Safe to run more than once.
++   Used by Address Verification > Duplicate Addresses to remember Keep as Original, Mark as Duplicate,
++   Dismiss Duplicate, and soft-deleted records. The tab still lists Potential Duplicates (same
++   standardized street + postal code in the same country) if this table is missing; decisions cannot
++   be saved until this script has been run (or the app created the table on first use).
++   Read-only aside from CREATE TABLE / CREATE INDEX. No data is deleted. */
++SET XACT_ABORT ON;
++BEGIN TRANSACTION;
++IF OBJECT_ID('dbo.AnyminuteAddressDup','U') IS NULL
++CREATE TABLE dbo.AnyminuteAddressDup(
++    DupId int IDENTITY(1,1) NOT NULL CONSTRAINT PK_AnyminuteAddressDup PRIMARY KEY,
++    AddressMasterId int NOT NULL,
++    PeerId int NOT NULL CONSTRAINT DF_AnyminuteAddressDup_Peer DEFAULT 0,
++    Action varchar(20) NOT NULL, -- Original | Duplicate | Dismissed | Deleted
++    ActorId int NULL,
++    ActorName nvarchar(150) NULL,
++    ActedAtUTC datetime2(0) NOT NULL CONSTRAINT DF_AnyminuteAddressDup_At DEFAULT SYSUTCDATETIME(),
++    Notes nvarchar(500) NULL);
++IF NOT EXISTS(SELECT 1 FROM sys.indexes WHERE name='IX_AnyminuteAddressDup_Addr')
++CREATE INDEX IX_AnyminuteAddressDup_Addr ON dbo.AnyminuteAddressDup(AddressMasterId,Action,ActedAtUTC);
++COMMIT TRANSACTION;
++SELECT name AS created_or_present FROM sys.tables WHERE name='AnyminuteAddressDup';

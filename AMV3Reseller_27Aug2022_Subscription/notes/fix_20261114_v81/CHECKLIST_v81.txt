@@ -1,0 +1,37 @@
+AnyMinute v81 strict checklist (PPT 2026-11-14, 3 screenshot slides) — verified against code after compile
+=== SLIDE 1 (Address Verification UI — Duplicate Addresses tab) ===
+[PASS] S1a Fourth tab "Duplicate Addresses" with purple count badge (sa-count sa-purple)
+[PASS] S1b Status filter includes Duplicate Addresses (tab=duplicate)
+[PASS] S1c Table columns: checkbox, Address (Submitted), City, Prov/State, Country, Postal Code, Submitted By, Date, Actions
+[PASS] S1d Inline View + ⋮ on each duplicate row
+[PASS] S1e Matching records listed together; pagination does not split a group
+[PASS] S1f + Add Address, Import Address, View Verified Addresses unchanged
+[PASS] S1g Pending / Verified / Rejected tabs and counts still present (soft-deleted rows excluded)
+[PASS] S1h No red-X removal on this slide (red pixels are the existing Pending "33" badges only)
+=== SLIDE 2 (How AnyMinute checks duplicates) ===
+[PASS] S2a On Add, read Street Address + Postal/ZIP, standardize spacing/case/postal, compare in the same country
+[PASS] S2b On Import, same check; a match is added and flagged (not blocked)
+[PASS] S2c On Edit (Save Changes), same check; flash says whether it stays on the tab
+[PASS] S2d Both fields must match (street + postal) in the same country to form a Potential Duplicate
+[PASS] S2e Matching records shown together on the Duplicate Addresses tab
+[PASS] S2f View panel: Duplicate Group #DUP-00n card, N Matching Records, Field / Record A / Record B (Address, Postal Code, Status)
+=== SLIDE 3 (Actions menu) ===
+[PASS] S3a View (inline) — address details + matching-records card
+[PASS] S3b Edit (⋮) — correct spelling or postal code; Save Changes handler (sa_op=saveedit)
+[PASS] S3c Keep as Original (⋮) — sa_op=keep_original, confirms preferred record
+[PASS] S3d Mark as Duplicate (⋮) — sa_op=mark_duplicate; needs an original (implied when the group has two records)
+[PASS] S3e Dismiss Duplicate (⋮) + Dismiss Selected — mark match legitimate, leave the queue
+[PASS] S3f Delete Duplicate (⋮) — soft-delete (Action=Deleted); AddressMaster kept
+[PASS] S3g Linked subscriber / employee / business addresses are not deleted; flash explains the authorized-process path
+=== BUTTONS ===
+[PASS] B1 Tab Duplicate Addresses
+[PASS] B2 Status filter + Search
+[PASS] B3 Inline View
+[PASS] B4 ⋮ Edit / Keep as Original / Mark as Duplicate / Dismiss Duplicate / Delete Duplicate
+[PASS] B5 Save Changes / Cancel on the edit panel
+[PASS] B6 Dismiss Selected + Clear Selection
+[PASS] B7 + Add Address / Save Address (adds and, on a match, opens the Duplicate tab)
+[PASS] B8 Import Address / Import (flags potential duplicates in the summary)
+[PASS] B9 View Verified Addresses
+[PASS] B10 Existing Pending/Verified/Rejected actions unchanged
+SUMMARY: 25/25 PASS (code review + compile; not live-browser tested — /opt/monoenv missing, no deploy requested)
