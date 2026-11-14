@@ -14,7 +14,7 @@ using SA = AnyminuteSupportAdmin;
 // Both add rows straight to the Verified Address Database (AddressMaster Verifed=1) with an AnyminuteAddressReview row
 // (Status=Verified, SubmittedBy = "Added by Support (<name>)" / "Imported by Support (<name>)", submitted/reviewed now), so they
 // show in the Verified Addresses list. Same validation as Approve (SA.VerifyAddress: street, city, prov/state, country,
-// postal format per country). Duplicate = an already verified row with the same street + city + postal code.
+// postal format per country). v81: a matching Street Address + Postal/ZIP in the same country is added and flagged as a Potential Duplicate (Duplicate Addresses tab), not blocked.
 // Import reads CSV or .xlsx (all worksheets; minimal zip reader on DeflateStream from System.dll - no new assembly / package).
 public static class AnyminuteAddressImport
 {
@@ -35,7 +35,7 @@ public static class AnyminuteAddressImport
     }
     static string Cut(string s, int n) { s = (s ?? "").Trim(); return s.Length > n ? s.Substring(0, n) : s; }
 
-    // Returns null when added (id set), "duplicate" when already verified, otherwise the validation error.
+    // Returns null when added with no match, "potential" when added and it matches an existing street+postal+country, otherwise the validation error.
     public static string AddVerified(SqlConnection c, SqlTransaction tx, string street, string city, string prov, string country, string postal, string by, string note, out int id)
     {
         id = 0;
@@ -49,21 +49,8 @@ public static class AnyminuteAddressImport
         string err = SA.VerifyAddress(street, city, prov, ctry, postal ?? "");
         if (err != null) return err;
         postal = SA.NormalizePostal(ctry, postal);
-        // v78 notes: reject Add/Import when same street/city/prov/country/postal already exists (any status).
-        var dup = AnyminuteTimesheetRepair.Query(c, tx, @"SELECT TOP 1 a.AddressMasterId FROM AddressMaster a WITH (UPDLOCK,HOLDLOCK)
-            LEFT JOIN CityMaster ci ON CAST(ci.CityId AS nvarchar(50))=CAST(a.City AS nvarchar(50))
-            LEFT JOIN ProvinceMaster pr ON CAST(pr.ProvinceId AS nvarchar(50))=CAST(a.Province AS nvarchar(50))
-            LEFT JOIN AnyminuteAddressReview r ON r.AddressMasterId=a.AddressMasterId
-            WHERE REPLACE(REPLACE(UPPER(ISNULL(a.PostalCode,'')),' ',''),'-','')=@p
-              AND UPPER(LTRIM(RTRIM(ISNULL(a.Street_Name,''))))=UPPER(@s)
-              AND UPPER(LTRIM(RTRIM(COALESCE(ci.CityName,a.City,''))))=UPPER(@c)
-              AND UPPER(LTRIM(RTRIM(COALESCE(pr.ProvinceName,a.Province,''))))=UPPER(@pr)
-              AND (
-                    UPPER(LTRIM(RTRIM(ISNULL(r.Country,''))))=UPPER(@co)
-                    OR (r.Country IS NULL AND @co<>'')
-                  )",
-            "@p", SA.CompactPostal(postal), "@s", street, "@c", city, "@pr", prov, "@co", ctry);
-        if (dup.Rows.Count > 0) return "duplicate";
+        // v81: do not block a matching street+postal (same country). The new row is added and listed on Duplicate Addresses.
+        bool potential = AnyminuteAddressDup.Matches(c, tx, 0, street, postal, ctry);
         id = Convert.ToInt32(AnyminuteTimesheetRepair.Query(c, tx, "INSERT AddressMaster(Street_Name,City,Province,PostalCode,Verifed) VALUES(@s,@c,@pr,@pc,1); SELECT CAST(SCOPE_IDENTITY() AS int)",
             "@s", street, "@c", city, "@pr", prov, "@pc", postal).Rows[0][0], CultureInfo.InvariantCulture);
         // TR_AnyminuteAddressMaster_Submitted (REQUIRED_08) may already have written the review row; either way it ends Verified.
@@ -72,7 +59,7 @@ public static class AnyminuteAddressImport
                 VALUES(@i,@w,SYSUTCDATETIME(),@s,@c,@pr,@co,@pc,'Verified',@co,@n,@b,@bn,SYSUTCDATETIME())
             ELSE UPDATE AnyminuteAddressReview SET SubmittedBy=@w,SubmittedAtUTC=SYSUTCDATETIME(),OrigCountry=@co,Country=@co,Status='Verified',Notes=@n,ReviewedBy=@b,ReviewedByName=@bn,ReviewedAtUTC=SYSUTCDATETIME() WHERE AddressMasterId=@i",
             "@i", id, "@w", Cut(by, 150), "@s", street, "@c", city, "@pr", prov, "@co", ctry, "@pc", postal, "@n", Cut(note, 500), "@b", SA.ActorId(), "@bn", Cut(SA.ActorName(), 150));
-        return null;
+        return potential ? "potential" : null;
     }
 
     // ---- file reading: rows of cells (header row included) ----

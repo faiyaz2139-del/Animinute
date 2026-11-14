@@ -23,7 +23,7 @@
 .sa-amber{background:#fff4e0;color:#c27a00;border-color:#f6d9a3}.sa-blue{background:#eaf2ff;color:#1366e8;border-color:#c5d9ff}
 .sa-grey{background:#eef0f4;color:#5b6778;border-color:#d8dce4}.sa-purple{background:#f1ecff;color:#6a3fe0;border-color:#d9cdfd}
 .sa-count{display:inline-block;min-width:22px;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:700;color:#fff;margin-left:4px}
-.sa-count.sa-red{background:#e5484d}.sa-count.sa-green{background:#1f9d55}.sa-count.sa-grey{background:#8a94a6}
+.sa-count.sa-red{background:#e5484d}.sa-count.sa-green{background:#1f9d55}.sa-count.sa-grey{background:#8a94a6}.sa-count.sa-purple{background:#6a3fe0}
 /* workflow strip (deck 1) */
 .sa-flow{list-style:none;display:grid;grid-template-columns:repeat(5,1fr);gap:22px;margin:0 0 18px;padding:0}
 .sa-flow>li{position:relative;background:#fff;border:1px solid var(--sa-line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:4px;min-height:110px}
@@ -380,3 +380,12 @@ html body .sa-card.sa-plan-up{box-shadow:0 0 0 2px #2563eb,0 4px 14px rgba(37,99
 .sa-btn-solid-danger{background:#d92d2d;border-color:#d92d2d;color:#fff!important}
 .sa-nowrap{white-space:nowrap}
 .sa-menu-pop .sa-menu-item{font-size:14px}
+
+/* v81 Duplicate Addresses (PPT slides 1-3) */
+.sa-dup-card{border:1px solid var(--sa-line);border-radius:12px;padding:14px 16px;margin:0 0 16px;background:#fff}
+.sa-dup-card-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0 0 10px}
+.sa-dup-card-head strong{font-size:15px}
+.sa-dup-cmp{width:100%;border-collapse:collapse;font-size:14px}
+.sa-dup-cmp th,.sa-dup-cmp td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--sa-line);vertical-align:top}
+.sa-dup-cmp thead th{font-weight:700;color:var(--sa-mute);font-size:12px;text-transform:none}
+.sa-dup-cmp tbody th{width:28%;font-weight:700;color:var(--sa-ink)}

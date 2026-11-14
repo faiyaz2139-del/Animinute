@@ -221,9 +221,12 @@ public static class AnyminuteSupportAdmin
         try
         {
             using (var c = Open())
+            {
+                string hide = Has(c, AnyminuteAddressDup.Table) ? " AND a.AddressMasterId NOT IN (SELECT d.AddressMasterId FROM (SELECT AddressMasterId, Action, ROW_NUMBER() OVER (PARTITION BY AddressMasterId ORDER BY ActedAtUTC DESC, DupId DESC) n FROM dbo.AnyminuteAddressDup WHERE Action='Deleted' AND PeerId=0) d WHERE d.n=1)" : "";
                 return Convert.ToInt32(Q(c, Has(c, "AnyminuteAddressReview")
-                    ? "SELECT COUNT(*) FROM AddressMaster a LEFT JOIN AnyminuteAddressReview r ON r.AddressMasterId=a.AddressMasterId WHERE ISNULL(a.Verifed,0)<>1 AND ISNULL(r.Status,'Pending')='Pending'"
-                    : "SELECT COUNT(*) FROM AddressMaster WHERE ISNULL(Verifed,0)<>1").Rows[0][0]);
+                    ? "SELECT COUNT(*) FROM AddressMaster a LEFT JOIN AnyminuteAddressReview r ON r.AddressMasterId=a.AddressMasterId WHERE ISNULL(a.Verifed,0)<>1 AND ISNULL(r.Status,'Pending')='Pending'" + hide
+                    : "SELECT COUNT(*) FROM AddressMaster a WHERE ISNULL(a.Verifed,0)<>1" + hide).Rows[0][0]);
+            }
         }
         catch (SqlException) { return 0; }
     }
