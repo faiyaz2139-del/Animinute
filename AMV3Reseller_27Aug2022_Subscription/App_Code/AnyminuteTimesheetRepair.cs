@@ -163,6 +163,9 @@ public static class AnyminuteTimesheetRepair
         }
         return true;
     }
+    // v84: used by Copy-to-next-week to decide whether a target day already has entries (default: skip).
+    public static bool HasExistingCopyTarget(DataTable dest, DataTable breaks)
+    { return !EmptyPendingDay(dest) || (breaks!=null && breaks.Rows.Count>0); }
     public static int Copy(int actor,int role,int b,int e,DateTime[] sources,DateTime[] targets,bool overwrite)
     {
         if(sources.Length!=targets.Length)throw new ArgumentException("Copy dates do not match.");

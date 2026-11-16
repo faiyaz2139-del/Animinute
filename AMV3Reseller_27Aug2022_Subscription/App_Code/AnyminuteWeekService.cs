@@ -185,4 +185,92 @@ public static class AnyminuteWeekService
  {using(var c=AnyminuteTimesheetRepair.Open())return AnyminuteTimesheetRepair.Query(c,null,"SELECT * FROM AnyminuteNotification WHERE RecipientUserID=@u ORDER BY NotificationID DESC","@u",Convert.ToInt32(HttpContext.Current.Session["UserId"]));}
  public static void ReadNotification(long id)
  {using(var c=AnyminuteTimesheetRepair.Open())AnyminuteTimesheetRepair.Execute(c,null,"UPDATE AnyminuteNotification SET ReadAtUTC=SYSUTCDATETIME() WHERE NotificationID=@id AND RecipientUserID=@u","@id",id,"@u",Convert.ToInt32(HttpContext.Current.Session["UserId"]));}
+
+ // v84: copy entered days (attendance, clock in/out including next-day, breaks) from this week to the
+ // same weekdays of the next week as draft/unsubmitted entries. Source week may be submitted (read-only).
+ // Never writes when the target week is submitted, approved or locked. Existing target days are skipped
+ // unless overwrite is confirmed. Reuses the same TimeSheetEntry / BreakTime inserts and net-hour totals as Copy.
+ static bool TimeCardLocked(SqlConnection c,SqlTransaction tx,int b,int e,DateTime d)
+ {
+  return AnyminuteTimesheetRepair.Query(c,tx,"SELECT 1 FROM TimeCardStatus WITH (UPDLOCK,HOLDLOCK) WHERE BusinessID=@b AND EmployeeID=@e AND Year=@y AND weekNum=@w AND TimeSheetStatus=1","@b",b,"@e",e,"@y",d.Year,"@w",System.Globalization.CultureInfo.CurrentCulture.Calendar.GetWeekOfYear(d,System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.CalendarWeekRule,System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.FirstDayOfWeek)).Rows.Count>0;
+ }
+ static bool IsEnteredDay(DataTable src)
+ {
+  if(src.Rows.Count==0)return false;
+  string attendance=Convert.ToString(src.Rows[0]["Worked"]).Trim();
+  return attendance.Length>0;
+ }
+ public static int CountNextWeekConflicts(int b,int e,DateTime week)
+ {
+  week=Monday(week);DateTime next=week.AddDays(7);int n=0;
+  using(var c=AnyminuteTimesheetRepair.Open())
+  {
+   ReadAccess(c,null,b,e);
+   for(int i=0;i<7;i++)
+   {
+    var src=AnyminuteTimesheetRepair.Day(c,null,b,e,week.AddDays(i));
+    if(!IsEnteredDay(src))continue;
+    if(AnyminuteTimesheetRepair.HasExistingCopyTarget(AnyminuteTimesheetRepair.Day(c,null,b,e,next.AddDays(i)),AnyminuteTimesheetRepair.Breaks(c,null,b,e,next.AddDays(i))))n++;
+   }
+  }
+  return n;
+ }
+ public static int CopyToNextWeek(int b,int e,DateTime week,bool overwrite,out DateTime nextWeek)
+ {
+  week=Monday(week);nextWeek=week.AddDays(7);
+  using(var c=AnyminuteTimesheetRepair.Open()) using(var tx=c.BeginTransaction(IsolationLevel.Serializable))
+  {
+   AnyminuteTimesheetRepair.Authorize(c,tx,SessionActor,SessionRole,b,e,true);
+   var existing=AnyminuteTimesheetRepair.Query(c,tx,"SELECT State FROM AnyminuteWeek WITH(UPDLOCK,HOLDLOCK) WHERE BusinessID=@b AND EmployeeID=@e AND WeekStart=@w","@b",b,"@e",e,"@w",nextWeek);
+   if(existing.Rows.Count>0)
+   {
+    string state=Convert.ToString(existing.Rows[0][0]);
+    if(state=="Submitted"||state=="Approved")throw new InvalidOperationException("The week of "+nextWeek.ToString("MMM d, yyyy")+" is "+state.ToLowerInvariant()+" and cannot be changed. Return or reopen it before copying into it.");
+   }
+   if(TimeCardLocked(c,tx,b,e,nextWeek)||TimeCardLocked(c,tx,b,e,nextWeek.AddDays(6)))throw new InvalidOperationException("The week of "+nextWeek.ToString("MMM d, yyyy")+" is locked and cannot be changed.");
+   var shifts=new List<DataTable>();var breakSets=new List<DataTable>();
+   for(int i=0;i<7;i++){shifts.Add(AnyminuteTimesheetRepair.Day(c,tx,b,e,week.AddDays(i)));breakSets.Add(AnyminuteTimesheetRepair.Breaks(c,tx,b,e,week.AddDays(i)));}
+   int entered=0,count=0;
+   for(int i=0;i<7;i++)
+   {
+    DateTime sourceDate=week.AddDays(i),targetDate=nextWeek.AddDays(i);
+    if(shifts[i].Rows.Count==0)continue;
+    if(shifts[i].Rows.Count!=1)throw new InvalidOperationException("Duplicate source timesheet on "+sourceDate.ToString("MMM d")+". Nothing was copied.");
+    if(!IsEnteredDay(shifts[i]))continue;
+    entered++;
+    var dest=AnyminuteTimesheetRepair.Day(c,tx,b,e,targetDate);
+    if(!overwrite && AnyminuteTimesheetRepair.HasExistingCopyTarget(dest,AnyminuteTimesheetRepair.Breaks(c,tx,b,e,targetDate)))continue;
+    AnyminuteTimesheetRepair.EnsureUnlocked(c,tx,b,e,targetDate,dest);
+    var s=shifts[i].Rows[0];var brs=breakSets[i];int delta=(targetDate-sourceDate).Days;
+    DateTime? start=s["ReqularStart"]==DBNull.Value?(DateTime?)null:Convert.ToDateTime(s["ReqularStart"]);
+    DateTime? end=s["Regularend"]==DBNull.Value?(DateTime?)null:Convert.ToDateTime(s["Regularend"]);
+    TimeSpan total=TimeSpan.Zero,gross=TimeSpan.Zero;
+    if(start.HasValue&&end.HasValue)
+    {
+     gross=end.Value-start.Value;if(gross<=TimeSpan.Zero||gross>=TimeSpan.FromDays(1))throw new InvalidOperationException("Invalid source shift on "+sourceDate.ToString("MMM d")+". Nothing was copied.");
+     total=AnyminuteTimesheetRepair.ValidateSavedBreaks(brs,start.Value,end.Value);
+    }
+    else if(start.HasValue||end.HasValue||brs.Rows.Count>0||!String.Equals(Convert.ToString(s["Worked"]).Trim(),"No",StringComparison.OrdinalIgnoreCase))throw new InvalidOperationException("Incomplete source day on "+sourceDate.ToString("MMM d")+". Nothing was copied.");
+    AnyminuteTimesheetRepair.Execute(c,tx,"DELETE BreakTime WHERE BussID=@b AND EmpId=@e AND TimeSheetDate=@d AND ISNULL(ProjectId,0)=0; DELETE TimeSheetEntry WHERE BussID=@b AND EmpId=@e AND TimeSheetDate=@d AND ISNULL(ProjectId,0)=0","@b",b,"@e",e,"@d",targetDate.Date);
+    AnyminuteTimesheetRepair.Execute(c,tx,"INSERT TimeSheetEntry (EmpId,BussID,Month,Year,WeekNo,TimeSheetDate,Day,ReqularStart,Regularend,Regular,BreakStart,BreakEnd,BreakTotal,Over1_5x,Over2x,Holiday,Total,Status,Worked,ProjectId) VALUES (@e,@b,@m,@y,@w,@d,@day,@s,@f,@g,'','',@t,'00:00:00','00:00:00','00:00:00',@n,1,@worked,0)",
+     "@e",e,"@b",b,"@m",targetDate.Month,"@y",targetDate.Year,"@w",System.Globalization.CultureInfo.CurrentCulture.Calendar.GetWeekOfYear(targetDate,System.Globalization.CalendarWeekRule.FirstDay,DayOfWeek.Sunday),"@d",targetDate.Date,"@day",targetDate.DayOfWeek.ToString(),"@s",start.HasValue?(object)start.Value.AddDays(delta):DBNull.Value,"@f",end.HasValue?(object)end.Value.AddDays(delta):DBNull.Value,"@g",gross.ToString(),"@t",total.ToString(),"@n",(gross-total).ToString(),"@worked",s["Worked"]);
+    foreach(DataRow br in brs.Rows)
+    {
+     DateTime bs=DateTime.Parse(Convert.ToString(br["BreakStart"])).AddDays(delta),be=DateTime.Parse(Convert.ToString(br["BreakEnd"])).AddDays(delta);
+     AnyminuteTimesheetRepair.Execute(c,tx,"INSERT BreakTime (EmpId,BussID,Month,Year,WeekNo,TimeSheetDate,Day,BreakStart,BreakEnd,BreakTotal,ProjectId,IsPaid) VALUES (@e,@b,@m,@y,@w,@d,@day,@s,@f,@t,0,COALESCE(@paid,0))","@e",e,"@b",b,"@m",targetDate.Month,"@y",targetDate.Year,"@w",System.Globalization.CultureInfo.CurrentCulture.Calendar.GetWeekOfYear(targetDate,System.Globalization.CalendarWeekRule.FirstDay,DayOfWeek.Sunday),"@d",targetDate.Date,"@day",targetDate.DayOfWeek.ToString(),"@s",bs.ToString("yyyy-MM-ddTHH:mm:ss"),"@f",be.ToString("yyyy-MM-ddTHH:mm:ss"),"@t",(be-bs).ToString(),"@paid",br["IsPaid"]);
+    }
+    count++;
+   }
+   if(entered==0)throw new InvalidOperationException("No entered days to copy. Save at least one Worked day (with clock in and clock out) or Day Off first.");
+   if(count>0)
+   {
+    var h=Header(c,tx,b,e,nextWeek);string before=Convert.ToString(h["State"]);
+    if(before=="Submitted"||before=="Approved")throw new InvalidOperationException("The week of "+nextWeek.ToString("MMM d, yyyy")+" is "+before.ToLowerInvariant()+" and cannot be changed. Return or reopen it before copying into it.");
+    string after=before=="Rejected"?"Rejected":"Draft";
+    AnyminuteTimesheetRepair.Execute(c,tx,"UPDATE AnyminuteWeek SET State=@s,Revision=Revision+1,ChangedAtUTC=SYSUTCDATETIME() WHERE BusinessID=@b AND EmployeeID=@e AND WeekStart=@w","@s",after,"@b",b,"@e",e,"@w",nextWeek);
+    Audit(c,tx,b,e,nextWeek,SessionActor,"CopyToNextWeek",before,after);
+   }
+   tx.Commit();return count;
+  }
+ }
 }

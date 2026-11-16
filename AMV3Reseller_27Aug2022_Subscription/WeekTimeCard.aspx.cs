@@ -48,6 +48,7 @@ public partial class AnyminuteWeekTimeCard : System.Web.UI.Page
   string selected=Request.QueryString["EmployeeId"];if(selected!=null){if(Employee.Items.FindByValue(selected)==null)throw new HttpException(403,"Employee is outside your access.");Employee.SelectedValue=selected;}
   else {using(var c=AnyminuteTimesheetRepair.Open()){int role,a=AnyminuteModernScope.Actor(c,null,Business,out role);if(Employee.Items.FindByValue(a.ToString())!=null)Employee.SelectedValue=a.ToString();}}
   DateTime week;Week.Text=DateTime.TryParseExact(Request.QueryString["Week"],"yyyy-MM-dd",CultureInfo.InvariantCulture,DateTimeStyles.None,out week)?AnyminuteWeekService.Monday(week).ToString("yyyy-MM-dd"):AnyminuteWeekService.Monday(AnyminuteClockEvidence.Today(Business)).ToString("yyyy-MM-dd");Bind();AnyminuteClockEvidence.Record(Business,"OpenTimeCard");
+  string flash=AnyminuteFlash.Take("timecard");if(flash!=null){Message.Text=HttpUtility.HtmlEncode(flash);Message.Visible=true;}
  }
  protected void SelectionChanged(object s,EventArgs e){BreakModal.Visible=false;Bind();}
  protected void BusinessChanged(object s,EventArgs e)
@@ -166,7 +167,7 @@ public partial class AnyminuteWeekTimeCard : System.Web.UI.Page
    Approve.Enabled=approved==working;Approve.ToolTip=Approve.Enabled?"Approve the reviewed week":"Approve each worked day first";
   }
   ViewState["EditableWeek"]=edit&&(state=="Draft"||state=="Rejected");
-  Save.Visible=edit&&(state=="Draft"||state=="Rejected");SaveTop.Visible=Save.Visible;Copy.Visible=Save.Visible;Submit.Visible=edit&&(state=="Draft"||state=="Rejected"); /* v22: owner/manager entering time can submit it too. v23: this was a // comment that swallowed the rest of the line, so SubmitTop/Approve/Reject/Reopen visibility never ran. */SubmitTop.Visible=Submit.Visible;Approve.Visible=Reject.Visible=review&&state=="Submitted";Reopen.Visible=AnyminuteModernScope.Owns(Business)&&state=="Approved";
+  Save.Visible=edit&&(state=="Draft"||state=="Rejected");SaveTop.Visible=Save.Visible;Copy.Visible=Save.Visible;CopyNext.Visible=edit;CopyOverwrite.Value="0";CopyConflictCount.Value=AnyminuteWeekService.CountNextWeekConflicts(Business,Target,StartWeek).ToString(CultureInfo.InvariantCulture);Submit.Visible=edit&&(state=="Draft"||state=="Rejected"); /* v22: owner/manager entering time can submit it too. v23: this was a // comment that swallowed the rest of the line, so SubmitTop/Approve/Reject/Reopen visibility never ran. */SubmitTop.Visible=Submit.Visible;Approve.Visible=Reject.Visible=review&&state=="Submitted";Reopen.Visible=AnyminuteModernScope.Owns(Business)&&state=="Approved";
   Comment.ReadOnly=!review&&!Reopen.Visible;Comment.Text=Convert.ToString(h["ManagerComment"]);ApprovalInfo.Text=h["ApprovedAtUTC"]==DBNull.Value?"":"<p class='am-muted'>Approved at "+Convert.ToDateTime(h["ApprovedAtUTC"]).ToString("yyyy-MM-dd HH:mm")+" UTC \u00b7 reviewer ID "+Convert.ToString(h["ApprovedBy"])+"</p>";
  }
  void SaveGrid()
@@ -200,6 +201,22 @@ public partial class AnyminuteWeekTimeCard : System.Web.UI.Page
  }protected void Approve_Click(object s,EventArgs e){Transition("Approve");}protected void Reject_Click(object s,EventArgs e){Transition("Reject");}protected void Reopen_Click(object s,EventArgs e){Transition("Reopen");}
  protected void Copy_Click(object s,EventArgs e)
  {Run(()=>{var dates=Enumerable.Range(1,4).Select(i=>StartWeek.AddDays(i)).ToArray();AnyminuteTimesheetRepair.Copy(Convert.ToInt32(Session["EmployeeId"]),Convert.ToInt32(Session["UserTypeid"]),Business,Target,dates.Select(d=>StartWeek).ToArray(),dates,false);},"Monday copied to the empty weekdays. Review the times, then Save changes.");}
+ // v84: copy this week's saved entered days to the next week as drafts. Works when this week is submitted (read-only source).
+ protected void CopyNext_Click(object s,EventArgs e)
+ {
+  Message.Visible=false;BreakModal.Visible=false;
+  try
+  {
+   FreshSelection();DateTime next;bool overwrite=CopyOverwrite.Value=="1";
+   int n=AnyminuteWeekService.CopyToNextWeek(Business,Target,StartWeek,overwrite,out next);
+   if(n==0)throw new InvalidOperationException("No days were copied. The next week already has entries for those days (they were skipped).");
+   AnyminuteFlash.Set("timecard","Copied "+n+" day"+(n==1?"":"s")+" to week of "+next.ToString("MMM d, yyyy",CultureInfo.InvariantCulture)+".");
+   Response.Redirect("~/WeekTimeCard.aspx?BusinessId="+Business+"&EmployeeId="+Target+"&Week="+next.ToString("yyyy-MM-dd",CultureInfo.InvariantCulture),false);Context.ApplicationInstance.CompleteRequest();
+  }
+  catch(InvalidOperationException ex){Message.Text=HttpUtility.HtmlEncode(ex.Message);Message.Visible=true;if(ex.Message.StartsWith("This card changed in another session"))Message.Text=StaleMessage();Resync();}
+  catch(FormatException){Message.Text="Enter valid dates and times.";Message.Visible=true;Resync();}
+  catch(Exception ex){log4net.LogManager.GetLogger("Log").Error("Copy to next week",ex);Message.Text="The action did not complete. Refresh and contact support if it persists.";Message.Visible=true;Resync();}
+ }
  protected void DayCommand(object s,RepeaterCommandEventArgs e)
  {
   DateTime day=DateTime.ParseExact(Convert.ToString(e.CommandArgument),"yyyy-MM-dd",CultureInfo.InvariantCulture);if(day<StartWeek||day>=StartWeek.AddDays(7))throw new HttpException(400,"Invalid day.");
