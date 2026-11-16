@@ -1,0 +1,6 @@
+## Add_Business.aspx.cs / Add_EmployeeV2.aspx.cs
+One-token change per file: "dt_RequestedPlanDetails.Rows.Count ==0)" -> "== 1)" plus a trailing // comment. No new
+identifiers, types or references. Not compiled on the box (no mcs/dotnet present this session); the site compiles
+these CodeFile pages on the server at first request, same as v80/v81.
+## Main.master / Modern.master / MasterWithoutMenu.master
+stamp + ?v= text change only (v81-20261114 -> v82-20261116)
