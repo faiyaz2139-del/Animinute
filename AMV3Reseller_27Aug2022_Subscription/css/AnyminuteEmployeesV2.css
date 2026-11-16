@@ -219,3 +219,5 @@ html body .am-employee-identity>.am-employee-initials,html body span.am-employee
 html body .am-employee-identity>.am-employee-initials{flex:0 0 44px!important;width:44px!important;min-width:44px!important;height:44px!important;font-size:16px!important;font-weight:700!important}
 /* v17 (Pandey image1): Add Employee section bands carry no leading icon on Employee Information. */
 .am-mode-add .am-info-v4 .am-band .am-sec-icon{display:none}
+/* v83: Employee Profile — 12px gap between the Business assignment label and the business dropdown. */
+.am-profile-v2 .am-context-assign{display:inline-flex;align-items:center;gap:12px}
