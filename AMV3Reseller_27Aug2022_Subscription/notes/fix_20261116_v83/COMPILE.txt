@@ -1,0 +1,7 @@
+## EmployeeEditor.aspx / EmployeeEditor.aspx.cs
+Added AddressManual hidden field, Page_PreRender dismiss of AddressNotFound when the user chose Enter Address Manually or filled Street Number, Address Line 1, City, Province and Postal Code, and the same dismiss in AddNewAddress_Click. No new types or references. OnClientClick on Enter Address Manually now always returns false so the button cannot post back and wipe a typed address.
+## Scripts/AnyminuteAddressLookup.js
+Client hide of .am-al-nf on Enter Address Manually, after the manual modal apply, on init, and when the required address fields are filled; sets AddressManual so a later postback does not restore the card.
+## Main.master / Modern.master / MasterWithoutMenu.master
+stamp + ?v= text change only (v82-20261116 -> v83-20261116)
+Not compiled on the box (no mcs/dotnet present this session); the site compiles these CodeFile pages on the server at first request, same as v81/v82.
