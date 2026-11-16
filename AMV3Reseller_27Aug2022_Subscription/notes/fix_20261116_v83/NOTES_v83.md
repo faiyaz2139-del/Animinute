@@ -29,3 +29,6 @@ Copy site/ over the live site (Web.config is not in the zip; keep the live one).
 
 ## Not in this drop
 No deploy, no GitHub push, no CloudAgent, no SQL writes. EmployeeProfile has the same lookup card but was not in the screenshots and was left unchanged except that it shares the updated JS file.
+
+## Also in this drop (same stamp)
+On Employee Profile (EmployeeDetails.aspx, titled "Employee Profile"; ProfileUrl from the Employees list — not the legacy EmployeeProfile.aspx), the "Business assignment" label sat flush against the business dropdown (M.A. Consulting Corp.). The label wrapped the DropDownList with no gap. Added class `am-context-assign` and `display:inline-flex;align-items:center;gap:12px` in AnyminuteEmployeesV2.css. Cache-bust `?v=20261116v83` on that page only. No other behaviour changed.

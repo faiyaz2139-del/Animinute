@@ -1,3 +1,22 @@
+diff --git a/AMV3Reseller_27Aug2022_Subscription/EmployeeDetails.aspx b/AMV3Reseller_27Aug2022_Subscription/EmployeeDetails.aspx
+index ccba54a..aeb6677 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/EmployeeDetails.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/EmployeeDetails.aspx
+@@ -1,12 +1,12 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="EmployeeDetails.aspx.cs" Inherits="AnyminuteEmployeeDetails" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteEmployees.css?v=20261025v13" rel="stylesheet" /><link href="css/AnyminuteEmployeesV2.css?v=20261025v13" rel="stylesheet" /><link href="css/AnyminuteFlash.css?v=20261024v2" rel="stylesheet" /></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteEmployees.css?v=20261025v13" rel="stylesheet" /><link href="css/AnyminuteEmployeesV2.css?v=20261116v83" rel="stylesheet" /><link href="css/AnyminuteFlash.css?v=20261024v2" rel="stylesheet" /></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section class="am-employees am-employees-v2 am-profile-v2"><header class="am-employee-heading am-profile-head"><a href="Users.aspx" class="am-button secondary">&larr; Back to List</a><h1>Employee Profile</h1><asp:HyperLink ID="EditBasic" runat="server" CssClass="am-button" Visible="false">&#9998; Edit Basic Info</asp:HyperLink></header>
+ <asp:Panel ID="Flash" runat="server" Visible="false" CssClass="am-flash" role="status"><span class="am-flash-icon" aria-hidden="true">&#10003;</span><asp:Literal ID="FlashText" runat="server" /></asp:Panel>
+ <div class="am-card am-employee-profile-header"><span class="am-employee-initials"><asp:Literal ID="Initials" runat="server" /></span><div><h2><asp:Literal ID="EmployeeName" runat="server" /></h2><p><asp:Literal ID="Email" runat="server" /> <asp:Literal ID="Phone" runat="server" /></p><asp:Label ID="EmployeeStatus" runat="server" CssClass="am-badge" /></div></div>
+ <asp:Label ID="Notice" runat="server" Visible="false" CssClass="am-notice" role="alert" />
+ <div class="am-side-layout"><nav class="am-side-nav" aria-label="Employee profile sections"><asp:HyperLink ID="ProfileTab" runat="server" Text="&#128100; Profile" /><asp:HyperLink ID="AssignmentsTab" runat="server" Text="&#128188; Business Assignments" /><asp:HyperLink ID="PayTab" runat="server" Text="&#128178; Pay Rate History" /><asp:HyperLink ID="TimeTab" runat="server" Text="&#128337; Time Cards" /><asp:HyperLink ID="DocumentsTab" runat="server" Text="&#128196; Documents" /><hr /><asp:HyperLink ID="AddressTab" runat="server" Text="Address" /><asp:HyperLink ID="ProjectsTab" runat="server" Text="Projects" /><asp:HyperLink ID="AccessTab" runat="server" Text="Login &amp; Access" /><asp:HyperLink ID="ActivityTab" runat="server" Text="Activity History" /></nav><div class="am-side-main">
+-<div class="am-card"><label>Business assignment<asp:DropDownList ID="ContextAssignment" runat="server" AutoPostBack="true" OnSelectedIndexChanged="ContextChanged" /></label></div>
++<div class="am-card"><label class="am-context-assign">Business assignment<asp:DropDownList ID="ContextAssignment" runat="server" AutoPostBack="true" OnSelectedIndexChanged="ContextChanged" /></label></div>
+ <asp:Panel ID="ProfilePane" runat="server" CssClass="am-card"><h2>Employee Information</h2><p>Profile information shown here is read-only. Owners can use Edit Basic Info where permitted.</p><asp:GridView ID="ProfileGrid" runat="server" CssClass="am-table" AutoGenerateColumns="true" /></asp:Panel>
+ <asp:Panel ID="AddressPane" runat="server" CssClass="am-card"><h2>Employee Address</h2><asp:Label ID="AddressScope" runat="server" /><asp:GridView ID="AddressGrid" runat="server" CssClass="am-table" AutoGenerateColumns="true" EmptyDataText="No address recorded." /></asp:Panel>
+ <asp:Panel ID="AssignmentsPane" runat="server" CssClass="am-card"><div class="am-employee-heading"><h2>Business Assignments (<asp:Literal ID="AssignmentCount" runat="server" />)</h2><asp:HyperLink ID="AddAssignment" runat="server" CssClass="am-button" Visible="false">+ Add Business Assignment</asp:HyperLink></div><div class="am-table-wrap"><table class="am-data"><thead><tr><th>Business</th><th>Roles</th><th>Employee Type</th><th>Pay Type</th><th>Pay Rate</th><th>Effective Date</th><th>Status</th><th>Action</th></tr></thead><tbody>
 diff --git a/AMV3Reseller_27Aug2022_Subscription/EmployeeEditor.aspx b/AMV3Reseller_27Aug2022_Subscription/EmployeeEditor.aspx
 index cd1b321..ed549dd 100644
 --- a/AMV3Reseller_27Aug2022_Subscription/EmployeeEditor.aspx
@@ -167,3 +186,13 @@ index 902f46d..9b66ef8 100644
 + function init2(){init();syncProvince();maybeDismiss();document.addEventListener('input',maybeDismiss);document.addEventListener('change',maybeDismiss);try{if(window.Sys&&Sys.WebForms&&Sys.WebForms.PageRequestManager)Sys.WebForms.PageRequestManager.getInstance().add_endRequest(function(){init();syncProvince();maybeDismiss();});}catch(e){}}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init2);else init2();
  })();
+diff --git a/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteEmployeesV2.css b/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteEmployeesV2.css
+index 3beb388..b40657b 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteEmployeesV2.css
++++ b/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteEmployeesV2.css
+@@ -219,3 +219,5 @@ html body .am-employee-identity>.am-employee-initials,html body span.am-employee
+ html body .am-employee-identity>.am-employee-initials{flex:0 0 44px!important;width:44px!important;min-width:44px!important;height:44px!important;font-size:16px!important;font-weight:700!important}
+ /* v17 (Pandey image1): Add Employee section bands carry no leading icon on Employee Information. */
+ .am-mode-add .am-info-v4 .am-band .am-sec-icon{display:none}
++/* v83: Employee Profile — 12px gap between the Business assignment label and the business dropdown. */
++.am-profile-v2 .am-context-assign{display:inline-flex;align-items:center;gap:12px}

@@ -5,3 +5,5 @@ Client hide of .am-al-nf on Enter Address Manually, after the manual modal apply
 ## Main.master / Modern.master / MasterWithoutMenu.master
 stamp + ?v= text change only (v82-20261116 -> v83-20261116)
 Not compiled on the box (no mcs/dotnet present this session); the site compiles these CodeFile pages on the server at first request, same as v81/v82.
+## EmployeeDetails.aspx / css/AnyminuteEmployeesV2.css
+Added class am-context-assign on the Business assignment label and a 12px inline-flex gap (vertically centered). Cache-bust on EmployeeDetails only: AnyminuteEmployeesV2.css?v=20261116v83. Markup/CSS only; stamp still v83-20261116.
