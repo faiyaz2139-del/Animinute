@@ -4,6 +4,21 @@
  'use strict';
  function root(){return document.getElementById('amEmpAddress');}
  function field(name){var r=root();return r?r.querySelector('[data-addr-field="'+name+'"]'):null;}
+ function fieldVal(r,name){var el=r&&r.querySelector('[data-addr-field="'+name+'"]');return el?(el.value||'').trim():'';}
+ // v83: hide the Address Not Found card once the user starts a manual address or has filled the required fields.
+ function hasManualAddress(r){return !!(fieldVal(r,'StreetNo')&&fieldVal(r,'Line1')&&fieldVal(r,'City')&&fieldVal(r,'Province')&&fieldVal(r,'PostalCode'));}
+ function dismissNotFound(r){
+  if(!r)return;
+  Array.prototype.forEach.call(r.querySelectorAll('.am-al-nf'),function(n){n.hidden=true;});
+  var flag=r.querySelector('[data-addr-manual-flag],input[id$="AddressManual"]');
+  if(flag)flag.value='1';
+ }
+ function maybeDismiss(){
+  Array.prototype.forEach.call(document.querySelectorAll('.am-emp-al46,#amEmpAddress'),function(r){
+   var flag=r.querySelector('[data-addr-manual-flag],input[id$="AddressManual"]');
+   if((flag&&flag.value==='1')||hasManualAddress(r))dismissNotFound(r);
+  });
+ }
  function modal(){return document.getElementById('amEmpNewAddress');}
  function clone(sel,src){
   if(!src)return;sel.innerHTML='';
@@ -48,6 +63,7 @@
     try{dst.dispatchEvent(new Event('change',{bubbles:true}));}catch(e){}
    });
    Lookup.close();
+   dismissNotFound(root());
    var card=root()&&root().querySelector('.am-al-details');if(card&&card.scrollIntoView)card.scrollIntoView({block:'start',behavior:'smooth'});
   }
  };
@@ -64,8 +80,8 @@
   var co=get('Country');if(co&&co.tagName==='SELECT')setSelect(co,'Canada');
   var lp=get('LookupPostal'),pc=get('PostalCode');if(lp&&pc)pc.value=lp.value.trim().toUpperCase();
   var ch=r.querySelector('.am-al2-choice select');
-  // v46: the Address Not Found card and hint are only for the last search; manual entry starts clean.
-  Array.prototype.forEach.call(r.querySelectorAll('.am-al-nf'),function(n){n.hidden=true;});if(ch){for(var i=0;i<ch.options.length;i++)if(ch.options[i].value==='new'){ch.selectedIndex=i;break;}}
+  // v46/v83: the Address Not Found card is only for the last search; manual entry dismisses it and keeps it dismissed.
+  dismissNotFound(r);if(ch){for(var i=0;i<ch.options.length;i++)if(ch.options[i].value==='new'){ch.selectedIndex=i;break;}}
   var first=get('StreetNo');if(first){if(first.scrollIntoView)first.scrollIntoView({block:'center'});first.focus();}
  };
  // v17: EmployeeProfile keeps its server province TextBox (hidden) behind a Province/State select; keep both in step,
@@ -95,6 +111,6 @@
   if(c&&(saved||(fc&&fc.value)))setSelect(c,saved||fc.value);
   syncCountry();
  }
- function init2(){init();syncProvince();try{if(window.Sys&&Sys.WebForms&&Sys.WebForms.PageRequestManager)Sys.WebForms.PageRequestManager.getInstance().add_endRequest(function(){init();syncProvince();});}catch(e){}}
+ function init2(){init();syncProvince();maybeDismiss();document.addEventListener('input',maybeDismiss);document.addEventListener('change',maybeDismiss);try{if(window.Sys&&Sys.WebForms&&Sys.WebForms.PageRequestManager)Sys.WebForms.PageRequestManager.getInstance().add_endRequest(function(){init();syncProvince();maybeDismiss();});}catch(e){}}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init2);else init2();
 })();

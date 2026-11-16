@@ -33,6 +33,18 @@ public partial class AnyminuteEmployeeEditorPage : System.Web.UI.Page
         Root.Attributes["class"] = "am-dialog-page am-employees-v2 am-editor-v3 " + (Editing ? "am-mode-edit" : "am-mode-add");
         if (!Editing) SetupAdd(); else SetupEdit();
     }
+    // v83: a failed postal search must not keep showing Address Not Found after the user enters the address manually,
+    // including after later postbacks (Add Assignment / Save). Required address-field validation is unchanged.
+    protected void Page_PreRender(object sender, EventArgs e) { DismissNotFoundIfManual(); }
+    private bool HasManualAddress()
+    {
+        return StreetNo.Text.Trim().Length > 0 && Line1.Text.Trim().Length > 0 && City.Text.Trim().Length > 0
+            && Province.SelectedValue.Trim().Length > 0 && PostalCode.Text.Trim().Length > 0;
+    }
+    private void DismissNotFoundIfManual()
+    {
+        if (AddressManual.Value == "1" || HasManualAddress()) { AddressNotFound.Visible = false; AddressManual.Value = "1"; }
+    }
 
     // ---------- Add Employee ----------
     private void SetupAdd()
@@ -105,11 +117,13 @@ public partial class AnyminuteEmployeeEditorPage : System.Web.UI.Page
         if (matches == null || !Int32.TryParse(LookupChoices.SelectedValue, out i) || i < 0 || i >= matches.Rows.Count) return;
         var a = AnyminuteBusinessAddressInput.FromRow(matches.Rows[i], Convert.ToString(ViewState["EmpPostal"]));
         StreetNo.Text = a.Number; Line1.Text = a.Street; Line2.Text = a.Line2; City.Text = a.City; Select(Province, (a.Province ?? "").Trim().ToUpperInvariant()); PostalCode.Text = a.PostalCode; Select(Country, a.Country);
+        AddressNotFound.Visible = false;
     }
     protected void AddNewAddress_Click(object sender, EventArgs e)
     {
         StreetNo.Text = Line1.Text = Line2.Text = SuiteNumber.Text = City.Text = ""; Province.SelectedIndex = 0; SuiteType.SelectedIndex = 0;
         PostalCode.Text = AnyminuteBusinessAddressInput.Postal(LookupPostal.Text); Select(Country, "Canada"); StreetNo.Focus();
+        AddressNotFound.Visible = false; AddressManual.Value = "1";
     }
     protected void Pending_ItemCommand(object source, RepeaterCommandEventArgs e)
     {
