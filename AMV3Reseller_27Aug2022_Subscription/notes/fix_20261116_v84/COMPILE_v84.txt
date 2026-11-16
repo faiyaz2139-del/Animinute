@@ -1,0 +1,6 @@
+## App_Code/AnyminuteWeekService.cs / AnyminuteTimesheetRepair.cs
+New CopyToNextWeek / CountNextWeekConflicts (and a thin HasExistingCopyTarget wrapper around the existing empty-day check). Reuses Day, Breaks, EnsureUnlocked, ValidateSavedBreaks and the same parameterized TimeSheetEntry / BreakTime INSERT/DELETE as AnyminuteTimesheetRepair.Copy. No new types, no schema, no stored-proc changes. Not compiled on the box (no mcs/dotnet present); CodeFile / App_Code compile on the server at first request, same as v83.
+## WeekTimeCard.aspx / WeekTimeCard.aspx.cs
+New "Copy to next week" button (same toolbar style as Copy Monday to weekdays), hidden overwrite flag, JS confirm when the next week already has entries. Button stays visible when the source week is submitted.
+## Main.master / Modern.master / MasterWithoutMenu.master
+stamp + ?v= text change only (v83-20261116 -> v84-20261116)

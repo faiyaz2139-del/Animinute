@@ -1,0 +1,235 @@
+diff --git a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteTimesheetRepair.cs b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteTimesheetRepair.cs
+index c2ecb0f..64912c5 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteTimesheetRepair.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteTimesheetRepair.cs
+@@ -163,6 +163,9 @@ public static class AnyminuteTimesheetRepair
+         }
+         return true;
+     }
++    // v84: used by Copy-to-next-week to decide whether a target day already has entries (default: skip).
++    public static bool HasExistingCopyTarget(DataTable dest, DataTable breaks)
++    { return !EmptyPendingDay(dest) || (breaks!=null && breaks.Rows.Count>0); }
+     public static int Copy(int actor,int role,int b,int e,DateTime[] sources,DateTime[] targets,bool overwrite)
+     {
+         if(sources.Length!=targets.Length)throw new ArgumentException("Copy dates do not match.");
+diff --git a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteWeekService.cs b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteWeekService.cs
+index d610abd..8333f76 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteWeekService.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteWeekService.cs
+@@ -185,4 +185,92 @@ public static class AnyminuteWeekService
+  {using(var c=AnyminuteTimesheetRepair.Open())return AnyminuteTimesheetRepair.Query(c,null,"SELECT * FROM AnyminuteNotification WHERE RecipientUserID=@u ORDER BY NotificationID DESC","@u",Convert.ToInt32(HttpContext.Current.Session["UserId"]));}
+  public static void ReadNotification(long id)
+  {using(var c=AnyminuteTimesheetRepair.Open())AnyminuteTimesheetRepair.Execute(c,null,"UPDATE AnyminuteNotification SET ReadAtUTC=SYSUTCDATETIME() WHERE NotificationID=@id AND RecipientUserID=@u","@id",id,"@u",Convert.ToInt32(HttpContext.Current.Session["UserId"]));}
++
++ // v84: copy entered days (attendance, clock in/out including next-day, breaks) from this week to the
++ // same weekdays of the next week as draft/unsubmitted entries. Source week may be submitted (read-only).
++ // Never writes when the target week is submitted, approved or locked. Existing target days are skipped
++ // unless overwrite is confirmed. Reuses the same TimeSheetEntry / BreakTime inserts and net-hour totals as Copy.
++ static bool TimeCardLocked(SqlConnection c,SqlTransaction tx,int b,int e,DateTime d)
++ {
++  return AnyminuteTimesheetRepair.Query(c,tx,"SELECT 1 FROM TimeCardStatus WITH (UPDLOCK,HOLDLOCK) WHERE BusinessID=@b AND EmployeeID=@e AND Year=@y AND weekNum=@w AND TimeSheetStatus=1","@b",b,"@e",e,"@y",d.Year,"@w",System.Globalization.CultureInfo.CurrentCulture.Calendar.GetWeekOfYear(d,System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.CalendarWeekRule,System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.FirstDayOfWeek)).Rows.Count>0;
++ }
++ static bool IsEnteredDay(DataTable src)
++ {
++  if(src.Rows.Count==0)return false;
++  string attendance=Convert.ToString(src.Rows[0]["Worked"]).Trim();
++  return attendance.Length>0;
++ }
++ public static int CountNextWeekConflicts(int b,int e,DateTime week)
++ {
++  week=Monday(week);DateTime next=week.AddDays(7);int n=0;
++  using(var c=AnyminuteTimesheetRepair.Open())
++  {
++   ReadAccess(c,null,b,e);
++   for(int i=0;i<7;i++)
++   {
++    var src=AnyminuteTimesheetRepair.Day(c,null,b,e,week.AddDays(i));
++    if(!IsEnteredDay(src))continue;
++    if(AnyminuteTimesheetRepair.HasExistingCopyTarget(AnyminuteTimesheetRepair.Day(c,null,b,e,next.AddDays(i)),AnyminuteTimesheetRepair.Breaks(c,null,b,e,next.AddDays(i))))n++;
++   }
++  }
++  return n;
++ }
++ public static int CopyToNextWeek(int b,int e,DateTime week,bool overwrite,out DateTime nextWeek)
++ {
++  week=Monday(week);nextWeek=week.AddDays(7);
++  using(var c=AnyminuteTimesheetRepair.Open()) using(var tx=c.BeginTransaction(IsolationLevel.Serializable))
++  {
++   AnyminuteTimesheetRepair.Authorize(c,tx,SessionActor,SessionRole,b,e,true);
++   var existing=AnyminuteTimesheetRepair.Query(c,tx,"SELECT State FROM AnyminuteWeek WITH(UPDLOCK,HOLDLOCK) WHERE BusinessID=@b AND EmployeeID=@e AND WeekStart=@w","@b",b,"@e",e,"@w",nextWeek);
++   if(existing.Rows.Count>0)
++   {
++    string state=Convert.ToString(existing.Rows[0][0]);
++    if(state=="Submitted"||state=="Approved")throw new InvalidOperationException("The week of "+nextWeek.ToString("MMM d, yyyy")+" is "+state.ToLowerInvariant()+" and cannot be changed. Return or reopen it before copying into it.");
++   }
++   if(TimeCardLocked(c,tx,b,e,nextWeek)||TimeCardLocked(c,tx,b,e,nextWeek.AddDays(6)))throw new InvalidOperationException("The week of "+nextWeek.ToString("MMM d, yyyy")+" is locked and cannot be changed.");
++   var shifts=new List<DataTable>();var breakSets=new List<DataTable>();
++   for(int i=0;i<7;i++){shifts.Add(AnyminuteTimesheetRepair.Day(c,tx,b,e,week.AddDays(i)));breakSets.Add(AnyminuteTimesheetRepair.Breaks(c,tx,b,e,week.AddDays(i)));}
++   int entered=0,count=0;
++   for(int i=0;i<7;i++)
++   {
++    DateTime sourceDate=week.AddDays(i),targetDate=nextWeek.AddDays(i);
++    if(shifts[i].Rows.Count==0)continue;
++    if(shifts[i].Rows.Count!=1)throw new InvalidOperationException("Duplicate source timesheet on "+sourceDate.ToString("MMM d")+". Nothing was copied.");
++    if(!IsEnteredDay(shifts[i]))continue;
++    entered++;
++    var dest=AnyminuteTimesheetRepair.Day(c,tx,b,e,targetDate);
++    if(!overwrite && AnyminuteTimesheetRepair.HasExistingCopyTarget(dest,AnyminuteTimesheetRepair.Breaks(c,tx,b,e,targetDate)))continue;
++    AnyminuteTimesheetRepair.EnsureUnlocked(c,tx,b,e,targetDate,dest);
++    var s=shifts[i].Rows[0];var brs=breakSets[i];int delta=(targetDate-sourceDate).Days;
++    DateTime? start=s["ReqularStart"]==DBNull.Value?(DateTime?)null:Convert.ToDateTime(s["ReqularStart"]);
++    DateTime? end=s["Regularend"]==DBNull.Value?(DateTime?)null:Convert.ToDateTime(s["Regularend"]);
++    TimeSpan total=TimeSpan.Zero,gross=TimeSpan.Zero;
++    if(start.HasValue&&end.HasValue)
++    {
++     gross=end.Value-start.Value;if(gross<=TimeSpan.Zero||gross>=TimeSpan.FromDays(1))throw new InvalidOperationException("Invalid source shift on "+sourceDate.ToString("MMM d")+". Nothing was copied.");
++     total=AnyminuteTimesheetRepair.ValidateSavedBreaks(brs,start.Value,end.Value);
++    }
++    else if(start.HasValue||end.HasValue||brs.Rows.Count>0||!String.Equals(Convert.ToString(s["Worked"]).Trim(),"No",StringComparison.OrdinalIgnoreCase))throw new InvalidOperationException("Incomplete source day on "+sourceDate.ToString("MMM d")+". Nothing was copied.");
++    AnyminuteTimesheetRepair.Execute(c,tx,"DELETE BreakTime WHERE BussID=@b AND EmpId=@e AND TimeSheetDate=@d AND ISNULL(ProjectId,0)=0; DELETE TimeSheetEntry WHERE BussID=@b AND EmpId=@e AND TimeSheetDate=@d AND ISNULL(ProjectId,0)=0","@b",b,"@e",e,"@d",targetDate.Date);
++    AnyminuteTimesheetRepair.Execute(c,tx,"INSERT TimeSheetEntry (EmpId,BussID,Month,Year,WeekNo,TimeSheetDate,Day,ReqularStart,Regularend,Regular,BreakStart,BreakEnd,BreakTotal,Over1_5x,Over2x,Holiday,Total,Status,Worked,ProjectId) VALUES (@e,@b,@m,@y,@w,@d,@day,@s,@f,@g,'','',@t,'00:00:00','00:00:00','00:00:00',@n,1,@worked,0)",
++     "@e",e,"@b",b,"@m",targetDate.Month,"@y",targetDate.Year,"@w",System.Globalization.CultureInfo.CurrentCulture.Calendar.GetWeekOfYear(targetDate,System.Globalization.CalendarWeekRule.FirstDay,DayOfWeek.Sunday),"@d",targetDate.Date,"@day",targetDate.DayOfWeek.ToString(),"@s",start.HasValue?(object)start.Value.AddDays(delta):DBNull.Value,"@f",end.HasValue?(object)end.Value.AddDays(delta):DBNull.Value,"@g",gross.ToString(),"@t",total.ToString(),"@n",(gross-total).ToString(),"@worked",s["Worked"]);
++    foreach(DataRow br in brs.Rows)
++    {
++     DateTime bs=DateTime.Parse(Convert.ToString(br["BreakStart"])).AddDays(delta),be=DateTime.Parse(Convert.ToString(br["BreakEnd"])).AddDays(delta);
++     AnyminuteTimesheetRepair.Execute(c,tx,"INSERT BreakTime (EmpId,BussID,Month,Year,WeekNo,TimeSheetDate,Day,BreakStart,BreakEnd,BreakTotal,ProjectId,IsPaid) VALUES (@e,@b,@m,@y,@w,@d,@day,@s,@f,@t,0,COALESCE(@paid,0))","@e",e,"@b",b,"@m",targetDate.Month,"@y",targetDate.Year,"@w",System.Globalization.CultureInfo.CurrentCulture.Calendar.GetWeekOfYear(targetDate,System.Globalization.CalendarWeekRule.FirstDay,DayOfWeek.Sunday),"@d",targetDate.Date,"@day",targetDate.DayOfWeek.ToString(),"@s",bs.ToString("yyyy-MM-ddTHH:mm:ss"),"@f",be.ToString("yyyy-MM-ddTHH:mm:ss"),"@t",(be-bs).ToString(),"@paid",br["IsPaid"]);
++    }
++    count++;
++   }
++   if(entered==0)throw new InvalidOperationException("No entered days to copy. Save at least one Worked day (with clock in and clock out) or Day Off first.");
++   if(count>0)
++   {
++    var h=Header(c,tx,b,e,nextWeek);string before=Convert.ToString(h["State"]);
++    if(before=="Submitted"||before=="Approved")throw new InvalidOperationException("The week of "+nextWeek.ToString("MMM d, yyyy")+" is "+before.ToLowerInvariant()+" and cannot be changed. Return or reopen it before copying into it.");
++    string after=before=="Rejected"?"Rejected":"Draft";
++    AnyminuteTimesheetRepair.Execute(c,tx,"UPDATE AnyminuteWeek SET State=@s,Revision=Revision+1,ChangedAtUTC=SYSUTCDATETIME() WHERE BusinessID=@b AND EmployeeID=@e AND WeekStart=@w","@s",after,"@b",b,"@e",e,"@w",nextWeek);
++    Audit(c,tx,b,e,nextWeek,SessionActor,"CopyToNextWeek",before,after);
++   }
++   tx.Commit();return count;
++  }
++ }
+ }
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Main.master b/AMV3Reseller_27Aug2022_Subscription/Main.master
+index 3a043f8..78b3d8f 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Main.master
++++ b/AMV3Reseller_27Aug2022_Subscription/Main.master
+@@ -5,7 +5,7 @@
+ <!DOCTYPE html>
+ 
+ <html>
+-<head runat="server"><meta name="anyminute-build" content="v83-20261116" />
++<head runat="server"><meta name="anyminute-build" content="v84-20261116" />
+     <title>AnyMinute | Record From Anywhere</title>
+     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+@@ -139,7 +139,7 @@
+     </asp:ContentPlaceHolder>
+     <link href="css/AnyminuteUI2026.css?v=20261017" rel="stylesheet" />
+ <link href="css/AnyminuteUIUnified.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUiBugFixes.css?v=20261026v17" rel="stylesheet" />
+-<link href="css/AnyminuteNavDrawer.css?v=20261106v67" rel="stylesheet" /><link href="css/AnyminuteTypography.css?v=20261116v83" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261116v83" rel="stylesheet" /></head>
++<link href="css/AnyminuteNavDrawer.css?v=20261106v67" rel="stylesheet" /><link href="css/AnyminuteTypography.css?v=20261116v84" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261116v84" rel="stylesheet" /></head>
+ <script type="text/javascript">  
+     window.onload = window.history.forward(0);
+ </script>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master b/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master
+index 40eef04..7ff6b4a 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master
++++ b/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master
+@@ -2,7 +2,7 @@
+ <!DOCTYPE html>
+ 
+ <html>
+-<head runat="server"><meta name="anyminute-build" content="v83-20261116" />
++<head runat="server"><meta name="anyminute-build" content="v84-20261116" />
+     <title>AnyMinute | Record From Anywhere</title>
+     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+@@ -28,7 +28,7 @@
+                        
+     </asp:ContentPlaceHolder>
+     
+-<link href="css/AnyminuteTypography.css?v=20261116v83" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261116v83" rel="stylesheet" /></head>
++<link href="css/AnyminuteTypography.css?v=20261116v84" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261116v84" rel="stylesheet" /></head>
+     <script type="text/javascript">  
+ 
+     window.onload = window.history.forward(0);
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Modern.master b/AMV3Reseller_27Aug2022_Subscription/Modern.master
+index 9e42c9a..bffddc1 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Modern.master
++++ b/AMV3Reseller_27Aug2022_Subscription/Modern.master
+@@ -1,6 +1,6 @@
+ <%@ Master Language="C#" AutoEventWireup="true" CodeFile="Modern.master.cs" Inherits="AnyminuteModernMaster" %>
+ <!DOCTYPE html>
+-<html lang="en"><head runat="server"><meta charset="utf-8" /><meta name="anyminute-build" content="v83-20261116" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>AnyMinute</title><link href="css/bootstrap.min.css" rel="stylesheet" /><script src="Assets/assets/js/core/jquery.3.2.1.min.js"></script><script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script><script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" /><script src="Assets/assets/js/plugin/datatables/datatables.min.js"></script><script src="Assets/assets/js/SweetAlert.js"></script><link href="css/AnyminuteModern.css" rel="stylesheet" /><asp:ContentPlaceHolder ID="head" runat="server" /><link href="css/AnyminuteUI2026.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUIUnified.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUiBugFixes.css?v=20261026v17" rel="stylesheet" /><link href="css/AnyminuteNavDrawer.css?v=20261106v67" rel="stylesheet" /><link href="css/AnyminuteTypography.css?v=20261116v83" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261116v83" rel="stylesheet" /></head>
++<html lang="en"><head runat="server"><meta charset="utf-8" /><meta name="anyminute-build" content="v84-20261116" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>AnyMinute</title><link href="css/bootstrap.min.css" rel="stylesheet" /><script src="Assets/assets/js/core/jquery.3.2.1.min.js"></script><script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script><script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" /><script src="Assets/assets/js/plugin/datatables/datatables.min.js"></script><script src="Assets/assets/js/SweetAlert.js"></script><link href="css/AnyminuteModern.css" rel="stylesheet" /><asp:ContentPlaceHolder ID="head" runat="server" /><link href="css/AnyminuteUI2026.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUIUnified.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUiBugFixes.css?v=20261026v17" rel="stylesheet" /><link href="css/AnyminuteNavDrawer.css?v=20261106v67" rel="stylesheet" /><link href="css/AnyminuteTypography.css?v=20261116v84" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261116v84" rel="stylesheet" /></head>
+ <body class="am-reference am-typography am-modern"><form id="frmMaster" runat="server"><asp:ScriptManager ID="ScriptManager1" runat="server" />
+ <header class="am-topbar"><button type="button" class="am-icon-button" data-toggle-sidebar aria-controls="am-main-navigation" aria-expanded="true" aria-label="Toggle navigation">&#9776;</button><a href="Dashboard.aspx" class="am-brand"><asp:PlaceHolder ID="LogoDefault" runat="server"><img src="Assets/assets/img/logo.jpg" alt="AnyMinute" class="am-logo" /></asp:PlaceHolder><asp:Literal ID="Brand" runat="server" /></a><span>Welcome! <asp:Literal ID="Welcome" runat="server" /><asp:Literal ID="WelcomeContext" runat="server" /></span><asp:Literal ID="HeaderHelp" runat="server" /><asp:Literal ID="HeaderBell" runat="server" /><details class="am-account-menu"><summary aria-label="Account menu"><asp:Literal ID="AccountAvatar" runat="server" /><span class="am-account-chevron" aria-hidden="true"></span><span class="sr-only">Account</span></summary><div class="am-account-popover"><a href="MyProfile.aspx"><span data-am-icon="profile" aria-hidden="true"></span>My profile</a><a href="LoginSecurity.aspx"><span data-am-icon="settings" aria-hidden="true"></span>Login &amp; security</a><asp:LinkButton ID="SignOut" runat="server" CausesValidation="false" OnClick="SignOut_Click"><span data-am-icon="signout" aria-hidden="true"></span>Sign out</asp:LinkButton>
+    <a href="Change%20Password.aspx"><span data-am-icon="settings" aria-hidden="true"></span>Change password</a><asp:Literal ID="AccountHelp" runat="server" /><asp:Literal ID="AccountUpgrade" runat="server" /></div></details></header>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/WeekTimeCard.aspx b/AMV3Reseller_27Aug2022_Subscription/WeekTimeCard.aspx
+index 3852f0c..d9446b1 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/WeekTimeCard.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/WeekTimeCard.aspx
+@@ -15,7 +15,7 @@
+ .am-plan-info{margin:6px 0 10px}.am-dirty-note{margin:6px 0 10px;background:#fff7e6;color:#8a5300}
+ </style><script src="Scripts/AnyminuteBreaks.js"></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server"><section class="am-card"><div class="am-title"><div><h1>Weekly Time Card</h1><p>Enter daily time, review breaks and approve the week. Times use the business time zone.</p></div><asp:Literal ID="Badge" runat="server" /></div>
+-<div class="am-toolbar am-week-selection"><asp:PlaceHolder ID="BusinessField" runat="server" Visible="false"><label><span>Business</span><asp:DropDownList ID="BusinessPick" runat="server" AutoPostBack="true" OnSelectedIndexChanged="BusinessChanged" /></label></asp:PlaceHolder><label><span>Employee</span><asp:DropDownList ID="Employee" runat="server" AutoPostBack="true" OnSelectedIndexChanged="SelectionChanged" /></label><label><span>Week starting &#183; Monday&#8211;Sunday</span><asp:TextBox ID="Week" runat="server" TextMode="Date" AutoPostBack="true" OnTextChanged="SelectionChanged" /></label><div class="am-actions"><asp:Button ID="SaveTop" runat="server" Text="Save changes" OnClick="Save_Click" CssClass="am-button" /><asp:Button ID="SubmitTop" runat="server" Text="Submit Week" OnClick="Submit_Click" CssClass="am-button secondary" /><asp:Button ID="Copy" runat="server" Text="Copy Monday to weekdays" OnClick="Copy_Click" OnClientClick="return confirm('Copy saved Monday to empty weekdays? Existing and approved entries will be preserved.');" /></div></div>
++<div class="am-toolbar am-week-selection"><asp:PlaceHolder ID="BusinessField" runat="server" Visible="false"><label><span>Business</span><asp:DropDownList ID="BusinessPick" runat="server" AutoPostBack="true" OnSelectedIndexChanged="BusinessChanged" /></label></asp:PlaceHolder><label><span>Employee</span><asp:DropDownList ID="Employee" runat="server" AutoPostBack="true" OnSelectedIndexChanged="SelectionChanged" /></label><label><span>Week starting &#183; Monday&#8211;Sunday</span><asp:TextBox ID="Week" runat="server" TextMode="Date" AutoPostBack="true" OnTextChanged="SelectionChanged" /></label><div class="am-actions"><asp:Button ID="SaveTop" runat="server" Text="Save changes" OnClick="Save_Click" CssClass="am-button" /><asp:Button ID="SubmitTop" runat="server" Text="Submit Week" OnClick="Submit_Click" CssClass="am-button secondary" /><asp:Button ID="Copy" runat="server" Text="Copy Monday to weekdays" OnClick="Copy_Click" OnClientClick="return confirm('Copy saved Monday to empty weekdays? Existing and approved entries will be preserved.');" /><asp:HiddenField ID="CopyOverwrite" runat="server" Value="0" /><asp:HiddenField ID="CopyConflictCount" runat="server" Value="0" /><asp:Button ID="CopyNext" runat="server" Text="Copy to next week" OnClick="CopyNext_Click" OnClientClick="return amCopyNextWeek();" /></div></div>
+ <p class="am-week-help">Save changes stores a draft. Submit Week saves what is on screen, sends the week for approval and locks editing until it is returned.</p><asp:Literal ID="PlanInfo" runat="server" /><p class="am-notice am-dirty-note" hidden>You have unsaved changes on this card. Save changes or Submit Week before leaving, or they will be lost.</p><asp:Label ID="Message" runat="server" CssClass="am-notice am-toast" Visible="false" />
+ <div class="am-summary"><div><label>Net hours</label><strong><asp:Literal ID="NetHours" runat="server" /></strong></div><div><label>Unpaid / paid breaks</label><strong><asp:Literal ID="BreakHours" runat="server" /></strong></div><div><label>Recorded overtime</label><strong><asp:Literal ID="Overtime" runat="server" /></strong></div><div><label>Estimated base pay</label><strong><asp:Literal ID="BasePay" runat="server" /></strong><small class="am-muted">Daily effective hourly rates &#183; before adjustments</small></div></div>
+ <div class="am-table-wrap"><table class="am-table am-week"><thead><tr><th>Day</th><th>Attendance</th><th>Clock in</th><th>Clock out</th><th>Unpaid / paid break</th><th>Net hours</th><th>Status</th><th>Action</th></tr></thead><tbody>
+@@ -30,7 +30,9 @@
+ <section class="am-break-entry"><h3>Add or Edit Break</h3><div class="am-break-fields"><label>Break Start Time<asp:TextBox ID="BreakStart" runat="server" TextMode="Time" CssClass="am-break-start" /></label><label>Break End Time<asp:TextBox ID="BreakEnd" runat="server" TextMode="Time" CssClass="am-break-end" /></label><label>Break Type<asp:RadioButtonList ID="Paid" runat="server" RepeatDirection="Horizontal"><asp:ListItem Value="0" Selected="true">Unpaid</asp:ListItem><asp:ListItem Value="1">Paid</asp:ListItem></asp:RadioButtonList></label><label>Duration (HH:MM)<input class="am-break-duration" readonly value="&#8212;" aria-label="Calculated break duration" /></label></div><div class="am-actions"><asp:Button ID="SaveBreak" runat="server" Text="&#65291; Add Break" OnClick="SaveBreak_Click" /><asp:Button ID="CancelBreakEdit" runat="server" Text="Cancel Edit" OnClick="CancelBreakEdit_Click" CssClass="am-button secondary" /></div><p class="am-muted">24-hour time. Duration is calculated automatically. Breaks must stay within the saved shift and cannot overlap. Each add, update or delete saves immediately.</p></section>
+ <h3>Recorded Breaks</h3><div class="am-table-wrap"><table class="am-table"><thead><tr><th>#</th><th>Break Start</th><th>Break End</th><th>Break Type</th><th>Duration</th><th>Action</th></tr></thead><tbody><asp:Repeater ID="BreakRows" runat="server" OnItemCommand="BreakCommand"><ItemTemplate><tr><td><%# Container.ItemIndex+1 %></td><td><%#: Convert.ToDateTime(Eval("BreakStart")).ToString("HH:mm") %></td><td><%#: Convert.ToDateTime(Eval("BreakEnd")).ToString("HH:mm") %></td><td><span class='<%# Convert.ToBoolean(Eval("IsPaid"))?"am-badge am-paid-badge":"am-badge am-unpaid-badge" %>'><%#: Convert.ToBoolean(Eval("IsPaid"))?"Paid":"Unpaid" %></span></td><td><%#: AnyminuteReportDurations.Format(AnyminuteReportDurations.Parse(Eval("BreakTotal"))) %></td><td><div class="am-actions"><asp:LinkButton runat="server" Text="Edit" Visible='<%# CanEditBreaks %>' CommandName="Edit" CommandArgument='<%# Eval("BreakID") %>' /><asp:LinkButton runat="server" Text="Delete" Visible='<%# CanEditBreaks %>' CommandName="Delete" CommandArgument='<%# Eval("BreakID") %>' OnClientClick="return confirm('Delete this break?');" /></div></td></tr></ItemTemplate></asp:Repeater></tbody></table></div>
+ <div class="am-summary am-break-totals"><div><label>Total Unpaid Break</label><strong><asp:Literal ID="TotalUnpaidBreak" runat="server" /></strong></div><div><label>Total Paid Break</label><strong><asp:Literal ID="TotalPaidBreak" runat="server" /></strong></div></div><footer class="am-actions"><button type="button" class="am-button secondary" data-close-modal>Done</button></footer></div></section></asp:Panel>
+-<script>/* v22 (Pandey #5): warn when typed times are not saved yet (Status stays "Not entered" until saved). */
++<script>/* v84: Copy to next week. Cancel skips days that already have entries (default); OK overwrites them. */
++function amCopyNextWeek(){var n=parseInt((document.getElementById('<%= CopyConflictCount.ClientID %>')||{}).value||'0',10)||0,f=document.getElementById('<%= CopyOverwrite.ClientID %>');if(f)f.value='0';if(n>0&&confirm(n+' day'+(n===1?'':'s')+' in the next week already have entries. Click OK to overwrite those days, or Cancel to skip them and copy only empty days.')){if(f)f.value='1';}return true;}
++/* v22 (Pandey #5): warn when typed times are not saved yet (Status stays "Not entered" until saved). */
+ (function(){var t=document.querySelector('.am-week');if(!t)return;var dirty=false,note=document.querySelector('.am-dirty-note');
+ function mark(){dirty=true;if(note)note.hidden=false;}
+ t.addEventListener('change',mark);t.addEventListener('input',mark);
+diff --git a/AMV3Reseller_27Aug2022_Subscription/WeekTimeCard.aspx.cs b/AMV3Reseller_27Aug2022_Subscription/WeekTimeCard.aspx.cs
+index 8e993dd..f54451b 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/WeekTimeCard.aspx.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/WeekTimeCard.aspx.cs
+@@ -48,6 +48,7 @@ public partial class AnyminuteWeekTimeCard : System.Web.UI.Page
+   string selected=Request.QueryString["EmployeeId"];if(selected!=null){if(Employee.Items.FindByValue(selected)==null)throw new HttpException(403,"Employee is outside your access.");Employee.SelectedValue=selected;}
+   else {using(var c=AnyminuteTimesheetRepair.Open()){int role,a=AnyminuteModernScope.Actor(c,null,Business,out role);if(Employee.Items.FindByValue(a.ToString())!=null)Employee.SelectedValue=a.ToString();}}
+   DateTime week;Week.Text=DateTime.TryParseExact(Request.QueryString["Week"],"yyyy-MM-dd",CultureInfo.InvariantCulture,DateTimeStyles.None,out week)?AnyminuteWeekService.Monday(week).ToString("yyyy-MM-dd"):AnyminuteWeekService.Monday(AnyminuteClockEvidence.Today(Business)).ToString("yyyy-MM-dd");Bind();AnyminuteClockEvidence.Record(Business,"OpenTimeCard");
++  string flash=AnyminuteFlash.Take("timecard");if(flash!=null){Message.Text=HttpUtility.HtmlEncode(flash);Message.Visible=true;}
+  }
+  protected void SelectionChanged(object s,EventArgs e){BreakModal.Visible=false;Bind();}
+  protected void BusinessChanged(object s,EventArgs e)
+@@ -166,7 +167,7 @@ public partial class AnyminuteWeekTimeCard : System.Web.UI.Page
+    Approve.Enabled=approved==working;Approve.ToolTip=Approve.Enabled?"Approve the reviewed week":"Approve each worked day first";
+   }
+   ViewState["EditableWeek"]=edit&&(state=="Draft"||state=="Rejected");
+-  Save.Visible=edit&&(state=="Draft"||state=="Rejected");SaveTop.Visible=Save.Visible;Copy.Visible=Save.Visible;Submit.Visible=edit&&(state=="Draft"||state=="Rejected"); /* v22: owner/manager entering time can submit it too. v23: this was a // comment that swallowed the rest of the line, so SubmitTop/Approve/Reject/Reopen visibility never ran. */SubmitTop.Visible=Submit.Visible;Approve.Visible=Reject.Visible=review&&state=="Submitted";Reopen.Visible=AnyminuteModernScope.Owns(Business)&&state=="Approved";
++  Save.Visible=edit&&(state=="Draft"||state=="Rejected");SaveTop.Visible=Save.Visible;Copy.Visible=Save.Visible;CopyNext.Visible=edit;CopyOverwrite.Value="0";CopyConflictCount.Value=AnyminuteWeekService.CountNextWeekConflicts(Business,Target,StartWeek).ToString(CultureInfo.InvariantCulture);Submit.Visible=edit&&(state=="Draft"||state=="Rejected"); /* v22: owner/manager entering time can submit it too. v23: this was a // comment that swallowed the rest of the line, so SubmitTop/Approve/Reject/Reopen visibility never ran. */SubmitTop.Visible=Submit.Visible;Approve.Visible=Reject.Visible=review&&state=="Submitted";Reopen.Visible=AnyminuteModernScope.Owns(Business)&&state=="Approved";
+   Comment.ReadOnly=!review&&!Reopen.Visible;Comment.Text=Convert.ToString(h["ManagerComment"]);ApprovalInfo.Text=h["ApprovedAtUTC"]==DBNull.Value?"":"<p class='am-muted'>Approved at "+Convert.ToDateTime(h["ApprovedAtUTC"]).ToString("yyyy-MM-dd HH:mm")+" UTC \u00b7 reviewer ID "+Convert.ToString(h["ApprovedBy"])+"</p>";
+  }
+  void SaveGrid()
+@@ -200,6 +201,22 @@ public partial class AnyminuteWeekTimeCard : System.Web.UI.Page
+  }protected void Approve_Click(object s,EventArgs e){Transition("Approve");}protected void Reject_Click(object s,EventArgs e){Transition("Reject");}protected void Reopen_Click(object s,EventArgs e){Transition("Reopen");}
+  protected void Copy_Click(object s,EventArgs e)
+  {Run(()=>{var dates=Enumerable.Range(1,4).Select(i=>StartWeek.AddDays(i)).ToArray();AnyminuteTimesheetRepair.Copy(Convert.ToInt32(Session["EmployeeId"]),Convert.ToInt32(Session["UserTypeid"]),Business,Target,dates.Select(d=>StartWeek).ToArray(),dates,false);},"Monday copied to the empty weekdays. Review the times, then Save changes.");}
++ // v84: copy this week's saved entered days to the next week as drafts. Works when this week is submitted (read-only source).
++ protected void CopyNext_Click(object s,EventArgs e)
++ {
++  Message.Visible=false;BreakModal.Visible=false;
++  try
++  {
++   FreshSelection();DateTime next;bool overwrite=CopyOverwrite.Value=="1";
++   int n=AnyminuteWeekService.CopyToNextWeek(Business,Target,StartWeek,overwrite,out next);
++   if(n==0)throw new InvalidOperationException("No days were copied. The next week already has entries for those days (they were skipped).");
++   AnyminuteFlash.Set("timecard","Copied "+n+" day"+(n==1?"":"s")+" to week of "+next.ToString("MMM d, yyyy",CultureInfo.InvariantCulture)+".");
++   Response.Redirect("~/WeekTimeCard.aspx?BusinessId="+Business+"&EmployeeId="+Target+"&Week="+next.ToString("yyyy-MM-dd",CultureInfo.InvariantCulture),false);Context.ApplicationInstance.CompleteRequest();
++  }
++  catch(InvalidOperationException ex){Message.Text=HttpUtility.HtmlEncode(ex.Message);Message.Visible=true;if(ex.Message.StartsWith("This card changed in another session"))Message.Text=StaleMessage();Resync();}
++  catch(FormatException){Message.Text="Enter valid dates and times.";Message.Visible=true;Resync();}
++  catch(Exception ex){log4net.LogManager.GetLogger("Log").Error("Copy to next week",ex);Message.Text="The action did not complete. Refresh and contact support if it persists.";Message.Visible=true;Resync();}
++ }
+  protected void DayCommand(object s,RepeaterCommandEventArgs e)
+  {
+   DateTime day=DateTime.ParseExact(Convert.ToString(e.CommandArgument),"yyyy-MM-dd",CultureInfo.InvariantCulture);if(day<StartWeek||day>=StartWeek.AddDays(7))throw new HttpException(400,"Invalid day.");
