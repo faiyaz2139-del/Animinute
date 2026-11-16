@@ -60,7 +60,7 @@ public partial class Add_EmployeeV2 : System.Web.UI.Page
                         {
                             DataTable dt_FindIf1stTimeRegisteredUserDetails = comm.GetAllDataFromTable("PlanHistory", "*", "EmpId=" + int.Parse(Session["EmployeeId"].ToString()) + "", "");
                             DataTable dt_RequestedPlanDetails = comm.GetAllDataFromTable("PlanHistory", "*", "EmpId=" + int.Parse(Session["EmployeeId"].ToString()) + " and Is_Requested_Plan=1", "");
-                            if (dt_FindIf1stTimeRegisteredUserDetails.Rows.Count == 1 && dt_RequestedPlanDetails.Rows.Count == 0)
+                            if (dt_FindIf1stTimeRegisteredUserDetails.Rows.Count == 1 && dt_RequestedPlanDetails.Rows.Count == 1) // v82: was ==0 (inverted), same fix as Add_Business
                             {
                                 Label_Maximum_Limit.Text = "Your plan is not active. Please pay the amount from the link received in the registered email id.";
                                 Label_Maximum_Limit.Attributes.Add("style", "text-decoration:blink");

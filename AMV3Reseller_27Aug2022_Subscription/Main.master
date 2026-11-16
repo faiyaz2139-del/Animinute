@@ -5,7 +5,7 @@
 <!DOCTYPE html>
 
 <html>
-<head runat="server"><meta name="anyminute-build" content="v81-20261114" />
+<head runat="server"><meta name="anyminute-build" content="v82-20261116" />
     <title>AnyMinute | Record From Anywhere</title>
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -139,7 +139,7 @@
     </asp:ContentPlaceHolder>
     <link href="css/AnyminuteUI2026.css?v=20261017" rel="stylesheet" />
 <link href="css/AnyminuteUIUnified.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUiBugFixes.css?v=20261026v17" rel="stylesheet" />
-<link href="css/AnyminuteNavDrawer.css?v=20261106v67" rel="stylesheet" /><link href="css/AnyminuteTypography.css?v=20261114v81" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261114v81" rel="stylesheet" /></head>
+<link href="css/AnyminuteNavDrawer.css?v=20261106v67" rel="stylesheet" /><link href="css/AnyminuteTypography.css?v=20261116v82" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261116v82" rel="stylesheet" /></head>
 <script type="text/javascript">  
     window.onload = window.history.forward(0);
 </script>
