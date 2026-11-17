@@ -35,7 +35,8 @@
   var us=country()==='United States',f=document.getElementById('amEmpLookupFlag'),h=document.getElementById('amEmpLookupHint'),p=field('LookupPostal');
   if(f)f.classList.toggle('is-us',us);
   if(h)h.textContent='Enter a valid Canadian postal code (e.g. M1B 2W1) or US ZIP code (e.g. 33185).'; // v49 Pandey notes: one hint for CA + US
-  if(p)p.placeholder=us?'e.g. 33185':'e.g. M1B 2W1';
+  if(p)p.placeholder=us?'#####':'X#X #X#'; // v86: X/# masks instead of sample values
+  var pc=field('PostalCode'),pcc=field('Country');if(pc&&pcc)pc.placeholder=pcc.value==='United States'?'#####':'X#X #X#';
  }
  var back=null;
  var Lookup={
@@ -104,7 +105,7 @@
   if(cl){e.preventDefault();var w=cl.closest('.am-emp-al46')||root(),p=w&&w.querySelector('[data-addr-field="LookupPostal"]');if(p){p.value='';p.focus();}}
  });
  document.addEventListener('keydown',function(e){if(e.key==='Escape'){var m=modal();if(m&&!m.hidden)Lookup.close();}});
- document.addEventListener('change',function(e){if(e.target&&e.target.id==='amEmpLookupCountry'){try{sessionStorage.setItem('amEmpLookupCountry',e.target.value);}catch(x){}syncCountry();}});
+ document.addEventListener('change',function(e){if(e.target&&e.target.id==='amEmpLookupCountry'){try{sessionStorage.setItem('amEmpLookupCountry',e.target.value);}catch(x){}syncCountry();}else if(e.target&&e.target.getAttribute&&e.target.getAttribute('data-addr-field')==='Country')syncCountry();});
  function init(){
   var c=document.getElementById('amEmpLookupCountry'),fc=field('Country');
   var saved=null;try{saved=sessionStorage.getItem('amEmpLookupCountry');}catch(x){}
