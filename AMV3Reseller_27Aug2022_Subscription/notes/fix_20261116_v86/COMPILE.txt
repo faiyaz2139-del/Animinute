@@ -1,0 +1,9 @@
+v86 compile check (2026-11-16)
+- cc.sh (mcs) was run: mono/mcs is not installed on the box (no apt package), so it produced no output.
+- Instead: .NET 8 SDK (/tmp/dotnet) building a net48 harness (Microsoft.NETFramework.ReferenceAssemblies.net48, LangVersion 5, same nowarn list as cc.sh)
+  over App_Code/**/*.cs + EmployeeDetails.aspx.cs + EmployeeAssignment.aspx.cs + BusinessProfile.aspx.cs + Dashboard.aspx.cs,
+  with designer stubs generated from each .aspx's runat=server controls, and the Bin/*.dll references.
+- Result: Build succeeded. 0 Error(s), 0 Warning(s) (dotnet build --no-incremental).
+- JavaScript: node --check Scripts/AnyminuteNavDrawer.js, Scripts/AnyminuteBackNav.js and Scripts/AnyminuteAddressLookup.js = OK.
+- EmployeeEditor.aspx / EmployeeProfile.aspx: markup text only (placeholders, label, script ?v=); no code-behind change.
+- The live site still compiles CodeFile pages and App_Code on the server at first request, as in v85.
