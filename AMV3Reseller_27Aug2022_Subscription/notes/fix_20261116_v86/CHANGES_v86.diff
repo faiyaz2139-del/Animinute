@@ -1,3 +1,28 @@
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Add_Business.aspx b/AMV3Reseller_27Aug2022_Subscription/Add_Business.aspx
+index 31f0f6a..d4b41ed 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Add_Business.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/Add_Business.aspx
+@@ -1,8 +1,8 @@
+ ﻿<%@ Page Title="Business" Language="C#" MasterPageFile="~/Main.master" AutoEventWireup="true" CodeFile="Add_Business.aspx.cs" Inherits="Add_Business" %>
+ <%@ Register Assembly="AjaxControlToolkit" Namespace="AjaxControlToolkit" TagPrefix="cc1" %>
+ <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
+- <link rel="stylesheet" href="css/AnyminuteBusinessEditor.css?v=20261101v46" />
+- <script src="Scripts/AnyminuteBusinessEditor.js?v=20261030v32" defer="defer"></script>
++ <link rel="stylesheet" href="css/AnyminuteBusinessEditor.css?v=20261116v86" />
++ <script src="Scripts/AnyminuteBusinessEditor.js?v=20261116v86" defer="defer"></script>
+  <script src="Scripts/AnyminuteBusinessAutosave.js?v=20261026v19" defer="defer"></script>
+ </asp:Content>
+ <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+@@ -152,7 +152,8 @@
+   <asp:PostBackTrigger ControlID="btnSaveAddres" />
+   <asp:PostBackTrigger ControlID="btnUpdateAddress" />
+  </Triggers></asp:UpdatePanel>
+- <div class="am-addr-modal" id="amNewAddress" role="dialog" aria-modal="true" aria-labelledby="amNewAddressTitle" hidden="hidden">
++ <div class="am-addr-modal am-addr-page" id="amNewAddress" aria-labelledby="amNewAddressTitle" hidden="hidden">
++  <div class="am-backbar"><a href="#" class="am-back" data-addr-close="1"><span aria-hidden="true">&larr;</span> Back</a></div>
+   <div class="am-addr-dialog">
+    <header class="am-md-head"><div><h2 id="amNewAddressTitle">Enter Address Manually</h2><p>Enter the business address details below. All required fields must be completed.</p></div><button type="button" class="am-addr-x" data-addr-close="1" aria-label="Close">&times;</button></header>
+    <div class="am-md-body">
 diff --git a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteEmployeeDocuments.cs b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteEmployeeDocuments.cs
 new file mode 100644
 index 0000000..687244d
@@ -105,6 +130,60 @@ index 0000000..687244d
 +        }
 +    }
 +}
+diff --git a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteEmployeeEditor.cs b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteEmployeeEditor.cs
+index 4db6769..c4dafe7 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteEmployeeEditor.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteEmployeeEditor.cs
+@@ -188,6 +188,9 @@ public static class AnyminuteEmployeeEditor
+             if (email.Length > 0 && Q(c, null, "SELECT 1 FROM UserAcc WHERE Email=@m AND UserTypeid=1", "@m", email).Rows.Count > 0) throw new InvalidOperationException("This email belongs to a subscriber account and cannot be added as an employee.");
+         }
+         string blank = email.Length > 0 ? email : DateTime.Now.Ticks.ToString(CultureInfo.InvariantCulture).Substring(0, 15) + "blank";
++        // v86: a login that already exists for this email (same person in another business) is shared; never change its access here.
++        bool existingLogin = false;
++        if (email.Length > 0) using (var c = AnyminuteTimesheetRepair.Open()) existingLogin = Q(c, null, "SELECT 1 FROM UserAcc WHERE Email=@m", "@m", email).Rows.Count > 0;
+         int first = 0; int user = 0;
+         foreach (var r in rows)
+         {
+@@ -251,7 +254,7 @@ public static class AnyminuteEmployeeEditor
+                 tx.Commit();
+             }
+         }
+-        if (!loginEnabled) { if (!SetSecurity(user, true, null, null, false, first, rows[0].BusinessId)) notice = "Employee saved. Login could not be disabled until the database update is installed."; }
++        if (!loginEnabled && !existingLogin) { if (!SetSecurity(user, true, null, null, false, first, rows[0].BusinessId)) notice = "Employee saved. Login could not be marked disabled until the database update is installed; no invitation or password was sent."; }
+         if (sendInvite && loginEnabled && email.Length > 0)
+         {
+             string result = SendInvitation(first, false); notice = (notice + " " + result).Trim();
+@@ -485,7 +488,7 @@ public static class AnyminuteEmployeeEditor
+                 }
+             }
+             s.State = !s.Enabled ? "Disabled" : s.Pending ? "Invitation Pending" : "Enabled";
+-            var sent = Q(c, null, "SELECT MAX(RecordedAtUTC) FROM AnyminuteApprovalAudit WHERE EmployeeID IN(SELECT EmployeeID FROM MappingTable WHERE USERID=@u) AND Action IN('SendInvitation','CreateEmployee')", "@u", s.UserId);
++            var sent = Q(c, null, "SELECT MAX(RecordedAtUTC) FROM AnyminuteApprovalAudit WHERE EmployeeID IN(SELECT EmployeeID FROM MappingTable WHERE USERID=@u) AND Action='SendInvitation'", "@u", s.UserId); // v86: adding an employee no longer sends an invitation
+             if (sent.Rows[0][0] != DBNull.Value) s.SentText = DateTime.SpecifyKind(Convert.ToDateTime(sent.Rows[0][0]), DateTimeKind.Utc).ToLocalTime().ToString("MMM d, yyyy h:mm tt", CultureInfo.InvariantCulture);
+         }
+         return s;
+@@ -566,6 +569,21 @@ public static class AnyminuteEmployeeEditor
+             return t.Rows.Count == 1 ? Convert.ToInt32(t.Rows[0][0]) : card.EmployeeId;
+         }
+     }
++    // v86: Login & Access "Send Invitation": grants login access (clears the "disabled" flag set when the employee was added)
++    // and sends the existing invitation email. Password reset (SendInvitation(employee,false)) does not change access.
++    public static string GrantAccessAndInvite(int employee, bool welcome)
++    {
++        var card = RequireEditable(employee); int user = UserFor(card);
++        if (user == 0) throw new InvalidOperationException("This employee has no single login account to manage.");
++        if (String.IsNullOrWhiteSpace(card.Email) || card.Email.EndsWith("blank", StringComparison.OrdinalIgnoreCase)) throw new InvalidOperationException("Add an email address before sending an invitation.");
++        var before = Access(card); string granted = "";
++        if (before.TablesReady && !before.Enabled && SetSecurity(user, false, null, null, false, employee, card.First.BusinessId))
++        {
++            using (var c = AnyminuteTimesheetRepair.Open()) Audit(c, null, card.First.BusinessId, card.First.EmployeeId, "LoginEnabled", null, "Access granted (invitation)");
++            granted = "Login access granted. ";
++        }
++        return granted + SendInvitation(employee, welcome);
++    }
+     // Sent only when an owner explicitly asks; honours the existing IsSendMail switch and template.
+     public static string SendInvitation(int employee, bool welcome)
+     {
 diff --git a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteSubscriberDashboard.cs b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteSubscriberDashboard.cs
 new file mode 100644
 index 0000000..2d24373
@@ -469,8 +548,42 @@ index d64c08d..da6f4e0 100644
     Bind();
    }
   }
+diff --git a/AMV3Reseller_27Aug2022_Subscription/EmployeeAssignment.aspx b/AMV3Reseller_27Aug2022_Subscription/EmployeeAssignment.aspx
+index 7ff8ead..835553c 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/EmployeeAssignment.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/EmployeeAssignment.aspx
+@@ -1,6 +1,8 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="EmployeeAssignment.aspx.cs" Inherits="AnyminuteEmployeeAssignmentPage" %>
+ <asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteEmployees.css?v=20261025v13" rel="stylesheet" /><link href="css/AnyminuteEmployeesV2.css?v=20261025v13" rel="stylesheet" /><link href="css/AnyminuteFlash.css?v=20261024v2" rel="stylesheet" /></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
++<%-- v86: Add / Edit Business Assignment is a full page (no pop-up): the list below is hidden while the editor is open. --%>
++<asp:Panel ID="AssignList" runat="server">
+ <section class="am-dialog-page am-employees-v2">
+  <header class="am-dialog-head"><div><h1>Edit Business Assignment</h1><p>Manage the businesses, roles and pay for this employee.</p></div>
+   <div class="am-check-row"><asp:LinkButton ID="AddAssignment" runat="server" OnClick="Add_Click" CausesValidation="false" CssClass="am-button"><span aria-hidden="true">+</span> Add Assignment</asp:LinkButton><asp:HyperLink ID="CloseLink" runat="server" CssClass="am-dialog-close" ToolTip="Close" aria-label="Close">&times;</asp:HyperLink></div></header>
+@@ -16,9 +18,11 @@
+    </tbody></table></div></div>
+  </div>
+ </section>
+-<asp:Panel ID="Editor" runat="server" Visible="false" CssClass="am-modal-shade" role="dialog" aria-modal="true" aria-labelledby="am-assign-title" DefaultButton="SaveAssignment">
++</asp:Panel>
++<asp:Panel ID="Editor" runat="server" Visible="false" CssClass="am-editor-page am-employees-v2" DefaultButton="SaveAssignment">
++ <div class="am-backbar"><asp:LinkButton ID="EditorBack" runat="server" OnClick="Cancel_Click" CausesValidation="false" CssClass="am-back"><span aria-hidden="true">&larr;</span> Back</asp:LinkButton></div>
+  <div class="am-dialog-page">
+-  <header class="am-dialog-head"><div><h1 id="am-assign-title"><asp:Literal ID="EditorTitle" runat="server" /></h1><p><asp:Literal ID="EditorSubtitle" runat="server" /></p></div><asp:LinkButton runat="server" OnClick="Cancel_Click" CausesValidation="false" CssClass="am-dialog-close" ToolTip="Close">&times;</asp:LinkButton></header>
++  <header class="am-dialog-head"><div><h1 id="am-assign-title"><asp:Literal ID="EditorTitle" runat="server" /></h1><p><asp:Literal ID="EditorSubtitle" runat="server" /></p></div></header>
+   <div class="am-dialog-body">
+    <asp:Label ID="EditorError" runat="server" Visible="false" CssClass="am-flash am-flash-error" role="alert" />
+    <div class="am-info-card"><span class="am-avatar"><asp:Literal ID="EditorInitials" runat="server" /></span><div class="am-info-main"><strong><asp:Literal ID="EditorName" runat="server" /></strong><div class="am-info-meta"><span><asp:Literal ID="EditorEmail" runat="server" /></span><span><asp:Literal ID="EditorPhone" runat="server" /></span></div></div></div>
+@@ -41,5 +45,5 @@
+   <footer class="am-dialog-foot"><asp:LinkButton runat="server" OnClick="Cancel_Click" CausesValidation="false" CssClass="am-button secondary">Cancel</asp:LinkButton><asp:LinkButton ID="SaveAssignment" runat="server" OnClick="Save_Click" CssClass="am-button"><asp:Literal ID="SaveText" runat="server" /></asp:LinkButton></footer>
+  </div>
+ </asp:Panel>
+-<script>(function(){var n=document.getElementById('Notes'),o=document.getElementById('am-notes-count');if(!n||!o)return;function u(){if(n.value.length>500)n.value=n.value.slice(0,500);o.textContent=n.value.length;}n.addEventListener('input',u);u();var f=n.closest('.am-modal-shade');if(f){var first=f.querySelector('select,input');if(first)first.focus();}})();</script>
++<script>(function(){var n=document.getElementById('Notes'),o=document.getElementById('am-notes-count');if(!n||!o)return;function u(){if(n.value.length>500)n.value=n.value.slice(0,500);o.textContent=n.value.length;}n.addEventListener('input',u);u();var f=n.closest('.am-editor-page');if(f){var first=f.querySelector('select,input');if(first)first.focus();}})();</script>
+ </asp:Content>
 diff --git a/AMV3Reseller_27Aug2022_Subscription/EmployeeAssignment.aspx.cs b/AMV3Reseller_27Aug2022_Subscription/EmployeeAssignment.aspx.cs
-index 3e4afbb..03da2d9 100644
+index 3e4afbb..423dc1c 100644
 --- a/AMV3Reseller_27Aug2022_Subscription/EmployeeAssignment.aspx.cs
 +++ b/AMV3Reseller_27Aug2022_Subscription/EmployeeAssignment.aspx.cs
 @@ -9,6 +9,11 @@ public partial class AnyminuteEmployeeAssignmentPage : System.Web.UI.Page
@@ -485,7 +598,18 @@ index 3e4afbb..03da2d9 100644
      private static string StatusPill(object status) { return AnyminuteEmployeeEditor.StatusPill(status); }
      protected void Page_Init(object sender, EventArgs e)
      {
-@@ -64,10 +69,10 @@ public partial class AnyminuteEmployeeAssignmentPage : System.Web.UI.Page
+@@ -24,8 +29,8 @@ public partial class AnyminuteEmployeeAssignmentPage : System.Web.UI.Page
+         if (IsPostBack) return;
+         BindPage();
+         int b; string selected = Request.QueryString["BusinessId"];
+-        if (selected != null) { if (!Int32.TryParse(selected, out b) || !card.Assignments.Any(a => a.BusinessId == b)) throw new HttpException(403, "Business outside this employee's assignments."); OpenEditor(b); }
+-        else if (Request.QueryString["mode"] == "add") OpenEditor(0);
++        if (selected != null) { if (!Int32.TryParse(selected, out b) || !card.Assignments.Any(a => a.BusinessId == b)) throw new HttpException(403, "Business outside this employee's assignments."); OpenEditor(b); ViewState["Direct"] = true; }
++        else if (Request.QueryString["mode"] == "add") { OpenEditor(0); ViewState["Direct"] = true; }
+     }
+     private void BindPage()
+     {
+@@ -64,16 +69,22 @@ public partial class AnyminuteEmployeeAssignmentPage : System.Web.UI.Page
      }
      private void BindChoices(int[] selectedRoles, int project)
      {
@@ -498,7 +622,20 @@ index 3e4afbb..03da2d9 100644
          foreach (DataRow p in AnyminuteEmployeeEditor.Projects(b).Rows) DefaultProject.Items.Add(new ListItem(Convert.ToString(p["ProjectName"]), Convert.ToString(p["ProjectID"])));
          if (DefaultProject.Items.FindByValue(project.ToString(CultureInfo.InvariantCulture)) != null) DefaultProject.SelectedValue = project.ToString(CultureInfo.InvariantCulture);
      }
-@@ -96,7 +101,11 @@ public partial class AnyminuteEmployeeAssignmentPage : System.Web.UI.Page
+     protected void BusinessChanged(object sender, EventArgs e) { BindChoices(new int[0], 0); }
+     protected void Add_Click(object sender, EventArgs e) { OpenEditor(0); }
+-    protected void Cancel_Click(object sender, EventArgs e) { Editor.Visible = false; EditingBusiness = 0; }
++    // v86: full-page editor. Back/Cancel returns to where it was opened from (Employee Details when opened directly, else the list).
++    protected void Cancel_Click(object sender, EventArgs e)
++    {
++        Editor.Visible = false; EditingBusiness = 0;
++        if (ViewState["Direct"] != null) { Response.Redirect("EmployeeDetails.aspx?EmployeeId=" + employee + "&tab=assignments", false); Context.ApplicationInstance.CompleteRequest(); }
++    }
++    protected void Page_PreRender(object sender, EventArgs e) { AssignList.Visible = !Editor.Visible; }
+     protected void Existing_ItemCommand(object source, RepeaterCommandEventArgs e)
+     {
+         int b; if (!Int32.TryParse(Convert.ToString(e.CommandArgument), out b)) throw new HttpException(400, "Invalid business.");
+@@ -96,7 +107,11 @@ public partial class AnyminuteEmployeeAssignmentPage : System.Web.UI.Page
              if (!Int32.TryParse(Business.SelectedValue, out b)) throw new InvalidOperationException("Select a business.");
              if (EditingBusiness != 0 && b != EditingBusiness) throw new HttpException(400, "Business changed unexpectedly.");
              input.BusinessId = b;
@@ -714,7 +851,7 @@ index a28acd7..dd07f4b 100644
 +</script>
 +</asp:Content>
 diff --git a/AMV3Reseller_27Aug2022_Subscription/EmployeeDetails.aspx.cs b/AMV3Reseller_27Aug2022_Subscription/EmployeeDetails.aspx.cs
-index e7e94ef..e714756 100644
+index e7e94ef..381aba0 100644
 --- a/AMV3Reseller_27Aug2022_Subscription/EmployeeDetails.aspx.cs
 +++ b/AMV3Reseller_27Aug2022_Subscription/EmployeeDetails.aspx.cs
 @@ -1,13 +1,22 @@
@@ -748,7 +885,7 @@ index e7e94ef..e714756 100644
          Bind();
      }
      protected void ContextChanged(object sender,EventArgs e){ /* Page_Load already binds posted, reauthorized selection. */ }
-@@ -37,63 +47,437 @@ public partial class AnyminuteEmployeeDetails : System.Web.UI.Page
+@@ -37,63 +47,438 @@ public partial class AnyminuteEmployeeDetails : System.Web.UI.Page
          try{AnyminuteEmployeeEditor.RemoveAssignment(employee,b);AnyminuteFlash.Set("details","Business assignment removed.");
              bool exists=true;try{AnyminuteEmployeesView.RequireEmployee(employee);}catch(HttpException){exists=false;}
              Response.Redirect(exists?"EmployeeDetails.aspx?EmployeeId="+employee+"&tab=assignments":"Users.aspx",false);Context.ApplicationInstance.CompleteRequest();}
@@ -1136,10 +1273,11 @@ index e7e94ef..e714756 100644
 +        AccAccount.Text=HttpUtility.HtmlEncode(card.Status);AccAccount.CssClass=Pill(card.Status);
 +        Action<Label,string> pill=(l,v)=>{l.Text="<i></i>"+HttpUtility.HtmlEncode(v);l.CssClass=Pill(v)+" am-ed-dot";};
 +        pill(AccLogin,s.UserId==0?"No login":s.Enabled?"Enabled":"Disabled");
-+        AccInvite.Text=s.UserId==0?"Not sent":s.Pending?"Pending":I("check")+"Accepted";AccInvite.CssClass=Pill(s.UserId==0?"":s.Pending?"Pending":"Accepted");
++        bool notSent=s.UserId==0||(!s.Enabled&&s.SentText=="\u2014"); // v86: employees are added without access; nothing is sent until Send Invitation
++        AccInvite.Text=notSent?"Not sent":s.Pending?"Pending":I("check")+"Accepted";AccInvite.CssClass=Pill(notSent?"":s.Pending?"Pending":"Accepted");
 +        pill(AccMfa,s.TwoFactor?"Enabled":"Disabled");
 +        AccLastLogin.Text=HttpUtility.HtmlEncode(s.LastLogin=="Never"?"Never":FormatLogin(s.LastLogin));
-+        ResendInvite.Text=I("send")+"Resend Invitation";SendReset.Text=I("shield")+"Send Password Reset";ResendInvite.Visible=SendReset.Visible=s.UserId>0;
++        ResendInvite.Text=I("send")+(s.Enabled?"Resend Invitation":"Send Invitation");ResendInvite.ToolTip=s.Enabled?"Send the invitation email again.":"Grant login access and send the invitation email.";SendReset.Text=I("shield")+"Send Password Reset";ResendInvite.Visible=SendReset.Visible=s.UserId>0;
 +        var ids=card.Assignments.Select(a=>a.EmployeeId).Distinct().ToArray();
 +        var reset=AnyminuteTimesheetRepair.Query(c,null,"SELECT MAX(RecordedAtUTC) FROM AnyminuteApprovalAudit WHERE EmployeeID IN("+String.Join(",",ids.Select(i=>i.ToString(Inv)))+") AND Action IN('ResetPassword','RequirePasswordChange')");
 +        AccLastReset.Text=HttpUtility.HtmlEncode(reset.Rows[0][0]==DBNull.Value?"\u2014":Local(reset.Rows[0][0],"MMM d, yyyy 'at' h:mm tt"));
@@ -1157,7 +1295,7 @@ index e7e94ef..e714756 100644
 +        }
 +    }
 +    static string FormatLogin(string value){DateTime d;return DateTime.TryParseExact(value,"yyyy-MM-dd hh:mm tt",Inv,DateTimeStyles.None,out d)?d.ToString("MMM d, yyyy 'at' h:mm tt",Inv):value;}
-+    protected void ResendInvite_Click(object sender,EventArgs e){AccessAction(()=>AnyminuteEmployeeEditor.SendInvitation(employee,true),null);}
++    protected void ResendInvite_Click(object sender,EventArgs e){AccessAction(()=>AnyminuteEmployeeEditor.GrantAccessAndInvite(employee,true),null);}
 +    protected void SendReset_Click(object sender,EventArgs e){AccessAction(()=>AnyminuteEmployeeEditor.SendInvitation(employee,false),"ResetPassword");}
 +    private void AccessAction(Func<string> action,string audit)
 +    {
@@ -1219,7 +1357,7 @@ index e7e94ef..e714756 100644
      }
  }
 diff --git a/AMV3Reseller_27Aug2022_Subscription/EmployeeEditor.aspx b/AMV3Reseller_27Aug2022_Subscription/EmployeeEditor.aspx
-index ed549dd..cc44813 100644
+index ed549dd..cd73a81 100644
 --- a/AMV3Reseller_27Aug2022_Subscription/EmployeeEditor.aspx
 +++ b/AMV3Reseller_27Aug2022_Subscription/EmployeeEditor.aspx
 @@ -1,5 +1,5 @@
@@ -1260,6 +1398,66 @@ index ed549dd..cc44813 100644
      <div class="am-al-f am-al-span2 am-al-countryf"><label for="<%= Country.ClientID %>">Country <b class="am-al-req">*</b></label><asp:DropDownList ID="Country" runat="server" data-addr-field="Country"><asp:ListItem>Canada</asp:ListItem><asp:ListItem>United States</asp:ListItem></asp:DropDownList></div>
     </div>
    </asp:Panel>
+@@ -140,10 +140,12 @@
+  </footer>
+ </section>
+ 
+-<%-- Add mode: Add Business Assignment dialog (same fields as the assignment dialog, slides 5-6) --%>
+-<asp:Panel ID="AssignmentModal" runat="server" Visible="false" CssClass="am-modal-shade" role="dialog" aria-modal="true" aria-labelledby="am-new-assign-title" DefaultButton="AddPending">
++<%-- Add mode: Add Business Assignment (same fields as the assignment screen, slides 5-6). v86: full page, not a pop-up -
++     the employee form above is hidden (still posted, so nothing typed is lost) while this screen is open. --%>
++<asp:Panel ID="AssignmentModal" runat="server" Visible="false" CssClass="am-editor-page am-employees-v2" DefaultButton="AddPending">
++ <div class="am-backbar"><asp:LinkButton ID="AssignmentBack" runat="server" OnClick="CloseAssignment_Click" CausesValidation="false" CssClass="am-back"><span aria-hidden="true">&larr;</span> Back</asp:LinkButton></div>
+  <div class="am-dialog-page">
+-  <header class="am-dialog-head"><div><h1 id="am-new-assign-title">Add Business Assignment</h1><p>Assign this employee to a business and set roles and pay.</p></div><asp:LinkButton runat="server" OnClick="CloseAssignment_Click" CausesValidation="false" CssClass="am-dialog-close" ToolTip="Close">&times;</asp:LinkButton></header>
++  <header class="am-dialog-head"><div><h1 id="am-new-assign-title">Add Business Assignment</h1><p>Assign this employee to a business and set roles and pay.</p></div></header>
+   <div class="am-dialog-body">
+    <asp:Label ID="ModalError" runat="server" Visible="false" CssClass="am-flash am-flash-error" role="alert" />
+    <div class="am-section"><h2>Assignment Details</h2><div class="am-grid am-cols-2">
+diff --git a/AMV3Reseller_27Aug2022_Subscription/EmployeeEditor.aspx.cs b/AMV3Reseller_27Aug2022_Subscription/EmployeeEditor.aspx.cs
+index d5be983..0b0e060 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/EmployeeEditor.aspx.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/EmployeeEditor.aspx.cs
+@@ -35,7 +35,7 @@ public partial class AnyminuteEmployeeEditorPage : System.Web.UI.Page
+     }
+     // v83: a failed postal search must not keep showing Address Not Found after the user enters the address manually,
+     // including after later postbacks (Add Assignment / Save). Required address-field validation is unchanged.
+-    protected void Page_PreRender(object sender, EventArgs e) { DismissNotFoundIfManual(); }
++    protected void Page_PreRender(object sender, EventArgs e) { DismissNotFoundIfManual(); AssignmentPagePreRender(); }
+     private bool HasManualAddress()
+     {
+         return StreetNo.Text.Trim().Length > 0 && Line1.Text.Trim().Length > 0 && City.Text.Trim().Length > 0
+@@ -96,6 +96,8 @@ public partial class AnyminuteEmployeeEditorPage : System.Web.UI.Page
+     }
+     protected void OpenAssignment_Click(object sender, EventArgs e) { ModalError.Visible = false; AssignmentModal.Visible = true; if (NewEffective.Text.Length == 0) NewEffective.Text = DateTime.Today.ToString("yyyy-MM-dd", Inv); }
+     protected void CloseAssignment_Click(object sender, EventArgs e) { AssignmentModal.Visible = false; }
++    // v86: Add Business Assignment is a full page; hide (not remove) the employee form while it is open so its typed values still post back.
++    protected void AssignmentPagePreRender() { if (AssignmentModal.Visible) Root.Style["display"] = "none"; else Root.Style.Remove("display"); }
+     // ---------- Address lookup (same postal-code search as Add Business) ----------
+     protected void SearchPostal_Click(object sender, EventArgs e)
+     {
+@@ -199,8 +201,10 @@ public partial class AnyminuteEmployeeEditorPage : System.Web.UI.Page
+                 Go(Url(tab)); return;
+             }
+             var rows = PendingRows.Select(r => new AnyminuteAssignmentInput { BusinessId = Int32.Parse(r[0], Inv), Roles = r[2].Split(',').Select(x => Int32.Parse(x, Inv)).ToArray(), EmployeeType = r[4], PayType = r[5], PayRate = Decimal.Parse(r[6], Inv), EffectiveDate = DateTime.Parse(r[7], Inv), ProjectId = Int32.Parse(r[8], Inv), EndDate = r[9].Length > 0 ? (DateTime?)DateTime.Parse(r[9], Inv) : null, Status = r[10], BillingRate = r[11].Length > 0 ? (decimal?)Decimal.Parse(r[11], Inv) : null, Notes = r[12] }).ToList();
+-            string notice; int created = AnyminuteEmployeeEditor.Create(p, rows, NewAccess.Visible ? LoginOn.Checked : true, NewAccess.Visible ? SendInvite.Checked && LoginOn.Checked : false, out notice);
+-            if (!NewAccess.Visible) notice = (notice + " Send the login invitation from the employee's Login & Access tab.").Trim();
++            // v86: adding an employee never grants login access and never sends an invitation. Access is granted later from the
++            // employee's Login & Access tab (Send Invitation). An email that already has a login keeps its current access.
++            string notice; int created = AnyminuteEmployeeEditor.Create(p, rows, false, false, out notice);
++            notice = (notice + " Login access was not granted. Grant access from the employee's Login & Access tab (Send Invitation).").Trim();
+             // Assignment status other than Active is applied after the legacy create (which always starts Active).
+             foreach (var r in rows.Where(x => x.Status != "Active"))
+                 try { AnyminuteEmployeeEditor.SaveAssignment(created, r); } catch (InvalidOperationException statusError) { notice = (notice + " " + statusError.Message).Trim(); }
+@@ -330,7 +334,7 @@ public partial class AnyminuteEmployeeEditorPage : System.Web.UI.Page
+             return m;
+         });
+     }
+-    protected void Resend_Click(object sender, EventArgs e) { AccessResult(() => AnyminuteEmployeeEditor.SendInvitation(employee, WelcomeEmail.Checked)); }
++    protected void Resend_Click(object sender, EventArgs e) { AccessResult(() => AnyminuteEmployeeEditor.GrantAccessAndInvite(employee, WelcomeEmail.Checked)); }
+     protected void CancelInvite_Click(object sender, EventArgs e) { AccessResult(() => AnyminuteEmployeeEditor.CancelInvitation(employee)); }
+     protected void CopyLink_Click(object sender, EventArgs e)
+     {
 diff --git a/AMV3Reseller_27Aug2022_Subscription/EmployeeProfile.aspx b/AMV3Reseller_27Aug2022_Subscription/EmployeeProfile.aspx
 index 9d406da..cee2e8e 100644
 --- a/AMV3Reseller_27Aug2022_Subscription/EmployeeProfile.aspx
@@ -1368,7 +1566,7 @@ index 9b66ef8..527ddcf 100644
    var saved=null;try{saved=sessionStorage.getItem('amEmpLookupCountry');}catch(x){}
 diff --git a/AMV3Reseller_27Aug2022_Subscription/Scripts/AnyminuteBackNav.js b/AMV3Reseller_27Aug2022_Subscription/Scripts/AnyminuteBackNav.js
 new file mode 100644
-index 0000000..b9b2bb8
+index 0000000..3444b52
 --- /dev/null
 +++ b/AMV3Reseller_27Aug2022_Subscription/Scripts/AnyminuteBackNav.js
 @@ -0,0 +1,25 @@
@@ -1388,7 +1586,7 @@ index 0000000..b9b2bb8
 +  if(!host||host.querySelector('.am-backbar,.am-back'))return;
 +  // A screen that already shows its own back link keeps it.
 +  var links=host.querySelectorAll('a,button,input[type=submit],input[type=button]');
-+  for(var i=0;i<links.length;i++){var t=(links[i].textContent||links[i].value||'').replace(/\s+/g,' ').trim();if(/^(\u2190\s*)?back\b/i.test(t)||/^\u2190/.test(t))return;}
++  for(var i=0;i<links.length;i++){if(links[i].closest('[hidden]'))continue;var t=(links[i].textContent||links[i].value||'').replace(/\s+/g,' ').trim();if(/^(\u2190\s*)?back\b/i.test(t)||/^\u2190/.test(t))return;}
 +  var href=PARENT[page]||'Dashboard.aspx',ref=document.referrer;
 +  try{if(ref){var r=new URL(ref);if(r.origin===location.origin&&r.pathname!==location.pathname&&!/login\.aspx$/i.test(r.pathname))href=ref;}}catch(x){}
 +  var bar=document.createElement('div');bar.className='am-backbar';
@@ -1397,6 +1595,24 @@ index 0000000..b9b2bb8
 + }
 + if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 +}(document,location));
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Scripts/AnyminuteBusinessEditor.js b/AMV3Reseller_27Aug2022_Subscription/Scripts/AnyminuteBusinessEditor.js
+index f267704..177d2d9 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Scripts/AnyminuteBusinessEditor.js
++++ b/AMV3Reseller_27Aug2022_Subscription/Scripts/AnyminuteBusinessEditor.js
+@@ -99,9 +99,12 @@
+    var mp=m.querySelector('[data-province-for]');if(mp)fillRegions(mp,'Canada','');
+    byId('amNewAddressError').hidden=true;
+    m.hidden=false;document.body.classList.add('am-addr-open');Address.back=document.activeElement;
++   // v86: full page, not a pop-up - hide the rest of the page content (restored on close; form fields stay in the form).
++   Address.hid=[];var root=document.querySelector('main.am-main')||byId('page-content-wrapper')||document.body;for(var n=m;n&&n!==root&&n.parentNode;n=n.parentNode){Array.prototype.forEach.call(n.parentNode.children,function(x){if(x!==n&&x.tagName!=='SCRIPT'&&x.tagName!=='STYLE'&&!x.hidden&&x.style.display!=='none'){x.setAttribute('data-am-addr-hid','1');x.style.display='none';Address.hid.push(x);}});if(n.parentNode===root)break;}
++   window.scrollTo(0,0);
+    var first=m.querySelector('[data-addr]');if(first)first.focus();
+   },
+-  close:function(){var m=byId('amNewAddress');if(!m||m.hidden)return;m.hidden=true;document.body.classList.remove('am-addr-open');if(Address.back&&Address.back.focus)Address.back.focus();},
++  close:function(){var m=byId('amNewAddress');if(!m||m.hidden)return;m.hidden=true;document.body.classList.remove('am-addr-open');(Address.hid||[]).forEach(function(x){x.style.display='';x.removeAttribute('data-am-addr-hid');});Address.hid=[];if(Address.back&&Address.back.focus)Address.back.focus();},
+   apply:function(){
+    var m=byId('amNewAddress'),missing=[],err=byId('amNewAddressError');
+    Array.prototype.forEach.call(m.querySelectorAll('[data-req]'),function(f){var bad=!f.value.trim();if(bad)f.setAttribute('aria-invalid','true');else f.removeAttribute('aria-invalid');if(bad)missing.push(f.parentNode.firstChild.textContent.replace('*','').trim());});
 diff --git a/AMV3Reseller_27Aug2022_Subscription/Scripts/AnyminuteNavDrawer.js b/AMV3Reseller_27Aug2022_Subscription/Scripts/AnyminuteNavDrawer.js
 index 2da4d06..3c6dc7c 100644
 --- a/AMV3Reseller_27Aug2022_Subscription/Scripts/AnyminuteNavDrawer.js
@@ -1431,6 +1647,43 @@ index 2da4d06..3c6dc7c 100644
 - window.addEventListener('resize',function(){if(apDesk()&&!document.body.classList.contains('am-drawer-open'))set(true);});
 + window.addEventListener('resize',function(){if((apDesk()||alwaysDesk())&&!document.body.classList.contains('am-drawer-open'))set(true);});
  }(window,document));
+diff --git a/AMV3Reseller_27Aug2022_Subscription/WeekTimeCard.aspx b/AMV3Reseller_27Aug2022_Subscription/WeekTimeCard.aspx
+index d9446b1..0287591 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/WeekTimeCard.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/WeekTimeCard.aspx
+@@ -24,12 +24,15 @@
+ <div class="am-actions" style="margin-top:20px"><asp:Button ID="Save" runat="server" Text="Save Draft" OnClick="Save_Click" /><asp:Button ID="Submit" runat="server" Text="Submit Week" OnClick="Submit_Click" OnClientClick="return confirm('Submit your saved week for review? Editing will be locked until it is returned.');" /><asp:Button ID="Approve" runat="server" Text="&#10003; Approve Week" CssClass="am-button approve" OnClick="Approve_Click" /><asp:Button ID="Reject" runat="server" Text="Return for Correction" CssClass="am-button danger" OnClick="Reject_Click" /><asp:Button ID="Reopen" runat="server" Text="Reopen Approved Week" CssClass="am-button danger" OnClick="Reopen_Click" /></div>
+ <p class="am-muted">Save changes before submitting. Clock-out estimates require confirmation and are never payroll evidence by themselves.</p>
+ </section>
+-<asp:Panel ID="BreakModal" runat="server" CssClass="am-modal am-break-modal" Visible="false"><section class="am-card" role="dialog" aria-modal="true" aria-label="Manage Breaks">
+-<header class="am-break-header"><button type="button" class="am-icon-button am-overlay-close" data-close-modal aria-label="Close">&#215;</button><h2>Manage Breaks</h2><asp:Label ID="BreakDay" runat="server" /></header>
++<%-- v86: Manage Breaks is a full page (no pop-up). While it is open the time card above is hidden but still posted, so typed values are kept; Back returns to the time card. --%>
++<asp:Panel ID="BreakModal" runat="server" CssClass="am-editor-page am-break-page" Visible="false"><style>main.am-main>*:not(.am-break-page):not(script):not(style){display:none!important}</style>
++<div class="am-backbar"><asp:LinkButton ID="BreakBack" runat="server" CausesValidation="false" CssClass="am-back"><span aria-hidden="true">&larr;</span> Back</asp:LinkButton></div>
++<section class="am-dialog-page am-break-card" aria-label="Manage Breaks">
++<header class="am-dialog-head"><div><h1>Manage Breaks</h1><p><asp:Label ID="BreakDay" runat="server" /></p></div></header>
+ <div class="am-break-body"><asp:Label ID="BreakMessage" runat="server" CssClass="am-notice am-error" Visible="false" /><div class="am-summary am-break-summary"><div><label>Work Time</label><strong><asp:Literal ID="BreakWorkTime" runat="server" /></strong></div><div><label>Total Hours</label><strong><asp:Literal ID="BreakGross" runat="server" /></strong></div><div><label>Unpaid Break</label><strong class="am-unpaid"><asp:Literal ID="BreakUnpaid" runat="server" /></strong></div><div><label>Paid Break</label><strong class="am-paid"><asp:Literal ID="BreakPaid" runat="server" /></strong></div><div><label>Net Hours</label><strong><asp:Literal ID="BreakNet" runat="server" /></strong></div></div>
+ <section class="am-break-entry"><h3>Add or Edit Break</h3><div class="am-break-fields"><label>Break Start Time<asp:TextBox ID="BreakStart" runat="server" TextMode="Time" CssClass="am-break-start" /></label><label>Break End Time<asp:TextBox ID="BreakEnd" runat="server" TextMode="Time" CssClass="am-break-end" /></label><label>Break Type<asp:RadioButtonList ID="Paid" runat="server" RepeatDirection="Horizontal"><asp:ListItem Value="0" Selected="true">Unpaid</asp:ListItem><asp:ListItem Value="1">Paid</asp:ListItem></asp:RadioButtonList></label><label>Duration (HH:MM)<input class="am-break-duration" readonly value="&#8212;" aria-label="Calculated break duration" /></label></div><div class="am-actions"><asp:Button ID="SaveBreak" runat="server" Text="&#65291; Add Break" OnClick="SaveBreak_Click" /><asp:Button ID="CancelBreakEdit" runat="server" Text="Cancel Edit" OnClick="CancelBreakEdit_Click" CssClass="am-button secondary" /></div><p class="am-muted">24-hour time. Duration is calculated automatically. Breaks must stay within the saved shift and cannot overlap. Each add, update or delete saves immediately.</p></section>
+ <h3>Recorded Breaks</h3><div class="am-table-wrap"><table class="am-table"><thead><tr><th>#</th><th>Break Start</th><th>Break End</th><th>Break Type</th><th>Duration</th><th>Action</th></tr></thead><tbody><asp:Repeater ID="BreakRows" runat="server" OnItemCommand="BreakCommand"><ItemTemplate><tr><td><%# Container.ItemIndex+1 %></td><td><%#: Convert.ToDateTime(Eval("BreakStart")).ToString("HH:mm") %></td><td><%#: Convert.ToDateTime(Eval("BreakEnd")).ToString("HH:mm") %></td><td><span class='<%# Convert.ToBoolean(Eval("IsPaid"))?"am-badge am-paid-badge":"am-badge am-unpaid-badge" %>'><%#: Convert.ToBoolean(Eval("IsPaid"))?"Paid":"Unpaid" %></span></td><td><%#: AnyminuteReportDurations.Format(AnyminuteReportDurations.Parse(Eval("BreakTotal"))) %></td><td><div class="am-actions"><asp:LinkButton runat="server" Text="Edit" Visible='<%# CanEditBreaks %>' CommandName="Edit" CommandArgument='<%# Eval("BreakID") %>' /><asp:LinkButton runat="server" Text="Delete" Visible='<%# CanEditBreaks %>' CommandName="Delete" CommandArgument='<%# Eval("BreakID") %>' OnClientClick="return confirm('Delete this break?');" /></div></td></tr></ItemTemplate></asp:Repeater></tbody></table></div>
+-<div class="am-summary am-break-totals"><div><label>Total Unpaid Break</label><strong><asp:Literal ID="TotalUnpaidBreak" runat="server" /></strong></div><div><label>Total Paid Break</label><strong><asp:Literal ID="TotalPaidBreak" runat="server" /></strong></div></div><footer class="am-actions"><button type="button" class="am-button secondary" data-close-modal>Done</button></footer></div></section></asp:Panel>
++<div class="am-summary am-break-totals"><div><label>Total Unpaid Break</label><strong><asp:Literal ID="TotalUnpaidBreak" runat="server" /></strong></div><div><label>Total Paid Break</label><strong><asp:Literal ID="TotalPaidBreak" runat="server" /></strong></div></div><footer class="am-actions"><asp:LinkButton ID="BreakDone" runat="server" CausesValidation="false" CssClass="am-button secondary">Done</asp:LinkButton></footer></div></section></asp:Panel>
+ <script>/* v84: Copy to next week. Cancel skips days that already have entries (default); OK overwrites them. */
+ function amCopyNextWeek(){var n=parseInt((document.getElementById('<%= CopyConflictCount.ClientID %>')||{}).value||'0',10)||0,f=document.getElementById('<%= CopyOverwrite.ClientID %>');if(f)f.value='0';if(n>0&&confirm(n+' day'+(n===1?'':'s')+' in the next week already have entries. Click OK to overwrite those days, or Cancel to skip them and copy only empty days.')){if(f)f.value='1';}return true;}
+ /* v22 (Pandey #5): warn when typed times are not saved yet (Status stays "Not entered" until saved). */
+diff --git a/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteBusinessEditor.css b/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteBusinessEditor.css
+index adaddab..7e5bf16 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteBusinessEditor.css
++++ b/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteBusinessEditor.css
+@@ -317,3 +317,9 @@ html body .am-al-nf{background:#fef2f2!important;border:1px solid #f87171!import
+ html body .am-al-nf-head strong{color:#b91c1c!important;font-weight:800}
+ html body .am-al-nf-i{border-color:#dc2626!important;color:#fff!important;background:#dc2626!important;font-family:Arial,sans-serif!important}
+ html body .am-al-nf p{color:#991b1b!important}
++/* v86: Enter Address Manually is a full page (no pop-up overlay); the rest of the page is hidden while it is open. */
++body.am-ui .am-addr-modal.am-addr-page{position:static;inset:auto;z-index:auto;background:none;display:block;padding:0}
++body.am-ui .am-addr-modal.am-addr-page[hidden]{display:none}
++body.am-ui .am-addr-modal.am-addr-page .am-addr-dialog{max-width:1180px;width:100%;margin:0 auto;max-height:none;box-shadow:0 10px 30px rgba(15,35,60,.08);border:1px solid #e1e8f0;border-radius:14px}
++body.am-ui .am-addr-modal.am-addr-page>.am-backbar{max-width:1180px;margin:0 auto 10px}
++body.am-ui.am-addr-open{overflow:auto!important}
 diff --git a/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteEmployeeDetails.css b/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteEmployeeDetails.css
 new file mode 100644
 index 0000000..216e59c
@@ -1579,10 +1832,10 @@ index 0000000..216e59c
 +.am-ed-event{display:inline-flex;align-items:center;gap:8px}
 +@media(max-width:1100px){.am-ed-layout{grid-template-columns:1fr}.am-ed-nav{flex-direction:row;flex-wrap:wrap}.am-ed-nav hr{display:none}.am-ed-profile-grid,.am-ed-pay,.am-ed-time-grid,.am-ed-address-grid,.am-ed-access-grid{grid-template-columns:1fr}.am-ed-kpis-4,.am-ed-kpis-5{grid-template-columns:repeat(2,1fr)}.am-ed-hero{flex-wrap:wrap}.am-ed-upload{grid-template-columns:1fr 1fr}}
 diff --git a/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteNavDrawer.css b/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteNavDrawer.css
-index 7108390..854dc7d 100644
+index 7108390..1d51cbb 100644
 --- a/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteNavDrawer.css
 +++ b/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteNavDrawer.css
-@@ -137,3 +137,18 @@ html body .am-account-menu>summary:has(.am-ap-avatar-name)>.am-account-chevron{d
+@@ -137,3 +137,27 @@ html body .am-account-menu>summary:has(.am-ap-avatar-name)>.am-account-chevron{d
  html body.am-modern .am-topbar:has(.am-rsl-brand)>.am-header-help{display:block!important;order:4!important;margin:0 10px 0 auto!important}
  html body.am-modern .am-topbar:has(.am-rsl-brand):has(>.am-header-help)>.am-account-menu{margin-left:0!important}
  html body.am-modern .am-topbar:has(.am-rsl-brand)>.am-account-menu>summary>.am-account-chevron{display:inline-block!important;margin-left:4px}
@@ -1601,6 +1854,15 @@ index 7108390..854dc7d 100644
 +.am-backbar{margin:0 0 10px}
 +.am-backbar .am-back{display:inline-flex!important;align-items:center;gap:6px;height:34px;padding:0 14px;border:1px solid #cfd9e5;border-radius:8px;background:#fff;color:#1d2f45!important;font-size:13.5px;font-weight:600;text-decoration:none!important}
 +.am-backbar .am-back:hover{border-color:#1768d6;color:#1768d6!important}
++/* v86: add/edit screens that used to be pop-ups render as full pages in the Edit Employee card style (.am-editor-page). */
++.am-editor-page{display:block;position:static}
++.am-editor-page>.am-dialog-page{max-width:1180px;margin:0 auto}
++.am-editor-page>.am-backbar{max-width:1180px;margin:0 auto 10px}
++.am-break-page .am-dialog-page{background:#fff;border:1px solid #e1e8f0;border-radius:14px;box-shadow:0 10px 30px rgba(15,35,60,.08);overflow:hidden;padding:0}
++.am-break-page .am-dialog-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:20px 24px;border-bottom:1px solid #e6edf4}
++.am-break-page .am-dialog-head h1{margin:0;font-size:22px;color:#0b2f57}
++.am-break-page .am-dialog-head p{margin:4px 0 0;color:#5f7389}
++.am-break-page .am-break-body{padding:20px 24px}
 diff --git a/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteSubscriberDashboard.css b/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteSubscriberDashboard.css
 new file mode 100644
 index 0000000..ad2cd86
