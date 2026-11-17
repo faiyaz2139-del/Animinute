@@ -22,7 +22,7 @@ public partial class AnyminuteBusinessProfilePage : System.Web.UI.Page
         int id; Int32.TryParse(Request.QueryString["BusinessId"], out id);
         var scope = AnyminuteModernScope.Businesses();
         if (id <= 0 || !scope.AsEnumerable().Any(r => Convert.ToInt32(r["BusinessID"]) == id))
-        { Profile.Text = "<div class=\"am-sd-card am-bp-empty\"><h1>Business Profile</h1><p>This business was not found or you do not have access to it.</p><a class=\"am-button secondary\" href=\"Dashboard.aspx?view=businesses\">Back to Businesses</a></div>"; return; }
+        { ProfileLit.Text = "<div class=\"am-sd-card am-bp-empty\"><h1>Business Profile</h1><p>This business was not found or you do not have access to it.</p><a class=\"am-button secondary\" href=\"Dashboard.aspx?view=businesses\">Back to Businesses</a></div>"; return; }
         DataRow b; DataTable addr = null; string accountant = "";
         using (var c = AnyminuteTimesheetRepair.Open())
         {
@@ -63,6 +63,6 @@ public partial class AnyminuteBusinessProfilePage : System.Web.UI.Page
         }
         else s.Append("<p class=\"am-sd-empty\">No address on file.</p>");
         s.Append("</div></div>");
-        Profile.Text = s.ToString();
+        ProfileLit.Text = s.ToString();
     }
 }

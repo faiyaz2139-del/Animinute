@@ -4,6 +4,6 @@
 <%-- 2026-11-16 v86: Business Profile = read-only view of one business (opened from "Business Profile" under the business name on the
      Businesses list). "Edit" opens the existing Edit Business screen (Add_Business.aspx?BusinessIDEdit=) and is shown to owners only. --%>
 <section class="am-bp" data-build="v86-20261116">
- <asp:Literal ID="Profile" runat="server" />
+ <asp:Literal ID="ProfileLit" runat="server" />
 </section>
 </asp:Content>
