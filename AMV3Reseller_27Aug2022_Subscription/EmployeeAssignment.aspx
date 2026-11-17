@@ -1,6 +1,8 @@
 <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="EmployeeAssignment.aspx.cs" Inherits="AnyminuteEmployeeAssignmentPage" %>
 <asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteEmployees.css?v=20261025v13" rel="stylesheet" /><link href="css/AnyminuteEmployeesV2.css?v=20261025v13" rel="stylesheet" /><link href="css/AnyminuteFlash.css?v=20261024v2" rel="stylesheet" /></asp:Content>
 <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+<%-- v86: Add / Edit Business Assignment is a full page (no pop-up): the list below is hidden while the editor is open. --%>
+<asp:Panel ID="AssignList" runat="server">
 <section class="am-dialog-page am-employees-v2">
  <header class="am-dialog-head"><div><h1>Edit Business Assignment</h1><p>Manage the businesses, roles and pay for this employee.</p></div>
   <div class="am-check-row"><asp:LinkButton ID="AddAssignment" runat="server" OnClick="Add_Click" CausesValidation="false" CssClass="am-button"><span aria-hidden="true">+</span> Add Assignment</asp:LinkButton><asp:HyperLink ID="CloseLink" runat="server" CssClass="am-dialog-close" ToolTip="Close" aria-label="Close">&times;</asp:HyperLink></div></header>
@@ -16,9 +18,11 @@
    </tbody></table></div></div>
  </div>
 </section>
-<asp:Panel ID="Editor" runat="server" Visible="false" CssClass="am-modal-shade" role="dialog" aria-modal="true" aria-labelledby="am-assign-title" DefaultButton="SaveAssignment">
+</asp:Panel>
+<asp:Panel ID="Editor" runat="server" Visible="false" CssClass="am-editor-page am-employees-v2" DefaultButton="SaveAssignment">
+ <div class="am-backbar"><asp:LinkButton ID="EditorBack" runat="server" OnClick="Cancel_Click" CausesValidation="false" CssClass="am-back"><span aria-hidden="true">&larr;</span> Back</asp:LinkButton></div>
  <div class="am-dialog-page">
-  <header class="am-dialog-head"><div><h1 id="am-assign-title"><asp:Literal ID="EditorTitle" runat="server" /></h1><p><asp:Literal ID="EditorSubtitle" runat="server" /></p></div><asp:LinkButton runat="server" OnClick="Cancel_Click" CausesValidation="false" CssClass="am-dialog-close" ToolTip="Close">&times;</asp:LinkButton></header>
+  <header class="am-dialog-head"><div><h1 id="am-assign-title"><asp:Literal ID="EditorTitle" runat="server" /></h1><p><asp:Literal ID="EditorSubtitle" runat="server" /></p></div></header>
   <div class="am-dialog-body">
    <asp:Label ID="EditorError" runat="server" Visible="false" CssClass="am-flash am-flash-error" role="alert" />
    <div class="am-info-card"><span class="am-avatar"><asp:Literal ID="EditorInitials" runat="server" /></span><div class="am-info-main"><strong><asp:Literal ID="EditorName" runat="server" /></strong><div class="am-info-meta"><span><asp:Literal ID="EditorEmail" runat="server" /></span><span><asp:Literal ID="EditorPhone" runat="server" /></span></div></div></div>
@@ -41,5 +45,5 @@
   <footer class="am-dialog-foot"><asp:LinkButton runat="server" OnClick="Cancel_Click" CausesValidation="false" CssClass="am-button secondary">Cancel</asp:LinkButton><asp:LinkButton ID="SaveAssignment" runat="server" OnClick="Save_Click" CssClass="am-button"><asp:Literal ID="SaveText" runat="server" /></asp:LinkButton></footer>
  </div>
 </asp:Panel>
-<script>(function(){var n=document.getElementById('Notes'),o=document.getElementById('am-notes-count');if(!n||!o)return;function u(){if(n.value.length>500)n.value=n.value.slice(0,500);o.textContent=n.value.length;}n.addEventListener('input',u);u();var f=n.closest('.am-modal-shade');if(f){var first=f.querySelector('select,input');if(first)first.focus();}})();</script>
+<script>(function(){var n=document.getElementById('Notes'),o=document.getElementById('am-notes-count');if(!n||!o)return;function u(){if(n.value.length>500)n.value=n.value.slice(0,500);o.textContent=n.value.length;}n.addEventListener('input',u);u();var f=n.closest('.am-editor-page');if(f){var first=f.querySelector('select,input');if(first)first.focus();}})();</script>
 </asp:Content>

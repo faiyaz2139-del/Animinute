@@ -35,7 +35,7 @@ public partial class AnyminuteEmployeeEditorPage : System.Web.UI.Page
     }
     // v83: a failed postal search must not keep showing Address Not Found after the user enters the address manually,
     // including after later postbacks (Add Assignment / Save). Required address-field validation is unchanged.
-    protected void Page_PreRender(object sender, EventArgs e) { DismissNotFoundIfManual(); }
+    protected void Page_PreRender(object sender, EventArgs e) { DismissNotFoundIfManual(); AssignmentPagePreRender(); }
     private bool HasManualAddress()
     {
         return StreetNo.Text.Trim().Length > 0 && Line1.Text.Trim().Length > 0 && City.Text.Trim().Length > 0
@@ -96,6 +96,8 @@ public partial class AnyminuteEmployeeEditorPage : System.Web.UI.Page
     }
     protected void OpenAssignment_Click(object sender, EventArgs e) { ModalError.Visible = false; AssignmentModal.Visible = true; if (NewEffective.Text.Length == 0) NewEffective.Text = DateTime.Today.ToString("yyyy-MM-dd", Inv); }
     protected void CloseAssignment_Click(object sender, EventArgs e) { AssignmentModal.Visible = false; }
+    // v86: Add Business Assignment is a full page; hide (not remove) the employee form while it is open so its typed values still post back.
+    protected void AssignmentPagePreRender() { if (AssignmentModal.Visible) Root.Style["display"] = "none"; else Root.Style.Remove("display"); }
     // ---------- Address lookup (same postal-code search as Add Business) ----------
     protected void SearchPostal_Click(object sender, EventArgs e)
     {
@@ -199,8 +201,10 @@ public partial class AnyminuteEmployeeEditorPage : System.Web.UI.Page
                 Go(Url(tab)); return;
             }
             var rows = PendingRows.Select(r => new AnyminuteAssignmentInput { BusinessId = Int32.Parse(r[0], Inv), Roles = r[2].Split(',').Select(x => Int32.Parse(x, Inv)).ToArray(), EmployeeType = r[4], PayType = r[5], PayRate = Decimal.Parse(r[6], Inv), EffectiveDate = DateTime.Parse(r[7], Inv), ProjectId = Int32.Parse(r[8], Inv), EndDate = r[9].Length > 0 ? (DateTime?)DateTime.Parse(r[9], Inv) : null, Status = r[10], BillingRate = r[11].Length > 0 ? (decimal?)Decimal.Parse(r[11], Inv) : null, Notes = r[12] }).ToList();
-            string notice; int created = AnyminuteEmployeeEditor.Create(p, rows, NewAccess.Visible ? LoginOn.Checked : true, NewAccess.Visible ? SendInvite.Checked && LoginOn.Checked : false, out notice);
-            if (!NewAccess.Visible) notice = (notice + " Send the login invitation from the employee's Login & Access tab.").Trim();
+            // v86: adding an employee never grants login access and never sends an invitation. Access is granted later from the
+            // employee's Login & Access tab (Send Invitation). An email that already has a login keeps its current access.
+            string notice; int created = AnyminuteEmployeeEditor.Create(p, rows, false, false, out notice);
+            notice = (notice + " Login access was not granted. Grant access from the employee's Login & Access tab (Send Invitation).").Trim();
             // Assignment status other than Active is applied after the legacy create (which always starts Active).
             foreach (var r in rows.Where(x => x.Status != "Active"))
                 try { AnyminuteEmployeeEditor.SaveAssignment(created, r); } catch (InvalidOperationException statusError) { notice = (notice + " " + statusError.Message).Trim(); }
@@ -330,7 +334,7 @@ public partial class AnyminuteEmployeeEditorPage : System.Web.UI.Page
             return m;
         });
     }
-    protected void Resend_Click(object sender, EventArgs e) { AccessResult(() => AnyminuteEmployeeEditor.SendInvitation(employee, WelcomeEmail.Checked)); }
+    protected void Resend_Click(object sender, EventArgs e) { AccessResult(() => AnyminuteEmployeeEditor.GrantAccessAndInvite(employee, WelcomeEmail.Checked)); }
     protected void CancelInvite_Click(object sender, EventArgs e) { AccessResult(() => AnyminuteEmployeeEditor.CancelInvitation(employee)); }
     protected void CopyLink_Click(object sender, EventArgs e)
     {

@@ -99,9 +99,12 @@
    var mp=m.querySelector('[data-province-for]');if(mp)fillRegions(mp,'Canada','');
    byId('amNewAddressError').hidden=true;
    m.hidden=false;document.body.classList.add('am-addr-open');Address.back=document.activeElement;
+   // v86: full page, not a pop-up - hide the rest of the page content (restored on close; form fields stay in the form).
+   Address.hid=[];var root=document.querySelector('main.am-main')||byId('page-content-wrapper')||document.body;for(var n=m;n&&n!==root&&n.parentNode;n=n.parentNode){Array.prototype.forEach.call(n.parentNode.children,function(x){if(x!==n&&x.tagName!=='SCRIPT'&&x.tagName!=='STYLE'&&!x.hidden&&x.style.display!=='none'){x.setAttribute('data-am-addr-hid','1');x.style.display='none';Address.hid.push(x);}});if(n.parentNode===root)break;}
+   window.scrollTo(0,0);
    var first=m.querySelector('[data-addr]');if(first)first.focus();
   },
-  close:function(){var m=byId('amNewAddress');if(!m||m.hidden)return;m.hidden=true;document.body.classList.remove('am-addr-open');if(Address.back&&Address.back.focus)Address.back.focus();},
+  close:function(){var m=byId('amNewAddress');if(!m||m.hidden)return;m.hidden=true;document.body.classList.remove('am-addr-open');(Address.hid||[]).forEach(function(x){x.style.display='';x.removeAttribute('data-am-addr-hid');});Address.hid=[];if(Address.back&&Address.back.focus)Address.back.focus();},
   apply:function(){
    var m=byId('amNewAddress'),missing=[],err=byId('amNewAddressError');
    Array.prototype.forEach.call(m.querySelectorAll('[data-req]'),function(f){var bad=!f.value.trim();if(bad)f.setAttribute('aria-invalid','true');else f.removeAttribute('aria-invalid');if(bad)missing.push(f.parentNode.firstChild.textContent.replace('*','').trim());});

@@ -188,6 +188,9 @@ public static class AnyminuteEmployeeEditor
             if (email.Length > 0 && Q(c, null, "SELECT 1 FROM UserAcc WHERE Email=@m AND UserTypeid=1", "@m", email).Rows.Count > 0) throw new InvalidOperationException("This email belongs to a subscriber account and cannot be added as an employee.");
         }
         string blank = email.Length > 0 ? email : DateTime.Now.Ticks.ToString(CultureInfo.InvariantCulture).Substring(0, 15) + "blank";
+        // v86: a login that already exists for this email (same person in another business) is shared; never change its access here.
+        bool existingLogin = false;
+        if (email.Length > 0) using (var c = AnyminuteTimesheetRepair.Open()) existingLogin = Q(c, null, "SELECT 1 FROM UserAcc WHERE Email=@m", "@m", email).Rows.Count > 0;
         int first = 0; int user = 0;
         foreach (var r in rows)
         {
@@ -251,7 +254,7 @@ public static class AnyminuteEmployeeEditor
                 tx.Commit();
             }
         }
-        if (!loginEnabled) { if (!SetSecurity(user, true, null, null, false, first, rows[0].BusinessId)) notice = "Employee saved. Login could not be disabled until the database update is installed."; }
+        if (!loginEnabled && !existingLogin) { if (!SetSecurity(user, true, null, null, false, first, rows[0].BusinessId)) notice = "Employee saved. Login could not be marked disabled until the database update is installed; no invitation or password was sent."; }
         if (sendInvite && loginEnabled && email.Length > 0)
         {
             string result = SendInvitation(first, false); notice = (notice + " " + result).Trim();
@@ -485,7 +488,7 @@ public static class AnyminuteEmployeeEditor
                 }
             }
             s.State = !s.Enabled ? "Disabled" : s.Pending ? "Invitation Pending" : "Enabled";
-            var sent = Q(c, null, "SELECT MAX(RecordedAtUTC) FROM AnyminuteApprovalAudit WHERE EmployeeID IN(SELECT EmployeeID FROM MappingTable WHERE USERID=@u) AND Action IN('SendInvitation','CreateEmployee')", "@u", s.UserId);
+            var sent = Q(c, null, "SELECT MAX(RecordedAtUTC) FROM AnyminuteApprovalAudit WHERE EmployeeID IN(SELECT EmployeeID FROM MappingTable WHERE USERID=@u) AND Action='SendInvitation'", "@u", s.UserId); // v86: adding an employee no longer sends an invitation
             if (sent.Rows[0][0] != DBNull.Value) s.SentText = DateTime.SpecifyKind(Convert.ToDateTime(sent.Rows[0][0]), DateTimeKind.Utc).ToLocalTime().ToString("MMM d, yyyy h:mm tt", CultureInfo.InvariantCulture);
         }
         return s;
@@ -565,6 +568,21 @@ public static class AnyminuteEmployeeEditor
             var t = Q(c, null, "SELECT TOP 1 ae.EmployeeID FROM EmpAddress a JOIN AddEmployee ae ON a.EmpAddressId=ae.ADDRESSID WHERE a.MainEmail=@m ORDER BY ae.EmployeeID", "@m", card.Email);
             return t.Rows.Count == 1 ? Convert.ToInt32(t.Rows[0][0]) : card.EmployeeId;
         }
+    }
+    // v86: Login & Access "Send Invitation": grants login access (clears the "disabled" flag set when the employee was added)
+    // and sends the existing invitation email. Password reset (SendInvitation(employee,false)) does not change access.
+    public static string GrantAccessAndInvite(int employee, bool welcome)
+    {
+        var card = RequireEditable(employee); int user = UserFor(card);
+        if (user == 0) throw new InvalidOperationException("This employee has no single login account to manage.");
+        if (String.IsNullOrWhiteSpace(card.Email) || card.Email.EndsWith("blank", StringComparison.OrdinalIgnoreCase)) throw new InvalidOperationException("Add an email address before sending an invitation.");
+        var before = Access(card); string granted = "";
+        if (before.TablesReady && !before.Enabled && SetSecurity(user, false, null, null, false, employee, card.First.BusinessId))
+        {
+            using (var c = AnyminuteTimesheetRepair.Open()) Audit(c, null, card.First.BusinessId, card.First.EmployeeId, "LoginEnabled", null, "Access granted (invitation)");
+            granted = "Login access granted. ";
+        }
+        return granted + SendInvitation(employee, welcome);
     }
     // Sent only when an owner explicitly asks; honours the existing IsSendMail switch and template.
     public static string SendInvitation(int employee, bool welcome)

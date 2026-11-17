@@ -14,7 +14,7 @@
   if(!host||host.querySelector('.am-backbar,.am-back'))return;
   // A screen that already shows its own back link keeps it.
   var links=host.querySelectorAll('a,button,input[type=submit],input[type=button]');
-  for(var i=0;i<links.length;i++){var t=(links[i].textContent||links[i].value||'').replace(/\s+/g,' ').trim();if(/^(\u2190\s*)?back\b/i.test(t)||/^\u2190/.test(t))return;}
+  for(var i=0;i<links.length;i++){if(links[i].closest('[hidden]'))continue;var t=(links[i].textContent||links[i].value||'').replace(/\s+/g,' ').trim();if(/^(\u2190\s*)?back\b/i.test(t)||/^\u2190/.test(t))return;}
   var href=PARENT[page]||'Dashboard.aspx',ref=document.referrer;
   try{if(ref){var r=new URL(ref);if(r.origin===location.origin&&r.pathname!==location.pathname&&!/login\.aspx$/i.test(r.pathname))href=ref;}}catch(x){}
   var bar=document.createElement('div');bar.className='am-backbar';

@@ -403,10 +403,11 @@ public partial class AnyminuteEmployeeDetails : System.Web.UI.Page
         AccAccount.Text=HttpUtility.HtmlEncode(card.Status);AccAccount.CssClass=Pill(card.Status);
         Action<Label,string> pill=(l,v)=>{l.Text="<i></i>"+HttpUtility.HtmlEncode(v);l.CssClass=Pill(v)+" am-ed-dot";};
         pill(AccLogin,s.UserId==0?"No login":s.Enabled?"Enabled":"Disabled");
-        AccInvite.Text=s.UserId==0?"Not sent":s.Pending?"Pending":I("check")+"Accepted";AccInvite.CssClass=Pill(s.UserId==0?"":s.Pending?"Pending":"Accepted");
+        bool notSent=s.UserId==0||(!s.Enabled&&s.SentText=="\u2014"); // v86: employees are added without access; nothing is sent until Send Invitation
+        AccInvite.Text=notSent?"Not sent":s.Pending?"Pending":I("check")+"Accepted";AccInvite.CssClass=Pill(notSent?"":s.Pending?"Pending":"Accepted");
         pill(AccMfa,s.TwoFactor?"Enabled":"Disabled");
         AccLastLogin.Text=HttpUtility.HtmlEncode(s.LastLogin=="Never"?"Never":FormatLogin(s.LastLogin));
-        ResendInvite.Text=I("send")+"Resend Invitation";SendReset.Text=I("shield")+"Send Password Reset";ResendInvite.Visible=SendReset.Visible=s.UserId>0;
+        ResendInvite.Text=I("send")+(s.Enabled?"Resend Invitation":"Send Invitation");ResendInvite.ToolTip=s.Enabled?"Send the invitation email again.":"Grant login access and send the invitation email.";SendReset.Text=I("shield")+"Send Password Reset";ResendInvite.Visible=SendReset.Visible=s.UserId>0;
         var ids=card.Assignments.Select(a=>a.EmployeeId).Distinct().ToArray();
         var reset=AnyminuteTimesheetRepair.Query(c,null,"SELECT MAX(RecordedAtUTC) FROM AnyminuteApprovalAudit WHERE EmployeeID IN("+String.Join(",",ids.Select(i=>i.ToString(Inv)))+") AND Action IN('ResetPassword','RequirePasswordChange')");
         AccLastReset.Text=HttpUtility.HtmlEncode(reset.Rows[0][0]==DBNull.Value?"\u2014":Local(reset.Rows[0][0],"MMM d, yyyy 'at' h:mm tt"));
@@ -424,7 +425,7 @@ public partial class AnyminuteEmployeeDetails : System.Web.UI.Page
         }
     }
     static string FormatLogin(string value){DateTime d;return DateTime.TryParseExact(value,"yyyy-MM-dd hh:mm tt",Inv,DateTimeStyles.None,out d)?d.ToString("MMM d, yyyy 'at' h:mm tt",Inv):value;}
-    protected void ResendInvite_Click(object sender,EventArgs e){AccessAction(()=>AnyminuteEmployeeEditor.SendInvitation(employee,true),null);}
+    protected void ResendInvite_Click(object sender,EventArgs e){AccessAction(()=>AnyminuteEmployeeEditor.GrantAccessAndInvite(employee,true),null);}
     protected void SendReset_Click(object sender,EventArgs e){AccessAction(()=>AnyminuteEmployeeEditor.SendInvitation(employee,false),"ResetPassword");}
     private void AccessAction(Func<string> action,string audit)
     {

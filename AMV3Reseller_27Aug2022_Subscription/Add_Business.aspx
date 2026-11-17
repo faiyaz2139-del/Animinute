@@ -1,8 +1,8 @@
 ﻿<%@ Page Title="Business" Language="C#" MasterPageFile="~/Main.master" AutoEventWireup="true" CodeFile="Add_Business.aspx.cs" Inherits="Add_Business" %>
 <%@ Register Assembly="AjaxControlToolkit" Namespace="AjaxControlToolkit" TagPrefix="cc1" %>
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
- <link rel="stylesheet" href="css/AnyminuteBusinessEditor.css?v=20261101v46" />
- <script src="Scripts/AnyminuteBusinessEditor.js?v=20261030v32" defer="defer"></script>
+ <link rel="stylesheet" href="css/AnyminuteBusinessEditor.css?v=20261116v86" />
+ <script src="Scripts/AnyminuteBusinessEditor.js?v=20261116v86" defer="defer"></script>
  <script src="Scripts/AnyminuteBusinessAutosave.js?v=20261026v19" defer="defer"></script>
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
@@ -152,7 +152,8 @@
   <asp:PostBackTrigger ControlID="btnSaveAddres" />
   <asp:PostBackTrigger ControlID="btnUpdateAddress" />
  </Triggers></asp:UpdatePanel>
- <div class="am-addr-modal" id="amNewAddress" role="dialog" aria-modal="true" aria-labelledby="amNewAddressTitle" hidden="hidden">
+ <div class="am-addr-modal am-addr-page" id="amNewAddress" aria-labelledby="amNewAddressTitle" hidden="hidden">
+  <div class="am-backbar"><a href="#" class="am-back" data-addr-close="1"><span aria-hidden="true">&larr;</span> Back</a></div>
   <div class="am-addr-dialog">
    <header class="am-md-head"><div><h2 id="amNewAddressTitle">Enter Address Manually</h2><p>Enter the business address details below. All required fields must be completed.</p></div><button type="button" class="am-addr-x" data-addr-close="1" aria-label="Close">&times;</button></header>
    <div class="am-md-body">

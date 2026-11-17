@@ -140,10 +140,12 @@
  </footer>
 </section>
 
-<%-- Add mode: Add Business Assignment dialog (same fields as the assignment dialog, slides 5-6) --%>
-<asp:Panel ID="AssignmentModal" runat="server" Visible="false" CssClass="am-modal-shade" role="dialog" aria-modal="true" aria-labelledby="am-new-assign-title" DefaultButton="AddPending">
+<%-- Add mode: Add Business Assignment (same fields as the assignment screen, slides 5-6). v86: full page, not a pop-up -
+     the employee form above is hidden (still posted, so nothing typed is lost) while this screen is open. --%>
+<asp:Panel ID="AssignmentModal" runat="server" Visible="false" CssClass="am-editor-page am-employees-v2" DefaultButton="AddPending">
+ <div class="am-backbar"><asp:LinkButton ID="AssignmentBack" runat="server" OnClick="CloseAssignment_Click" CausesValidation="false" CssClass="am-back"><span aria-hidden="true">&larr;</span> Back</asp:LinkButton></div>
  <div class="am-dialog-page">
-  <header class="am-dialog-head"><div><h1 id="am-new-assign-title">Add Business Assignment</h1><p>Assign this employee to a business and set roles and pay.</p></div><asp:LinkButton runat="server" OnClick="CloseAssignment_Click" CausesValidation="false" CssClass="am-dialog-close" ToolTip="Close">&times;</asp:LinkButton></header>
+  <header class="am-dialog-head"><div><h1 id="am-new-assign-title">Add Business Assignment</h1><p>Assign this employee to a business and set roles and pay.</p></div></header>
   <div class="am-dialog-body">
    <asp:Label ID="ModalError" runat="server" Visible="false" CssClass="am-flash am-flash-error" role="alert" />
    <div class="am-section"><h2>Assignment Details</h2><div class="am-grid am-cols-2">

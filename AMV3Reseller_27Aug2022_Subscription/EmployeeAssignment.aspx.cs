@@ -29,8 +29,8 @@ public partial class AnyminuteEmployeeAssignmentPage : System.Web.UI.Page
         if (IsPostBack) return;
         BindPage();
         int b; string selected = Request.QueryString["BusinessId"];
-        if (selected != null) { if (!Int32.TryParse(selected, out b) || !card.Assignments.Any(a => a.BusinessId == b)) throw new HttpException(403, "Business outside this employee's assignments."); OpenEditor(b); }
-        else if (Request.QueryString["mode"] == "add") OpenEditor(0);
+        if (selected != null) { if (!Int32.TryParse(selected, out b) || !card.Assignments.Any(a => a.BusinessId == b)) throw new HttpException(403, "Business outside this employee's assignments."); OpenEditor(b); ViewState["Direct"] = true; }
+        else if (Request.QueryString["mode"] == "add") { OpenEditor(0); ViewState["Direct"] = true; }
     }
     private void BindPage()
     {
@@ -78,7 +78,13 @@ public partial class AnyminuteEmployeeAssignmentPage : System.Web.UI.Page
     }
     protected void BusinessChanged(object sender, EventArgs e) { BindChoices(new int[0], 0); }
     protected void Add_Click(object sender, EventArgs e) { OpenEditor(0); }
-    protected void Cancel_Click(object sender, EventArgs e) { Editor.Visible = false; EditingBusiness = 0; }
+    // v86: full-page editor. Back/Cancel returns to where it was opened from (Employee Details when opened directly, else the list).
+    protected void Cancel_Click(object sender, EventArgs e)
+    {
+        Editor.Visible = false; EditingBusiness = 0;
+        if (ViewState["Direct"] != null) { Response.Redirect("EmployeeDetails.aspx?EmployeeId=" + employee + "&tab=assignments", false); Context.ApplicationInstance.CompleteRequest(); }
+    }
+    protected void Page_PreRender(object sender, EventArgs e) { AssignList.Visible = !Editor.Visible; }
     protected void Existing_ItemCommand(object source, RepeaterCommandEventArgs e)
     {
         int b; if (!Int32.TryParse(Convert.ToString(e.CommandArgument), out b)) throw new HttpException(400, "Invalid business.");
