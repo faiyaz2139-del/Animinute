@@ -1,0 +1,5 @@
+## EmployeeDetails.aspx
+Renamed the header button "✎ Edit Basic Info" to "✎ Edit" (pencil icon kept). Updated the helper sentence to "Owners can use Edit where permitted." Markup text only; no code-behind, CSS, or behaviour change.
+## Main.master / Modern.master / MasterWithoutMenu.master
+stamp + ?v= text change only (v84-20261116 -> v85-20261116)
+Not compiled on the box (no mcs/dotnet present this session); the site compiles these CodeFile pages on the server at first request, same as v84.
