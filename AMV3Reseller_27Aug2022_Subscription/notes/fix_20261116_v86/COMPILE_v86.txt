@@ -7,3 +7,27 @@ v86 compile check (2026-11-16)
 - JavaScript: node --check Scripts/AnyminuteNavDrawer.js, Scripts/AnyminuteBackNav.js, Scripts/AnyminuteAddressLookup.js and Scripts/AnyminuteBusinessEditor.js = OK.
 - EmployeeProfile.aspx, WeekTimeCard.aspx, Add_Business.aspx: markup only (no code-behind change).
 - The live site still compiles CodeFile pages and App_Code on the server at first request, as in v85.
+
+Server-compile re-check after the first v86 deploy attempt failed (2026-11-16 ~22:00 EST):
+- Server error: App_Web_*.cs CS0102 'AnyminuteBusinessProfilePage' already contains a definition for 'Profile' - the page had
+  <asp:Literal ID="Profile">, which clashes with the Profile property ASP.NET generates in every CodeFile partial class.
+  Fixed: ID renamed to ProfileLit (BusinessProfile.aspx + .aspx.cs). The local harness missed it because its designer stubs did not
+  include the parser-generated members.
+- Harness upgraded to mirror the server page compile (Web.config: <compilation debug="true"/>, no codedom provider => built-in
+  C# 5 compiler, httpRuntime targetFramework 4.6):
+  * designer stubs now also declare the parser-generated Profile and ApplicationInstance members, use the exact control types
+    (HtmlAnchor/HtmlInputText/... for runat=server HTML, System.Web.UI.UpdatePanel/ScriptManager, user controls), and flag duplicate IDs;
+    verified it reproduces the server CS0102 on the old BusinessProfile and passes with the fix;
+  * every <%= %>, <%: %>, <%# %> and <% %> block in the pages is compiled inside a class derived from the page (catches private
+    members used from markup and bad expressions), with the default ASP.NET page namespaces;
+  * <%# %> bindings on bool/int properties (Visible, Enabled, Checked, ...) are compiled with the same cast the parser generates;
+  * App_Code compiled alone (no dependency on page classes), then each page / master compiled separately against App_Code
+    (+ its master / user control), as the server does.
+  Scope: every page/master/control changed in v85-v86 - Add_Business.aspx, BusinessProfile.aspx, Dashboard.aspx, EmployeeAssignment.aspx,
+  EmployeeDetails.aspx, EmployeeEditor.aspx, EmployeeProfile.aspx, WeekTimeCard.aspx, Main.master, MasterWithoutMenu.master,
+  Modern.master (+ Controls/AnyminuteUiOverview.ascx used by Main.master) and all App_Code.
+  Also checked: CodeFile/Inherits pairs match; no duplicate control IDs (page level or inside a template); no control ID equal to a
+  generated member, the class name, a code-behind member, or common type/namespace names; no new class name duplicated across pages or
+  App_Code (the duplicates that exist are old, unchanged legacy pages); unknown attributes on Literal/PlaceHolder/Repeater/HiddenField/
+  Content; <%= %> inside server-control attributes; namespaces used by new code (System.Web.Script.Serialization is already used by live code).
+  Result: 0 errors in every build. Only finding was the Profile clash above.

@@ -427,7 +427,7 @@ index 26974f8..bead93d 100644
          string upgrade = UpgradeHref(all);
 diff --git a/AMV3Reseller_27Aug2022_Subscription/BusinessProfile.aspx b/AMV3Reseller_27Aug2022_Subscription/BusinessProfile.aspx
 new file mode 100644
-index 0000000..f8cd50f
+index 0000000..1d8f4e0
 --- /dev/null
 +++ b/AMV3Reseller_27Aug2022_Subscription/BusinessProfile.aspx
 @@ -0,0 +1,9 @@
@@ -437,12 +437,12 @@ index 0000000..f8cd50f
 +<%-- 2026-11-16 v86: Business Profile = read-only view of one business (opened from "Business Profile" under the business name on the
 +     Businesses list). "Edit" opens the existing Edit Business screen (Add_Business.aspx?BusinessIDEdit=) and is shown to owners only. --%>
 +<section class="am-bp" data-build="v86-20261116">
-+ <asp:Literal ID="Profile" runat="server" />
++ <asp:Literal ID="ProfileLit" runat="server" />
 +</section>
 +</asp:Content>
 diff --git a/AMV3Reseller_27Aug2022_Subscription/BusinessProfile.aspx.cs b/AMV3Reseller_27Aug2022_Subscription/BusinessProfile.aspx.cs
 new file mode 100644
-index 0000000..fc7e996
+index 0000000..5e0695d
 --- /dev/null
 +++ b/AMV3Reseller_27Aug2022_Subscription/BusinessProfile.aspx.cs
 @@ -0,0 +1,68 @@
@@ -470,7 +470,7 @@ index 0000000..fc7e996
 +        int id; Int32.TryParse(Request.QueryString["BusinessId"], out id);
 +        var scope = AnyminuteModernScope.Businesses();
 +        if (id <= 0 || !scope.AsEnumerable().Any(r => Convert.ToInt32(r["BusinessID"]) == id))
-+        { Profile.Text = "<div class=\"am-sd-card am-bp-empty\"><h1>Business Profile</h1><p>This business was not found or you do not have access to it.</p><a class=\"am-button secondary\" href=\"Dashboard.aspx?view=businesses\">Back to Businesses</a></div>"; return; }
++        { ProfileLit.Text = "<div class=\"am-sd-card am-bp-empty\"><h1>Business Profile</h1><p>This business was not found or you do not have access to it.</p><a class=\"am-button secondary\" href=\"Dashboard.aspx?view=businesses\">Back to Businesses</a></div>"; return; }
 +        DataRow b; DataTable addr = null; string accountant = "";
 +        using (var c = AnyminuteTimesheetRepair.Open())
 +        {
@@ -511,7 +511,7 @@ index 0000000..fc7e996
 +        }
 +        else s.Append("<p class=\"am-sd-empty\">No address on file.</p>");
 +        s.Append("</div></div>");
-+        Profile.Text = s.ToString();
++        ProfileLit.Text = s.ToString();
 +    }
 +}
 diff --git a/AMV3Reseller_27Aug2022_Subscription/Dashboard.aspx b/AMV3Reseller_27Aug2022_Subscription/Dashboard.aspx

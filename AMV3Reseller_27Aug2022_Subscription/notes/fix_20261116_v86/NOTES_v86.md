@@ -33,6 +33,7 @@ No slide asked to delete or clean data.
   4. Add/Edit Business > Enter Address Manually (Add_Business.aspx + Scripts/AnyminuteBusinessEditor.js): shown as a full page with Back; Cancel/Back/Escape restore the business form.
   Left as small confirms: Projects > Delete Project panel (delete confirmation), browser confirm() prompts (remove assignment, cancel invitation, deactivate, copy week). Left untouched: legacy pages not in the subscriber menu that use the old AjaxControlToolkit pop-ups (e.g. Home_Page, Time_Sheet_Entry*, Ticket_List, PostalCode*, SearchAddress, Permission_Role_Master, CreaetUserType, AddEditRole_Add_Employee, legacy EmployeeProfile.aspx address lookup). Employee Details > Documents upload is an inline form (not a pop-up).
 - "Edit Info" / "Edit Basic Info" labels: searched every page, code file and script - the only one (Employee Details header) was already renamed to "Edit" in v85; no other "Edit ... Info" label exists, so no further change.
+- Deploy fix: the first v86 deploy stopped at the server compile (nothing changed live) - BusinessProfile.aspx had a Literal with ID "Profile", which clashes with ASP.NET's generated Profile property. Renamed to ProfileLit. A full server-style compile re-check of every page/master/control changed in v85-v86 found nothing else (see COMPILE_v86.txt).
 
 ## Deploy (when approved)
 Copy site/ over the live site (Web.config not in the zip). No SQL. Make sure App_Data is writable by the app pool (Documents). Check: view-source meta anyminute-build = v86-20261116.
