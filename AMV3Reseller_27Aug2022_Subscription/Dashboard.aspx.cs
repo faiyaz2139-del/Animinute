@@ -29,6 +29,9 @@ public partial class AnyminuteDashboard : System.Web.UI.Page
   {RoleDashboard.Text=AnyminuteAccountantDashboard.RenderBusinessView(Request.QueryString["b"]);RoleDashboard.Visible=true;OwnerView.Visible=false;return;}
   if(Request.QueryString["view"]!="businesses" && AnyminuteAccountantDashboard.Applies())
    {RoleDashboard.Text=AnyminuteAccountantDashboard.Render(Request.QueryString["b"]);RoleDashboard.Visible=true;OwnerView.Visible=false;return;}
+   // v86: subscribers (Business Administrator) get the redesigned Dashboard; "Businesses" (?view=businesses) keeps the list below.
+   if(Request.QueryString["view"]!="businesses" && AnyminuteSubscriberDashboard.Applies())
+   {RoleDashboard.Text=AnyminuteSubscriberDashboard.Render(Request.QueryString["b"],Request.QueryString["w"],Request.QueryString["view"]=="activity");RoleDashboard.Visible=true;OwnerView.Visible=false;return;}
    Bind();
   }
  }

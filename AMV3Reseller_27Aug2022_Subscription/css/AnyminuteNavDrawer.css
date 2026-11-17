@@ -137,3 +137,18 @@ html body .am-account-menu>summary:has(.am-ap-avatar-name)>.am-account-chevron{d
 html body.am-modern .am-topbar:has(.am-rsl-brand)>.am-header-help{display:block!important;order:4!important;margin:0 10px 0 auto!important}
 html body.am-modern .am-topbar:has(.am-rsl-brand):has(>.am-header-help)>.am-account-menu{margin-left:0!important}
 html body.am-modern .am-topbar:has(.am-rsl-brand)>.am-account-menu>summary>.am-account-chevron{display:inline-block!important;margin-left:4px}
+/* v86: left menu always visible (am-nav-always, set by AnyminuteNavDrawer.js for every user except Accountant / Support Admin,
+   who keep their own modes). Desktop: permanent sidebar beside the content, no hamburger. Narrow: open by default over the page. */
+@media(min-width:992px){
+html body.am-drawer-nav.am-nav-always [data-toggle-sidebar],html body.am-drawer-nav.am-nav-always #menu-toggle{display:none!important}
+html body.am-drawer-nav.am-nav-always .am-sidebar,html body.am-drawer-nav.am-nav-always #sidebar-wrapper,html body.am-drawer-nav.am-nav-always #wrapper.active #sidebar-wrapper{transform:none!important;visibility:visible!important;left:0!important;width:220px!important;box-shadow:none!important;border-right:1px solid #e2e8f0!important}
+html body.am-drawer-nav.am-nav-always .am-main,html body.am-drawer-nav.am-nav-always #page-content-wrapper,html body.am-drawer-nav.am-nav-always #wrapper.active #page-content-wrapper{margin-left:220px!important;width:calc(100% - 220px)!important;max-width:none!important}
+}
+@media(max-width:991px){
+html body.am-drawer-nav.am-nav-always.am-drawer-open .am-main,html body.am-drawer-nav.am-nav-always.am-drawer-open #page-content-wrapper,html body.am-drawer-nav.am-nav-always.am-drawer-open #wrapper.active #page-content-wrapper{margin-left:0!important;width:100%!important}
+html body.am-drawer-nav.am-nav-always.am-drawer-open .am-sidebar,html body.am-drawer-nav.am-nav-always.am-drawer-open #sidebar-wrapper{box-shadow:10px 0 28px rgba(15,35,60,.22)!important}
+}
+/* v86: Back button (Scripts/AnyminuteBackNav.js) - top-left above the page header on every screen except the Dashboard home. */
+.am-backbar{margin:0 0 10px}
+.am-backbar .am-back{display:inline-flex!important;align-items:center;gap:6px;height:34px;padding:0 14px;border:1px solid #cfd9e5;border-radius:8px;background:#fff;color:#1d2f45!important;font-size:13.5px;font-weight:600;text-decoration:none!important}
+.am-backbar .am-back:hover{border-color:#1768d6;color:#1768d6!important}

@@ -8,8 +8,13 @@
  function toggles(){return document.querySelectorAll(SEL);}
  function pinned(){return document.body.classList.contains('am-sa-pinned')&&window.innerWidth>=992;}
  function apDesk(){return document.body.classList.contains('am-ap-navbody')&&window.innerWidth>=992;}
+ // v86: the left menu is always visible. Desktop (>=992px): permanent sidebar, no collapse. Narrow screens: shown by default
+ // as an open drawer on every page load; the user can close it with the menu button. Accountant / Support Admin keep their own modes.
+ function always(){return document.body.classList.contains('am-nav-always');}
+ function alwaysDesk(){return always()&&window.innerWidth>=992;}
  function set(open){
-  if(apDesk())open=true; // v37 (PPT s1, strict): accountant sidebar is permanent on desktop
+  if(apDesk()||alwaysDesk())open=true; // v37 (PPT s1, strict): accountant sidebar is permanent on desktop
+
   document.body.classList.toggle('am-drawer-open',open);
   if(document.body.classList.contains('am-sa-pinned')){try{sessionStorage.setItem('amSaNav',open?'1':'0');}catch(x){}}
   document.body.classList.remove('am-nav-open','am-nav-collapsed');
@@ -20,6 +25,7 @@
   document.body.classList.add('am-drawer-nav');
   if(document.querySelector('li.am-sa-nav'))document.body.classList.add('am-sa-navbody'); // v35: Support Admin drawer sizing
   // v37 (PPT s1, strict): accountant = light, always-visible icon sidebar on desktop; no hamburger there.
+  if(!document.querySelector('li.am-ap-nav')&&!document.body.classList.contains('am-sa-navbody')&&!document.body.dataset.amAlways){document.body.dataset.amAlways='1';document.body.classList.add('am-nav-always','am-sa-pinned');document.body.classList.add('am-drawer-open');}
   if(document.querySelector('li.am-ap-nav')){document.body.classList.add('am-ap-navbody','am-sa-pinned');if(window.innerWidth>=992)document.body.classList.add('am-drawer-open');}
   // v36 (DOCX image6, strict): Support Admin = pinned sidebar on desktop, content shifted, no dark shade. Hamburger still collapses it.
   if(document.body.classList.contains('am-sa-navbody')&&!document.body.dataset.amSaPin){document.body.dataset.amSaPin='1';document.body.classList.add('am-sa-pinned');var keep=null;try{keep=sessionStorage.getItem('amSaNav');}catch(x){}if(window.innerWidth>=992&&keep!=='0')document.body.classList.add('am-drawer-open');}
@@ -35,5 +41,5 @@
  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&document.body.classList.contains('am-drawer-open')){set(false);var t=toggles()[0];if(t)t.focus();}});
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
  window.addEventListener('load',init);
- window.addEventListener('resize',function(){if(apDesk()&&!document.body.classList.contains('am-drawer-open'))set(true);});
+ window.addEventListener('resize',function(){if((apDesk()||alwaysDesk())&&!document.body.classList.contains('am-drawer-open'))set(true);});
 }(window,document));

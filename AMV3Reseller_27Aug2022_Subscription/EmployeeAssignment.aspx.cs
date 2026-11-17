@@ -9,6 +9,11 @@ public partial class AnyminuteEmployeeAssignmentPage : System.Web.UI.Page
 {
     private int employee; private AnyminuteEmployeeCardView card;
     private int EditingBusiness { get { return Convert.ToInt32(ViewState["EditingBusiness"] ?? 0); } set { ViewState["EditingBusiness"] = value; } }
+    // v86 (deck: red X on Accountant and Administrator in Assign Roles): those two options are no longer offered here.
+    // UI only - a role the assignment already holds (UserType 2 Administrator / 12 Accountant) is kept, in its original position, when the form is saved.
+    static readonly int[] HiddenRoles = { 2, 12 };
+    private int[] OriginalRoles { get { return (int[])ViewState["OriginalRoles"] ?? new int[0]; } set { ViewState["OriginalRoles"] = value; } }
+    private int[] KeptRoles { get { return (int[])ViewState["KeptRoles"] ?? new int[0]; } set { ViewState["KeptRoles"] = value; } }
     private static string StatusPill(object status) { return AnyminuteEmployeeEditor.StatusPill(status); }
     protected void Page_Init(object sender, EventArgs e)
     {
@@ -64,10 +69,10 @@ public partial class AnyminuteEmployeeAssignmentPage : System.Web.UI.Page
     }
     private void BindChoices(int[] selectedRoles, int project)
     {
-        Roles.Items.Clear(); DefaultProject.Items.Clear(); DefaultProject.Items.Add(new ListItem("Select project", "0"));
+        Roles.Items.Clear(); DefaultProject.Items.Clear(); KeptRoles = selectedRoles.Where(x => HiddenRoles.Contains(x)).ToArray(); OriginalRoles = selectedRoles; DefaultProject.Items.Add(new ListItem("Select project", "0"));
         int b; if (!Int32.TryParse(Business.SelectedValue, out b)) return;
         using (var c = AnyminuteTimesheetRepair.Open()) AnyminuteApprovalAssignments.RequireOwner(c, null, b);
-        foreach (DataRow r in AnyminuteEmployeeEditor.Roles(b).Rows) { var item = new ListItem(Convert.ToString(r["UserType"]), Convert.ToString(r["User_TypeId"])); item.Selected = selectedRoles.Contains(Convert.ToInt32(r["User_TypeId"])); Roles.Items.Add(item); }
+        foreach (DataRow r in AnyminuteEmployeeEditor.Roles(b).Rows) { if (HiddenRoles.Contains(Convert.ToInt32(r["User_TypeId"]))) continue; var item = new ListItem(Convert.ToString(r["UserType"]), Convert.ToString(r["User_TypeId"])); item.Selected = selectedRoles.Contains(Convert.ToInt32(r["User_TypeId"])); Roles.Items.Add(item); }
         foreach (DataRow p in AnyminuteEmployeeEditor.Projects(b).Rows) DefaultProject.Items.Add(new ListItem(Convert.ToString(p["ProjectName"]), Convert.ToString(p["ProjectID"])));
         if (DefaultProject.Items.FindByValue(project.ToString(CultureInfo.InvariantCulture)) != null) DefaultProject.SelectedValue = project.ToString(CultureInfo.InvariantCulture);
     }
@@ -96,7 +101,11 @@ public partial class AnyminuteEmployeeAssignmentPage : System.Web.UI.Page
             if (!Int32.TryParse(Business.SelectedValue, out b)) throw new InvalidOperationException("Select a business.");
             if (EditingBusiness != 0 && b != EditingBusiness) throw new HttpException(400, "Business changed unexpectedly.");
             input.BusinessId = b;
-            input.Roles = Roles.Items.Cast<ListItem>().Where(i => i.Selected).Select(i => Int32.Parse(i.Value, CultureInfo.InvariantCulture)).ToArray();
+            var ticked = Roles.Items.Cast<ListItem>().Where(i => i.Selected).Select(i => Int32.Parse(i.Value, CultureInfo.InvariantCulture)).ToList();
+            var kept = KeptRoles; var original = OriginalRoles;
+            // A kept (no longer offered) role that was the main role stays first; other kept roles follow the ticked ones.
+            if (kept.Length > 0 && original.Length > 0 && kept.Contains(original[0])) input.Roles = new[] { original[0] }.Concat(ticked).Concat(kept.Where(x => x != original[0])).ToArray();
+            else input.Roles = ticked.Concat(kept).ToArray();
             input.EmployeeType = EmployeeType.SelectedValue; input.PayType = PayType.SelectedValue; input.Status = AssignmentStatus.SelectedValue;
             if (!Decimal.TryParse(PayRate.Text, NumberStyles.Number, CultureInfo.InvariantCulture, out rate)) throw new InvalidOperationException("Enter the pay rate.");
             input.PayRate = rate;

@@ -145,12 +145,26 @@ public static class AnyminuteUiNavigation
         // (BusinessActions.aspx?action=edit); otherwise it opens the Businesses list, whose rows carry the per-business Edit.
         if (groups[GBusinesses].SubMenu.Any(m => (m.Name ?? "").Trim() == "Add Business") && !groups[GBusinesses].SubMenu.Any(m => (m.Name ?? "").Trim() == "Edit Business"))
             groups[GBusinesses].SubMenu.Add(Link(-631, "Edit Business", VirtualPathUtility.ToAbsolute("~/Dashboard.aspx?view=businesses&mode=edit")));
+        // v86 (subscriber nav): View Business / View Employees / View Projects open the existing lists. Their links carry a harmless
+        // extra query value so they are not dropped as duplicates of the parent item's own link.
+        var navSession = HttpContext.Current == null ? null : HttpContext.Current.Session;
+        bool subscriberNav = navSession != null && Convert.ToString(navSession["UserTypeid"]).Trim() == "1" && HasAccount();
+        if (subscriberNav)
+        {
+            if (groups[GBusinesses].SubMenu.Count > 0 && !groups[GBusinesses].SubMenu.Any(m => (m.Name ?? "").Trim() == "View Business"))
+                groups[GBusinesses].SubMenu.Add(Link(-633, "View Business", VirtualPathUtility.ToAbsolute("~/Dashboard.aspx?view=businesses&mode=view")));
+            if (groups[GEmployees].SubMenu.Count > 0 && !groups[GEmployees].SubMenu.Any(m => (m.Name ?? "").Trim() == "View Employees"))
+                groups[GEmployees].SubMenu.Add(Link(-634, "View Employees", VirtualPathUtility.ToAbsolute("~/Users.aspx?view=list")));
+            if (groups[GProjects].SubMenu.Count > 0 && !groups[GProjects].SubMenu.Any(m => (m.Name ?? "").Trim() == "View Projects"))
+                groups[GProjects].SubMenu.Add(Link(-635, "View Projects", VirtualPathUtility.ToAbsolute("~/Projects.aspx?view=list")));
+            groups[GWorkSchedule].Name = "Work Schedules";
+        }
         Func<string,string[],int> rank = (n, order) => { int i = Array.IndexOf(order, n); return i < 0 ? order.Length : i; };
-        groups[GBusinesses].SubMenu = groups[GBusinesses].SubMenu.OrderBy(m => rank(m.Name, new[] { "Add Business", "Edit Business", "Accountant & Payroll Access" })).ToList();
-        groups[GEmployees].SubMenu = groups[GEmployees].SubMenu.OrderBy(m => rank(m.Name, new[] { "Add Employee", "Edit Employee", "Assign User" })).ToList();
+        groups[GBusinesses].SubMenu = groups[GBusinesses].SubMenu.OrderBy(m => rank(m.Name, new[] { "View Business", "Add Business", "Edit Business", "Accountant & Payroll Access" })).ToList();
+        groups[GEmployees].SubMenu = groups[GEmployees].SubMenu.OrderBy(m => rank(m.Name, new[] { "View Employees", "Add Employee", "Edit Employee", "Assign User" })).ToList();
         groups[GUserAccess].SubMenu = groups[GUserAccess].SubMenu.OrderBy(m => rank(m.Name, new[] { "Login & Access", "Accountant & Payroll Access", "Report Access" })).ToList();
         groups[GReports].SubMenu = groups[GReports].SubMenu.OrderBy(m => rank(m.Name, new[] { "All Reports" })).ToList();
-        groups[GProjects].SubMenu = groups[GProjects].SubMenu.OrderBy(m => rank(m.Name, new[] { "Add Project", "Edit Project" })).ToList();
+        groups[GProjects].SubMenu = groups[GProjects].SubMenu.OrderBy(m => rank(m.Name, new[] { "View Projects", "Add Project", "Edit Project" })).ToList();
         // Account: Change Password, then Plan Upgrade directly below it (only where the role already has an upgrade page).
         var account = new List<MenuViewModel> { Link(-601, "Change Password", VirtualPathUtility.ToAbsolute("~/Change%20Password.aspx")) };
         string upgrade = UpgradeHref(all);
