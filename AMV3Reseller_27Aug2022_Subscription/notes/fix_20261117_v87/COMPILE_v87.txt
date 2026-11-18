@@ -1,0 +1,10 @@
+## Users.aspx
+Markup only: replaced five `&#8661;` sort-indicator spans with an identical inline SVG (class am-sort-icon). Bumped AnyminuteEmployeesV2.css cache-buster to ?v=20261117v87. Users.aspx.cs (Sort_Command and bind/sort logic) was not changed. No new control IDs; none named Profile or ApplicationInstance.
+
+## css/AnyminuteEmployeesV2.css
+`.am-sort` is now inline-flex; `.am-sort-icon` / svg sized 10x13px in #9aabbd. CSS only.
+
+## Main.master / Modern.master / MasterWithoutMenu.master / BusinessProfile.aspx
+stamp + ?v= text change only (v86-20261116 -> v87-20261117).
+
+mcs is not on this box; these are markup/CSS-only edits (no C#). The site compiles CodeFile pages on the server at first request, same as v86. Static check: all five headers contain the same SVG path; zero remaining `&#8661;` on Users.aspx; Sort_Command hooks unchanged. Headless Chrome render of the headers with the V2 CSS showed crisp identical up/down icons on Employee, Businesses, Roles, Rate and Status.
