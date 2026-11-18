@@ -1,0 +1,228 @@
+/* AnyMinute v88 (2026-11-17): flat design on every screen.
+   No shadows, gradients, raised/floating cards, nested bordered panels, or shaded section bars.
+   Inputs, buttons, tables, pills and dropdown menus keep a normal thin border. */
+
+/* --- shadows off everywhere (including hover/focus card glows) --- */
+html body.am-ui,
+html body.am-ui *,
+html body.am-ui *::before,
+html body.am-ui *::after,
+html body.am-typography,
+html body.am-typography *,
+html body.am-modern,
+html body.am-modern *,
+html body.am-reference,
+html body.am-reference *,
+html body.am-unified,
+html body.am-unified *,
+html body .sa-modal-box,
+html body .sa-card,
+html body .am-sd,
+html body .am-bp,
+html body .am-rl,
+html body .am-ws,
+html body .am-projects {
+    box-shadow: none !important;
+    text-shadow: none !important;
+}
+
+/* --- page / section cards become one flat surface --- */
+html body .am-dialog-page,
+html body .am-pj-dialog,
+html body .am-pj-editor,
+html body .am-pj-side,
+html body .am-pj-assign,
+html body .am-card,
+html body .am-sd-card,
+html body .am-sd-kpi,
+html body .am-section,
+html body .am-info-card,
+html body .am-access-box,
+html body .am-head-v3,
+html body .am-banded,
+html body .am-band,
+html body .am-ws-card,
+html body .am-rl-body,
+html body .am-rl-card,
+html body .am-rl-nav,
+html body .am-rl-adv,
+html body .am-rl-empty,
+html body .am-rl-twrap,
+html body .am-rl-kpis > div,
+html body .am-rp-banner,
+html body .sa-card,
+html body .sa-panel,
+html body .sa-modal-box,
+html body .am-metrics-v2 > div,
+html body .am-ls-box,
+html body .am-al-main,
+html body .am-addr-dialog,
+html body .am-break-card,
+html body .am-empsel,
+html body .am-editor-v3,
+html body .am-employees-v2 .am-card {
+    box-shadow: none !important;
+    border-color: transparent !important;
+    border-width: 0 !important;
+    border-radius: 0 !important;
+    background-image: none !important;
+}
+
+/* Keep the page itself white and flush with the main column (not a floating inset card). */
+html body .am-dialog-page,
+html body .am-pj-dialog,
+html body .am-pj-editor,
+html body .am-pj-assign {
+    max-width: none !important;
+    width: 100% !important;
+    margin: 0 !important;
+    background: transparent !important;
+    overflow: visible !important;
+}
+
+/* Nested add/edit "card in a card" wrappers */
+html body .am-dialog-page .am-dialog-page,
+html body .am-section,
+html body .am-info-card,
+html body .am-access-box {
+    background: transparent !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+/* Shaded section header bars -> plain heading + thin divider */
+html body .am-band,
+html body .am-pj-band,
+html body .am-rl-band,
+html body .am-rl-adv > summary,
+html body .am-sd-table th,
+html body .am-rl-table th,
+html body .sa-panel-head,
+html body .am-dialog-foot,
+html body .am-pj-dfoot {
+    background: transparent !important;
+    background-image: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+}
+html body .am-band,
+html body .am-pj-band,
+html body .am-rl-band,
+html body .am-dialog-head,
+html body .am-pj-dhead {
+    border-bottom: 1px solid #e6edf4 !important;
+    margin-bottom: 16px;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+html body .am-dialog-foot,
+html body .am-pj-dfoot {
+    border-top: 1px solid #e6edf4 !important;
+    background: transparent !important;
+}
+
+/* Report: no outer frame around the list + filters (red X). Hide leftover role badge. */
+html body .am-rl-body {
+    background: transparent !important;
+    padding: 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+}
+html body .am-rl-role,
+html body .am-rp-role,
+html body .am-rl-headx .am-rl-role {
+    display: none !important;
+}
+html body .am-rl-tile {
+    box-shadow: none !important;
+}
+
+/* Inputs, selects, textareas keep a normal thin border (restore after card reset). */
+html body input[type="text"],
+html body input[type="search"],
+html body input[type="email"],
+html body input[type="password"],
+html body input[type="number"],
+html body input[type="tel"],
+html body input[type="date"],
+html body input[type="time"],
+html body input[type="url"],
+html body input:not([type]),
+html body select,
+html body textarea {
+    box-shadow: none !important;
+    border-style: solid !important;
+    border-width: 1px !important;
+}
+
+/* Action / kebab menus: JS positions them as fixed overlays (see AnyminuteMenus.js)
+   so table scrollers can keep overflow-x:auto without clipping the menu. */
+html body .am-sd-card,
+html body .am-ed-actions,
+html body .am-employee-actions {
+    overflow: visible !important;
+}
+html body details.am-sd-menu,
+html body details.am-menu,
+html body details.am-employee-menu,
+html body details.am-business-status-menu,
+html body details.am-ed-menu,
+html body details.am-pj-menu,
+html body details.sa-menu,
+html body details.am-business-menu {
+    position: relative;
+    z-index: 20;
+    overflow: visible !important;
+}
+html body details[open].am-sd-menu,
+html body details[open].am-menu,
+html body details[open].am-employee-menu,
+html body details[open].am-business-status-menu,
+html body details[open].am-ed-menu,
+html body details[open].am-pj-menu,
+html body details[open].sa-menu,
+html body details[open].am-business-menu {
+    z-index: 80;
+}
+html body details.am-sd-menu > div,
+html body details.am-menu > div,
+html body details.am-employee-menu > div,
+html body details.am-business-status-menu > div,
+html body details.am-ed-menu > div,
+html body details.am-pj-menu > div,
+html body details.sa-menu > div,
+html body details.am-business-menu > div,
+html body .am-pj-pop,
+html body .am-row-menu,
+html body .am-ws-daylist,
+html body .sa-modal-box {
+    border: 1px solid #e2e8f0 !important;
+    background: #fff !important;
+    box-shadow: none !important;
+    z-index: 4000;
+}
+
+/* Remaining decorative gradients (chart grid, hovers) stay un-raised; no card glow. */
+html body .am-sd-kpi:hover,
+html body .am-sd-qa:hover {
+    box-shadow: none !important;
+}
+
+/* Page headings and leftover editorial/serif faces -> standard UI sans. */
+html body.am-typography,
+html body.am-reference,
+html body.am-reference.am-typography,
+html body.am-ui {
+    --am-font-editorial: Arial, Helvetica, sans-serif;
+}
+html body.am-typography h1,
+html body.am-reference h1,
+html body.am-ui h1,
+html body.am-ws h1,
+html body .am-pj-dhead h1,
+html body .am-dialog-head h1,
+html body .am-sd-head h1,
+html body .am-rl-titles h1,
+html body .am-ap-sechead h2 {
+    font-family: Arial, Helvetica, sans-serif !important;
+}

@@ -48,12 +48,11 @@ public static partial class AnyminuteReports
         if (q.Business == "") q.Business = scope.Count == 1 ? scope[0].Id.ToString(Inv) : "all";
         var inScope = scope.Where(b => q.Business == "all" || b.Id.ToString(Inv) == q.Business).ToList();
         var defs = Available(q.Business);
-        var tiers = inScope.Select(b => b.Tier).Distinct().OrderByDescending(t => t).Select(t => Tiers[t]).ToList();
         var def = defs.FirstOrDefault(x => x.Key == q.Key) ?? defs.FirstOrDefault(x => inScope.Any(b => Perm(x, b).View)) ?? defs.FirstOrDefault();
         string home = VirtualPathUtility.ToAbsolute("~/Reports.aspx");
         sb.Append("<div class=\"am-rl\">");
         sb.Append(AnyminuteReportLayout.Head("Reports", home, def == null ? "Reports" : def.Name, def == null ? "View, filter, preview and export reports based on your access." : def.Desc.TrimEnd('.') + ". Filter the report to view and export the results.",
-            "<span class=\"am-rl-role\" title=\"Reports shown follow the selected business and your role permissions\">" + E(String.Join(" / ", tiers)) + "</span>"));
+            null));
         var groups = new List<AnyminuteReportLayout.Group>();
         foreach (var g in HubGroups)
         {

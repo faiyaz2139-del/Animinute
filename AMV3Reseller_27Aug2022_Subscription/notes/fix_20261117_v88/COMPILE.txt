@@ -1,0 +1,18 @@
+C# (C# 5 style; no new control IDs; none named Profile or ApplicationInstance):
+- App_Code/AnyminuteEmployeeEditor.cs: RoleDisplay helper; assignment role name lists use it; RoleCss uses the display name.
+- App_Code/AnyminuteEmployeesView.cs: assignment.Role uses RoleDisplay.
+- EmployeeAssignment.aspx.cs: HiddenRoles is Accountant only (12); checkbox text uses RoleDisplay.
+- EmployeeEditor.aspx.cs: NewRoles and AccessRole ListItem text uses RoleDisplay (values unchanged).
+- Users.aspx.cs / EmployeeDetails.aspx.cs: RoleCss / RoleChip use RoleDisplay.
+- App_Code/AnyminuteReportsUi.cs: report header extraHtml is null (role badge removed); unused tiers local removed.
+
+Markup/CSS/JS only otherwise (masters, typography, Flat.css, Menus.js, Georgia->Arial, Home_Page label, View_Project link, login page cache-busters).
+mcs is not on this box. The site compiles CodeFile pages on the server at first request, same as v87. Static review: RoleDisplay is display-only; Sort/save still use User_TypeId; Head() accepts null extraHtml.
+
+Headless Chrome verification (real CSS/JS, static markup):
+- notes/fix_20261117_v88/edit-assignment.png
+- notes/fix_20261117_v88/add-project.png
+- notes/fix_20261117_v88/time-card-report.png
+- notes/fix_20261117_v88/dashboard-menu.png
+- notes/fix_20261117_v88/work-schedule.png
+Also copied under /workspace/anymin/notes/fix_20261117_v88/.

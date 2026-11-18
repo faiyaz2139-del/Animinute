@@ -9,9 +9,9 @@ public partial class AnyminuteEmployeeAssignmentPage : System.Web.UI.Page
 {
     private int employee; private AnyminuteEmployeeCardView card;
     private int EditingBusiness { get { return Convert.ToInt32(ViewState["EditingBusiness"] ?? 0); } set { ViewState["EditingBusiness"] = value; } }
-    // v86 (deck: red X on Accountant and Administrator in Assign Roles): those two options are no longer offered here.
-    // UI only - a role the assignment already holds (UserType 2 Administrator / 12 Accountant) is kept, in its original position, when the form is saved.
-    static readonly int[] HiddenRoles = { 2, 12 };
+    // v88: Administrator (UserType 2) is offered again, labelled "Supervisor" (display only). Accountant (12) stays hidden as in v86.
+    // UI only - a hidden role the assignment already holds is kept, in its original position, when the form is saved.
+    static readonly int[] HiddenRoles = { 12 };
     private int[] OriginalRoles { get { return (int[])ViewState["OriginalRoles"] ?? new int[0]; } set { ViewState["OriginalRoles"] = value; } }
     private int[] KeptRoles { get { return (int[])ViewState["KeptRoles"] ?? new int[0]; } set { ViewState["KeptRoles"] = value; } }
     private static string StatusPill(object status) { return AnyminuteEmployeeEditor.StatusPill(status); }
@@ -72,7 +72,7 @@ public partial class AnyminuteEmployeeAssignmentPage : System.Web.UI.Page
         Roles.Items.Clear(); DefaultProject.Items.Clear(); KeptRoles = selectedRoles.Where(x => HiddenRoles.Contains(x)).ToArray(); OriginalRoles = selectedRoles; DefaultProject.Items.Add(new ListItem("Select project", "0"));
         int b; if (!Int32.TryParse(Business.SelectedValue, out b)) return;
         using (var c = AnyminuteTimesheetRepair.Open()) AnyminuteApprovalAssignments.RequireOwner(c, null, b);
-        foreach (DataRow r in AnyminuteEmployeeEditor.Roles(b).Rows) { if (HiddenRoles.Contains(Convert.ToInt32(r["User_TypeId"]))) continue; var item = new ListItem(Convert.ToString(r["UserType"]), Convert.ToString(r["User_TypeId"])); item.Selected = selectedRoles.Contains(Convert.ToInt32(r["User_TypeId"])); Roles.Items.Add(item); }
+        foreach (DataRow r in AnyminuteEmployeeEditor.Roles(b).Rows) { if (HiddenRoles.Contains(Convert.ToInt32(r["User_TypeId"]))) continue; var item = new ListItem(AnyminuteEmployeeEditor.RoleDisplay(r["UserType"]), Convert.ToString(r["User_TypeId"])); item.Selected = selectedRoles.Contains(Convert.ToInt32(r["User_TypeId"])); Roles.Items.Add(item); }
         foreach (DataRow p in AnyminuteEmployeeEditor.Projects(b).Rows) DefaultProject.Items.Add(new ListItem(Convert.ToString(p["ProjectName"]), Convert.ToString(p["ProjectID"])));
         if (DefaultProject.Items.FindByValue(project.ToString(CultureInfo.InvariantCulture)) != null) DefaultProject.SelectedValue = project.ToString(CultureInfo.InvariantCulture);
     }

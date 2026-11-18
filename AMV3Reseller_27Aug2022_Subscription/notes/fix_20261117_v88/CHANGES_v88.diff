@@ -1,0 +1,792 @@
+diff --git a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteEmployeeEditor.cs b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteEmployeeEditor.cs
+index c4dafe7..183d92e 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteEmployeeEditor.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteEmployeeEditor.cs
+@@ -304,8 +304,8 @@ public static class AnyminuteEmployeeEditor
+             foreach (var a in card.Assignments.OrderBy(x => x.Business))
+             {
+                 var row = new AnyminuteAssignmentRow { BusinessId = a.BusinessId, EmployeeId = a.EmployeeId, RoleId = a.RoleId, Business = a.Business, EmployeeType = a.Type, Status = a.Status == "Inactive" ? "Not Active" : a.Status, Notes = "" };
+-                var roles = new List<string> { a.Role }; var ids = new List<int> { a.RoleId };
+-                if (extra) foreach (DataRow r in Q(c, null, "SELECT u.User_TypeId,u.UserType FROM AnyminuteAssignmentRole x JOIN UserType u ON u.User_TypeId=x.UserTypeId WHERE x.BusinessID=@b AND x.EmployeeID=@e AND x.UserTypeId<>@r ORDER BY u.UserType", "@b", a.BusinessId, "@e", a.EmployeeId, "@r", a.RoleId).Rows) { roles.Add(S(r[1])); ids.Add(Convert.ToInt32(r[0])); }
++                var roles = new List<string> { RoleDisplay(a.Role) }; var ids = new List<int> { a.RoleId };
++                if (extra) foreach (DataRow r in Q(c, null, "SELECT u.User_TypeId,u.UserType FROM AnyminuteAssignmentRole x JOIN UserType u ON u.User_TypeId=x.UserTypeId WHERE x.BusinessID=@b AND x.EmployeeID=@e AND x.UserTypeId<>@r ORDER BY u.UserType", "@b", a.BusinessId, "@e", a.EmployeeId, "@r", a.RoleId).Rows) { roles.Add(RoleDisplay(S(r[1]))); ids.Add(Convert.ToInt32(r[0])); }
+                 row.Roles = roles.Where(x => x.Length > 0).ToArray(); row.RoleIds = ids.ToArray();
+                 var rate = Q(c, null, "SELECT TOP 1 Rate,RateType,effectivedate FROM RateDetails WHERE EmployeeId=@e AND effectivedate<=GETDATE() ORDER BY effectivedate DESC,RateId DESC", "@e", a.EmployeeId);
+                 if (rate.Rows.Count == 1) { row.PayRate = Convert.ToDecimal(rate.Rows[0]["Rate"]); row.PayType = S(rate.Rows[0]["RateType"]); if (rate.Rows[0]["effectivedate"] != DBNull.Value) row.EffectiveDate = Convert.ToDateTime(rate.Rows[0]["effectivedate"]); }
+@@ -635,9 +635,17 @@ public static class AnyminuteEmployeeEditor
+         }
+         catch (Exception) { }
+     }
++    // Display-only: the employee Assign Roles option stored as "Administrator" (UserType 2) is shown as "Supervisor".
++    // Values / User_TypeId / permissions are unchanged. Does not rename Payroll Administrator or Business Administrator.
++    public static string RoleDisplay(object role)
++    {
++        string s = Convert.ToString(role);
++        if (String.Equals(s, "Administrator", StringComparison.OrdinalIgnoreCase)) return "Supervisor";
++        return s;
++    }
+     public static string RoleCss(object role)
+     {
+-        string r = Convert.ToString(role).ToLowerInvariant();
++        string r = RoleDisplay(role).ToLowerInvariant();
+         if (r.Contains("admin")) return "am-role-admin"; if (r.Contains("manager") || r.Contains("supervisor")) return "am-role-manager";
+         if (r.Contains("accountant")) return "am-role-accountant"; if (r.Contains("employee") || r.Contains("staff")) return "am-role-employee"; return "am-role-other";
+     }
+diff --git a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteEmployeesView.cs b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteEmployeesView.cs
+index 3b2df8d..38da33c 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteEmployeesView.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteEmployeesView.cs
+@@ -73,7 +73,7 @@ public static class AnyminuteEmployeesView
+                 int user=mappings.Rows.Count==1?Convert.ToInt32(mappings.Rows[0][0]):0;
+                 assignments.Add(new AnyminuteEmployeeAssignmentView {
+                     BusinessId=business, EmployeeId=employee, RoleId=Convert.ToInt32(row["UserTypeId"]), UserId=user,
+-                    Business=Convert.ToString(b["CompanyName"]), Role=Convert.ToString(row["UserRoleName"]),
++                    Business=Convert.ToString(b["CompanyName"]), Role=AnyminuteEmployeeEditor.RoleDisplay(row["UserRoleName"]),
+                     Type=Convert.ToString(row["Employee_Type"]), Rate=Convert.ToString(row["Rate"]),
+                     Status=Status(row["Employee_Status"],row["IsActive"]), Name=Convert.ToString(row["EmpName"]),
+                     Email=Convert.ToString(row["Email"]),Phone=Convert.ToString(row["Phone"]),Mobile=Convert.ToString(row["Mobile"]),Manage=role==1
+diff --git a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteReportsUi.cs b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteReportsUi.cs
+index 42d8eaf..ff6c9f1 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteReportsUi.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteReportsUi.cs
+@@ -48,12 +48,11 @@ public static partial class AnyminuteReports
+         if (q.Business == "") q.Business = scope.Count == 1 ? scope[0].Id.ToString(Inv) : "all";
+         var inScope = scope.Where(b => q.Business == "all" || b.Id.ToString(Inv) == q.Business).ToList();
+         var defs = Available(q.Business);
+-        var tiers = inScope.Select(b => b.Tier).Distinct().OrderByDescending(t => t).Select(t => Tiers[t]).ToList();
+         var def = defs.FirstOrDefault(x => x.Key == q.Key) ?? defs.FirstOrDefault(x => inScope.Any(b => Perm(x, b).View)) ?? defs.FirstOrDefault();
+         string home = VirtualPathUtility.ToAbsolute("~/Reports.aspx");
+         sb.Append("<div class=\"am-rl\">");
+         sb.Append(AnyminuteReportLayout.Head("Reports", home, def == null ? "Reports" : def.Name, def == null ? "View, filter, preview and export reports based on your access." : def.Desc.TrimEnd('.') + ". Filter the report to view and export the results.",
+-            "<span class=\"am-rl-role\" title=\"Reports shown follow the selected business and your role permissions\">" + E(String.Join(" / ", tiers)) + "</span>"));
++            null));
+         var groups = new List<AnyminuteReportLayout.Group>();
+         foreach (var g in HubGroups)
+         {
+diff --git a/AMV3Reseller_27Aug2022_Subscription/BusinessProfile.aspx b/AMV3Reseller_27Aug2022_Subscription/BusinessProfile.aspx
+index c5cacd1..92acb1d 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/BusinessProfile.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/BusinessProfile.aspx
+@@ -1,9 +1,9 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="BusinessProfile.aspx.cs" Inherits="AnyminuteBusinessProfilePage" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSubscriberDashboard.css?v=20261117v87" rel="stylesheet" /></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSubscriberDashboard.css?v=20261117v88" rel="stylesheet" /></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <%-- 2026-11-16 v86: Business Profile = read-only view of one business (opened from "Business Profile" under the business name on the
+      Businesses list). "Edit" opens the existing Edit Business screen (Add_Business.aspx?BusinessIDEdit=) and is shown to owners only. --%>
+-<section class="am-bp" data-build="v87-20261117">
++<section class="am-bp" data-build="v88-20261117">
+  <asp:Literal ID="ProfileLit" runat="server" />
+ </section>
+ </asp:Content>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/EmployeeAssignment.aspx.cs b/AMV3Reseller_27Aug2022_Subscription/EmployeeAssignment.aspx.cs
+index 423dc1c..9ce0a0d 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/EmployeeAssignment.aspx.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/EmployeeAssignment.aspx.cs
+@@ -9,9 +9,9 @@ public partial class AnyminuteEmployeeAssignmentPage : System.Web.UI.Page
+ {
+     private int employee; private AnyminuteEmployeeCardView card;
+     private int EditingBusiness { get { return Convert.ToInt32(ViewState["EditingBusiness"] ?? 0); } set { ViewState["EditingBusiness"] = value; } }
+-    // v86 (deck: red X on Accountant and Administrator in Assign Roles): those two options are no longer offered here.
+-    // UI only - a role the assignment already holds (UserType 2 Administrator / 12 Accountant) is kept, in its original position, when the form is saved.
+-    static readonly int[] HiddenRoles = { 2, 12 };
++    // v88: Administrator (UserType 2) is offered again, labelled "Supervisor" (display only). Accountant (12) stays hidden as in v86.
++    // UI only - a hidden role the assignment already holds is kept, in its original position, when the form is saved.
++    static readonly int[] HiddenRoles = { 12 };
+     private int[] OriginalRoles { get { return (int[])ViewState["OriginalRoles"] ?? new int[0]; } set { ViewState["OriginalRoles"] = value; } }
+     private int[] KeptRoles { get { return (int[])ViewState["KeptRoles"] ?? new int[0]; } set { ViewState["KeptRoles"] = value; } }
+     private static string StatusPill(object status) { return AnyminuteEmployeeEditor.StatusPill(status); }
+@@ -72,7 +72,7 @@ public partial class AnyminuteEmployeeAssignmentPage : System.Web.UI.Page
+         Roles.Items.Clear(); DefaultProject.Items.Clear(); KeptRoles = selectedRoles.Where(x => HiddenRoles.Contains(x)).ToArray(); OriginalRoles = selectedRoles; DefaultProject.Items.Add(new ListItem("Select project", "0"));
+         int b; if (!Int32.TryParse(Business.SelectedValue, out b)) return;
+         using (var c = AnyminuteTimesheetRepair.Open()) AnyminuteApprovalAssignments.RequireOwner(c, null, b);
+-        foreach (DataRow r in AnyminuteEmployeeEditor.Roles(b).Rows) { if (HiddenRoles.Contains(Convert.ToInt32(r["User_TypeId"]))) continue; var item = new ListItem(Convert.ToString(r["UserType"]), Convert.ToString(r["User_TypeId"])); item.Selected = selectedRoles.Contains(Convert.ToInt32(r["User_TypeId"])); Roles.Items.Add(item); }
++        foreach (DataRow r in AnyminuteEmployeeEditor.Roles(b).Rows) { if (HiddenRoles.Contains(Convert.ToInt32(r["User_TypeId"]))) continue; var item = new ListItem(AnyminuteEmployeeEditor.RoleDisplay(r["UserType"]), Convert.ToString(r["User_TypeId"])); item.Selected = selectedRoles.Contains(Convert.ToInt32(r["User_TypeId"])); Roles.Items.Add(item); }
+         foreach (DataRow p in AnyminuteEmployeeEditor.Projects(b).Rows) DefaultProject.Items.Add(new ListItem(Convert.ToString(p["ProjectName"]), Convert.ToString(p["ProjectID"])));
+         if (DefaultProject.Items.FindByValue(project.ToString(CultureInfo.InvariantCulture)) != null) DefaultProject.SelectedValue = project.ToString(CultureInfo.InvariantCulture);
+     }
+diff --git a/AMV3Reseller_27Aug2022_Subscription/EmployeeDetails.aspx.cs b/AMV3Reseller_27Aug2022_Subscription/EmployeeDetails.aspx.cs
+index 381aba0..e069495 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/EmployeeDetails.aspx.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/EmployeeDetails.aspx.cs
+@@ -76,7 +76,7 @@ public partial class AnyminuteEmployeeDetails : System.Web.UI.Page
+         switch(Convert.ToString(status)){case "Approved":return I("check");case "Pending":return I("clock");case "On Hold":return I("pause");case "Completed":return I("check");default:return "";}
+     }
+     protected static string AssignStatus(object status,object end){string s=Convert.ToString(status);if(s=="Active")return "Active";if(end!=null&&end!=DBNull.Value&&Convert.ToDateTime(end).Date<=DateTime.Today)return "Ended";return s.Length>0?s:"\u2014";}
+-    protected static string RoleChip(object role){string r=Convert.ToString(role).ToLowerInvariant();return r.Contains("manager")||r.Contains("supervisor")?"am-chip-purple":r.Contains("admin")?"am-chip-amber":r.Contains("account")?"am-chip-green":"am-chip-blue";}
++    protected static string RoleChip(object role){string r=AnyminuteEmployeeEditor.RoleDisplay(role).ToLowerInvariant();return r.Contains("manager")||r.Contains("supervisor")?"am-chip-purple":r.Contains("admin")?"am-chip-amber":r.Contains("account")?"am-chip-green":"am-chip-blue";}
+     protected string JobTitle(object recordId){string t;return jobTitles.TryGetValue(Convert.ToInt32(recordId),out t)&&t.Length>0?t:"\u2014";}
+     protected static string FileBadge(object name){string ext=System.IO.Path.GetExtension(Convert.ToString(name)).TrimStart('.').ToUpperInvariant();return ext=="JPEG"?"JPG":ext;}
+     protected string DocUrl(object id,bool download){return Url("documents")+"&doc="+HttpUtility.UrlEncode(Convert.ToString(id))+(download?"&dl=1":"");}
+diff --git a/AMV3Reseller_27Aug2022_Subscription/EmployeeEditor.aspx.cs b/AMV3Reseller_27Aug2022_Subscription/EmployeeEditor.aspx.cs
+index 0b0e060..3895e0f 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/EmployeeEditor.aspx.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/EmployeeEditor.aspx.cs
+@@ -64,7 +64,7 @@ public partial class AnyminuteEmployeeEditorPage : System.Web.UI.Page
+     {
+         NewRoles.Items.Clear(); NewProject.Items.Clear(); NewProject.Items.Add(new ListItem("None", "0"));
+         int b; if (!Int32.TryParse(NewBusiness.SelectedValue, out b) || !AnyminuteModernScope.Owns(b)) return;
+-        foreach (DataRow r in AnyminuteEmployeeEditor.Roles(b).Rows) NewRoles.Items.Add(new ListItem(Convert.ToString(r["UserType"]), Convert.ToString(r["User_TypeId"])));
++        foreach (DataRow r in AnyminuteEmployeeEditor.Roles(b).Rows) NewRoles.Items.Add(new ListItem(AnyminuteEmployeeEditor.RoleDisplay(r["UserType"]), Convert.ToString(r["User_TypeId"])));
+         var employeeRole = NewRoles.Items.FindByValue("4"); if (employeeRole != null) employeeRole.Selected = true;
+         foreach (DataRow p in AnyminuteEmployeeEditor.Projects(b).Rows) NewProject.Items.Add(new ListItem(Convert.ToString(p["ProjectName"]), Convert.ToString(p["ProjectID"])));
+     }
+@@ -302,7 +302,7 @@ public partial class AnyminuteEmployeeEditorPage : System.Web.UI.Page
+             foreach (DataRow r in AnyminuteEmployeeEditor.Roles(first.BusinessId).Rows)
+             {
+                 int id = Convert.ToInt32(r["User_TypeId"]);
+-                if (id == 2 || id == 4 || id == 5 || id == first.RoleId) AccessRole.Items.Add(new ListItem(Convert.ToString(r["UserType"]), id.ToString(Inv)));
++                if (id == 2 || id == 4 || id == 5 || id == first.RoleId) AccessRole.Items.Add(new ListItem(AnyminuteEmployeeEditor.RoleDisplay(r["UserType"]), id.ToString(Inv)));
+             }
+             Select(AccessRole, first.RoleId.ToString(Inv)); AccessRole.ToolTip = "Role in " + first.Business;
+         }
+diff --git a/AMV3Reseller_27Aug2022_Subscription/ExternalLogin.aspx b/AMV3Reseller_27Aug2022_Subscription/ExternalLogin.aspx
+index 65a4a38..9d2d584 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/ExternalLogin.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/ExternalLogin.aspx
+@@ -1,3 +1,3 @@
+ <%@ Page Language="C#" AutoEventWireup="true" CodeFile="ExternalLogin.aspx.cs" Inherits="AnyminuteExternalLoginPage" EnableViewState="false" %>
+ <%-- v41: Google / Microsoft sign-in start (?p=google|microsoft) and OAuth redirect URI (?code&state). No UI; always redirects. --%>
+-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8" /><meta name="referrer" content="no-referrer" /><title>Signing in | AnyMinute</title><link href="css/AnyminuteTypography.css?v=20261108v74" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261108v74" rel="stylesheet" /></head><body class="am-reference am-typography"></body></html>
++<!DOCTYPE html><html lang="en"><head><meta charset="utf-8" /><meta name="referrer" content="no-referrer" /><title>Signing in | AnyMinute</title><link href="css/AnyminuteTypography.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261117v88" rel="stylesheet" /></head><body class="am-reference am-typography"></body></html>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Home_Page.aspx b/AMV3Reseller_27Aug2022_Subscription/Home_Page.aspx
+index 399d8cf..ddba0b4 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Home_Page.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/Home_Page.aspx
+@@ -479,7 +479,7 @@
+                                     </asp:TemplateField>
+                                     <asp:TemplateField HeaderText="User Role Name" ItemStyle-Width="10%">
+                                         <ItemTemplate>
+-                                            <asp:Label ID="Lbl_Administrator" runat="server" Text='Administrator'></asp:Label>
++                                            <asp:Label ID="Lbl_Administrator" runat="server" Text='Supervisor'></asp:Label>
+                                         </ItemTemplate>
+                                     </asp:TemplateField>
+                                     <%--<asp:TemplateField HeaderText="Contact Name">--%>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Login.aspx b/AMV3Reseller_27Aug2022_Subscription/Login.aspx
+index ab4ef39..0186676 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Login.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/Login.aspx
+@@ -152,7 +152,7 @@
+         .am-social-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;margin-bottom:10px;padding:9px 12px;border:1px solid #d0d7e2;border-radius:6px;background:#fff;color:#1f2937!important;font-weight:600;text-decoration:none!important}
+         .am-social-btn:hover{background:#f5f8fc;border-color:#b8c3d3}
+     </style>
+-<link href="css/AnyminuteTypography.css?v=20261108v74" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261108v74" rel="stylesheet" /></head>
++<link href="css/AnyminuteTypography.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261117v88" rel="stylesheet" /></head>
+ <body class="am-reference am-typography">
+     <div class="container">
+             <div class="col-md-3 col-sm-12 col-xs-12"></div>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Main.master b/AMV3Reseller_27Aug2022_Subscription/Main.master
+index 0c3fd9e..d874fd8 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Main.master
++++ b/AMV3Reseller_27Aug2022_Subscription/Main.master
+@@ -5,7 +5,7 @@
+ <!DOCTYPE html>
+ 
+ <html>
+-<head runat="server"><meta name="anyminute-build" content="v87-20261117" />
++<head runat="server"><meta name="anyminute-build" content="v88-20261117" />
+     <title>AnyMinute | Record From Anywhere</title>
+     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+@@ -139,7 +139,7 @@
+     </asp:ContentPlaceHolder>
+     <link href="css/AnyminuteUI2026.css?v=20261017" rel="stylesheet" />
+ <link href="css/AnyminuteUIUnified.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUiBugFixes.css?v=20261026v17" rel="stylesheet" />
+-<link href="css/AnyminuteNavDrawer.css?v=20261117v87" rel="stylesheet" /><link href="css/AnyminuteTypography.css?v=20261117v87" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261117v87" rel="stylesheet" /></head>
++<link href="css/AnyminuteNavDrawer.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteTypography.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261117v88" rel="stylesheet" /></head>
+ <script type="text/javascript">  
+     window.onload = window.history.forward(0);
+ </script>
+@@ -260,7 +260,7 @@
+     <script src="Scripts/AnyminuteUI2026.js?v=20261024v10"></script>
+     <script src="Scripts/AnyminuteUIUnified.js?v=20261031v38"></script>
+     <script src="Scripts/AnyminuteUiBugFixes.js?v=20261024e1"></script>
+-<script src="Scripts/AnyminuteNavigationActions.js?v=20261024e1"></script><script src="Scripts/AnyminuteNavDrawer.js?v=20261117v87"></script><script src="Scripts/AnyminuteBackNav.js?v=20261117v87"></script></form>
++<script src="Scripts/AnyminuteNavigationActions.js?v=20261024e1"></script><script src="Scripts/AnyminuteNavDrawer.js?v=20261117v88"></script><script src="Scripts/AnyminuteBackNav.js?v=20261117v88"></script><script src="Scripts/AnyminuteMenus.js?v=20261117v88"></script></form>
+     <!-- Datatables -->
+     <script src="Assets/assets/js/plugin/datatables/datatables.min.js"></script>
+     <script>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master b/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master
+index 9a4c91d..19c87a8 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master
++++ b/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master
+@@ -2,7 +2,7 @@
+ <!DOCTYPE html>
+ 
+ <html>
+-<head runat="server"><meta name="anyminute-build" content="v87-20261117" />
++<head runat="server"><meta name="anyminute-build" content="v88-20261117" />
+     <title>AnyMinute | Record From Anywhere</title>
+     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+@@ -28,7 +28,7 @@
+                        
+     </asp:ContentPlaceHolder>
+     
+-<link href="css/AnyminuteTypography.css?v=20261117v87" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261117v87" rel="stylesheet" /></head>
++<link href="css/AnyminuteTypography.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261117v88" rel="stylesheet" /></head>
+     <script type="text/javascript">  
+ 
+     window.onload = window.history.forward(0);
+@@ -65,7 +65,7 @@
+             </div>
+         </div>
+ 
+-    </form>   
++    <script src="Scripts/AnyminuteMenus.js?v=20261117v88"></script></form>   
+ 
+ </body>
+ </html>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/ModalPopUpSelectEffectiveDate.aspx b/AMV3Reseller_27Aug2022_Subscription/ModalPopUpSelectEffectiveDate.aspx
+index c72fb58..ab6be2d 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/ModalPopUpSelectEffectiveDate.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/ModalPopUpSelectEffectiveDate.aspx
+@@ -5,7 +5,7 @@
+ <html xmlns="http://www.w3.org/1999/xhtml">
+ <head runat="server">
+     <title></title>
+-<link href="css/AnyminuteTypography.css?v=20261108v74" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261108v74" rel="stylesheet" /></head>
++<link href="css/AnyminuteTypography.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261117v88" rel="stylesheet" /></head>
+ <body class="am-reference am-typography">
+     <form id="form1" runat="server">
+         <div>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Modern.master b/AMV3Reseller_27Aug2022_Subscription/Modern.master
+index 27a364e..7315427 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Modern.master
++++ b/AMV3Reseller_27Aug2022_Subscription/Modern.master
+@@ -1,6 +1,6 @@
+ <%@ Master Language="C#" AutoEventWireup="true" CodeFile="Modern.master.cs" Inherits="AnyminuteModernMaster" %>
+ <!DOCTYPE html>
+-<html lang="en"><head runat="server"><meta charset="utf-8" /><meta name="anyminute-build" content="v87-20261117" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>AnyMinute</title><link href="css/bootstrap.min.css" rel="stylesheet" /><script src="Assets/assets/js/core/jquery.3.2.1.min.js"></script><script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script><script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" /><script src="Assets/assets/js/plugin/datatables/datatables.min.js"></script><script src="Assets/assets/js/SweetAlert.js"></script><link href="css/AnyminuteModern.css" rel="stylesheet" /><asp:ContentPlaceHolder ID="head" runat="server" /><link href="css/AnyminuteUI2026.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUIUnified.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUiBugFixes.css?v=20261026v17" rel="stylesheet" /><link href="css/AnyminuteNavDrawer.css?v=20261117v87" rel="stylesheet" /><link href="css/AnyminuteTypography.css?v=20261117v87" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261117v87" rel="stylesheet" /></head>
++<html lang="en"><head runat="server"><meta charset="utf-8" /><meta name="anyminute-build" content="v88-20261117" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>AnyMinute</title><link href="css/bootstrap.min.css" rel="stylesheet" /><script src="Assets/assets/js/core/jquery.3.2.1.min.js"></script><script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script><script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" /><script src="Assets/assets/js/plugin/datatables/datatables.min.js"></script><script src="Assets/assets/js/SweetAlert.js"></script><link href="css/AnyminuteModern.css" rel="stylesheet" /><asp:ContentPlaceHolder ID="head" runat="server" /><link href="css/AnyminuteUI2026.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUIUnified.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUiBugFixes.css?v=20261026v17" rel="stylesheet" /><link href="css/AnyminuteNavDrawer.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteTypography.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261117v88" rel="stylesheet" /></head>
+ <body class="am-reference am-typography am-modern"><form id="frmMaster" runat="server"><asp:ScriptManager ID="ScriptManager1" runat="server" />
+ <header class="am-topbar"><button type="button" class="am-icon-button" data-toggle-sidebar aria-controls="am-main-navigation" aria-expanded="true" aria-label="Toggle navigation">&#9776;</button><a href="Dashboard.aspx" class="am-brand"><asp:PlaceHolder ID="LogoDefault" runat="server"><img src="Assets/assets/img/logo.jpg" alt="AnyMinute" class="am-logo" /></asp:PlaceHolder><asp:Literal ID="Brand" runat="server" /></a><span>Welcome! <asp:Literal ID="Welcome" runat="server" /><asp:Literal ID="WelcomeContext" runat="server" /></span><asp:Literal ID="HeaderHelp" runat="server" /><asp:Literal ID="HeaderBell" runat="server" /><details class="am-account-menu"><summary aria-label="Account menu"><asp:Literal ID="AccountAvatar" runat="server" /><span class="am-account-chevron" aria-hidden="true"></span><span class="sr-only">Account</span></summary><div class="am-account-popover"><a href="MyProfile.aspx"><span data-am-icon="profile" aria-hidden="true"></span>My profile</a><a href="LoginSecurity.aspx"><span data-am-icon="settings" aria-hidden="true"></span>Login &amp; security</a><asp:LinkButton ID="SignOut" runat="server" CausesValidation="false" OnClick="SignOut_Click"><span data-am-icon="signout" aria-hidden="true"></span>Sign out</asp:LinkButton>
+    <a href="Change%20Password.aspx"><span data-am-icon="settings" aria-hidden="true"></span>Change password</a><asp:Literal ID="AccountHelp" runat="server" /><asp:Literal ID="AccountUpgrade" runat="server" /></div></details></header>
+@@ -8,4 +8,4 @@
+ <script>/* v47 (Nov 2 live smoke): pin the Support Admin sidebar before the page content paints, so content never starts (or animates) under it */(function(b){try{if(!document.querySelector('#am-main-navigation li.am-sa-nav'))return;b.classList.add('am-drawer-nav','am-sa-navbody','am-sa-pinned','am-nav-init');b.dataset.amSaPin='1';var k=null;try{k=sessionStorage.getItem('amSaNav');}catch(x){}if(window.innerWidth>=992&&k!=='0')b.classList.add('am-drawer-open');window.addEventListener('load',function(){setTimeout(function(){b.classList.remove('am-nav-init');},50);});}catch(e){}})(document.body);</script>
+ <span style="display:none" aria-hidden="true"><asp:Literal ID="Pending" runat="server" /><asp:Literal ID="Unread" runat="server" /><asp:HyperLink ID="Payroll" runat="server" /></span>
+ <main class="am-main"><asp:ContentPlaceHolder ID="ContentPlaceHolder1" runat="server" /></main>
+-<script src="Scripts/AnyminuteModern.js"></script><script src="Scripts/AnyminuteUI2026.js?v=20261024v10"></script><script src="Scripts/AnyminuteUIUnified.js?v=20261031v38"></script><script src="Scripts/AnyminuteUiBugFixes.js?v=20261024e1"></script><script src="Scripts/AnyminuteNavDrawer.js?v=20261117v87"></script><script src="Scripts/AnyminuteBackNav.js?v=20261117v87"></script><script src="Scripts/AnyminuteNavigationActions.js?v=20261024e1"></script></form></body></html>
++<script src="Scripts/AnyminuteModern.js"></script><script src="Scripts/AnyminuteUI2026.js?v=20261024v10"></script><script src="Scripts/AnyminuteUIUnified.js?v=20261031v38"></script><script src="Scripts/AnyminuteUiBugFixes.js?v=20261024e1"></script><script src="Scripts/AnyminuteNavDrawer.js?v=20261117v88"></script><script src="Scripts/AnyminuteBackNav.js?v=20261117v88"></script><script src="Scripts/AnyminuteNavigationActions.js?v=20261024e1"></script><script src="Scripts/AnyminuteMenus.js?v=20261117v88"></script></form></body></html>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Registration.aspx b/AMV3Reseller_27Aug2022_Subscription/Registration.aspx
+index ce3ff8b..7a81129 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Registration.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/Registration.aspx
+@@ -146,7 +146,7 @@
+      window.onpageshow = function(evt) { if (evt.persisted) DisableBackButton() }
+      window.onunload = function() { void (0) }
+     </script>
+-<link href="css/AnyminuteTypography.css?v=20261108v74" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261108v74" rel="stylesheet" /></head>
++<link href="css/AnyminuteTypography.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261117v88" rel="stylesheet" /></head>
+ <body class="am-reference am-typography">
+     <div class="container">
+         <%--Commited By Firoz--%>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Report3.aspx b/AMV3Reseller_27Aug2022_Subscription/Report3.aspx
+index 094b419..d29fa9d 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Report3.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/Report3.aspx
+@@ -3,7 +3,7 @@
+ <html xmlns="http://www.w3.org/1999/xhtml">
+ <head runat="server"><title>AnyMinute - Employee Report</title>
+ <style>body{font-family:Arial,sans-serif;margin:24px;color:#25334a} .bar{display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin:12px 0}.field{display:flex;flex-direction:column;gap:5px}input,select{padding:7px} .action{padding:8px 12px;margin:3px} .table{margin-top:15px;overflow:auto}h2{margin-bottom:12px}</style>
+-<link href="css/AnyminuteTypography.css?v=20261108v74" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261108v74" rel="stylesheet" /></head>
++<link href="css/AnyminuteTypography.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261117v88" rel="stylesheet" /></head>
+ <body class="am-reference am-typography"><form id="form1" runat="server">
+ <asp:ScriptManager ID="ScriptManager1" runat="server" />
+ <h2>Employee Time Sheet Report</h2>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/ResetPassord.aspx b/AMV3Reseller_27Aug2022_Subscription/ResetPassord.aspx
+index a76849c..b779a33 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/ResetPassord.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/ResetPassord.aspx
+@@ -133,7 +133,7 @@
+         }
+     </style>
+ 
+-<link href="css/AnyminuteTypography.css?v=20261108v74" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261108v74" rel="stylesheet" /></head>
++<link href="css/AnyminuteTypography.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261117v88" rel="stylesheet" /></head>
+ <body class="am-reference am-typography">
+     <form id="form1" runat="server">
+        
+diff --git a/AMV3Reseller_27Aug2022_Subscription/ResetPassord_New_Account.aspx b/AMV3Reseller_27Aug2022_Subscription/ResetPassord_New_Account.aspx
+index 9487ea5..a7c4b4a 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/ResetPassord_New_Account.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/ResetPassord_New_Account.aspx
+@@ -133,7 +133,7 @@
+         }
+     </style>
+ 
+-<link href="css/AnyminuteTypography.css?v=20261108v74" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261108v74" rel="stylesheet" /></head>
++<link href="css/AnyminuteTypography.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261117v88" rel="stylesheet" /></head>
+ <body class="am-reference am-typography">
+     <form id="form1" runat="server">
+         <%--<div class="row" style="height:100px;"></div>--%>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Scripts/AnyminuteMenus.js b/AMV3Reseller_27Aug2022_Subscription/Scripts/AnyminuteMenus.js
+new file mode 100644
+index 0000000..b229ce1
+--- /dev/null
++++ b/AMV3Reseller_27Aug2022_Subscription/Scripts/AnyminuteMenus.js
+@@ -0,0 +1,66 @@
++/* v88: position kebab / action menus as fixed overlays so they are not clipped by cards or table scrollers. */
++(function () {
++    var SEL = "details.am-sd-menu,details.am-menu,details.am-employee-menu,details.am-business-status-menu,details.am-ed-menu,details.am-pj-menu,details.sa-menu,details.am-business-menu";
++    function boxOf(d) {
++        var kids = d.children, i, el, tag;
++        for (i = 0; i < kids.length; i++) {
++            el = kids[i];
++            tag = (el.tagName || "").toUpperCase();
++            if (tag === "DIV" || tag === "UL" || (el.className && /am-row-menu|am-pj-pop/.test(el.className))) return el;
++        }
++        return null;
++    }
++    function place(d) {
++        var box = boxOf(d), sum, r, w, h, left, top;
++        if (!box) return;
++        if (!d.open) {
++            box.style.position = "";
++            box.style.left = "";
++            box.style.top = "";
++            box.style.right = "";
++            box.style.bottom = "";
++            box.style.zIndex = "";
++            box.style.maxHeight = "";
++            box.style.overflowY = "";
++            return;
++        }
++        sum = d.querySelector("summary") || d;
++        r = sum.getBoundingClientRect();
++        box.style.position = "fixed";
++        box.style.right = "auto";
++        box.style.bottom = "auto";
++        box.style.zIndex = "4000";
++        box.style.visibility = "hidden";
++        box.style.left = "0px";
++        box.style.top = "0px";
++        w = box.offsetWidth || 180;
++        h = box.offsetHeight || 0;
++        left = r.right - w;
++        if (left < 8) left = 8;
++        if (left + w > window.innerWidth - 8) left = Math.max(8, window.innerWidth - w - 8);
++        top = r.bottom + 4;
++        if (top + h > window.innerHeight - 8) {
++            top = r.top - h - 4;
++            if (top < 8) {
++                top = 8;
++                box.style.maxHeight = (window.innerHeight - 16) + "px";
++                box.style.overflowY = "auto";
++            }
++        }
++        box.style.left = left + "px";
++        box.style.top = top + "px";
++        box.style.visibility = "";
++    }
++    function placeOpen() {
++        var nodes = document.querySelectorAll(SEL), i;
++        for (i = 0; i < nodes.length; i++) if (nodes[i].open) place(nodes[i]);
++    }
++    document.addEventListener("toggle", function (e) {
++        var d = e.target;
++        if (!d || d.tagName !== "DETAILS") return;
++        if (!d.matches || !d.matches(SEL)) return;
++        place(d);
++    }, true);
++    window.addEventListener("scroll", placeOpen, true);
++    window.addEventListener("resize", placeOpen);
++})();
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Users.aspx.cs b/AMV3Reseller_27Aug2022_Subscription/Users.aspx.cs
+index 2356dbd..7b017f7 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Users.aspx.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/Users.aspx.cs
+@@ -14,7 +14,7 @@ public partial class AnyminuteEmployeesDirectory : System.Web.UI.Page
+     protected void Page_Command(object sender,CommandEventArgs e){int page;if(!Int32.TryParse(Convert.ToString(e.CommandArgument),out page))throw new HttpException(400,"Invalid page.");Index=page-1;Bind();}
+     protected static string RateText(object rate){string r=Convert.ToString(rate);return r.Replace("/"," / ");}
+     protected static string AvatarCss(object name){string n=Convert.ToString(name);int h=0;foreach(char ch in n)h=(h*31+ch)&0xffff;return "am-av-"+(h%6);}
+-    public static string RoleCss(object role){string r=Convert.ToString(role).ToLowerInvariant();
++    public static string RoleCss(object role){string r=AnyminuteEmployeeEditor.RoleDisplay(role).ToLowerInvariant();
+         if(r.Contains("admin"))return "am-role-admin";if(r.Contains("manager")||r.Contains("supervisor"))return "am-role-manager";
+         if(r.Contains("accountant"))return "am-role-accountant";if(r.Contains("employee")||r.Contains("staff"))return "am-role-employee";return "am-role-other";}
+     protected void Page_Init(object sender,EventArgs e){AnyminuteDirectoryScope.RequireDirectoryRole();ViewStateUserKey=Session.SessionID;}
+diff --git a/AMV3Reseller_27Aug2022_Subscription/VerifyLoginEmail.aspx b/AMV3Reseller_27Aug2022_Subscription/VerifyLoginEmail.aspx
+index 5336adb..476860a 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/VerifyLoginEmail.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/VerifyLoginEmail.aspx
+@@ -1,6 +1,6 @@
+ <%@ Page Language="C#" AutoEventWireup="true" CodeFile="VerifyLoginEmail.aspx.cs" Inherits="AnyminuteVerifyLoginEmailPage" %>
+ <!DOCTYPE html>
+-<html lang="en"><head runat="server"><meta charset="utf-8" /><meta name="anyminute-build" content="v39-20261031" /><meta name="viewport" content="width=device-width,initial-scale=1" /><meta name="referrer" content="no-referrer" /><title>Verify Login Email | AnyMinute</title><link rel="icon" href="Assets/assets/img/logo.jpg" type="image/x-icon" /><link href="css/AnyminuteLoginSecurity.css?v=20261031v39" rel="stylesheet" /><link href="css/AnyminuteTypography.css?v=20261108v74" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261108v74" rel="stylesheet" /></head>
++<html lang="en"><head runat="server"><meta charset="utf-8" /><meta name="anyminute-build" content="v39-20261031" /><meta name="viewport" content="width=device-width,initial-scale=1" /><meta name="referrer" content="no-referrer" /><title>Verify Login Email | AnyMinute</title><link rel="icon" href="Assets/assets/img/logo.jpg" type="image/x-icon" /><link href="css/AnyminuteLoginSecurity.css?v=20261031v39" rel="stylesheet" /><link href="css/AnyminuteTypography.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261117v88" rel="stylesheet" /></head>
+ <body class="am-reference am-typography am-ls-verify"><form id="VerifyForm" runat="server">
+ <%-- v39 (Change Login Email DOC step 3): one-time link from the verification email. Works signed in or signed out; the change happens on the Confirm click (POST), so mail scanners that prefetch the link cannot use it. --%>
+ <main class="am-ls-box"><img src="Assets/assets/img/logo.jpg" alt="AnyMinute" class="am-ls-logo" />
+diff --git a/AMV3Reseller_27Aug2022_Subscription/View_Project.aspx b/AMV3Reseller_27Aug2022_Subscription/View_Project.aspx
+index ecca5bf..2a0bb69 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/View_Project.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/View_Project.aspx
+@@ -329,7 +329,7 @@
+                 <a href="Home_Page.aspx" id="A1" runat="server" style="font-size:large;">
+                     Home
+                 </a><br /><br />
+-                <asp:HyperLink href="Add_Project.aspx" ID="A2" runat="server" Text="Add Project"></asp:HyperLink>
++                <asp:HyperLink href="ProjectEditor.aspx" ID="A2" runat="server" Text="Add Project"></asp:HyperLink>
+             </div>
+             <div class="col-md-4" style="text-align: center; margin-top:-7px;">
+                 <asp:Label Font-Bold="true" Font-Size="X-Large" Text="View Project" runat="server" />
+diff --git a/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteAddressLookup.css b/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteAddressLookup.css
+index fb1f95a..67e3505 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteAddressLookup.css
++++ b/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteAddressLookup.css
+@@ -43,7 +43,7 @@ html body .am-emp-al .am-al-outline:hover{background:#f1f6ff!important}
+ html body .am-emp-al .am-al-outline svg{color:#1a5fd6}
+ html body .am-emp-al .am-al-wide{min-width:120px}
+ html body .am-emp-al .am-al-info{display:flex;align-items:center;gap:12px;background:#eaf3ff;border:1px solid #d3e5fb;border-radius:8px;padding:11px 14px;margin:16px 0;color:#1e3a5f;font-size:13px}
+-html body .am-emp-al .am-al-i{flex:0 0 22px;height:22px;border-radius:50%;background:#1a5fd6;color:#fff;font:700 13px/22px Georgia,serif;text-align:center}
++html body .am-emp-al .am-al-i{flex:0 0 22px;height:22px;border-radius:50%;background:#1a5fd6;color:#fff;font:700 13px/22px Arial,Helvetica,sans-serif;text-align:center}
+ html body .am-emp-al .am-al-main .am-notice{display:block;margin:0 0 12px}
+ html body .am-emp-al .am-al-results{display:flex;flex-direction:column;gap:7px;margin:0 0 16px}
+ html body .am-emp-al .am-al-results select[disabled]{background-color:#fff!important;color:#64748b!important;opacity:1}
+@@ -175,7 +175,7 @@ html body .am-al-nf{display:block;background:#fff;border:1px solid #dfe4ec;borde
+ html body .am-al-nf[hidden]{display:none}
+ html body .am-al-nf-head{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+ html body .am-al-nf-head strong{font-size:14px;font-weight:700;color:#1e293b}
+-html body .am-al-nf-i{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border:1.5px solid #475569;border-radius:50%;font:700 10px/1 Georgia,serif;color:#475569;font-style:normal;flex:none}
++html body .am-al-nf-i{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border:1.5px solid #475569;border-radius:50%;font:700 10px/1 Arial,Helvetica,sans-serif;color:#475569;font-style:normal;flex:none}
+ html body .am-al-nf p{margin:0;padding-left:24px;color:#475569}
+ /* v46: single-column lookup (Support Reseller / Subscriber forms, Employee pages) and hidden-state helpers. */
+ html body .am-emp-al .am-al-layout.am-al-single{grid-template-columns:minmax(0,1fr)}
+diff --git a/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteBusinessEditor.css b/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteBusinessEditor.css
+index 7e5bf16..cf3be66 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteBusinessEditor.css
++++ b/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteBusinessEditor.css
+@@ -175,7 +175,7 @@ html body .am-business-editor .am-al-outline:hover{background:#f1f6ff!important}
+ html body .am-business-editor .am-al-outline svg{color:#1a5fd6}
+ html body .am-business-editor .am-al-wide{min-width:120px}
+ html body .am-business-editor .am-al-info{display:flex;align-items:center;gap:12px;background:#eaf3ff;border:1px solid #d3e5fb;border-radius:8px;padding:11px 14px;margin:16px 0;color:#1e3a5f;font-size:13px}
+-html body .am-business-editor .am-al-i{flex:0 0 22px;height:22px;border-radius:50%;background:#1a5fd6;color:#fff;font:700 13px/22px Georgia,serif;text-align:center}
++html body .am-business-editor .am-al-i{flex:0 0 22px;height:22px;border-radius:50%;background:#1a5fd6;color:#fff;font:700 13px/22px Arial,Helvetica,sans-serif;text-align:center}
+ html body .am-business-editor .am-al-main .am-notice{display:block;margin:0 0 12px}
+ html body .am-business-editor .am-al-results{display:flex;flex-direction:column;gap:7px;margin:0 0 16px}
+ html body .am-business-editor .am-al-results select[disabled]{background-color:#fff!important;color:#64748b!important;opacity:1}
+@@ -309,7 +309,7 @@ html body .am-al-nf{display:block;background:#fff;border:1px solid #dfe4ec;borde
+ html body .am-al-nf[hidden]{display:none}
+ html body .am-al-nf-head{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+ html body .am-al-nf-head strong{font-size:14px;font-weight:700;color:#1e293b}
+-html body .am-al-nf-i{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border:1.5px solid #475569;border-radius:50%;font:700 10px/1 Georgia,serif;color:#475569;font-style:normal;flex:none}
++html body .am-al-nf-i{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border:1.5px solid #475569;border-radius:50%;font:700 10px/1 Arial,Helvetica,sans-serif;color:#475569;font-style:normal;flex:none}
+ html body .am-al-nf p{margin:0;padding-left:24px;color:#475569}
+ 
+ /* v57 (PPT s3 "make it Red or Highlight More"): Address Not Found card is a danger card - red border, light red background, red icon and bold red title. */
+diff --git a/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteFlat.css b/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteFlat.css
+new file mode 100644
+index 0000000..0fb939f
+--- /dev/null
++++ b/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteFlat.css
+@@ -0,0 +1,228 @@
++/* AnyMinute v88 (2026-11-17): flat design on every screen.
++   No shadows, gradients, raised/floating cards, nested bordered panels, or shaded section bars.
++   Inputs, buttons, tables, pills and dropdown menus keep a normal thin border. */
++
++/* --- shadows off everywhere (including hover/focus card glows) --- */
++html body.am-ui,
++html body.am-ui *,
++html body.am-ui *::before,
++html body.am-ui *::after,
++html body.am-typography,
++html body.am-typography *,
++html body.am-modern,
++html body.am-modern *,
++html body.am-reference,
++html body.am-reference *,
++html body.am-unified,
++html body.am-unified *,
++html body .sa-modal-box,
++html body .sa-card,
++html body .am-sd,
++html body .am-bp,
++html body .am-rl,
++html body .am-ws,
++html body .am-projects {
++    box-shadow: none !important;
++    text-shadow: none !important;
++}
++
++/* --- page / section cards become one flat surface --- */
++html body .am-dialog-page,
++html body .am-pj-dialog,
++html body .am-pj-editor,
++html body .am-pj-side,
++html body .am-pj-assign,
++html body .am-card,
++html body .am-sd-card,
++html body .am-sd-kpi,
++html body .am-section,
++html body .am-info-card,
++html body .am-access-box,
++html body .am-head-v3,
++html body .am-banded,
++html body .am-band,
++html body .am-ws-card,
++html body .am-rl-body,
++html body .am-rl-card,
++html body .am-rl-nav,
++html body .am-rl-adv,
++html body .am-rl-empty,
++html body .am-rl-twrap,
++html body .am-rl-kpis > div,
++html body .am-rp-banner,
++html body .sa-card,
++html body .sa-panel,
++html body .sa-modal-box,
++html body .am-metrics-v2 > div,
++html body .am-ls-box,
++html body .am-al-main,
++html body .am-addr-dialog,
++html body .am-break-card,
++html body .am-empsel,
++html body .am-editor-v3,
++html body .am-employees-v2 .am-card {
++    box-shadow: none !important;
++    border-color: transparent !important;
++    border-width: 0 !important;
++    border-radius: 0 !important;
++    background-image: none !important;
++}
++
++/* Keep the page itself white and flush with the main column (not a floating inset card). */
++html body .am-dialog-page,
++html body .am-pj-dialog,
++html body .am-pj-editor,
++html body .am-pj-assign {
++    max-width: none !important;
++    width: 100% !important;
++    margin: 0 !important;
++    background: transparent !important;
++    overflow: visible !important;
++}
++
++/* Nested add/edit "card in a card" wrappers */
++html body .am-dialog-page .am-dialog-page,
++html body .am-section,
++html body .am-info-card,
++html body .am-access-box {
++    background: transparent !important;
++    padding-left: 0 !important;
++    padding-right: 0 !important;
++}
++
++/* Shaded section header bars -> plain heading + thin divider */
++html body .am-band,
++html body .am-pj-band,
++html body .am-rl-band,
++html body .am-rl-adv > summary,
++html body .am-sd-table th,
++html body .am-rl-table th,
++html body .sa-panel-head,
++html body .am-dialog-foot,
++html body .am-pj-dfoot {
++    background: transparent !important;
++    background-image: none !important;
++    box-shadow: none !important;
++    border-radius: 0 !important;
++}
++html body .am-band,
++html body .am-pj-band,
++html body .am-rl-band,
++html body .am-dialog-head,
++html body .am-pj-dhead {
++    border-bottom: 1px solid #e6edf4 !important;
++    margin-bottom: 16px;
++    padding-left: 0 !important;
++    padding-right: 0 !important;
++}
++html body .am-dialog-foot,
++html body .am-pj-dfoot {
++    border-top: 1px solid #e6edf4 !important;
++    background: transparent !important;
++}
++
++/* Report: no outer frame around the list + filters (red X). Hide leftover role badge. */
++html body .am-rl-body {
++    background: transparent !important;
++    padding: 0 !important;
++    border: 0 !important;
++    box-shadow: none !important;
++}
++html body .am-rl-role,
++html body .am-rp-role,
++html body .am-rl-headx .am-rl-role {
++    display: none !important;
++}
++html body .am-rl-tile {
++    box-shadow: none !important;
++}
++
++/* Inputs, selects, textareas keep a normal thin border (restore after card reset). */
++html body input[type="text"],
++html body input[type="search"],
++html body input[type="email"],
++html body input[type="password"],
++html body input[type="number"],
++html body input[type="tel"],
++html body input[type="date"],
++html body input[type="time"],
++html body input[type="url"],
++html body input:not([type]),
++html body select,
++html body textarea {
++    box-shadow: none !important;
++    border-style: solid !important;
++    border-width: 1px !important;
++}
++
++/* Action / kebab menus: JS positions them as fixed overlays (see AnyminuteMenus.js)
++   so table scrollers can keep overflow-x:auto without clipping the menu. */
++html body .am-sd-card,
++html body .am-ed-actions,
++html body .am-employee-actions {
++    overflow: visible !important;
++}
++html body details.am-sd-menu,
++html body details.am-menu,
++html body details.am-employee-menu,
++html body details.am-business-status-menu,
++html body details.am-ed-menu,
++html body details.am-pj-menu,
++html body details.sa-menu,
++html body details.am-business-menu {
++    position: relative;
++    z-index: 20;
++    overflow: visible !important;
++}
++html body details[open].am-sd-menu,
++html body details[open].am-menu,
++html body details[open].am-employee-menu,
++html body details[open].am-business-status-menu,
++html body details[open].am-ed-menu,
++html body details[open].am-pj-menu,
++html body details[open].sa-menu,
++html body details[open].am-business-menu {
++    z-index: 80;
++}
++html body details.am-sd-menu > div,
++html body details.am-menu > div,
++html body details.am-employee-menu > div,
++html body details.am-business-status-menu > div,
++html body details.am-ed-menu > div,
++html body details.am-pj-menu > div,
++html body details.sa-menu > div,
++html body details.am-business-menu > div,
++html body .am-pj-pop,
++html body .am-row-menu,
++html body .am-ws-daylist,
++html body .sa-modal-box {
++    border: 1px solid #e2e8f0 !important;
++    background: #fff !important;
++    box-shadow: none !important;
++    z-index: 4000;
++}
++
++/* Remaining decorative gradients (chart grid, hovers) stay un-raised; no card glow. */
++html body .am-sd-kpi:hover,
++html body .am-sd-qa:hover {
++    box-shadow: none !important;
++}
++
++/* Page headings and leftover editorial/serif faces -> standard UI sans. */
++html body.am-typography,
++html body.am-reference,
++html body.am-reference.am-typography,
++html body.am-ui {
++    --am-font-editorial: Arial, Helvetica, sans-serif;
++}
++html body.am-typography h1,
++html body.am-reference h1,
++html body.am-ui h1,
++html body.am-ws h1,
++html body .am-pj-dhead h1,
++html body .am-dialog-head h1,
++html body .am-sd-head h1,
++html body .am-rl-titles h1,
++html body .am-ap-sechead h2 {
++    font-family: Arial, Helvetica, sans-serif !important;
++}
+diff --git a/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteProjects.css b/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteProjects.css
+index 83de0e8..c959a63 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteProjects.css
++++ b/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteProjects.css
+@@ -121,7 +121,7 @@ body.am-ui .am-pj-opt{font-style:normal;color:#3b6fb6}
+ body.am-ui .am-pj-two{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+ body.am-ui .am-projects select.am-pj-locked,body.am-ui .am-projects select[disabled]{background-color:#eef1f5;color:#344054}
+ body.am-ui .am-projects .am-pj-info{display:flex;align-items:center;gap:10px;margin:-8px 0 16px;padding:9px 12px;background:#eaf3fd;border-radius:6px;font-size:11.5px;color:#344054}
+-body.am-ui .am-pj-info-ic{display:inline-flex;width:20px;height:20px;border-radius:50%;background:var(--pj-blue);color:#fff;font-weight:800;align-items:center;justify-content:center;font-size:12px;flex:0 0 auto;font-family:Georgia,serif}
++body.am-ui .am-pj-info-ic{display:inline-flex;width:20px;height:20px;border-radius:50%;background:var(--pj-blue);color:#fff;font-weight:800;align-items:center;justify-content:center;font-size:12px;flex:0 0 auto;font-family:Arial,Helvetica,sans-serif}
+ body.am-ui .am-pj-dfoot{display:flex;justify-content:flex-end;align-items:center;gap:10px;padding:14px 18px;border-top:1px solid var(--pj-line)}
+ body.am-ui .am-pj-dfoot .am-pj-btn{min-width:108px;min-height:40px}
+ body.am-ui .am-pj-dfoot .am-pj-left{margin-right:auto}
+diff --git a/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteSupport.css b/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteSupport.css
+index 1a412fc..be92ddf 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteSupport.css
++++ b/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteSupport.css
+@@ -280,7 +280,7 @@ html body .am-al-nf{display:block;background:#fff;border:1px solid #dfe4ec;borde
+ html body .am-al-nf[hidden]{display:none}
+ html body .am-al-nf-head{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+ html body .am-al-nf-head strong{font-size:14px;font-weight:700;color:#1e293b}
+-html body .am-al-nf-i{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border:1.5px solid #475569;border-radius:50%;font:700 10px/1 Georgia,serif;color:#475569;font-style:normal;flex:none}
++html body .am-al-nf-i{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border:1.5px solid #475569;border-radius:50%;font:700 10px/1 Arial,Helvetica,sans-serif;color:#475569;font-style:normal;flex:none}
+ html body .am-al-nf p{margin:0;padding-left:24px;color:#475569}
+ /* v46 (Address deck s1/s2): Address module inside Support forms - full width under the Add / Edit Reseller columns and
+    in place of the old Add Subscriber "Address (Optional)" block. Look comes from css/AnyminuteAddressLookup.css (.am-emp-al). */
+diff --git a/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteTypography.css b/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteTypography.css
+index 77b9a18..882befa 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteTypography.css
++++ b/AMV3Reseller_27Aug2022_Subscription/css/AnyminuteTypography.css
+@@ -1,11 +1,11 @@
+ /* AnyMinute v73 (2026-11-08): reference-inspired typography only.
+    Not an identification/licence of Wave's fonts. No downloaded fonts or network requests.
+-   System Georgia provides the regular editorial serif; system Helvetica Neue/Arial
+-   provides compact UI sans. Existing sizes, line heights, spacing and layout stay intact.
++   v88: page titles use the same Helvetica Neue/Arial UI sans as the rest of the app
++   (no serif headings). Existing sizes, line heights, spacing and layout stay intact.
+    No universal descendant font reset: icon faces and monospace values must survive. */
+ html body.am-typography {
+     --am-font-ui: "Helvetica Neue", Arial, Helvetica, sans-serif;
+-    --am-font-editorial: Georgia, "Times New Roman", serif;
++    --am-font-editorial: var(--am-font-ui);
+     font-family: var(--am-font-ui) !important;
+ }
+ /* Ordinary content, forms, card headings and tables remain sans-serif.
+@@ -37,8 +37,8 @@ html body.am-typography .am-action {
+    Utility/card/form labels do NOT become serif. Existing responsive font sizes remain. */
+ html body.am-typography h1,
+ html body.am-typography .am-ap-sechead h2 {
+-    font-family: var(--am-font-editorial) !important;
+-    font-weight: 400 !important;
++    font-family: var(--am-font-ui) !important;
++    font-weight: 700 !important;
+     letter-spacing: normal !important;
+ }
+ /* Dialog titles are UI, not page-level editorial headings. */
+diff --git a/AMV3Reseller_27Aug2022_Subscription/document2.aspx b/AMV3Reseller_27Aug2022_Subscription/document2.aspx
+index 501df00..ffb5ce7 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/document2.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/document2.aspx
+@@ -5,7 +5,7 @@
+ <html xmlns="http://www.w3.org/1999/xhtml">
+ <head runat="server">
+     <title></title>
+-<link href="css/AnyminuteTypography.css?v=20261108v74" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261108v74" rel="stylesheet" /></head>
++<link href="css/AnyminuteTypography.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261117v88" rel="stylesheet" /></head>
+ <body class="am-reference am-typography">
+     <form id="form1" runat="server">
+              <div Style="visibility:hidden;display:none;">
+diff --git a/AMV3Reseller_27Aug2022_Subscription/document3.aspx b/AMV3Reseller_27Aug2022_Subscription/document3.aspx
+index 85fa08c..13975e8 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/document3.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/document3.aspx
+@@ -5,7 +5,7 @@
+ <html xmlns="http://www.w3.org/1999/xhtml">
+ <head runat="server">
+     <title></title>
+-<link href="css/AnyminuteTypography.css?v=20261108v74" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261108v74" rel="stylesheet" /></head>
++<link href="css/AnyminuteTypography.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261117v88" rel="stylesheet" /></head>
+ <body class="am-reference am-typography">
+     <form id="form1" runat="server">
+              <div Style="visibility:hidden;display:none;">

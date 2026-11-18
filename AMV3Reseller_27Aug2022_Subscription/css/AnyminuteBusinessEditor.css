@@ -175,7 +175,7 @@ html body .am-business-editor .am-al-outline:hover{background:#f1f6ff!important}
 html body .am-business-editor .am-al-outline svg{color:#1a5fd6}
 html body .am-business-editor .am-al-wide{min-width:120px}
 html body .am-business-editor .am-al-info{display:flex;align-items:center;gap:12px;background:#eaf3ff;border:1px solid #d3e5fb;border-radius:8px;padding:11px 14px;margin:16px 0;color:#1e3a5f;font-size:13px}
-html body .am-business-editor .am-al-i{flex:0 0 22px;height:22px;border-radius:50%;background:#1a5fd6;color:#fff;font:700 13px/22px Georgia,serif;text-align:center}
+html body .am-business-editor .am-al-i{flex:0 0 22px;height:22px;border-radius:50%;background:#1a5fd6;color:#fff;font:700 13px/22px Arial,Helvetica,sans-serif;text-align:center}
 html body .am-business-editor .am-al-main .am-notice{display:block;margin:0 0 12px}
 html body .am-business-editor .am-al-results{display:flex;flex-direction:column;gap:7px;margin:0 0 16px}
 html body .am-business-editor .am-al-results select[disabled]{background-color:#fff!important;color:#64748b!important;opacity:1}
@@ -309,7 +309,7 @@ html body .am-al-nf{display:block;background:#fff;border:1px solid #dfe4ec;borde
 html body .am-al-nf[hidden]{display:none}
 html body .am-al-nf-head{display:flex;align-items:center;gap:8px;margin-bottom:4px}
 html body .am-al-nf-head strong{font-size:14px;font-weight:700;color:#1e293b}
-html body .am-al-nf-i{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border:1.5px solid #475569;border-radius:50%;font:700 10px/1 Georgia,serif;color:#475569;font-style:normal;flex:none}
+html body .am-al-nf-i{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border:1.5px solid #475569;border-radius:50%;font:700 10px/1 Arial,Helvetica,sans-serif;color:#475569;font-style:normal;flex:none}
 html body .am-al-nf p{margin:0;padding-left:24px;color:#475569}
 
 /* v57 (PPT s3 "make it Red or Highlight More"): Address Not Found card is a danger card - red border, light red background, red icon and bold red title. */

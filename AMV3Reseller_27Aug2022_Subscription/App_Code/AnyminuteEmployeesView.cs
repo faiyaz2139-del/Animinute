@@ -73,7 +73,7 @@ public static class AnyminuteEmployeesView
                 int user=mappings.Rows.Count==1?Convert.ToInt32(mappings.Rows[0][0]):0;
                 assignments.Add(new AnyminuteEmployeeAssignmentView {
                     BusinessId=business, EmployeeId=employee, RoleId=Convert.ToInt32(row["UserTypeId"]), UserId=user,
-                    Business=Convert.ToString(b["CompanyName"]), Role=Convert.ToString(row["UserRoleName"]),
+                    Business=Convert.ToString(b["CompanyName"]), Role=AnyminuteEmployeeEditor.RoleDisplay(row["UserRoleName"]),
                     Type=Convert.ToString(row["Employee_Type"]), Rate=Convert.ToString(row["Rate"]),
                     Status=Status(row["Employee_Status"],row["IsActive"]), Name=Convert.ToString(row["EmpName"]),
                     Email=Convert.ToString(row["Email"]),Phone=Convert.ToString(row["Phone"]),Mobile=Convert.ToString(row["Mobile"]),Manage=role==1

@@ -304,8 +304,8 @@ public static class AnyminuteEmployeeEditor
             foreach (var a in card.Assignments.OrderBy(x => x.Business))
             {
                 var row = new AnyminuteAssignmentRow { BusinessId = a.BusinessId, EmployeeId = a.EmployeeId, RoleId = a.RoleId, Business = a.Business, EmployeeType = a.Type, Status = a.Status == "Inactive" ? "Not Active" : a.Status, Notes = "" };
-                var roles = new List<string> { a.Role }; var ids = new List<int> { a.RoleId };
-                if (extra) foreach (DataRow r in Q(c, null, "SELECT u.User_TypeId,u.UserType FROM AnyminuteAssignmentRole x JOIN UserType u ON u.User_TypeId=x.UserTypeId WHERE x.BusinessID=@b AND x.EmployeeID=@e AND x.UserTypeId<>@r ORDER BY u.UserType", "@b", a.BusinessId, "@e", a.EmployeeId, "@r", a.RoleId).Rows) { roles.Add(S(r[1])); ids.Add(Convert.ToInt32(r[0])); }
+                var roles = new List<string> { RoleDisplay(a.Role) }; var ids = new List<int> { a.RoleId };
+                if (extra) foreach (DataRow r in Q(c, null, "SELECT u.User_TypeId,u.UserType FROM AnyminuteAssignmentRole x JOIN UserType u ON u.User_TypeId=x.UserTypeId WHERE x.BusinessID=@b AND x.EmployeeID=@e AND x.UserTypeId<>@r ORDER BY u.UserType", "@b", a.BusinessId, "@e", a.EmployeeId, "@r", a.RoleId).Rows) { roles.Add(RoleDisplay(S(r[1]))); ids.Add(Convert.ToInt32(r[0])); }
                 row.Roles = roles.Where(x => x.Length > 0).ToArray(); row.RoleIds = ids.ToArray();
                 var rate = Q(c, null, "SELECT TOP 1 Rate,RateType,effectivedate FROM RateDetails WHERE EmployeeId=@e AND effectivedate<=GETDATE() ORDER BY effectivedate DESC,RateId DESC", "@e", a.EmployeeId);
                 if (rate.Rows.Count == 1) { row.PayRate = Convert.ToDecimal(rate.Rows[0]["Rate"]); row.PayType = S(rate.Rows[0]["RateType"]); if (rate.Rows[0]["effectivedate"] != DBNull.Value) row.EffectiveDate = Convert.ToDateTime(rate.Rows[0]["effectivedate"]); }
@@ -635,9 +635,17 @@ public static class AnyminuteEmployeeEditor
         }
         catch (Exception) { }
     }
+    // Display-only: the employee Assign Roles option stored as "Administrator" (UserType 2) is shown as "Supervisor".
+    // Values / User_TypeId / permissions are unchanged. Does not rename Payroll Administrator or Business Administrator.
+    public static string RoleDisplay(object role)
+    {
+        string s = Convert.ToString(role);
+        if (String.Equals(s, "Administrator", StringComparison.OrdinalIgnoreCase)) return "Supervisor";
+        return s;
+    }
     public static string RoleCss(object role)
     {
-        string r = Convert.ToString(role).ToLowerInvariant();
+        string r = RoleDisplay(role).ToLowerInvariant();
         if (r.Contains("admin")) return "am-role-admin"; if (r.Contains("manager") || r.Contains("supervisor")) return "am-role-manager";
         if (r.Contains("accountant")) return "am-role-accountant"; if (r.Contains("employee") || r.Contains("staff")) return "am-role-employee"; return "am-role-other";
     }

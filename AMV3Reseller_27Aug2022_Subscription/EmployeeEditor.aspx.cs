@@ -64,7 +64,7 @@ public partial class AnyminuteEmployeeEditorPage : System.Web.UI.Page
     {
         NewRoles.Items.Clear(); NewProject.Items.Clear(); NewProject.Items.Add(new ListItem("None", "0"));
         int b; if (!Int32.TryParse(NewBusiness.SelectedValue, out b) || !AnyminuteModernScope.Owns(b)) return;
-        foreach (DataRow r in AnyminuteEmployeeEditor.Roles(b).Rows) NewRoles.Items.Add(new ListItem(Convert.ToString(r["UserType"]), Convert.ToString(r["User_TypeId"])));
+        foreach (DataRow r in AnyminuteEmployeeEditor.Roles(b).Rows) NewRoles.Items.Add(new ListItem(AnyminuteEmployeeEditor.RoleDisplay(r["UserType"]), Convert.ToString(r["User_TypeId"])));
         var employeeRole = NewRoles.Items.FindByValue("4"); if (employeeRole != null) employeeRole.Selected = true;
         foreach (DataRow p in AnyminuteEmployeeEditor.Projects(b).Rows) NewProject.Items.Add(new ListItem(Convert.ToString(p["ProjectName"]), Convert.ToString(p["ProjectID"])));
     }
@@ -302,7 +302,7 @@ public partial class AnyminuteEmployeeEditorPage : System.Web.UI.Page
             foreach (DataRow r in AnyminuteEmployeeEditor.Roles(first.BusinessId).Rows)
             {
                 int id = Convert.ToInt32(r["User_TypeId"]);
-                if (id == 2 || id == 4 || id == 5 || id == first.RoleId) AccessRole.Items.Add(new ListItem(Convert.ToString(r["UserType"]), id.ToString(Inv)));
+                if (id == 2 || id == 4 || id == 5 || id == first.RoleId) AccessRole.Items.Add(new ListItem(AnyminuteEmployeeEditor.RoleDisplay(r["UserType"]), id.ToString(Inv)));
             }
             Select(AccessRole, first.RoleId.ToString(Inv)); AccessRole.ToolTip = "Role in " + first.Business;
         }

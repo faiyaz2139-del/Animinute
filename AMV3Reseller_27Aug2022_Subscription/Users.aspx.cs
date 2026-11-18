@@ -14,7 +14,7 @@ public partial class AnyminuteEmployeesDirectory : System.Web.UI.Page
     protected void Page_Command(object sender,CommandEventArgs e){int page;if(!Int32.TryParse(Convert.ToString(e.CommandArgument),out page))throw new HttpException(400,"Invalid page.");Index=page-1;Bind();}
     protected static string RateText(object rate){string r=Convert.ToString(rate);return r.Replace("/"," / ");}
     protected static string AvatarCss(object name){string n=Convert.ToString(name);int h=0;foreach(char ch in n)h=(h*31+ch)&0xffff;return "am-av-"+(h%6);}
-    public static string RoleCss(object role){string r=Convert.ToString(role).ToLowerInvariant();
+    public static string RoleCss(object role){string r=AnyminuteEmployeeEditor.RoleDisplay(role).ToLowerInvariant();
         if(r.Contains("admin"))return "am-role-admin";if(r.Contains("manager")||r.Contains("supervisor"))return "am-role-manager";
         if(r.Contains("accountant"))return "am-role-accountant";if(r.Contains("employee")||r.Contains("staff"))return "am-role-employee";return "am-role-other";}
     protected void Page_Init(object sender,EventArgs e){AnyminuteDirectoryScope.RequireDirectoryRole();ViewStateUserKey=Session.SessionID;}

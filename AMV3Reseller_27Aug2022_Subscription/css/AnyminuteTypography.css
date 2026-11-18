@@ -1,11 +1,11 @@
 /* AnyMinute v73 (2026-11-08): reference-inspired typography only.
    Not an identification/licence of Wave's fonts. No downloaded fonts or network requests.
-   System Georgia provides the regular editorial serif; system Helvetica Neue/Arial
-   provides compact UI sans. Existing sizes, line heights, spacing and layout stay intact.
+   v88: page titles use the same Helvetica Neue/Arial UI sans as the rest of the app
+   (no serif headings). Existing sizes, line heights, spacing and layout stay intact.
    No universal descendant font reset: icon faces and monospace values must survive. */
 html body.am-typography {
     --am-font-ui: "Helvetica Neue", Arial, Helvetica, sans-serif;
-    --am-font-editorial: Georgia, "Times New Roman", serif;
+    --am-font-editorial: var(--am-font-ui);
     font-family: var(--am-font-ui) !important;
 }
 /* Ordinary content, forms, card headings and tables remain sans-serif.
@@ -37,8 +37,8 @@ html body.am-typography .am-action {
    Utility/card/form labels do NOT become serif. Existing responsive font sizes remain. */
 html body.am-typography h1,
 html body.am-typography .am-ap-sechead h2 {
-    font-family: var(--am-font-editorial) !important;
-    font-weight: 400 !important;
+    font-family: var(--am-font-ui) !important;
+    font-weight: 700 !important;
     letter-spacing: normal !important;
 }
 /* Dialog titles are UI, not page-level editorial headings. */

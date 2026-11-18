@@ -479,7 +479,7 @@
                                     </asp:TemplateField>
                                     <asp:TemplateField HeaderText="User Role Name" ItemStyle-Width="10%">
                                         <ItemTemplate>
-                                            <asp:Label ID="Lbl_Administrator" runat="server" Text='Administrator'></asp:Label>
+                                            <asp:Label ID="Lbl_Administrator" runat="server" Text='Supervisor'></asp:Label>
                                         </ItemTemplate>
                                     </asp:TemplateField>
                                     <%--<asp:TemplateField HeaderText="Contact Name">--%>

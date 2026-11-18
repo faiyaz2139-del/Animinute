@@ -329,7 +329,7 @@
                 <a href="Home_Page.aspx" id="A1" runat="server" style="font-size:large;">
                     Home
                 </a><br /><br />
-                <asp:HyperLink href="Add_Project.aspx" ID="A2" runat="server" Text="Add Project"></asp:HyperLink>
+                <asp:HyperLink href="ProjectEditor.aspx" ID="A2" runat="server" Text="Add Project"></asp:HyperLink>
             </div>
             <div class="col-md-4" style="text-align: center; margin-top:-7px;">
                 <asp:Label Font-Bold="true" Font-Size="X-Large" Text="View Project" runat="server" />

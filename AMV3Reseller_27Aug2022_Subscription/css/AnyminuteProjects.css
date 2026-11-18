@@ -121,7 +121,7 @@ body.am-ui .am-pj-opt{font-style:normal;color:#3b6fb6}
 body.am-ui .am-pj-two{display:grid;grid-template-columns:1fr 1fr;gap:20px}
 body.am-ui .am-projects select.am-pj-locked,body.am-ui .am-projects select[disabled]{background-color:#eef1f5;color:#344054}
 body.am-ui .am-projects .am-pj-info{display:flex;align-items:center;gap:10px;margin:-8px 0 16px;padding:9px 12px;background:#eaf3fd;border-radius:6px;font-size:11.5px;color:#344054}
-body.am-ui .am-pj-info-ic{display:inline-flex;width:20px;height:20px;border-radius:50%;background:var(--pj-blue);color:#fff;font-weight:800;align-items:center;justify-content:center;font-size:12px;flex:0 0 auto;font-family:Georgia,serif}
+body.am-ui .am-pj-info-ic{display:inline-flex;width:20px;height:20px;border-radius:50%;background:var(--pj-blue);color:#fff;font-weight:800;align-items:center;justify-content:center;font-size:12px;flex:0 0 auto;font-family:Arial,Helvetica,sans-serif}
 body.am-ui .am-pj-dfoot{display:flex;justify-content:flex-end;align-items:center;gap:10px;padding:14px 18px;border-top:1px solid var(--pj-line)}
 body.am-ui .am-pj-dfoot .am-pj-btn{min-width:108px;min-height:40px}
 body.am-ui .am-pj-dfoot .am-pj-left{margin-right:auto}

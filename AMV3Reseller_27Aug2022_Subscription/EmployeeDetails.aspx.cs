@@ -76,7 +76,7 @@ public partial class AnyminuteEmployeeDetails : System.Web.UI.Page
         switch(Convert.ToString(status)){case "Approved":return I("check");case "Pending":return I("clock");case "On Hold":return I("pause");case "Completed":return I("check");default:return "";}
     }
     protected static string AssignStatus(object status,object end){string s=Convert.ToString(status);if(s=="Active")return "Active";if(end!=null&&end!=DBNull.Value&&Convert.ToDateTime(end).Date<=DateTime.Today)return "Ended";return s.Length>0?s:"\u2014";}
-    protected static string RoleChip(object role){string r=Convert.ToString(role).ToLowerInvariant();return r.Contains("manager")||r.Contains("supervisor")?"am-chip-purple":r.Contains("admin")?"am-chip-amber":r.Contains("account")?"am-chip-green":"am-chip-blue";}
+    protected static string RoleChip(object role){string r=AnyminuteEmployeeEditor.RoleDisplay(role).ToLowerInvariant();return r.Contains("manager")||r.Contains("supervisor")?"am-chip-purple":r.Contains("admin")?"am-chip-amber":r.Contains("account")?"am-chip-green":"am-chip-blue";}
     protected string JobTitle(object recordId){string t;return jobTitles.TryGetValue(Convert.ToInt32(recordId),out t)&&t.Length>0?t:"\u2014";}
     protected static string FileBadge(object name){string ext=System.IO.Path.GetExtension(Convert.ToString(name)).TrimStart('.').ToUpperInvariant();return ext=="JPEG"?"JPG":ext;}
     protected string DocUrl(object id,bool download){return Url("documents")+"&doc="+HttpUtility.UrlEncode(Convert.ToString(id))+(download?"&dl=1":"");}
