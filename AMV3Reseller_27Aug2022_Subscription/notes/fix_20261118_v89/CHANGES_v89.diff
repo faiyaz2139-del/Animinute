@@ -1,0 +1,593 @@
+diff --git a/AMV3Reseller_27Aug2022_Subscription/AddEditRole_Add_Employee.aspx.cs b/AMV3Reseller_27Aug2022_Subscription/AddEditRole_Add_Employee.aspx.cs
+index 596dc20..83bab98 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/AddEditRole_Add_Employee.aspx.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/AddEditRole_Add_Employee.aspx.cs
+@@ -4674,7 +4674,7 @@ public partial class AddEditRole_Add_Employee : System.Web.UI.Page
+             {
+                 if (hfd_BussinessId_.Value == ddlBusAssProject.SelectedValue)
+                 {
+-                    this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('Warning!', 'Please Select Another Business as User is selected as Administrator or Accountant User Role in Selected Business', 'warning');", true);
++                    this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('Warning!', 'Please Select Another Business as User is selected as Supervisor or Accountant User Role in Selected Business', 'warning');", true);
+                     return;
+                 }
+             }
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Add_EmployeeV2.aspx.cs b/AMV3Reseller_27Aug2022_Subscription/Add_EmployeeV2.aspx.cs
+index 2796420..2b9c15c 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Add_EmployeeV2.aspx.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/Add_EmployeeV2.aspx.cs
+@@ -1623,7 +1623,7 @@ public partial class Add_EmployeeV2 : System.Web.UI.Page
+                 {
+                     if (hfd_BussinessId_.Value == ddlBusAssProject.SelectedValue)
+                     {
+-                        this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('Warning!', 'Please Select Another Business as User is selected as Administrator or Accountant User Role in Selected Business', 'warning');", true);
++                        this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('Warning!', 'Please Select Another Business as User is selected as Supervisor or Accountant User Role in Selected Business', 'warning');", true);
+                         ddlBusAssProject.SelectedIndex = 0;
+                         return;
+                     }
+@@ -1745,7 +1745,7 @@ public partial class Add_EmployeeV2 : System.Web.UI.Page
+             {
+                 if (hfd_BussinessId_.Value == ddlBusAssProject.SelectedValue)
+                 {
+-                    this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('Warning!', 'Please Select Another Business as User is selected as Administrator or Accountant User Role in Selected Business', 'warning');", true);
++                    this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('Warning!', 'Please Select Another Business as User is selected as Supervisor or Accountant User Role in Selected Business', 'warning');", true);
+                     return;
+                 }
+             }
+@@ -3318,7 +3318,7 @@ public partial class Add_EmployeeV2 : System.Web.UI.Page
+             {
+                 if (hfd_BussinessId_.Value == ddlBusAssProject.SelectedValue)
+                 {
+-                    this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('Warning!', 'Please Select Another Business as User is selected as Administrator or Accountant User Role in Selected Business', 'warning');", true);
++                    this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('Warning!', 'Please Select Another Business as User is selected as Supervisor or Accountant User Role in Selected Business', 'warning');", true);
+                     return;
+                 }
+             }
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Add_EmployeeV2_Accountant.aspx.cs b/AMV3Reseller_27Aug2022_Subscription/Add_EmployeeV2_Accountant.aspx.cs
+index 7a54f3b..9479cec 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Add_EmployeeV2_Accountant.aspx.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/Add_EmployeeV2_Accountant.aspx.cs
+@@ -1643,7 +1643,7 @@ public partial class Add_EmployeeV2_Accountant : System.Web.UI.Page
+                 {
+                     if (hfd_BussinessId_.Value == ddlBusAssProject.SelectedValue)
+                     {
+-                        this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('Warning!', 'Please Select Another Business as User is selected as Administrator or Accountant User Role in Selected Business', 'warning');", true);
++                        this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('Warning!', 'Please Select Another Business as User is selected as Supervisor or Accountant User Role in Selected Business', 'warning');", true);
+                         ddlBusAssProject.SelectedIndex = 0;
+                         return;
+                     }
+@@ -1765,7 +1765,7 @@ public partial class Add_EmployeeV2_Accountant : System.Web.UI.Page
+             {
+                 if (hfd_BussinessId_.Value == ddlBusAssProject.SelectedValue)
+                 {
+-                    this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('Warning!', 'Please Select Another Business as User is selected as Administrator or Accountant User Role in Selected Business', 'warning');", true);
++                    this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('Warning!', 'Please Select Another Business as User is selected as Supervisor or Accountant User Role in Selected Business', 'warning');", true);
+                     return;
+                 }
+             }
+@@ -3330,7 +3330,7 @@ public partial class Add_EmployeeV2_Accountant : System.Web.UI.Page
+             {
+                 if (hfd_BussinessId_.Value == ddlBusAssProject.SelectedValue)
+                 {
+-                    this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('Warning!', 'Please Select Another Business as User is selected as Administrator or Accountant User Role in Selected Business', 'warning');", true);
++                    this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('Warning!', 'Please Select Another Business as User is selected as Supervisor or Accountant User Role in Selected Business', 'warning');", true);
+                     return;
+                 }
+             }
+diff --git a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteEmployeeEditor.cs b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteEmployeeEditor.cs
+index 183d92e..711468c 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteEmployeeEditor.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteEmployeeEditor.cs
+@@ -7,6 +7,7 @@ using System.Globalization;
+ using System.Linq;
+ using System.Text;
+ using System.Web;
++using System.Web.UI.WebControls;
+ 
+ // 2026-10-24 v2: services behind the redesigned Employees screens (Add/Edit Employee, assignment
+ // details, rate history and Login & Access). Legacy tables and procedures are reused; the optional
+@@ -635,14 +636,39 @@ public static class AnyminuteEmployeeEditor
+         }
+         catch (Exception) { }
+     }
+-    // Display-only: the employee Assign Roles option stored as "Administrator" (UserType 2) is shown as "Supervisor".
++    // Display-only: the employee role stored as "Administrator" (UserType name; standard data uses User_TypeId 5) is shown as "Supervisor".
+     // Values / User_TypeId / permissions are unchanged. Does not rename Payroll Administrator or Business Administrator.
++    // Trim so padded/nbsp DB values still match. RolesDisplay maps each name in a comma-separated list.
+     public static string RoleDisplay(object role)
+     {
+         string s = Convert.ToString(role);
++        if (s == null) return "";
++        s = s.Replace("\u00a0", " ").Trim();
+         if (String.Equals(s, "Administrator", StringComparison.OrdinalIgnoreCase)) return "Supervisor";
+         return s;
+     }
++    public static string RolesDisplay(object roles)
++    {
++        string s = RoleDisplay(roles);
++        if (s.IndexOf(',') < 0) return s;
++        string[] parts = s.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
++        for (int i = 0; i < parts.Length; i++) parts[i] = RoleDisplay(parts[i]);
++        return String.Join(", ", parts);
++    }
++    public static void Relabel(ListControl list)
++    {
++        if (list == null) return;
++        foreach (ListItem item in list.Items) item.Text = RoleDisplay(item.Text);
++    }
++    // When a role list was Relabel'd, write the stored name (not the display label) if the caller saves SelectedItem.Text.
++    public static string StoredName(ListItem item)
++    {
++        if (item == null) return "";
++        int id;
++        if (Int32.TryParse(item.Value, out id) && (id == 2 || id == 5) && String.Equals((item.Text ?? "").Trim(), "Supervisor", StringComparison.OrdinalIgnoreCase))
++            return "Administrator";
++        return item.Text;
++    }
+     public static string RoleCss(object role)
+     {
+         string r = RoleDisplay(role).ToLowerInvariant();
+diff --git a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteEmployeeRepair.cs b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteEmployeeRepair.cs
+index 1030888..553a657 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteEmployeeRepair.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteEmployeeRepair.cs
+@@ -121,12 +121,17 @@ public static class AnyminuteEmployeeRepair
+     }
+     public static DataTable RoleHistory(int employee,int business)
+     {
+-        using(var c=AnyminuteTimesheetRepair.Open())return AnyminuteTimesheetRepair.Query(c,null,@"SELECT b.CompanyName AS Business,
++        using(var c=AnyminuteTimesheetRepair.Open())
++        {
++            var dt=AnyminuteTimesheetRepair.Query(c,null,@"SELECT b.CompanyName AS Business,
+             u.UserType AS Role,h.EffectiveFrom AS Start_Date_UTC,h.EffectiveTo AS End_Date_UTC,
+             CASE WHEN h.EffectiveTo IS NULL THEN 'Current' ELSE 'Previous' END AS Role_Status,h.RecordedAt AS Recorded_UTC,h.Note
+             FROM AnyminuteEmployeeRoleHistory h LEFT JOIN AddBusiness b ON b.BusinessID=h.BusinessId
+             LEFT JOIN UserType u ON u.User_TypeId=h.UserTypeId
+             WHERE h.EmployeeId=@e AND h.BusinessId=@b ORDER BY h.RecordedAt DESC,h.HistoryId DESC","@e",employee,"@b",business);
++            foreach(DataRow row in dt.Rows) if(row["Role"]!=DBNull.Value) row["Role"]=AnyminuteEmployeeEditor.RoleDisplay(row["Role"]);
++            return dt;
++        }
+     }
+     public static bool Active(object status,object flag)
+     {
+@@ -155,7 +160,8 @@ public static class AnyminuteEmployeeRepair
+                 if(data.Columns.Contains("UserTypeId") && row["UserTypeId"]!=DBNull.Value)
+                 {
+                     var role=roleNames.Rows.Find(row["UserTypeId"]);
+-                    if(role!=null && data.Columns.Contains("UserRoleName"))row["UserRoleName"]=role["UserType"];
++                    if(role!=null && data.Columns.Contains("UserRoleName"))row["UserRoleName"]=AnyminuteEmployeeEditor.RoleDisplay(role["UserType"]);
++                    if(data.Columns.Contains("Role") && role!=null) row["Role"]=AnyminuteEmployeeEditor.RoleDisplay(role["UserType"]);
+                     if(data.Columns.Contains("UserType"))row["UserType"]=row["UserTypeId"];
+                 }
+             }
+diff --git a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteProjectService.cs b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteProjectService.cs
+index 20765c2..871d648 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteProjectService.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteProjectService.cs
+@@ -84,7 +84,7 @@ public static class AnyminuteProjectService
+     public static string Title(string s)
+     {
+         s = (s ?? "").Trim(); if (s.Length == 0) return "\u2014";
+-        return String.Join(", ", s.Split(',').Select(p => p.Trim()).Where(p => p.Length > 0).Select(p => p == p.ToUpperInvariant() ? Inv.TextInfo.ToTitleCase(p.ToLowerInvariant()) : p).Distinct().ToArray());
++        return AnyminuteEmployeeEditor.RolesDisplay(String.Join(", ", s.Split(',').Select(p => p.Trim()).Where(p => p.Length > 0).Select(p => p == p.ToUpperInvariant() ? Inv.TextInfo.ToTitleCase(p.ToLowerInvariant()) : p).Distinct().ToArray()));
+     }
+ 
+     // ---------- reads ----------
+diff --git a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteReportsData.cs b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteReportsData.cs
+index 60d2137..dc5d613 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteReportsData.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/App_Code/AnyminuteReportsData.cs
+@@ -29,7 +29,7 @@ public static partial class AnyminuteReports
+     static string Day(object v) { if (v == null || v == DBNull.Value) return ""; DateTime d; if (v is DateTime) d = (DateTime)v; else if (!DateTime.TryParse(Convert.ToString(v, Inv), Inv, DateTimeStyles.None, out d)) return S(v); return d.ToString("yyyy-MM-dd", Inv); }
+     static string Clock(object v) { if (v == null || v == DBNull.Value) return ""; if (v is TimeSpan) return new DateTime(((TimeSpan)v).Ticks).ToString("HH:mm", Inv); DateTime d; return v is DateTime ? ((DateTime)v).ToString("HH:mm", Inv) : DateTime.TryParse(S(v), Inv, DateTimeStyles.None, out d) ? d.ToString("HH:mm", Inv) : S(v); }
+     static DateTime Monday(DateTime d) { return d.Date.AddDays(-(((int)d.DayOfWeek + 6) % 7)); }
+-    static string Tier(int role, bool manages) { return role == 1 ? "Business Owner" : role == 5 ? "Administrator" : role == 4 ? (manages ? "Employee + Supervisor" : "Employee") : role == 12 ? "Accountant" : "Supervisor"; }
++    static string Tier(int role, bool manages) { return role == 1 ? "Business Owner" : role == 5 ? AnyminuteEmployeeEditor.RoleDisplay("Administrator") : role == 4 ? (manages ? "Employee + Supervisor" : "Employee") : role == 12 ? "Accountant" : "Supervisor"; }
+     static bool Sees(AmRptBiz b, int emp) { return b.Team == null || b.Team.Contains(emp); }
+ 
+     // Everyone assigned to the business (one row per employee; several roles are joined).
+diff --git a/AMV3Reseller_27Aug2022_Subscription/BusinessProfile.aspx b/AMV3Reseller_27Aug2022_Subscription/BusinessProfile.aspx
+index 92acb1d..434a021 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/BusinessProfile.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/BusinessProfile.aspx
+@@ -1,9 +1,9 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="BusinessProfile.aspx.cs" Inherits="AnyminuteBusinessProfilePage" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSubscriberDashboard.css?v=20261117v88" rel="stylesheet" /></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSubscriberDashboard.css?v=20261118v89" rel="stylesheet" /></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <%-- 2026-11-16 v86: Business Profile = read-only view of one business (opened from "Business Profile" under the business name on the
+      Businesses list). "Edit" opens the existing Edit Business screen (Add_Business.aspx?BusinessIDEdit=) and is shown to owners only. --%>
+-<section class="am-bp" data-build="v88-20261117">
++<section class="am-bp" data-build="v89-20261118">
+  <asp:Literal ID="ProfileLit" runat="server" />
+ </section>
+ </asp:Content>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Change_Rate_EmployeeV2.aspx.cs b/AMV3Reseller_27Aug2022_Subscription/Change_Rate_EmployeeV2.aspx.cs
+index 8eac25a..e0944d6 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Change_Rate_EmployeeV2.aspx.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/Change_Rate_EmployeeV2.aspx.cs
+@@ -406,6 +406,7 @@ public partial class Change_Rate_EmployeeV2 : System.Web.UI.Page
+     {
+         //comm.FillDropDownList(ddlusertype11, "UserType", "User_TypeId", "UserType", "", "User_TypeId"); //commented because of new user role requirement in new user role
+         comm.FillDropDownList(ddlusertype11, "UserType", "User_TypeId", "UserType", "", "User_TypeId asc");
++        AnyminuteEmployeeEditor.Relabel(ddlusertype11);
+         DataTable dtUserTypeList = new DataTable();
+         if (Request.QueryString["BusinessIdFromDefaultPage"] != null)
+         {
+@@ -510,6 +511,7 @@ public partial class Change_Rate_EmployeeV2 : System.Web.UI.Page
+         rdoBtnUserTypeList.DataValueField = "User_TypeId";
+         rdoBtnUserTypeList.DataTextField = "UserType";
+         rdoBtnUserTypeList.DataBind();
++        AnyminuteEmployeeEditor.Relabel(rdoBtnUserTypeList);
+         foreach (ListItem itm in rdoBtnUserTypeList.Items)
+         {
+             if (Session["UserType"].ToString() != "Admin")
+@@ -722,7 +724,7 @@ public partial class Change_Rate_EmployeeV2 : System.Web.UI.Page
+             {
+                 EmpEntity.SINExpiry = txtSINExpiry.Text;
+                 EmpEntity.UserType = 0;
+-                string userTypeUserACC = ddlusertype11.SelectedItem.Text;
++                string userTypeUserACC = AnyminuteEmployeeEditor.StoredName(ddlusertype11.SelectedItem);
+                 EmpEntity.LegalName = txtLegalName.Text;
+                 EmpEntity.Title = txtLegalName.SelectedItem.Text;
+                 EmpEntity.FirstName = txtFirstName.Text;
+@@ -795,7 +797,7 @@ public partial class Change_Rate_EmployeeV2 : System.Web.UI.Page
+ 
+                     //EmpEntity.UserType = int.Parse(ddlusertype11.SelectedValue);
+                     EmpEntity.UserType = 0;
+-                    string userTypeUserACC = ddlusertype11.SelectedItem.Text;
++                    string userTypeUserACC = AnyminuteEmployeeEditor.StoredName(ddlusertype11.SelectedItem);
+                     EmpEntity.LegalName = txtLegalName.Text;
+                     EmpEntity.Title = "";
+                     EmpEntity.FirstName = txtFirstName.Text;
+@@ -856,7 +858,7 @@ public partial class Change_Rate_EmployeeV2 : System.Web.UI.Page
+ 
+                     //EmpEntity.UserType = int.Parse(ddlusertype11.SelectedValue);
+                     EmpEntity.UserType = 0;
+-                    string userTypeUserACC = ddlusertype11.SelectedItem.Text;
++                    string userTypeUserACC = AnyminuteEmployeeEditor.StoredName(ddlusertype11.SelectedItem);
+                     EmpEntity.LegalName = txtLegalName.Text;
+                     EmpEntity.Title = "";
+                     EmpEntity.FirstName = txtFirstName.Text;
+@@ -916,7 +918,7 @@ public partial class Change_Rate_EmployeeV2 : System.Web.UI.Page
+ 
+     protected void btnSavePersonalDetails_Click(object sender, EventArgs e)
+     {
+-        //if (ddlusertype11.SelectedItem.Text == "Please Select")
++        //if (AnyminuteEmployeeEditor.StoredName(ddlusertype11.SelectedItem) == "Please Select")
+         //{
+         //    this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('Warning!', 'Please Select User Type', 'warning');", true);
+         //    return;
+@@ -932,7 +934,7 @@ public partial class Change_Rate_EmployeeV2 : System.Web.UI.Page
+         {
+             //EmpEntity.UserType = int.Parse(ddlusertype11.SelectedValue);
+             EmpEntity.UserType = 0;
+-            string userTypeUserACC = ddlusertype11.SelectedItem.Text;
++            string userTypeUserACC = AnyminuteEmployeeEditor.StoredName(ddlusertype11.SelectedItem);
+             EmpEntity.LegalName = txtLegalName.Text;
+             EmpEntity.Title = "";
+             EmpEntity.FirstName = txtFirstName.Text;
+@@ -969,7 +971,7 @@ public partial class Change_Rate_EmployeeV2 : System.Web.UI.Page
+         {
+             //EmpEntity.UserType = int.Parse(ddlusertype11.SelectedValue);
+             EmpEntity.UserType = 0;
+-            string userTypeUserACC = ddlusertype11.SelectedItem.Text;
++            string userTypeUserACC = AnyminuteEmployeeEditor.StoredName(ddlusertype11.SelectedItem);
+             EmpEntity.LegalName = txtLegalName.Text;
+             EmpEntity.Title = "";
+             EmpEntity.FirstName = txtFirstName.Text;
+@@ -3920,7 +3922,7 @@ public partial class Change_Rate_EmployeeV2 : System.Web.UI.Page
+         if (rdoBtnUserTypeList.SelectedValue.ToString() == "12")
+         {
+             int UserType = int.Parse(rdoBtnUserTypeList.SelectedValue);
+-            string UserTypeName = rdoBtnUserTypeList.SelectedItem.Text;
++            string UserTypeName = AnyminuteEmployeeEditor.StoredName(rdoBtnUserTypeList.SelectedItem);
+             ddlusertyperegular.ClearSelection();
+             ddlusertyperegular.Items.FindByValue("N").Selected = true;
+             ddlusertyperegular_SelectedIndexChanged(sender, e);
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Edit_EmployeeV2.aspx b/AMV3Reseller_27Aug2022_Subscription/Edit_EmployeeV2.aspx
+index 17d0a9d..3619d8e 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Edit_EmployeeV2.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/Edit_EmployeeV2.aspx
+@@ -1445,7 +1445,7 @@
+                                                                 </asp:TemplateField>
+                                                                 <asp:TemplateField>
+                                                                     <ItemTemplate>
+-                                                                        <asp:LinkButton ID="lnlRole" runat="server" Text='<%# Eval("Role") %>' CommandArgument='<%# ((GridViewRow) Container).RowIndex %>' CommandName="assgin" OnClick="lnlRole_Click"></asp:LinkButton>
++                                                                        <asp:LinkButton ID="lnlRole" runat="server" Text='<%# AnyminuteEmployeeEditor.RoleDisplay(Eval("Role")) %>' CommandArgument='<%# ((GridViewRow) Container).RowIndex %>' CommandName="assgin" OnClick="lnlRole_Click"></asp:LinkButton>
+                                                                         <asp:HiddenField ID="hfdRoleid" runat="server" Value='<%# Eval("Roleid") %>' />
+                                                                         <asp:HiddenField ID="hfdProjectid" runat="server" Value='<%# Eval("Projectid") %>' />
+                                                                         <asp:HiddenField ID="hfdProjectType" runat="server" Value='<%# Eval("ProjectType") %>' />
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Edit_EmployeeV2.aspx.cs b/AMV3Reseller_27Aug2022_Subscription/Edit_EmployeeV2.aspx.cs
+index 2c07352..1d48b86 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Edit_EmployeeV2.aspx.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/Edit_EmployeeV2.aspx.cs
+@@ -136,6 +136,9 @@ public partial class Add_EmployeeV2 : System.Web.UI.Page
+         ddlCatagoryRole.DataTextField = Utpe.Columns[1].ToString();
+         ddlCatagoryRole.DataBind();
+         ddlCatagoryRole.SelectedIndex = 0;
++        AnyminuteEmployeeEditor.Relabel(rdoBtnUserTypeList);
++        AnyminuteEmployeeEditor.Relabel(ddlRoleNamepop);
++        AnyminuteEmployeeEditor.Relabel(ddlCatagoryRole);
+ 
+         //comm.FillDropDownList(ddlCatagoryRole, "UserType", "User_TypeId", "UserType", "User_TypeId != 1", "User_TypeId");
+     }
+@@ -433,7 +436,7 @@ public partial class Add_EmployeeV2 : System.Web.UI.Page
+             var hfdBusinessID = (HiddenField)row.FindControl("hfdBusinessID");
+             var bussname = (Label)row.FindControl("bussname");
+             var UserTypeid = rdoBtnUserTypeList.SelectedValue;
+-            var userTypeText = rdoBtnUserTypeList.SelectedItem.Text;
++            var userTypeText = AnyminuteEmployeeEditor.StoredName(rdoBtnUserTypeList.SelectedItem);
+             if (chkbussname.Checked)
+             {
+ 
+@@ -614,7 +617,7 @@ public partial class Add_EmployeeV2 : System.Web.UI.Page
+         {
+             if (dr["BusinessID"].ToString().Trim() == hfdbussidpop.Value.ToString().Trim()) // if id==2
+             {
+-                dr["Role"] = ddlRoleNamepop.SelectedItem.Text;
++                dr["Role"] = AnyminuteEmployeeEditor.StoredName(ddlRoleNamepop.SelectedItem);
+                 dr["Roleid"] = ddlRoleNamepop.SelectedValue;//change the name
+ 
+                 dr["ProjectType"] = ddlUserType.SelectedValue;//break; break or not depending on you
+@@ -893,7 +896,7 @@ public partial class Add_EmployeeV2 : System.Web.UI.Page
+         Uae.Email = txtMainEmail.Text.Trim();
+         Uae.MotherOrgid = Convert.ToInt32(Session["MotherOrgid"].ToString());
+         Uae.UserTypeid = Convert.ToInt32(rdoBtnUserTypeList.SelectedValue);
+-        Uae.UserType = rdoBtnUserTypeList.SelectedItem.Text;
++        Uae.UserType = AnyminuteEmployeeEditor.StoredName(rdoBtnUserTypeList.SelectedItem);
+         Uae.ProfileImageName = str;
+ 
+         return Convert.ToInt32(Uac.Sp_InsertUserAccFromAddress(Uae));
+diff --git a/AMV3Reseller_27Aug2022_Subscription/EmployeeAssignment.aspx.cs b/AMV3Reseller_27Aug2022_Subscription/EmployeeAssignment.aspx.cs
+index 9ce0a0d..f3dd875 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/EmployeeAssignment.aspx.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/EmployeeAssignment.aspx.cs
+@@ -9,7 +9,7 @@ public partial class AnyminuteEmployeeAssignmentPage : System.Web.UI.Page
+ {
+     private int employee; private AnyminuteEmployeeCardView card;
+     private int EditingBusiness { get { return Convert.ToInt32(ViewState["EditingBusiness"] ?? 0); } set { ViewState["EditingBusiness"] = value; } }
+-    // v88: Administrator (UserType 2) is offered again, labelled "Supervisor" (display only). Accountant (12) stays hidden as in v86.
++    // v88/v89: the Assign Roles option named "Administrator" (standard User_TypeId 5) is labelled "Supervisor" (display only, trimmed). Accountant (12) stays hidden as in v86.
+     // UI only - a hidden role the assignment already holds is kept, in its original position, when the form is saved.
+     static readonly int[] HiddenRoles = { 12 };
+     private int[] OriginalRoles { get { return (int[])ViewState["OriginalRoles"] ?? new int[0]; } set { ViewState["OriginalRoles"] = value; } }
+diff --git a/AMV3Reseller_27Aug2022_Subscription/ExternalLogin.aspx b/AMV3Reseller_27Aug2022_Subscription/ExternalLogin.aspx
+index 9d2d584..09f77de 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/ExternalLogin.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/ExternalLogin.aspx
+@@ -1,3 +1,3 @@
+ <%@ Page Language="C#" AutoEventWireup="true" CodeFile="ExternalLogin.aspx.cs" Inherits="AnyminuteExternalLoginPage" EnableViewState="false" %>
+ <%-- v41: Google / Microsoft sign-in start (?p=google|microsoft) and OAuth redirect URI (?code&state). No UI; always redirects. --%>
+-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8" /><meta name="referrer" content="no-referrer" /><title>Signing in | AnyMinute</title><link href="css/AnyminuteTypography.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261117v88" rel="stylesheet" /></head><body class="am-reference am-typography"></body></html>
++<!DOCTYPE html><html lang="en"><head><meta charset="utf-8" /><meta name="referrer" content="no-referrer" /><title>Signing in | AnyMinute</title><link href="css/AnyminuteTypography.css?v=20261118v89" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261118v89" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261118v89" rel="stylesheet" /></head><body class="am-reference am-typography"></body></html>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Home_Page.aspx b/AMV3Reseller_27Aug2022_Subscription/Home_Page.aspx
+index ddba0b4..30fa885 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Home_Page.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/Home_Page.aspx
+@@ -446,7 +446,7 @@
+                 <div class="row">
+                     <div class="col-md-12">
+                         <div style="overflow-x: auto;">
+-                            <asp:Label ID="Label_Owner_Grid" Text="In below businesses you are assigned as an administrator." Font-Size="X-Large" runat="server" Visible="false" />
++                            <asp:Label ID="Label_Owner_Grid" Text="In below businesses you are assigned as a supervisor." Font-Size="X-Large" runat="server" Visible="false" />
+                             <asp:GridView ID="GvEmpListOwner" runat="server" ClientIDMode="Static"
+                                 CssClass="table nowrap" Width="100%" AutoGenerateColumns="False" CellPadding="1"
+                                 ForeColor="#333333" OnRowCommand="GvEmpListOwner_RowCommand"
+@@ -1038,7 +1038,7 @@
+ 
+                                 <asp:TemplateField HeaderText="Role">
+                                     <ItemTemplate>
+-                                        <asp:Label ID="Label_UserRole" runat="server" Text='<%#DataBinder.Eval(Container.DataItem, "UserRoleName")%>'></asp:Label>
++                                        <asp:Label ID="Label_UserRole" runat="server" Text='<%# AnyminuteEmployeeEditor.RoleDisplay(DataBinder.Eval(Container.DataItem, "UserRoleName")) %>'></asp:Label>
+                                     </ItemTemplate>
+                                 </asp:TemplateField>
+ 
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Home_Page_EmpPopUpList.aspx b/AMV3Reseller_27Aug2022_Subscription/Home_Page_EmpPopUpList.aspx
+index 671ce53..d6ca582 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Home_Page_EmpPopUpList.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/Home_Page_EmpPopUpList.aspx
+@@ -361,7 +361,7 @@
+ 
+                                 <asp:TemplateField HeaderText="Role">
+                                     <ItemTemplate>
+-                                        <asp:Label ID="Label_UserRole" runat="server" Text='<%#DataBinder.Eval(Container.DataItem, "UserRoleName")%>'></asp:Label>
++                                        <asp:Label ID="Label_UserRole" runat="server" Text='<%# AnyminuteEmployeeEditor.RoleDisplay(DataBinder.Eval(Container.DataItem, "UserRoleName")) %>'></asp:Label>
+                                     </ItemTemplate>
+                                 </asp:TemplateField>
+ 
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Login.aspx b/AMV3Reseller_27Aug2022_Subscription/Login.aspx
+index 0186676..da10dbb 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Login.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/Login.aspx
+@@ -152,7 +152,7 @@
+         .am-social-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;margin-bottom:10px;padding:9px 12px;border:1px solid #d0d7e2;border-radius:6px;background:#fff;color:#1f2937!important;font-weight:600;text-decoration:none!important}
+         .am-social-btn:hover{background:#f5f8fc;border-color:#b8c3d3}
+     </style>
+-<link href="css/AnyminuteTypography.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261117v88" rel="stylesheet" /></head>
++<link href="css/AnyminuteTypography.css?v=20261118v89" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261118v89" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261118v89" rel="stylesheet" /></head>
+ <body class="am-reference am-typography">
+     <div class="container">
+             <div class="col-md-3 col-sm-12 col-xs-12"></div>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Main.master b/AMV3Reseller_27Aug2022_Subscription/Main.master
+index d874fd8..de9c8b7 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Main.master
++++ b/AMV3Reseller_27Aug2022_Subscription/Main.master
+@@ -5,7 +5,7 @@
+ <!DOCTYPE html>
+ 
+ <html>
+-<head runat="server"><meta name="anyminute-build" content="v88-20261117" />
++<head runat="server"><meta name="anyminute-build" content="v89-20261118" />
+     <title>AnyMinute | Record From Anywhere</title>
+     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+@@ -139,7 +139,7 @@
+     </asp:ContentPlaceHolder>
+     <link href="css/AnyminuteUI2026.css?v=20261017" rel="stylesheet" />
+ <link href="css/AnyminuteUIUnified.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUiBugFixes.css?v=20261026v17" rel="stylesheet" />
+-<link href="css/AnyminuteNavDrawer.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteTypography.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261117v88" rel="stylesheet" /></head>
++<link href="css/AnyminuteNavDrawer.css?v=20261118v89" rel="stylesheet" /><link href="css/AnyminuteTypography.css?v=20261118v89" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261118v89" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261118v89" rel="stylesheet" /></head>
+ <script type="text/javascript">  
+     window.onload = window.history.forward(0);
+ </script>
+@@ -260,7 +260,7 @@
+     <script src="Scripts/AnyminuteUI2026.js?v=20261024v10"></script>
+     <script src="Scripts/AnyminuteUIUnified.js?v=20261031v38"></script>
+     <script src="Scripts/AnyminuteUiBugFixes.js?v=20261024e1"></script>
+-<script src="Scripts/AnyminuteNavigationActions.js?v=20261024e1"></script><script src="Scripts/AnyminuteNavDrawer.js?v=20261117v88"></script><script src="Scripts/AnyminuteBackNav.js?v=20261117v88"></script><script src="Scripts/AnyminuteMenus.js?v=20261117v88"></script></form>
++<script src="Scripts/AnyminuteNavigationActions.js?v=20261024e1"></script><script src="Scripts/AnyminuteNavDrawer.js?v=20261118v89"></script><script src="Scripts/AnyminuteBackNav.js?v=20261118v89"></script><script src="Scripts/AnyminuteMenus.js?v=20261118v89"></script></form>
+     <!-- Datatables -->
+     <script src="Assets/assets/js/plugin/datatables/datatables.min.js"></script>
+     <script>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master b/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master
+index 19c87a8..be962c2 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master
++++ b/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master
+@@ -2,7 +2,7 @@
+ <!DOCTYPE html>
+ 
+ <html>
+-<head runat="server"><meta name="anyminute-build" content="v88-20261117" />
++<head runat="server"><meta name="anyminute-build" content="v89-20261118" />
+     <title>AnyMinute | Record From Anywhere</title>
+     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+@@ -28,7 +28,7 @@
+                        
+     </asp:ContentPlaceHolder>
+     
+-<link href="css/AnyminuteTypography.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261117v88" rel="stylesheet" /></head>
++<link href="css/AnyminuteTypography.css?v=20261118v89" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261118v89" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261118v89" rel="stylesheet" /></head>
+     <script type="text/javascript">  
+ 
+     window.onload = window.history.forward(0);
+@@ -65,7 +65,7 @@
+             </div>
+         </div>
+ 
+-    <script src="Scripts/AnyminuteMenus.js?v=20261117v88"></script></form>   
++    <script src="Scripts/AnyminuteMenus.js?v=20261118v89"></script></form>   
+ 
+ </body>
+ </html>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/ModalPopUpSelectEffectiveDate.aspx b/AMV3Reseller_27Aug2022_Subscription/ModalPopUpSelectEffectiveDate.aspx
+index ab6be2d..7726ca8 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/ModalPopUpSelectEffectiveDate.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/ModalPopUpSelectEffectiveDate.aspx
+@@ -5,7 +5,7 @@
+ <html xmlns="http://www.w3.org/1999/xhtml">
+ <head runat="server">
+     <title></title>
+-<link href="css/AnyminuteTypography.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261117v88" rel="stylesheet" /></head>
++<link href="css/AnyminuteTypography.css?v=20261118v89" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261118v89" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261118v89" rel="stylesheet" /></head>
+ <body class="am-reference am-typography">
+     <form id="form1" runat="server">
+         <div>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Modern.master b/AMV3Reseller_27Aug2022_Subscription/Modern.master
+index 7315427..d1b1122 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Modern.master
++++ b/AMV3Reseller_27Aug2022_Subscription/Modern.master
+@@ -1,6 +1,6 @@
+ <%@ Master Language="C#" AutoEventWireup="true" CodeFile="Modern.master.cs" Inherits="AnyminuteModernMaster" %>
+ <!DOCTYPE html>
+-<html lang="en"><head runat="server"><meta charset="utf-8" /><meta name="anyminute-build" content="v88-20261117" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>AnyMinute</title><link href="css/bootstrap.min.css" rel="stylesheet" /><script src="Assets/assets/js/core/jquery.3.2.1.min.js"></script><script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script><script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" /><script src="Assets/assets/js/plugin/datatables/datatables.min.js"></script><script src="Assets/assets/js/SweetAlert.js"></script><link href="css/AnyminuteModern.css" rel="stylesheet" /><asp:ContentPlaceHolder ID="head" runat="server" /><link href="css/AnyminuteUI2026.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUIUnified.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUiBugFixes.css?v=20261026v17" rel="stylesheet" /><link href="css/AnyminuteNavDrawer.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteTypography.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261117v88" rel="stylesheet" /></head>
++<html lang="en"><head runat="server"><meta charset="utf-8" /><meta name="anyminute-build" content="v89-20261118" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>AnyMinute</title><link href="css/bootstrap.min.css" rel="stylesheet" /><script src="Assets/assets/js/core/jquery.3.2.1.min.js"></script><script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script><script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" /><script src="Assets/assets/js/plugin/datatables/datatables.min.js"></script><script src="Assets/assets/js/SweetAlert.js"></script><link href="css/AnyminuteModern.css" rel="stylesheet" /><asp:ContentPlaceHolder ID="head" runat="server" /><link href="css/AnyminuteUI2026.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUIUnified.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUiBugFixes.css?v=20261026v17" rel="stylesheet" /><link href="css/AnyminuteNavDrawer.css?v=20261118v89" rel="stylesheet" /><link href="css/AnyminuteTypography.css?v=20261118v89" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261118v89" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261118v89" rel="stylesheet" /></head>
+ <body class="am-reference am-typography am-modern"><form id="frmMaster" runat="server"><asp:ScriptManager ID="ScriptManager1" runat="server" />
+ <header class="am-topbar"><button type="button" class="am-icon-button" data-toggle-sidebar aria-controls="am-main-navigation" aria-expanded="true" aria-label="Toggle navigation">&#9776;</button><a href="Dashboard.aspx" class="am-brand"><asp:PlaceHolder ID="LogoDefault" runat="server"><img src="Assets/assets/img/logo.jpg" alt="AnyMinute" class="am-logo" /></asp:PlaceHolder><asp:Literal ID="Brand" runat="server" /></a><span>Welcome! <asp:Literal ID="Welcome" runat="server" /><asp:Literal ID="WelcomeContext" runat="server" /></span><asp:Literal ID="HeaderHelp" runat="server" /><asp:Literal ID="HeaderBell" runat="server" /><details class="am-account-menu"><summary aria-label="Account menu"><asp:Literal ID="AccountAvatar" runat="server" /><span class="am-account-chevron" aria-hidden="true"></span><span class="sr-only">Account</span></summary><div class="am-account-popover"><a href="MyProfile.aspx"><span data-am-icon="profile" aria-hidden="true"></span>My profile</a><a href="LoginSecurity.aspx"><span data-am-icon="settings" aria-hidden="true"></span>Login &amp; security</a><asp:LinkButton ID="SignOut" runat="server" CausesValidation="false" OnClick="SignOut_Click"><span data-am-icon="signout" aria-hidden="true"></span>Sign out</asp:LinkButton>
+    <a href="Change%20Password.aspx"><span data-am-icon="settings" aria-hidden="true"></span>Change password</a><asp:Literal ID="AccountHelp" runat="server" /><asp:Literal ID="AccountUpgrade" runat="server" /></div></details></header>
+@@ -8,4 +8,4 @@
+ <script>/* v47 (Nov 2 live smoke): pin the Support Admin sidebar before the page content paints, so content never starts (or animates) under it */(function(b){try{if(!document.querySelector('#am-main-navigation li.am-sa-nav'))return;b.classList.add('am-drawer-nav','am-sa-navbody','am-sa-pinned','am-nav-init');b.dataset.amSaPin='1';var k=null;try{k=sessionStorage.getItem('amSaNav');}catch(x){}if(window.innerWidth>=992&&k!=='0')b.classList.add('am-drawer-open');window.addEventListener('load',function(){setTimeout(function(){b.classList.remove('am-nav-init');},50);});}catch(e){}})(document.body);</script>
+ <span style="display:none" aria-hidden="true"><asp:Literal ID="Pending" runat="server" /><asp:Literal ID="Unread" runat="server" /><asp:HyperLink ID="Payroll" runat="server" /></span>
+ <main class="am-main"><asp:ContentPlaceHolder ID="ContentPlaceHolder1" runat="server" /></main>
+-<script src="Scripts/AnyminuteModern.js"></script><script src="Scripts/AnyminuteUI2026.js?v=20261024v10"></script><script src="Scripts/AnyminuteUIUnified.js?v=20261031v38"></script><script src="Scripts/AnyminuteUiBugFixes.js?v=20261024e1"></script><script src="Scripts/AnyminuteNavDrawer.js?v=20261117v88"></script><script src="Scripts/AnyminuteBackNav.js?v=20261117v88"></script><script src="Scripts/AnyminuteNavigationActions.js?v=20261024e1"></script><script src="Scripts/AnyminuteMenus.js?v=20261117v88"></script></form></body></html>
++<script src="Scripts/AnyminuteModern.js"></script><script src="Scripts/AnyminuteUI2026.js?v=20261024v10"></script><script src="Scripts/AnyminuteUIUnified.js?v=20261031v38"></script><script src="Scripts/AnyminuteUiBugFixes.js?v=20261024e1"></script><script src="Scripts/AnyminuteNavDrawer.js?v=20261118v89"></script><script src="Scripts/AnyminuteBackNav.js?v=20261118v89"></script><script src="Scripts/AnyminuteNavigationActions.js?v=20261024e1"></script><script src="Scripts/AnyminuteMenus.js?v=20261118v89"></script></form></body></html>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Registration.aspx b/AMV3Reseller_27Aug2022_Subscription/Registration.aspx
+index 7a81129..ad736cc 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Registration.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/Registration.aspx
+@@ -146,7 +146,7 @@
+      window.onpageshow = function(evt) { if (evt.persisted) DisableBackButton() }
+      window.onunload = function() { void (0) }
+     </script>
+-<link href="css/AnyminuteTypography.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261117v88" rel="stylesheet" /></head>
++<link href="css/AnyminuteTypography.css?v=20261118v89" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261118v89" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261118v89" rel="stylesheet" /></head>
+ <body class="am-reference am-typography">
+     <div class="container">
+         <%--Commited By Firoz--%>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Report3.aspx b/AMV3Reseller_27Aug2022_Subscription/Report3.aspx
+index d29fa9d..0b4448d 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Report3.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/Report3.aspx
+@@ -3,7 +3,7 @@
+ <html xmlns="http://www.w3.org/1999/xhtml">
+ <head runat="server"><title>AnyMinute - Employee Report</title>
+ <style>body{font-family:Arial,sans-serif;margin:24px;color:#25334a} .bar{display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin:12px 0}.field{display:flex;flex-direction:column;gap:5px}input,select{padding:7px} .action{padding:8px 12px;margin:3px} .table{margin-top:15px;overflow:auto}h2{margin-bottom:12px}</style>
+-<link href="css/AnyminuteTypography.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261117v88" rel="stylesheet" /></head>
++<link href="css/AnyminuteTypography.css?v=20261118v89" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261118v89" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261118v89" rel="stylesheet" /></head>
+ <body class="am-reference am-typography"><form id="form1" runat="server">
+ <asp:ScriptManager ID="ScriptManager1" runat="server" />
+ <h2>Employee Time Sheet Report</h2>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/ResetPassord.aspx b/AMV3Reseller_27Aug2022_Subscription/ResetPassord.aspx
+index b779a33..39454ab 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/ResetPassord.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/ResetPassord.aspx
+@@ -133,7 +133,7 @@
+         }
+     </style>
+ 
+-<link href="css/AnyminuteTypography.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261117v88" rel="stylesheet" /></head>
++<link href="css/AnyminuteTypography.css?v=20261118v89" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261118v89" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261118v89" rel="stylesheet" /></head>
+ <body class="am-reference am-typography">
+     <form id="form1" runat="server">
+        
+diff --git a/AMV3Reseller_27Aug2022_Subscription/ResetPassord_New_Account.aspx b/AMV3Reseller_27Aug2022_Subscription/ResetPassord_New_Account.aspx
+index a7c4b4a..4c2546d 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/ResetPassord_New_Account.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/ResetPassord_New_Account.aspx
+@@ -133,7 +133,7 @@
+         }
+     </style>
+ 
+-<link href="css/AnyminuteTypography.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261117v88" rel="stylesheet" /></head>
++<link href="css/AnyminuteTypography.css?v=20261118v89" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261118v89" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261118v89" rel="stylesheet" /></head>
+ <body class="am-reference am-typography">
+     <form id="form1" runat="server">
+         <%--<div class="row" style="height:100px;"></div>--%>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/VerifyLoginEmail.aspx b/AMV3Reseller_27Aug2022_Subscription/VerifyLoginEmail.aspx
+index 476860a..cf28a91 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/VerifyLoginEmail.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/VerifyLoginEmail.aspx
+@@ -1,6 +1,6 @@
+ <%@ Page Language="C#" AutoEventWireup="true" CodeFile="VerifyLoginEmail.aspx.cs" Inherits="AnyminuteVerifyLoginEmailPage" %>
+ <!DOCTYPE html>
+-<html lang="en"><head runat="server"><meta charset="utf-8" /><meta name="anyminute-build" content="v39-20261031" /><meta name="viewport" content="width=device-width,initial-scale=1" /><meta name="referrer" content="no-referrer" /><title>Verify Login Email | AnyMinute</title><link rel="icon" href="Assets/assets/img/logo.jpg" type="image/x-icon" /><link href="css/AnyminuteLoginSecurity.css?v=20261031v39" rel="stylesheet" /><link href="css/AnyminuteTypography.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261117v88" rel="stylesheet" /></head>
++<html lang="en"><head runat="server"><meta charset="utf-8" /><meta name="anyminute-build" content="v39-20261031" /><meta name="viewport" content="width=device-width,initial-scale=1" /><meta name="referrer" content="no-referrer" /><title>Verify Login Email | AnyMinute</title><link rel="icon" href="Assets/assets/img/logo.jpg" type="image/x-icon" /><link href="css/AnyminuteLoginSecurity.css?v=20261031v39" rel="stylesheet" /><link href="css/AnyminuteTypography.css?v=20261118v89" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261118v89" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261118v89" rel="stylesheet" /></head>
+ <body class="am-reference am-typography am-ls-verify"><form id="VerifyForm" runat="server">
+ <%-- v39 (Change Login Email DOC step 3): one-time link from the verification email. Works signed in or signed out; the change happens on the Confirm click (POST), so mail scanners that prefetch the link cannot use it. --%>
+ <main class="am-ls-box"><img src="Assets/assets/img/logo.jpg" alt="AnyMinute" class="am-ls-logo" />
+diff --git a/AMV3Reseller_27Aug2022_Subscription/document2.aspx b/AMV3Reseller_27Aug2022_Subscription/document2.aspx
+index ffb5ce7..4820f33 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/document2.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/document2.aspx
+@@ -5,7 +5,7 @@
+ <html xmlns="http://www.w3.org/1999/xhtml">
+ <head runat="server">
+     <title></title>
+-<link href="css/AnyminuteTypography.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261117v88" rel="stylesheet" /></head>
++<link href="css/AnyminuteTypography.css?v=20261118v89" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261118v89" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261118v89" rel="stylesheet" /></head>
+ <body class="am-reference am-typography">
+     <form id="form1" runat="server">
+              <div Style="visibility:hidden;display:none;">
+diff --git a/AMV3Reseller_27Aug2022_Subscription/document3.aspx b/AMV3Reseller_27Aug2022_Subscription/document3.aspx
+index 13975e8..762f7fc 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/document3.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/document3.aspx
+@@ -5,7 +5,7 @@
+ <html xmlns="http://www.w3.org/1999/xhtml">
+ <head runat="server">
+     <title></title>
+-<link href="css/AnyminuteTypography.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261117v88" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261117v88" rel="stylesheet" /></head>
++<link href="css/AnyminuteTypography.css?v=20261118v89" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261118v89" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261118v89" rel="stylesheet" /></head>
+ <body class="am-reference am-typography">
+     <form id="form1" runat="server">
+              <div Style="visibility:hidden;display:none;">

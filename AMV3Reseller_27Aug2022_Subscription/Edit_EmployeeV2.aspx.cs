@@ -136,6 +136,9 @@ public partial class Add_EmployeeV2 : System.Web.UI.Page
         ddlCatagoryRole.DataTextField = Utpe.Columns[1].ToString();
         ddlCatagoryRole.DataBind();
         ddlCatagoryRole.SelectedIndex = 0;
+        AnyminuteEmployeeEditor.Relabel(rdoBtnUserTypeList);
+        AnyminuteEmployeeEditor.Relabel(ddlRoleNamepop);
+        AnyminuteEmployeeEditor.Relabel(ddlCatagoryRole);
 
         //comm.FillDropDownList(ddlCatagoryRole, "UserType", "User_TypeId", "UserType", "User_TypeId != 1", "User_TypeId");
     }
@@ -433,7 +436,7 @@ public partial class Add_EmployeeV2 : System.Web.UI.Page
             var hfdBusinessID = (HiddenField)row.FindControl("hfdBusinessID");
             var bussname = (Label)row.FindControl("bussname");
             var UserTypeid = rdoBtnUserTypeList.SelectedValue;
-            var userTypeText = rdoBtnUserTypeList.SelectedItem.Text;
+            var userTypeText = AnyminuteEmployeeEditor.StoredName(rdoBtnUserTypeList.SelectedItem);
             if (chkbussname.Checked)
             {
 
@@ -614,7 +617,7 @@ public partial class Add_EmployeeV2 : System.Web.UI.Page
         {
             if (dr["BusinessID"].ToString().Trim() == hfdbussidpop.Value.ToString().Trim()) // if id==2
             {
-                dr["Role"] = ddlRoleNamepop.SelectedItem.Text;
+                dr["Role"] = AnyminuteEmployeeEditor.StoredName(ddlRoleNamepop.SelectedItem);
                 dr["Roleid"] = ddlRoleNamepop.SelectedValue;//change the name
 
                 dr["ProjectType"] = ddlUserType.SelectedValue;//break; break or not depending on you
@@ -893,7 +896,7 @@ public partial class Add_EmployeeV2 : System.Web.UI.Page
         Uae.Email = txtMainEmail.Text.Trim();
         Uae.MotherOrgid = Convert.ToInt32(Session["MotherOrgid"].ToString());
         Uae.UserTypeid = Convert.ToInt32(rdoBtnUserTypeList.SelectedValue);
-        Uae.UserType = rdoBtnUserTypeList.SelectedItem.Text;
+        Uae.UserType = AnyminuteEmployeeEditor.StoredName(rdoBtnUserTypeList.SelectedItem);
         Uae.ProfileImageName = str;
 
         return Convert.ToInt32(Uac.Sp_InsertUserAccFromAddress(Uae));

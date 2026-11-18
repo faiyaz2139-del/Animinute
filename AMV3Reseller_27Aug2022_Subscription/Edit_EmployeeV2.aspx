@@ -1445,7 +1445,7 @@
                                                                 </asp:TemplateField>
                                                                 <asp:TemplateField>
                                                                     <ItemTemplate>
-                                                                        <asp:LinkButton ID="lnlRole" runat="server" Text='<%# Eval("Role") %>' CommandArgument='<%# ((GridViewRow) Container).RowIndex %>' CommandName="assgin" OnClick="lnlRole_Click"></asp:LinkButton>
+                                                                        <asp:LinkButton ID="lnlRole" runat="server" Text='<%# AnyminuteEmployeeEditor.RoleDisplay(Eval("Role")) %>' CommandArgument='<%# ((GridViewRow) Container).RowIndex %>' CommandName="assgin" OnClick="lnlRole_Click"></asp:LinkButton>
                                                                         <asp:HiddenField ID="hfdRoleid" runat="server" Value='<%# Eval("Roleid") %>' />
                                                                         <asp:HiddenField ID="hfdProjectid" runat="server" Value='<%# Eval("Projectid") %>' />
                                                                         <asp:HiddenField ID="hfdProjectType" runat="server" Value='<%# Eval("ProjectType") %>' />

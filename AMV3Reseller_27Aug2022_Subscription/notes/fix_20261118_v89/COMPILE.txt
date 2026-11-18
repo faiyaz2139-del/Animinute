@@ -1,0 +1,12 @@
+C# (C# 5 style; no string interpolation, no ?. ):
+- App_Code/AnyminuteEmployeeEditor.cs: RoleDisplay trims/nbsp; RolesDisplay, Relabel, StoredName added.
+- App_Code/AnyminuteEmployeeRepair.cs: RoleHistory and Enrich UserRoleName/Role use RoleDisplay.
+- App_Code/AnyminuteProjectService.cs: Title() (project member roles) uses RolesDisplay.
+- App_Code/AnyminuteReportsData.cs: Tier() UserTypeId 5 uses RoleDisplay (Supervisor).
+- EmployeeAssignment.aspx.cs: comment only (checkboxes already used RoleDisplay in v88).
+- Edit_EmployeeV2 / Change_Rate_EmployeeV2: Relabel after bind; StoredName on role-name saves.
+- Add_EmployeeV2 / Accountant / AddEditRole: SweetAlert text only (legacy SelectedItem.Text is also saved / compared, so those dropdown labels were not remapped).
+- Home_Page.aspx, Home_Page_EmpPopUpList.aspx, Edit_EmployeeV2.aspx: display RoleDisplay.
+- Masters and standalone pages: stamp v89-20261118 / cache-buster 20261118v89.
+
+mcs is not on this box. The site compiles with aspnet_compiler on the server, same as v88.

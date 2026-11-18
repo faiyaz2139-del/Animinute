@@ -4674,7 +4674,7 @@ public partial class AddEditRole_Add_Employee : System.Web.UI.Page
             {
                 if (hfd_BussinessId_.Value == ddlBusAssProject.SelectedValue)
                 {
-                    this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('Warning!', 'Please Select Another Business as User is selected as Administrator or Accountant User Role in Selected Business', 'warning');", true);
+                    this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('Warning!', 'Please Select Another Business as User is selected as Supervisor or Accountant User Role in Selected Business', 'warning');", true);
                     return;
                 }
             }

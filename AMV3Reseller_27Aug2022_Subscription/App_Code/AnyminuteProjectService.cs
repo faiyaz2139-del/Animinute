@@ -84,7 +84,7 @@ public static class AnyminuteProjectService
     public static string Title(string s)
     {
         s = (s ?? "").Trim(); if (s.Length == 0) return "\u2014";
-        return String.Join(", ", s.Split(',').Select(p => p.Trim()).Where(p => p.Length > 0).Select(p => p == p.ToUpperInvariant() ? Inv.TextInfo.ToTitleCase(p.ToLowerInvariant()) : p).Distinct().ToArray());
+        return AnyminuteEmployeeEditor.RolesDisplay(String.Join(", ", s.Split(',').Select(p => p.Trim()).Where(p => p.Length > 0).Select(p => p == p.ToUpperInvariant() ? Inv.TextInfo.ToTitleCase(p.ToLowerInvariant()) : p).Distinct().ToArray()));
     }
 
     // ---------- reads ----------

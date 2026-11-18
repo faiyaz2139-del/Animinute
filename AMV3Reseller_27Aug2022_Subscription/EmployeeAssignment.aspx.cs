@@ -9,7 +9,7 @@ public partial class AnyminuteEmployeeAssignmentPage : System.Web.UI.Page
 {
     private int employee; private AnyminuteEmployeeCardView card;
     private int EditingBusiness { get { return Convert.ToInt32(ViewState["EditingBusiness"] ?? 0); } set { ViewState["EditingBusiness"] = value; } }
-    // v88: Administrator (UserType 2) is offered again, labelled "Supervisor" (display only). Accountant (12) stays hidden as in v86.
+    // v88/v89: the Assign Roles option named "Administrator" (standard User_TypeId 5) is labelled "Supervisor" (display only, trimmed). Accountant (12) stays hidden as in v86.
     // UI only - a hidden role the assignment already holds is kept, in its original position, when the form is saved.
     static readonly int[] HiddenRoles = { 12 };
     private int[] OriginalRoles { get { return (int[])ViewState["OriginalRoles"] ?? new int[0]; } set { ViewState["OriginalRoles"] = value; } }

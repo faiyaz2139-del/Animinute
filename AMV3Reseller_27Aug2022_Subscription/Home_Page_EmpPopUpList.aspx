@@ -361,7 +361,7 @@
 
                                 <asp:TemplateField HeaderText="Role">
                                     <ItemTemplate>
-                                        <asp:Label ID="Label_UserRole" runat="server" Text='<%#DataBinder.Eval(Container.DataItem, "UserRoleName")%>'></asp:Label>
+                                        <asp:Label ID="Label_UserRole" runat="server" Text='<%# AnyminuteEmployeeEditor.RoleDisplay(DataBinder.Eval(Container.DataItem, "UserRoleName")) %>'></asp:Label>
                                     </ItemTemplate>
                                 </asp:TemplateField>
 

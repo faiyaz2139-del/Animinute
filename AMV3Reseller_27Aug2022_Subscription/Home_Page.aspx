@@ -446,7 +446,7 @@
                 <div class="row">
                     <div class="col-md-12">
                         <div style="overflow-x: auto;">
-                            <asp:Label ID="Label_Owner_Grid" Text="In below businesses you are assigned as an administrator." Font-Size="X-Large" runat="server" Visible="false" />
+                            <asp:Label ID="Label_Owner_Grid" Text="In below businesses you are assigned as a supervisor." Font-Size="X-Large" runat="server" Visible="false" />
                             <asp:GridView ID="GvEmpListOwner" runat="server" ClientIDMode="Static"
                                 CssClass="table nowrap" Width="100%" AutoGenerateColumns="False" CellPadding="1"
                                 ForeColor="#333333" OnRowCommand="GvEmpListOwner_RowCommand"
@@ -1038,7 +1038,7 @@
 
                                 <asp:TemplateField HeaderText="Role">
                                     <ItemTemplate>
-                                        <asp:Label ID="Label_UserRole" runat="server" Text='<%#DataBinder.Eval(Container.DataItem, "UserRoleName")%>'></asp:Label>
+                                        <asp:Label ID="Label_UserRole" runat="server" Text='<%# AnyminuteEmployeeEditor.RoleDisplay(DataBinder.Eval(Container.DataItem, "UserRoleName")) %>'></asp:Label>
                                     </ItemTemplate>
                                 </asp:TemplateField>
 

@@ -29,7 +29,7 @@ public static partial class AnyminuteReports
     static string Day(object v) { if (v == null || v == DBNull.Value) return ""; DateTime d; if (v is DateTime) d = (DateTime)v; else if (!DateTime.TryParse(Convert.ToString(v, Inv), Inv, DateTimeStyles.None, out d)) return S(v); return d.ToString("yyyy-MM-dd", Inv); }
     static string Clock(object v) { if (v == null || v == DBNull.Value) return ""; if (v is TimeSpan) return new DateTime(((TimeSpan)v).Ticks).ToString("HH:mm", Inv); DateTime d; return v is DateTime ? ((DateTime)v).ToString("HH:mm", Inv) : DateTime.TryParse(S(v), Inv, DateTimeStyles.None, out d) ? d.ToString("HH:mm", Inv) : S(v); }
     static DateTime Monday(DateTime d) { return d.Date.AddDays(-(((int)d.DayOfWeek + 6) % 7)); }
-    static string Tier(int role, bool manages) { return role == 1 ? "Business Owner" : role == 5 ? "Administrator" : role == 4 ? (manages ? "Employee + Supervisor" : "Employee") : role == 12 ? "Accountant" : "Supervisor"; }
+    static string Tier(int role, bool manages) { return role == 1 ? "Business Owner" : role == 5 ? AnyminuteEmployeeEditor.RoleDisplay("Administrator") : role == 4 ? (manages ? "Employee + Supervisor" : "Employee") : role == 12 ? "Accountant" : "Supervisor"; }
     static bool Sees(AmRptBiz b, int emp) { return b.Team == null || b.Team.Contains(emp); }
 
     // Everyone assigned to the business (one row per employee; several roles are joined).

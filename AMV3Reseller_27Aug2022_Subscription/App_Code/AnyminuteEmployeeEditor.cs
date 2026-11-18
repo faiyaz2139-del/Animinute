@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Web;
+using System.Web.UI.WebControls;
 
 // 2026-10-24 v2: services behind the redesigned Employees screens (Add/Edit Employee, assignment
 // details, rate history and Login & Access). Legacy tables and procedures are reused; the optional
@@ -635,13 +636,38 @@ public static class AnyminuteEmployeeEditor
         }
         catch (Exception) { }
     }
-    // Display-only: the employee Assign Roles option stored as "Administrator" (UserType 2) is shown as "Supervisor".
+    // Display-only: the employee role stored as "Administrator" (UserType name; standard data uses User_TypeId 5) is shown as "Supervisor".
     // Values / User_TypeId / permissions are unchanged. Does not rename Payroll Administrator or Business Administrator.
+    // Trim so padded/nbsp DB values still match. RolesDisplay maps each name in a comma-separated list.
     public static string RoleDisplay(object role)
     {
         string s = Convert.ToString(role);
+        if (s == null) return "";
+        s = s.Replace("\u00a0", " ").Trim();
         if (String.Equals(s, "Administrator", StringComparison.OrdinalIgnoreCase)) return "Supervisor";
         return s;
+    }
+    public static string RolesDisplay(object roles)
+    {
+        string s = RoleDisplay(roles);
+        if (s.IndexOf(',') < 0) return s;
+        string[] parts = s.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+        for (int i = 0; i < parts.Length; i++) parts[i] = RoleDisplay(parts[i]);
+        return String.Join(", ", parts);
+    }
+    public static void Relabel(ListControl list)
+    {
+        if (list == null) return;
+        foreach (ListItem item in list.Items) item.Text = RoleDisplay(item.Text);
+    }
+    // When a role list was Relabel'd, write the stored name (not the display label) if the caller saves SelectedItem.Text.
+    public static string StoredName(ListItem item)
+    {
+        if (item == null) return "";
+        int id;
+        if (Int32.TryParse(item.Value, out id) && (id == 2 || id == 5) && String.Equals((item.Text ?? "").Trim(), "Supervisor", StringComparison.OrdinalIgnoreCase))
+            return "Administrator";
+        return item.Text;
     }
     public static string RoleCss(object role)
     {

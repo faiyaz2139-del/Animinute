@@ -121,12 +121,17 @@ public static class AnyminuteEmployeeRepair
     }
     public static DataTable RoleHistory(int employee,int business)
     {
-        using(var c=AnyminuteTimesheetRepair.Open())return AnyminuteTimesheetRepair.Query(c,null,@"SELECT b.CompanyName AS Business,
+        using(var c=AnyminuteTimesheetRepair.Open())
+        {
+            var dt=AnyminuteTimesheetRepair.Query(c,null,@"SELECT b.CompanyName AS Business,
             u.UserType AS Role,h.EffectiveFrom AS Start_Date_UTC,h.EffectiveTo AS End_Date_UTC,
             CASE WHEN h.EffectiveTo IS NULL THEN 'Current' ELSE 'Previous' END AS Role_Status,h.RecordedAt AS Recorded_UTC,h.Note
             FROM AnyminuteEmployeeRoleHistory h LEFT JOIN AddBusiness b ON b.BusinessID=h.BusinessId
             LEFT JOIN UserType u ON u.User_TypeId=h.UserTypeId
             WHERE h.EmployeeId=@e AND h.BusinessId=@b ORDER BY h.RecordedAt DESC,h.HistoryId DESC","@e",employee,"@b",business);
+            foreach(DataRow row in dt.Rows) if(row["Role"]!=DBNull.Value) row["Role"]=AnyminuteEmployeeEditor.RoleDisplay(row["Role"]);
+            return dt;
+        }
     }
     public static bool Active(object status,object flag)
     {
@@ -155,7 +160,8 @@ public static class AnyminuteEmployeeRepair
                 if(data.Columns.Contains("UserTypeId") && row["UserTypeId"]!=DBNull.Value)
                 {
                     var role=roleNames.Rows.Find(row["UserTypeId"]);
-                    if(role!=null && data.Columns.Contains("UserRoleName"))row["UserRoleName"]=role["UserType"];
+                    if(role!=null && data.Columns.Contains("UserRoleName"))row["UserRoleName"]=AnyminuteEmployeeEditor.RoleDisplay(role["UserType"]);
+                    if(data.Columns.Contains("Role") && role!=null) row["Role"]=AnyminuteEmployeeEditor.RoleDisplay(role["UserType"]);
                     if(data.Columns.Contains("UserType"))row["UserType"]=row["UserTypeId"];
                 }
             }
