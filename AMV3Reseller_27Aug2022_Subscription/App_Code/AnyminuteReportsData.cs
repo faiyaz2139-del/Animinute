@@ -29,7 +29,7 @@ public static partial class AnyminuteReports
     static string Day(object v) { if (v == null || v == DBNull.Value) return ""; DateTime d; if (v is DateTime) d = (DateTime)v; else if (!DateTime.TryParse(Convert.ToString(v, Inv), Inv, DateTimeStyles.None, out d)) return S(v); return d.ToString("yyyy-MM-dd", Inv); }
     static string Clock(object v) { if (v == null || v == DBNull.Value) return ""; if (v is TimeSpan) return new DateTime(((TimeSpan)v).Ticks).ToString("HH:mm", Inv); DateTime d; return v is DateTime ? ((DateTime)v).ToString("HH:mm", Inv) : DateTime.TryParse(S(v), Inv, DateTimeStyles.None, out d) ? d.ToString("HH:mm", Inv) : S(v); }
     static DateTime Monday(DateTime d) { return d.Date.AddDays(-(((int)d.DayOfWeek + 6) % 7)); }
-    static string Tier(int role, bool manages) { return role == 1 ? "Business Owner" : role == 5 ? AnyminuteEmployeeEditor.RoleDisplay("Administrator") : role == 4 ? (manages ? "Employee + Supervisor" : "Employee") : role == 12 ? "Accountant" : "Supervisor"; }
+    static string Tier(int role, bool manages) { return role == 1 ? "Business Owner" : role == 5 ? AnyminuteEmployeeEditor.RoleDisplay("Administrator") : role == 4 ? (manages ? "Employee + Manager" : "Employee") : role == 12 ? "Accountant" : "Manager"; }
     static bool Sees(AmRptBiz b, int emp) { return b.Team == null || b.Team.Contains(emp); }
 
     // Everyone assigned to the business (one row per employee; several roles are joined).
@@ -301,7 +301,7 @@ public static partial class AnyminuteReports
 
     static void Assignments(SqlConnection c, AmRptResult r, AmRptQuery q, List<AmRptBiz> bizs)
     {
-        var s = new AmRptSection { Title = "Business Assignments", Cols = new[] { "Employee ID", "Employee Name", "Business", "Role", "Employee Role", "Supervisor Role", "Assignment Status", "Effective Start", "Effective End" } };
+        var s = new AmRptSection { Title = "Business Assignments", Cols = new[] { "Employee ID", "Employee Name", "Business", "Role", "Employee Role", "Manager Role", "Assignment Status", "Effective Start", "Effective End" } };
         foreach (var b in bizs)
             foreach (DataRow p in Visible(c, b, q, true))
             {
@@ -312,10 +312,10 @@ public static partial class AnyminuteReports
                 s.Rows.Add(new[] { S(p["EmployeeID"]), S(p["Name"]), b.Name, Tier(role, manages), role == 4 ? "Yes" : "No", role != 4 || manages ? "Yes" : "No", S(p["IsActive"]).ToUpperInvariant() == "NO" ? "Inactive" : "Active", start, end });
             }
         Filter(r, q, s);
-        var sum = new AmRptSection { Title = "Business Summary", Cols = new[] { "Business", "Total Assignments", "Active", "Employee Roles", "Supervisor Roles", "Dual Roles" } };
+        var sum = new AmRptSection { Title = "Business Summary", Cols = new[] { "Business", "Total Assignments", "Active", "Employee Roles", "Manager Roles", "Dual Roles" } };
         foreach (var g in s.Rows.GroupBy(x => x[2])) sum.Rows.Add(new[] { g.Key, g.Count().ToString(Inv), g.Count(x => x[6] == "Active").ToString(Inv), g.Count(x => x[4] == "Yes").ToString(Inv), g.Count(x => x[5] == "Yes").ToString(Inv), g.Count(x => x[4] == "Yes" && x[5] == "Yes").ToString(Inv) });
         r.Sections.Add(s); r.Sections.Add(sum);
-        Kpi(r, "Assignments", s.Rows.Count); Kpi(r, "Active", s.Rows.Count(x => x[6] == "Active")); Kpi(r, "Employee Roles", s.Rows.Count(x => x[4] == "Yes")); Kpi(r, "Supervisor Roles", s.Rows.Count(x => x[5] == "Yes"));
+        Kpi(r, "Assignments", s.Rows.Count); Kpi(r, "Active", s.Rows.Count(x => x[6] == "Active")); Kpi(r, "Employee Roles", s.Rows.Count(x => x[4] == "Yes")); Kpi(r, "Manager Roles", s.Rows.Count(x => x[5] == "Yes"));
     }
 
     static void Master(SqlConnection c, AmRptResult r, AmRptQuery q, List<AmRptBiz> bizs)

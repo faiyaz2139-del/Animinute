@@ -192,7 +192,7 @@ public static partial class AnyminuteReports
     public static string MatrixHtml(Dictionary<string, AmRptPerm[]> m, bool disabled, string prefix)
     {
         var sb = new StringBuilder("<table class=\"am-rp-matrix\"><thead><tr><th rowspan=\"2\">Report Name</th>");
-        foreach (var t in Tiers) sb.Append("<th colspan=\"3\" class=\"am-rp-mt\">").Append(t).Append("</th>");
+        foreach (var t in Tiers) sb.Append("<th colspan=\"3\" class=\"am-rp-mt\">").Append(TierLabel(t)).Append("</th>");
         sb.Append("</tr><tr>"); for (int i = 0; i < 3; i++) sb.Append("<th>View</th><th>PDF</th><th>Excel</th>"); sb.Append("</tr></thead><tbody>");
         foreach (var d in Defs.OrderBy(x => MatrixOrder.IndexOf(x.Key)))
         {
@@ -201,7 +201,7 @@ public static partial class AnyminuteReports
                 {
                     var p = m[d.Key][i]; bool on = a == "v" ? p.View : a == "p" ? p.Pdf : p.Excel;
                     sb.Append("<td><input type=\"checkbox\" name=\"").Append(prefix).Append(d.Key).Append("_").Append(i).Append("_").Append(a).Append("\" value=\"1\"").Append(on ? " checked" : "").Append(disabled ? " disabled" : "")
-                      .Append(" aria-label=\"").Append(A(d.Name + " " + Tiers[i] + " " + (a == "v" ? "View" : a == "p" ? "PDF" : "Excel"))).Append("\" /></td>");
+                      .Append(" aria-label=\"").Append(A(d.Name + " " + TierLabel(Tiers[i]) + " " + (a == "v" ? "View" : a == "p" ? "PDF" : "Excel"))).Append("\" /></td>");
                 }
             sb.Append("</tr>");
         }

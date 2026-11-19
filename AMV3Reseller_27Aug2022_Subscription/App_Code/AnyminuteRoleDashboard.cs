@@ -17,7 +17,7 @@ public sealed class AnyminuteBusinessRole
 {
     public int BusinessID; public string Name; public int Actor; public int Role;
     public bool Employee; public bool Supervisor; public bool Legacy;
-    public string Label { get { return Employee && Supervisor ? "Employee + Supervisor" : Supervisor ? "Supervisor Only" : "Employee"; } }
+    public string Label { get { return Employee && Supervisor ? "Employee + Manager" : Supervisor ? "Manager Only" : "Employee"; } }
 }
 public sealed class AnyminuteDashDay { public DateTime Date; public string Business; public bool Working; public TimeSpan Start, End; public decimal Hours; }
 public sealed class AnyminuteDashCard { public int BusinessID, EmployeeID; public string Business, Employee, State; public DateTime Week; public DateTime? Submitted; public decimal Hours; }
@@ -178,7 +178,7 @@ public static class AnyminuteRoleDashboard
             // v23 (Pandey #1, image 3): several businesses -> "Multiple Businesses (N) | Employee & Supervisor" (roles across all
             // businesses); the selected business is shown by Select Business, so the header no longer jumps per selection.
             if (roles.Count > 1) { emp = roles.Any(r => r.Employee); sup = roles.Any(r => r.Supervisor); }
-            string role = emp && sup ? "Employee & Supervisor" : sup ? "Supervisor" : "Employee";
+            string role = emp && sup ? "Employee & Manager" : sup ? "Manager" : "Employee";
             return roles.Count > 1 ? "Multiple Businesses (" + roles.Count + ") | " + role : role + " | " + (picked != null ? picked.Name : "Multiple Businesses");
         }
         catch (HttpException) { return null; }
@@ -342,7 +342,7 @@ public static class AnyminuteRoleDashboard
     {
         var h = new StringBuilder("<div class='am-rd' data-am-dashboard='" + m.Kind + "'>");
         bool sup = m.Kind == "supervisor";
-        h.Append("<div class='am-title'><div><h1>").Append(sup ? "Supervisor Dashboard" : "Employee Dashboard").Append("</h1><p>")
+        h.Append("<div class='am-title'><div><h1>").Append(sup ? "Manager Dashboard" : "Employee Dashboard").Append("</h1><p>")
          .Append(sup ? "Manage your team&#39;s time cards, schedules and employees." : "Here is your schedule and time card information.").Append("</p></div></div>");
         // v20 (Pandey #1-#3). Pickers:
         //  - one business, employee only (image 1 left): fixed business name + role pill;
@@ -376,7 +376,7 @@ public static class AnyminuteRoleDashboard
             h.Append("<label class='am-rd-field'><span>Switch Dashboard</span><select id='AmDashMode' onchange=\"location.href='Dashboard.aspx?b=")
              .Append(A(HttpUtility.UrlEncode(m.Selected))).Append("&amp;mode='+this.value\"><option value='employee'").Append(sup ? "" : " selected").Append(scopeEmp ? "" : " disabled")
              .Append(">Employee Dashboard").Append(scopeEmp ? "" : " (not available for this business)").Append("</option><option value='supervisor'").Append(sup ? " selected" : "").Append(scopeSup ? "" : " disabled")
-             .Append(">Supervisor Dashboard").Append(scopeSup ? "" : " (not available for this business)").Append("</option></select></label>");
+             .Append(">Manager Dashboard").Append(scopeSup ? "" : " (not available for this business)").Append("</option></select></label>");
         }
         // v23 (Pandey #1, image 2): with 3-5 businesses the pickers card stayed short while the roles card grew, leaving a
         // large empty gap. The pickers card now carries a one-line role summary and both cards share the row height; the
@@ -386,12 +386,12 @@ public static class AnyminuteRoleDashboard
             int empN = m.Roles.Count(r => r.Employee), supN = m.Roles.Count(r => r.Supervisor);
             var cur = m.All ? null : m.Roles.FirstOrDefault(r => Convert.ToString(r.BusinessID) == m.Selected);
             h.Append("<p class='am-rd-summaryline'><span data-am-icon='business' aria-hidden='true'></span><span><b>").Append(m.Roles.Count).Append(" businesses</b> &#183; Employee in ").Append(empN)
-             .Append(supN > 0 ? " &#183; Supervisor in " + supN : "").Append(cur != null ? " &#183; Viewing <b>" + E(cur.Name) + "</b> as " + (sup ? "Supervisor" : "Employee") : m.All ? " &#183; Viewing all businesses" : "").Append("</span></p>");
+             .Append(supN > 0 ? " &#183; Manager in " + supN : "").Append(cur != null ? " &#183; Viewing <b>" + E(cur.Name) + "</b> as " + (sup ? "Manager" : "Employee") : m.All ? " &#183; Viewing all businesses" : "").Append("</span></p>");
         }
         h.Append("</div>");
         if (m.DualRole)
         {
-            h.Append("<div class='am-card am-rd-roles").Append(m.Roles.Count > 3 ? " am-rd-roles-many" : "").Append("'><h2><span data-am-icon='business' aria-hidden='true'></span>Your Roles by Business").Append(m.Roles.Count > 1 ? "<small class='am-rd-count'>" + m.Roles.Count + "</small>" : "").Append("</h2><div class='am-rd-roles-wrap' id='AmRolesWrap'><table class='am-table'><colgroup><col /><col class='am-rd-rolecol' /><col class='am-rd-rolecol' /></colgroup><thead><tr><th>Business</th><th>Employee</th><th>Supervisor</th></tr></thead><tbody>");
+            h.Append("<div class='am-card am-rd-roles").Append(m.Roles.Count > 3 ? " am-rd-roles-many" : "").Append("'><h2><span data-am-icon='business' aria-hidden='true'></span>Your Roles by Business").Append(m.Roles.Count > 1 ? "<small class='am-rd-count'>" + m.Roles.Count + "</small>" : "").Append("</h2><div class='am-rd-roles-wrap' id='AmRolesWrap'><table class='am-table'><colgroup><col /><col class='am-rd-rolecol' /><col class='am-rd-rolecol' /></colgroup><thead><tr><th>Business</th><th>Employee</th><th>Manager</th></tr></thead><tbody>");
             foreach (var r in m.Roles)
                 h.Append("<tr").Append(Convert.ToString(r.BusinessID) == m.Selected ? " class='is-current'" : "").Append(" data-href='Dashboard.aspx?b=").Append(r.BusinessID).Append("' title='Open ").Append(A(r.Name)).Append("'><td><a href='Dashboard.aspx?b=").Append(r.BusinessID).Append("'>").Append(E(r.Name)).Append("</a></td><td>").Append(r.Employee ? "<span class='am-rd-yes' role='img' aria-label='Yes'>&#10003;</span>" : "<span class='am-rd-no' role='img' aria-label='No'>&#8212;</span>")
                  .Append("</td><td>").Append(r.Supervisor ? "<span class='am-rd-yes' role='img' aria-label='Yes'>&#10003;</span>" : "<span class='am-rd-no' role='img' aria-label='No'>&#8212;</span>").Append("</td></tr>");
@@ -446,7 +446,7 @@ public static class AnyminuteRoleDashboard
         Action(h, "clock", "My Time Card", "Enter and submit my hours", Url("WeekTimeCard.aspx", m, Biz(m)));
         Action(h, "dashboard", "View My Schedule", "See upcoming shifts and days off", Url("WeeklyEmployeeSchedule.aspx", m, Biz(m)));
         Action(h, "folder", "My Projects", "View my assigned projects", Url("Projects.aspx", m, Biz(m)));
-        if (both) Action(h, "check", "Team Approvals", "Switch to Supervisor view", "Dashboard.aspx?b=" + HttpUtility.UrlEncode(m.Selected) + "&mode=supervisor");
+        if (both) Action(h, "check", "Team Approvals", "Switch to Manager view", "Dashboard.aspx?b=" + HttpUtility.UrlEncode(m.Selected) + "&mode=supervisor");
         else Action(h, "business", "My Businesses", "View business details", "Dashboard.aspx?view=businesses");
         h.Append("</div></section></div>");
     }
@@ -483,7 +483,7 @@ public static class AnyminuteRoleDashboard
              .Append("</td><td><span class='am-badge Active'>Scheduled</span></td></tr>");
         if (m.Upcoming.Count == 0) h.Append("<tr><td colspan='7' class='am-muted'>No shifts are scheduled for your team this week.</td></tr>");
         h.Append("</tbody></table></div></section></div><div>");
-        h.Append("<section class='am-card'><h2>").Append(m.CanSwitch ? "Supervisor Actions" : "Quick Actions").Append("</h2><div class='am-rd-actions'>");
+        h.Append("<section class='am-card'><h2>").Append(m.CanSwitch ? "Manager Actions" : "Quick Actions").Append("</h2><div class='am-rd-actions'>");
         Action(h, "clock", "Review Time Cards", "Approve or reject employee time cards", "TimeCards.aspx?status=Submitted");
         Action(h, "dashboard", "Manage Schedules", "Create and edit employee schedules", Url("WeeklyEmployeeSchedule.aspx", m, Biz(m)));
         if (m.Directory) Action(h, "people", "View Employees", "See team members and details", "Users.aspx");

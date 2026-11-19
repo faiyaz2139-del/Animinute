@@ -97,7 +97,7 @@ public partial class AnyminuteWeeklySchedulePage : System.Web.UI.Page
         // the personal wording and My Time Card prompt are only for the signed-in person's own schedule.
         bool self = viewOnly && IsSelf();
         string typeId = Convert.ToString(Session["UserTypeid"]).Trim();
-        if (typeId == "12" || (typeId == "0" && Convert.ToString(Session["UserType"]) == "Admin")) WsEmployeeLabel.Text = "Employee / Supervisor";
+        if (typeId == "12" || (typeId == "0" && Convert.ToString(Session["UserType"]) == "Admin")) WsEmployeeLabel.Text = "Employee / Manager";
         if (viewOnly) WsSub.InnerText = self ? "Your planned working hours, days off and break time for the selected week."
             : "Read-only view of the planned working hours, days off and break time for the selected employee or supervisor.";
         if (viewOnly && !saved) { TotalHours.Text = "0.00"; Notice("No work schedule has been published for this week yet."); }

@@ -647,7 +647,7 @@
                                             </b>
                                 <asp:HyperLink Visible="false" ID="hyAssbus" runat="server" Text="Assign Staff to Business"
                                     NavigateUrl="~/AssignBusiness.aspx"></asp:HyperLink><b>|</b>
-                                            <asp:HyperLink ID="hyAssManger" runat="server" Text="Assign Employee to Supervisor"
+                                            <asp:HyperLink ID="hyAssManger" runat="server" Text="Assign Employee to Manager"
                                                 NavigateUrl='<%# "~/AssgineManager.aspx?BusinessIdFromDefaultPapge=" + Eval("BusinessID")%>'></asp:HyperLink>
                                         </ItemTemplate>
                                     </asp:TemplateField>
@@ -802,7 +802,7 @@
                                 </b>
                                 <asp:HyperLink Visible="false" ID="hyAssbus1" runat="server" Text="Assign Staff to Business"
                                     NavigateUrl="~/AssignBusiness.aspx"></asp:HyperLink><b>|</b>
-                                <asp:HyperLink ID="hyAssManger1" runat="server" Text="Assign Employee to Supervisor"
+                                <asp:HyperLink ID="hyAssManger1" runat="server" Text="Assign Employee to Manager"
                                     NavigateUrl='<%# "~/AssgineManager.aspx?BusinessIdFromDefaultPapge=" + Eval("BusinessID")%>'></asp:HyperLink>
                             </ItemTemplate>
                         </asp:TemplateField>

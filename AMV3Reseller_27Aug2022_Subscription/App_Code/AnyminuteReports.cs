@@ -51,6 +51,12 @@ public static partial class AnyminuteReports
 {
     static readonly CultureInfo Inv = CultureInfo.InvariantCulture;
     public static readonly string[] Tiers = { "Employee", "Supervisor", "Administrator" };
+    // Display-only: stored tier value "Supervisor" is shown as "Manager". Do not change Tiers or database values.
+    public static string TierLabel(string tier)
+    {
+        if (String.Equals(tier, "Supervisor", StringComparison.OrdinalIgnoreCase)) return "Manager";
+        return tier ?? "";
+    }
     public const string Table = "AnyminuteReportAccess";
     static bool[] T(bool e, bool s, bool a) { return new[] { e, s, a }; }
     static AmRptDef D(string key, string name, string desc, string icon, bool[] who) { return new AmRptDef { Key = key, Name = name, Desc = desc, Icon = icon, View = who, Pdf = (bool[])who.Clone(), Excel = (bool[])who.Clone() }; }

@@ -8,7 +8,7 @@
  <header class="am-rp-head"><div><h1>Report Access Defaults</h1><p>Set global report permissions by role. These defaults apply to all businesses unless you create a business-specific override.</p></div></header>
  <div class="am-ra-layout">
   <div>
-   <div class="am-rp-banner"><strong>i</strong><div><b>Default Role Permissions</b><br/>Employee, Supervisor and Administrator permissions are applied to all businesses by default. View, PDF and Excel access can be set independently.</div><asp:Label ID="DefaultChip" runat="server" CssClass="am-rp-pill is-ok am-ra-chip" Text="Default Active" /></div>
+   <div class="am-rp-banner"><strong>i</strong><div><b>Default Role Permissions</b><br/>Employee, Manager and Administrator permissions are applied to all businesses by default. View, PDF and Excel access can be set independently.</div><asp:Label ID="DefaultChip" runat="server" CssClass="am-rp-pill is-ok am-ra-chip" Text="Default Active" /></div>
    <div class="am-rp-card"><h2>Global Default Report Access</h2><div class="am-rp-table-wrap"><asp:Literal ID="DefaultMatrix" runat="server" /></div></div>
    <div class="am-rp-card"><h2>Business Overrides</h2>
     <div class="am-ra-override-bar"><label><span>Select Business</span> <asp:DropDownList ID="OverrideBusiness" runat="server" AutoPostBack="true" OnSelectedIndexChanged="OverrideBusiness_Changed" /></label>
@@ -24,7 +24,7 @@
    <li><b>Create Business Override (Optional)</b><span>If a business needs different report access, turn off Use Global Defaults and save an override.</span></li>
    <li><b>Overrides Replace Defaults</b><span>When an override exists, it replaces the global default for that business only.</span></li>
    <li><b>Easy Management</b><span>Keep global defaults enabled for consistency and override only when needed.</span></li></ol>
-   <p class="am-rp-note">Roles: <b>Administrator</b> = business owner or administrator; <b>Supervisor</b> = manager, team leader, accountant or an employee who supervises others; <b>Employee</b> = employee. Supervisors see only their own and their team's data; employees see only their own.</p></aside>
+   <p class="am-rp-note">Roles: <b>Administrator</b> = business owner or administrator; <b>Manager</b> = manager, team leader, accountant or an employee who supervises others; <b>Employee</b> = employee. Managers see only their own and their team's data; employees see only their own.</p></aside>
  </div>
 </section>
 </asp:Content>
