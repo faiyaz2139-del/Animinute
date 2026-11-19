@@ -1,0 +1,13 @@
+C# 5 (no string interpolation, no ?. ):
+- App_Code/AnyminuteRoleDashboard.cs: user-facing dashboard labels Supervisor -> Manager (Employee + Manager, Manager Only, Manager Dashboard, Switch to Manager view, table header, Manager Actions, etc.). mode=supervisor and option value='supervisor' unchanged.
+- Acc_To_Default.aspx: "Assign Employee to Supervisor" -> "Assign Employee to Manager" (hyAssManger, hyAssManger1).
+- App_Code/AnyminuteReports.cs: Tiers stored values still Employee / Supervisor / Administrator. New TierLabel() maps Supervisor -> Manager for display only. DB read/write still uses Tiers[i].
+- App_Code/AnyminuteReportsUi.cs: Report Access matrix headers and aria-labels use TierLabel.
+- ReportAccess.aspx: banner and role note use Manager for the Supervisor tier; Administrator label unchanged.
+- App_Code/AnyminuteReportsData.cs: Tier() and assignment report column/KPI labels.
+- WeeklyEmployeeSchedule.aspx.cs: "Employee / Manager" filter label.
+- Home_Page.aspx: Lbl_Administrator display text Manager (control id unchanged).
+- Stamp v91-20261119 / 20261119v91.
+
+mcs is not on this box. The site compiles with aspnet_compiler on the server, same as v90.
+Cumulative on v90 commit b2670f40aef638d979d18e229a2c70be29883aeb (src compile fix included).
