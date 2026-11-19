@@ -233,12 +233,12 @@ public static partial class AnyminuteReports
     }
     public static string LoginHtml(List<string[]> rows)
     {
-        var sb = new StringBuilder("<table class=\"am-rp-table am-la-table\" id=\"LoginAccessTable\"><thead><tr><th>Employee</th><th>Login Email</th><th>Business</th><th>Role</th><th>Employment</th><th>Login Status</th><th>Last Login</th><th>MFA</th><th>Action</th></tr></thead><tbody>");
+        var sb = new StringBuilder("<table class=\"am-table am-rp-table am-la-table\" id=\"LoginAccessTable\"><thead><tr><th>Employee</th><th>Login Email</th><th>Business</th><th>Role</th><th>Employment</th><th>Login Status</th><th>Last Login</th><th>MFA</th><th>Action</th></tr></thead><tbody>");
         if (rows.Count == 0) sb.Append("<tr><td colspan=\"9\" class=\"am-rp-empty\">No employees found.</td></tr>");
         foreach (var r in rows)
             sb.Append("<tr data-rp-text=\"").Append(A((r[1] + " " + r[2] + " " + r[3]).ToLowerInvariant())).Append("\"><td><strong>").Append(E(r[1])).Append("</strong><small> #").Append(r[0]).Append("</small></td><td>").Append(E(r[2])).Append("</td><td>").Append(E(r[3])).Append("</td><td>").Append(E(r[4]))
               .Append("</td><td><span class=\"am-rp-pill ").Append(Pill("Status", r[5])).Append("\">").Append(r[5]).Append("</span></td><td><span class=\"am-rp-pill ").Append(Pill("Status", r[6])).Append("\">").Append(E(r[6])).Append("</span></td><td>").Append(E(r[7])).Append("</td><td>").Append(E(r[8]))
-              .Append("</td><td><a class=\"am-rp-btn am-rp-small\" href=\"").Append(A(VirtualPathUtility.ToAbsolute("~/EmployeeEditor.aspx") + "?EmployeeId=" + r[0] + "&BusinessId=" + r[9] + "&tab=access")).Append("\">Manage Login &amp; Access</a></td></tr>");
+              .Append("</td><td><a class=\"am-button secondary\" href=\"").Append(A(VirtualPathUtility.ToAbsolute("~/EmployeeEditor.aspx") + "?EmployeeId=" + r[0] + "&BusinessId=" + r[9] + "&tab=access")).Append("\">Manage Login &amp; Access</a></td></tr>");
         return sb.Append("</tbody></table>").ToString();
     }
 }

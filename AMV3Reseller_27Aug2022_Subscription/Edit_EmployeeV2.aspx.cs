@@ -136,9 +136,9 @@ public partial class Add_EmployeeV2 : System.Web.UI.Page
         ddlCatagoryRole.DataTextField = Utpe.Columns[1].ToString();
         ddlCatagoryRole.DataBind();
         ddlCatagoryRole.SelectedIndex = 0;
-        AnyminuteEmployeeEditor.Relabel(rdoBtnUserTypeList);
-        AnyminuteEmployeeEditor.Relabel(ddlRoleNamepop);
-        AnyminuteEmployeeEditor.Relabel(ddlCatagoryRole);
+        AnyminuteEmployeeEditor.OfferManagerChoices(rdoBtnUserTypeList, 0);
+        AnyminuteEmployeeEditor.OfferManagerChoices(ddlRoleNamepop, 0);
+        AnyminuteEmployeeEditor.OfferManagerChoices(ddlCatagoryRole, 0);
 
         //comm.FillDropDownList(ddlCatagoryRole, "UserType", "User_TypeId", "UserType", "User_TypeId != 1", "User_TypeId");
     }
@@ -435,8 +435,8 @@ public partial class Add_EmployeeV2 : System.Web.UI.Page
             var chkbussname = (CheckBox)row.FindControl("chkbussname");
             var hfdBusinessID = (HiddenField)row.FindControl("hfdBusinessID");
             var bussname = (Label)row.FindControl("bussname");
-            var UserTypeid = rdoBtnUserTypeList.SelectedValue;
-            var userTypeText = AnyminuteEmployeeEditor.StoredName(rdoBtnUserTypeList.SelectedItem);
+            var UserTypeid = AnyminuteEmployeeEditor.StoredRoleId(rdoBtnUserTypeList, Convert.ToInt32(ViewState["OriginalUserTypeId"] ?? "0")).ToString();
+            var userTypeText = AnyminuteEmployeeEditor.StoredName(rdoBtnUserTypeList, Convert.ToInt32(ViewState["OriginalUserTypeId"] ?? "0"));
             if (chkbussname.Checked)
             {
 
@@ -696,8 +696,8 @@ public partial class Add_EmployeeV2 : System.Web.UI.Page
         {
 
             EmpEntity.SINExpiry = txtSINExpiry.Text;
-            EmpEntity.UserType = Convert.ToInt32(rdoBtnUserTypeList.SelectedValue);
-            string userTypeUserACC = rdoBtnUserTypeList.SelectedValue;
+            EmpEntity.UserType = AnyminuteEmployeeEditor.StoredRoleId(rdoBtnUserTypeList, Convert.ToInt32(ViewState["OriginalUserTypeId"] ?? "0"));
+            string userTypeUserACC = AnyminuteEmployeeEditor.StoredRoleId(rdoBtnUserTypeList, Convert.ToInt32(ViewState["OriginalUserTypeId"] ?? "0")).ToString();
             EmpEntity.LegalName = "";
             EmpEntity.Title = "";
             EmpEntity.FirstName = txtFirstName.Text;
@@ -895,8 +895,8 @@ public partial class Add_EmployeeV2 : System.Web.UI.Page
         Uae.EmployeeId = empid;
         Uae.Email = txtMainEmail.Text.Trim();
         Uae.MotherOrgid = Convert.ToInt32(Session["MotherOrgid"].ToString());
-        Uae.UserTypeid = Convert.ToInt32(rdoBtnUserTypeList.SelectedValue);
-        Uae.UserType = AnyminuteEmployeeEditor.StoredName(rdoBtnUserTypeList.SelectedItem);
+        Uae.UserTypeid = AnyminuteEmployeeEditor.StoredRoleId(rdoBtnUserTypeList, Convert.ToInt32(ViewState["OriginalUserTypeId"] ?? "0"));
+        Uae.UserType = AnyminuteEmployeeEditor.StoredName(rdoBtnUserTypeList, Convert.ToInt32(ViewState["OriginalUserTypeId"] ?? "0"));
         Uae.ProfileImageName = str;
 
         return Convert.ToInt32(Uac.Sp_InsertUserAccFromAddress(Uae));
@@ -1064,7 +1064,7 @@ public partial class Add_EmployeeV2 : System.Web.UI.Page
             {
                 if (item_Check_UserType.Selected == true)
                 {
-                    Check_UserType = int.Parse(item_Check_UserType.Value);
+                    Check_UserType = AnyminuteEmployeeEditor.StoredRoleId(rdoBtnUserTypeList, Convert.ToInt32(ViewState["OriginalUserTypeId"] ?? "0"));
                 }
             }
             if (Check_UserType == 5 || Check_UserType == 12)
@@ -1082,7 +1082,7 @@ public partial class Add_EmployeeV2 : System.Web.UI.Page
             {
                 if (item_Check_UserType.Selected == true)
                 {
-                    Check_UserType = int.Parse(item_Check_UserType.Value);
+                    Check_UserType = AnyminuteEmployeeEditor.StoredRoleId(rdoBtnUserTypeList, Convert.ToInt32(ViewState["OriginalUserTypeId"] ?? "0"));
                 }
             }
             if (Check_UserType == 2 || Check_UserType == 4 || Check_UserType == 12)
@@ -1100,7 +1100,7 @@ public partial class Add_EmployeeV2 : System.Web.UI.Page
             {
                 if (item_Check_UserType.Selected == true)
                 {
-                    Check_UserType = int.Parse(item_Check_UserType.Value);
+                    Check_UserType = AnyminuteEmployeeEditor.StoredRoleId(rdoBtnUserTypeList, Convert.ToInt32(ViewState["OriginalUserTypeId"] ?? "0"));
                 }
             }
             if (Check_UserType == 2 || Check_UserType == 4 || Check_UserType == 5)
@@ -1159,7 +1159,7 @@ public partial class Add_EmployeeV2 : System.Web.UI.Page
             HiddenField hfdProjectType = row.FindControl("hfdProjectType") as HiddenField;
             HiddenField hfdPermissionId = (HiddenField)row.FindControl("hfdPermissionId");
             string EmployeeName = comm.GetNameFromId("AddEmployee", Convert.ToInt32(hfdEmpID.Value));
-            AddBeCtrl.AssgineBusiness(Convert.ToInt32(hfdBusinessID.Value), Convert.ToInt32(hfdEmpID.Value), bussname.Text, EmployeeName, Convert.ToInt32(rdoBtnUserTypeList.SelectedValue), Convert.ToInt32(Session["MotherOrgid"].ToString()));
+            AddBeCtrl.AssgineBusiness(Convert.ToInt32(hfdBusinessID.Value), Convert.ToInt32(hfdEmpID.Value), bussname.Text, EmployeeName, AnyminuteEmployeeEditor.StoredRoleId(rdoBtnUserTypeList, Convert.ToInt32(ViewState["OriginalUserTypeId"] ?? "0")), Convert.ToInt32(Session["MotherOrgid"].ToString()));
             SaveUpdateRolePermission(Convert.ToInt32(hfdEmpID.Value), Convert.ToInt32(hfdBusinessID.Value), Convert.ToInt32(hfdRoleid.Value), hfdPermissionId.Value);
             comm.ExecuteQuery("insert into MappingTable(USERID,UserTypeId,EmployeeID,BusinessID)values(" + ViewState["ViweStateUserID"] + "," + hfdRoleid.Value + "," + hfdEmpID.Value + "," + hfdBusinessID.Value + ")");
             comm.ExecuteQuery("UPDATE AddEmployee SET UserType=" + hfdRoleid.Value + ",EMPLOYEETYPE='" + hfdProjectType.Value + "' WHERE EmployeeID=" + hfdEmpID.Value + "");
@@ -1301,13 +1301,9 @@ public partial class Add_EmployeeV2 : System.Web.UI.Page
     public void GetPersonalDetailsForEdit(int EmployeeID)
     {
         DataTable dtPersonalDetailsForEdit = comm.GetAllDataFromTable("AddEmployee", "*,convert(nvarchar(10),HireDate,120)HireDated", "EmployeeID=" + Request.QueryString["EmployeeIDEdit"].ToString() + "", "");
-        foreach (ListItem itm in rdoBtnUserTypeList.Items)
-        {
-            if (itm.Value == dtPersonalDetailsForEdit.Rows[0]["UserType"].ToString())
-            {
-                itm.Selected = true;
-            }
-        }
+        string originalType = dtPersonalDetailsForEdit.Rows[0]["UserType"].ToString();
+        ViewState["OriginalUserTypeId"] = originalType;
+        AnyminuteEmployeeEditor.SelectStoredRole(rdoBtnUserTypeList, originalType);
 
         if (dtPersonalDetailsForEdit.Rows[0]["SINExpiry"].ToString() != "")
             txtSINExpiry.Text = DateTime.Parse(dtPersonalDetailsForEdit.Rows[0]["SINExpiry"].ToString()).ToString("yyyy-MM-dd");
@@ -1471,8 +1467,8 @@ public partial class Add_EmployeeV2 : System.Web.UI.Page
     {
         EmpEntity.EmployeeID = int.Parse(Request.QueryString["EmployeeIDEdit"].ToString());
         EmpEntity.SINExpiry = txtSINExpiry.Text;
-        EmpEntity.UserType = Convert.ToInt32(rdoBtnUserTypeList.SelectedValue);
-        string userTypeUserACC = rdoBtnUserTypeList.SelectedValue;
+        EmpEntity.UserType = AnyminuteEmployeeEditor.StoredRoleId(rdoBtnUserTypeList, Convert.ToInt32(ViewState["OriginalUserTypeId"] ?? "0"));
+        string userTypeUserACC = AnyminuteEmployeeEditor.StoredRoleId(rdoBtnUserTypeList, Convert.ToInt32(ViewState["OriginalUserTypeId"] ?? "0")).ToString();
         EmpEntity.LegalName = "";
         EmpEntity.Title = "";
         EmpEntity.FirstName = txtFirstName.Text;

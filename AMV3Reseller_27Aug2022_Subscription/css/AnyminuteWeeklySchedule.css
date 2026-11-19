@@ -4,15 +4,15 @@ html body .am-ws-crumb{display:flex;gap:6px;align-items:center;font-size:12.5px;
 html body .am-ws-crumb a{color:#475569;text-decoration:none}
 html body .am-ws-crumb a:hover{color:#1a5fd6;text-decoration:underline}
 html body .am-ws-crumb [aria-current]{color:#0f172a}
-html body .am-ws h1{margin:0;font-size:26px;font-weight:700;color:#0f2a5c}
-html body .am-ws-sub{margin:4px 0 14px;color:#334155}
+html body .am-ws .am-title h1{margin:0}
+html body .am-ws .am-title p{margin:3px 0 0}
 html body .am-ws .am-flash{margin:0 0 12px}
-html body .am-ws-card{background:#fff;border:1px solid #e3e8f0;border-radius:10px;padding:16px;box-shadow:0 1px 3px rgba(15,23,42,.05)}
+html body .am-ws-card{background:#fff;border:1px solid #e3e8f0;border-radius:10px;padding:16px;box-shadow:none}
 html body .am-ws-f{display:flex;flex-direction:column;gap:6px;min-width:0}
 html body .am-ws-f>label{margin:0;font-size:13px;font-weight:700;color:#0f2a5c}
 html body .am-ws-f>label b{color:#dc2626}
 html body .am-ws select,html body .am-ws input[type=text],html body .am-ws input[type=date],html body .am-ws input[type=time]{height:38px!important;border:1px solid #cfd8e3!important;border-radius:6px!important;padding:0 10px!important;font-size:13px!important;color:#0f172a!important;background-color:#fff!important;width:100%!important;box-shadow:none!important;margin:0!important;min-width:0}
-html body .am-ws-filters{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:16px;align-items:end;margin:0 0 14px}
+html body .am-ws-filters{margin:16px 0 22px}
 html body .am-ws-nav{display:flex;gap:8px}
 html body .am-ws-btn{display:inline-flex!important;align-items:center;justify-content:center;gap:8px;height:38px;padding:0 16px!important;border-radius:6px!important;font-size:13px!important;font-weight:600!important;text-decoration:none!important;white-space:nowrap;border:1px solid #1a5fd6!important;cursor:pointer;line-height:1}
 html body .am-ws-btn svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
@@ -128,3 +128,11 @@ html body .am-ws select.am-ws-type.is-unset{background-color:#fff!important;bord
 html body .am-ws .am-ws-unset input,html body .am-ws .am-ws-unset .am-ws-break{background-color:#f8fafc!important;color:#94a3b8!important}
 .am-ws.am-ws-loading .am-ws-tablewrap{opacity:.45;pointer-events:none;transition:opacity .1s}
 #amWsDefault{cursor:pointer}
+
+/* v90: Work Schedule uses Weekly Time Card chrome (am-card / am-title / am-toolbar / am-table / am-summary / am-button). */
+html body .am-ws.am-card{max-width:none;margin:0 0 20px;padding:22px;box-shadow:none}
+html body .am-ws .am-toolbar label b{color:#dc2626;font-weight:700}
+html body .am-ws .am-ws-sq{width:38px;padding:0 0!important;min-width:38px}
+html body .am-ws .am-summary{margin:18px 0 16px;grid-template-columns:minmax(220px,1fr)}
+html body .am-ws .am-table th[scope=row]{background:transparent;color:inherit;font-weight:650;text-align:left}
+html body .am-ws-cta .am-button svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}

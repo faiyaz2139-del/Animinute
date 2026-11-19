@@ -400,7 +400,7 @@ public static class AnyminuteRoleDashboard
              .Append("w.addEventListener('click',function(e){if(e.target.closest('a'))return;var t=e.target.closest('tr[data-href]');if(t)location.href=t.getAttribute('data-href');});})();</script></div>");
         }
         else if (anySup)
-            h.Append("<div class='am-card am-rd-rolecard'><span data-am-icon='people' aria-hidden='true'></span><div><small>Your Role for This Business</small><b>Supervisor</b><small>You can approve employee time cards, manage schedules and view reports.</small></div></div>");
+            h.Append("<div class='am-card am-rd-rolecard'><span data-am-icon='people' aria-hidden='true'></span><div><small>Your Role for This Business</small><b>Manager</b><small>You can approve employee time cards, manage schedules and view reports.</small></div></div>");
         h.Append("</div>");
         if (sup) Supervisor(h, m); else Employee(h, m);
         return h.Append("</div>").ToString();

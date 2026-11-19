@@ -65,6 +65,7 @@ public partial class AnyminuteEmployeeEditorPage : System.Web.UI.Page
         NewRoles.Items.Clear(); NewProject.Items.Clear(); NewProject.Items.Add(new ListItem("None", "0"));
         int b; if (!Int32.TryParse(NewBusiness.SelectedValue, out b) || !AnyminuteModernScope.Owns(b)) return;
         foreach (DataRow r in AnyminuteEmployeeEditor.Roles(b).Rows) NewRoles.Items.Add(new ListItem(AnyminuteEmployeeEditor.RoleDisplay(r["UserType"]), Convert.ToString(r["User_TypeId"])));
+        AnyminuteEmployeeEditor.OfferManagerChoices(NewRoles, 0);
         var employeeRole = NewRoles.Items.FindByValue("4"); if (employeeRole != null) employeeRole.Selected = true;
         foreach (DataRow p in AnyminuteEmployeeEditor.Projects(b).Rows) NewProject.Items.Add(new ListItem(Convert.ToString(p["ProjectName"]), Convert.ToString(p["ProjectID"])));
     }
@@ -304,7 +305,8 @@ public partial class AnyminuteEmployeeEditorPage : System.Web.UI.Page
                 int id = Convert.ToInt32(r["User_TypeId"]);
                 if (id == 2 || id == 4 || id == 5 || id == first.RoleId) AccessRole.Items.Add(new ListItem(AnyminuteEmployeeEditor.RoleDisplay(r["UserType"]), id.ToString(Inv)));
             }
-            Select(AccessRole, first.RoleId.ToString(Inv)); AccessRole.ToolTip = "Role in " + first.Business;
+            AnyminuteEmployeeEditor.OfferManagerChoices(AccessRole, first.RoleId);
+            AnyminuteEmployeeEditor.SelectStoredRole(AccessRole, first.RoleId.ToString(Inv)); AccessRole.ToolTip = "Role in " + first.Business;
         }
         if (!a.TablesReady) ShowError(AnyminuteEmployeeEditor.MissingTables.Replace(" Nothing was changed.", " Login settings cannot be saved until it is installed."));
         var h = AnyminuteEmployeeEditor.AccessHistory(card); h.Columns.Add("WhenText"); h.Columns.Add("ActionText");
@@ -326,7 +328,8 @@ public partial class AnyminuteEmployeeEditorPage : System.Web.UI.Page
         {
             string m = AnyminuteEmployeeEditor.SaveAccess(employee, AccessOn.Checked, RequireChange.Checked, TwoFactor.Checked);
             int role; var first = card.First;
-            if (Int32.TryParse(AccessRole.SelectedValue, out role) && role != first.RoleId && AccessRole.Items.FindByValue(role.ToString(Inv)) != null)
+            if (Int32.TryParse(AccessRole.SelectedValue, out role)) role = AnyminuteEmployeeEditor.StoredRoleId(AccessRole, first.RoleId);
+            if (role != first.RoleId && AccessRole.Items.FindByValue(role == AnyminuteEmployeeEditor.RoleAdministratorId ? "2" : role.ToString(Inv)) != null)
             {
                 AnyminuteEmployeeAssignmentService.SaveRole(AnyminuteEmployeeEditor.RecordFor(card, first.BusinessId), first.BusinessId, role);
                 m = (m == AnyminuteEmployeeEditor.MissingTables ? "Portal role updated. Login settings need the database update." : m + " Portal role updated.");

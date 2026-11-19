@@ -98,7 +98,7 @@ public static class AnyminuteEmployeesView
     {
         string term=(search??"").Trim();
         return source.Where(card=>card.Assignments.Any(a=>
-            (business==0||a.BusinessId==business)&&(role==0||a.RoleId==role)&&(status=="All"||a.Status==status)&&
+            (business==0||a.BusinessId==business)&&(role==0||a.RoleId==role||(AnyminuteEmployeeEditor.IsManagerRole(role)&&AnyminuteEmployeeEditor.IsManagerRole(a.RoleId)))&&(status=="All"||a.Status==status)&&
             (term.Length==0||new[]{a.Name,a.Email,a.Phone,a.Mobile}.Any(value=>(value??"").IndexOf(term,StringComparison.OrdinalIgnoreCase)>=0)))).ToList();
     }
     public static string EditUrl(AnyminuteEmployeeAssignmentView a,string tab)

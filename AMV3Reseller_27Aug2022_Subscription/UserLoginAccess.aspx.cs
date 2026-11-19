@@ -69,7 +69,7 @@ public partial class AnyminuteUserLoginAccessPage : System.Web.UI.Page
         BusinessOptions.Text = sb.ToString();
         List<string[]> rows; string problem;
         rows = AnyminuteReports.LoginRowsSafe(business, admin, out problem);
-        Func<string, string, string> k = (l, v) => "<div><span>" + l + "</span><strong>" + v + "</strong></div>";
+        Func<string, string, string> k = (l, v) => "<div class=\"am-stat\"><div><small>" + l + "</small><strong>" + v + "</strong></div></div>";
         LoginKpis.Text = k("Employees", rows.Select(r => r[0]).Distinct().Count().ToString(CultureInfo.InvariantCulture)) + k("Login Enabled", rows.Count(r => r[6] == "Enabled").ToString(CultureInfo.InvariantCulture))
             + k("Invitation Pending", rows.Count(r => r[6] == "Invitation Pending").ToString(CultureInfo.InvariantCulture)) + k("Disabled / No Login", rows.Count(r => r[6] == "Disabled" || r[6] == "No Login").ToString(CultureInfo.InvariantCulture));
         string table;

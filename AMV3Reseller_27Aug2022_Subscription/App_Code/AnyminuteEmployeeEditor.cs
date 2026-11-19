@@ -23,6 +23,7 @@ public sealed class AnyminuteAssignmentInput
 {
     public int BusinessId; public int[] Roles = new int[0]; public string EmployeeType = "Regular", PayType = "Hourly", Status = "Active", Notes = "";
     public decimal PayRate; public decimal? BillingRate; public DateTime EffectiveDate = DateTime.Today; public DateTime? EndDate; public int ProjectId;
+    public int JobTitleId; public bool SetJobTitle;
 }
 public sealed class AnyminuteAssignmentRow
 {
@@ -283,11 +284,22 @@ public static class AnyminuteEmployeeEditor
     static void SaveDetail(SqlConnection c, SqlTransaction tx, AnyminuteAssignmentInput r, int record)
     {
         if (HasTable(c, tx, "AnyminuteAssignmentDetail"))
-            X(c, tx, @"MERGE AnyminuteAssignmentDetail AS t USING (SELECT @b BusinessID,@e EmployeeID) s ON t.BusinessID=s.BusinessID AND t.EmployeeID=s.EmployeeID
-                WHEN MATCHED THEN UPDATE SET BillingRate=@br,EffectiveDate=@ef,EndDate=@en,DefaultProjectID=@p,Notes=@n,UpdatedAtUTC=SYSUTCDATETIME(),UpdatedBy=@a
-                WHEN NOT MATCHED THEN INSERT(BusinessID,EmployeeID,BillingRate,EffectiveDate,EndDate,DefaultProjectID,Notes,UpdatedAtUTC,UpdatedBy) VALUES(@b,@e,@br,@ef,@en,@p,@n,SYSUTCDATETIME(),@a);",
-                "@b", r.BusinessId, "@e", record, "@br", r.BillingRate.HasValue ? (object)r.BillingRate.Value : DBNull.Value, "@ef", r.EffectiveDate.Date,
-                "@en", r.EndDate.HasValue ? (object)r.EndDate.Value.Date : DBNull.Value, "@p", r.ProjectId > 0 ? (object)r.ProjectId : DBNull.Value, "@n", Db(r.Notes), "@a", Actor());
+        {
+            bool jobCol = r.SetJobTitle && HasColumn(c, tx, "AnyminuteAssignmentDetail", "JobTitleId");
+            if (jobCol)
+                X(c, tx, @"MERGE AnyminuteAssignmentDetail AS t USING (SELECT @b BusinessID,@e EmployeeID) s ON t.BusinessID=s.BusinessID AND t.EmployeeID=s.EmployeeID
+                    WHEN MATCHED THEN UPDATE SET BillingRate=@br,EffectiveDate=@ef,EndDate=@en,DefaultProjectID=@p,Notes=@n,JobTitleId=@j,UpdatedAtUTC=SYSUTCDATETIME(),UpdatedBy=@a
+                    WHEN NOT MATCHED THEN INSERT(BusinessID,EmployeeID,BillingRate,EffectiveDate,EndDate,DefaultProjectID,Notes,JobTitleId,UpdatedAtUTC,UpdatedBy) VALUES(@b,@e,@br,@ef,@en,@p,@n,@j,SYSUTCDATETIME(),@a);",
+                    "@b", r.BusinessId, "@e", record, "@br", r.BillingRate.HasValue ? (object)r.BillingRate.Value : DBNull.Value, "@ef", r.EffectiveDate.Date,
+                    "@en", r.EndDate.HasValue ? (object)r.EndDate.Value.Date : DBNull.Value, "@p", r.ProjectId > 0 ? (object)r.ProjectId : DBNull.Value, "@n", Db(r.Notes),
+                    "@j", r.JobTitleId > 0 ? (object)r.JobTitleId : DBNull.Value, "@a", Actor());
+            else
+                X(c, tx, @"MERGE AnyminuteAssignmentDetail AS t USING (SELECT @b BusinessID,@e EmployeeID) s ON t.BusinessID=s.BusinessID AND t.EmployeeID=s.EmployeeID
+                    WHEN MATCHED THEN UPDATE SET BillingRate=@br,EffectiveDate=@ef,EndDate=@en,DefaultProjectID=@p,Notes=@n,UpdatedAtUTC=SYSUTCDATETIME(),UpdatedBy=@a
+                    WHEN NOT MATCHED THEN INSERT(BusinessID,EmployeeID,BillingRate,EffectiveDate,EndDate,DefaultProjectID,Notes,UpdatedAtUTC,UpdatedBy) VALUES(@b,@e,@br,@ef,@en,@p,@n,SYSUTCDATETIME(),@a);",
+                    "@b", r.BusinessId, "@e", record, "@br", r.BillingRate.HasValue ? (object)r.BillingRate.Value : DBNull.Value, "@ef", r.EffectiveDate.Date,
+                    "@en", r.EndDate.HasValue ? (object)r.EndDate.Value.Date : DBNull.Value, "@p", r.ProjectId > 0 ? (object)r.ProjectId : DBNull.Value, "@n", Db(r.Notes), "@a", Actor());
+        }
         if (HasTable(c, tx, "AnyminuteAssignmentRole"))
         {
             X(c, tx, "DELETE AnyminuteAssignmentRole WHERE BusinessID=@b AND EmployeeID=@e", "@b", r.BusinessId, "@e", record);
@@ -307,7 +319,7 @@ public static class AnyminuteEmployeeEditor
                 var row = new AnyminuteAssignmentRow { BusinessId = a.BusinessId, EmployeeId = a.EmployeeId, RoleId = a.RoleId, Business = a.Business, EmployeeType = a.Type, Status = a.Status == "Inactive" ? "Not Active" : a.Status, Notes = "" };
                 var roles = new List<string> { RoleDisplay(a.Role) }; var ids = new List<int> { a.RoleId };
                 if (extra) foreach (DataRow r in Q(c, null, "SELECT u.User_TypeId,u.UserType FROM AnyminuteAssignmentRole x JOIN UserType u ON u.User_TypeId=x.UserTypeId WHERE x.BusinessID=@b AND x.EmployeeID=@e AND x.UserTypeId<>@r ORDER BY u.UserType", "@b", a.BusinessId, "@e", a.EmployeeId, "@r", a.RoleId).Rows) { roles.Add(RoleDisplay(S(r[1]))); ids.Add(Convert.ToInt32(r[0])); }
-                row.Roles = roles.Where(x => x.Length > 0).ToArray(); row.RoleIds = ids.ToArray();
+                row.Roles = roles.Where(x => x.Length > 0).Distinct(StringComparer.OrdinalIgnoreCase).ToArray(); row.RoleIds = ids.ToArray();
                 var rate = Q(c, null, "SELECT TOP 1 Rate,RateType,effectivedate FROM RateDetails WHERE EmployeeId=@e AND effectivedate<=GETDATE() ORDER BY effectivedate DESC,RateId DESC", "@e", a.EmployeeId);
                 if (rate.Rows.Count == 1) { row.PayRate = Convert.ToDecimal(rate.Rows[0]["Rate"]); row.PayType = S(rate.Rows[0]["RateType"]); if (rate.Rows[0]["effectivedate"] != DBNull.Value) row.EffectiveDate = Convert.ToDateTime(rate.Rows[0]["effectivedate"]); }
                 if (detail)
@@ -636,15 +648,20 @@ public static class AnyminuteEmployeeEditor
         }
         catch (Exception) { }
     }
-    // Display-only: the employee role stored as "Administrator" (UserType name; standard data uses User_TypeId 5) is shown as "Supervisor".
+    // Display-only: UserType "Administrator" (User_TypeId 5) and "Supervisor" are shown as "Manager" (same role as User_TypeId 2).
     // Values / User_TypeId / permissions are unchanged. Does not rename Payroll Administrator or Business Administrator.
     // Trim so padded/nbsp DB values still match. RolesDisplay maps each name in a comma-separated list.
+    public const int RoleManagerId = 2;
+    public const int RoleEmployeeId = 4;
+    public const int RoleAdministratorId = 5;
+    public const int RoleAccountantId = 12;
+    public static bool IsManagerRole(int id) { return id == RoleManagerId || id == RoleAdministratorId; }
     public static string RoleDisplay(object role)
     {
         string s = Convert.ToString(role);
         if (s == null) return "";
         s = s.Replace("\u00a0", " ").Trim();
-        if (String.Equals(s, "Administrator", StringComparison.OrdinalIgnoreCase)) return "Supervisor";
+        if (String.Equals(s, "Administrator", StringComparison.OrdinalIgnoreCase) || String.Equals(s, "Supervisor", StringComparison.OrdinalIgnoreCase)) return "Manager";
         return s;
     }
     public static string RolesDisplay(object roles)
@@ -660,14 +677,108 @@ public static class AnyminuteEmployeeEditor
         if (list == null) return;
         foreach (ListItem item in list.Items) item.Text = RoleDisplay(item.Text);
     }
+    // Collapse Administrator (id 5) into the Manager (id 2) option. Id 5 is kept on save when it was already assigned.
+    public static void OfferManagerChoices(ListControl list, int currentId)
+    {
+        if (list == null) return;
+        Relabel(list);
+        ListItem admin = list.Items.FindByValue("5");
+        ListItem manager = list.Items.FindByValue("2");
+        if (admin != null && manager != null)
+        {
+            if (admin.Selected) manager.Selected = true;
+            list.Items.Remove(admin);
+        }
+        else if (admin != null && manager == null) admin.Text = "Manager";
+        if (IsManagerRole(currentId) && !(list is CheckBoxList)) SelectStoredRole(list, currentId.ToString(CultureInfo.InvariantCulture));
+    }
+    public static void SelectStoredRole(ListControl list, string id)
+    {
+        if (list == null) return;
+        if (id != null && list.Items.FindByValue(id) != null) { list.ClearSelection(); list.SelectedValue = id; return; }
+        int n;
+        if (!Int32.TryParse(id, out n) || !IsManagerRole(n)) return;
+        ListItem pick = list.Items.FindByValue("2") ?? list.Items.FindByValue("5");
+        if (pick == null) return;
+        list.ClearSelection(); pick.Selected = true;
+    }
+    public static bool SameRoleName(ListItem item, string name)
+    {
+        if (item == null) return false;
+        name = (name ?? "").Replace("\u00a0", " ").Trim();
+        if (String.Equals((item.Text ?? "").Trim(), name, StringComparison.OrdinalIgnoreCase)) return true;
+        if (String.Equals(StoredName(item), name, StringComparison.OrdinalIgnoreCase)) return true;
+        return String.Equals(RoleDisplay(name), (item.Text ?? "").Trim(), StringComparison.OrdinalIgnoreCase);
+    }
+    public static int StoredRoleId(ListControl list, int originalId)
+    {
+        int id;
+        if (list == null || list.SelectedItem == null || !Int32.TryParse(list.SelectedValue, out id)) return originalId;
+        if (IsManagerRole(id) && originalId == RoleAdministratorId) return RoleAdministratorId;
+        return id;
+    }
+    public static string StoredNameFromId(int id)
+    {
+        if (id == RoleAdministratorId) return "Administrator";
+        if (id == RoleManagerId) return "Manager";
+        if (id == RoleEmployeeId) return "Employee";
+        if (id == RoleAccountantId) return "Accountant";
+        return "";
+    }
     // When a role list was Relabel'd, write the stored name (not the display label) if the caller saves SelectedItem.Text.
     public static string StoredName(ListItem item)
     {
         if (item == null) return "";
         int id;
-        if (Int32.TryParse(item.Value, out id) && (id == 2 || id == 5) && String.Equals((item.Text ?? "").Trim(), "Supervisor", StringComparison.OrdinalIgnoreCase))
-            return "Administrator";
+        if (Int32.TryParse(item.Value, out id) && IsManagerRole(id)) return StoredNameFromId(id);
         return item.Text;
+    }
+    public static string StoredName(ListControl list, int originalId)
+    {
+        int id = StoredRoleId(list, originalId);
+        string n = StoredNameFromId(id);
+        if (n.Length > 0) return n;
+        return list != null && list.SelectedItem != null ? list.SelectedItem.Text : "";
+    }
+    public static void OfferAssignmentRoles(CheckBoxList list, int[] selectedRoles)
+    {
+        if (list == null) return;
+        selectedRoles = selectedRoles ?? new int[0];
+        list.Items.Clear();
+        ListItem employee = new ListItem("Employee", "4");
+        employee.Selected = selectedRoles.Length == 0 || selectedRoles.Contains(RoleEmployeeId);
+        ListItem manager = new ListItem("Manager", "2");
+        manager.Selected = selectedRoles.Any(IsManagerRole);
+        list.Items.Add(employee);
+        list.Items.Add(manager);
+    }
+    public static int[] MergeSavedRoles(int[] offered, int[] original, int[] keptHidden)
+    {
+        offered = offered ?? new int[0];
+        original = original ?? new int[0];
+        keptHidden = keptHidden ?? new int[0];
+        bool wantManager = offered.Any(IsManagerRole);
+        var chosen = new List<int>();
+        if (wantManager)
+        {
+            if (original.Contains(RoleAdministratorId) && original.Contains(RoleManagerId))
+            {
+                foreach (int id in original) if (IsManagerRole(id)) chosen.Add(id);
+            }
+            else if (original.Contains(RoleAdministratorId)) chosen.Add(RoleAdministratorId);
+            else chosen.Add(RoleManagerId);
+        }
+        foreach (int id in offered)
+            if (!IsManagerRole(id) && !chosen.Contains(id)) chosen.Add(id);
+        foreach (int id in keptHidden)
+            if (!IsManagerRole(id) && !chosen.Contains(id)) chosen.Add(id);
+        if (original.Length > 0 && chosen.Contains(original[0]))
+        {
+            var rest = chosen.Where(x => x != original[0]).ToList();
+            chosen = new List<int> { original[0] };
+            chosen.AddRange(rest);
+        }
+        return chosen.ToArray();
     }
     public static string RoleCss(object role)
     {

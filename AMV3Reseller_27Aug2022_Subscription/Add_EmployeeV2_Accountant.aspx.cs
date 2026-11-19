@@ -397,6 +397,7 @@ public partial class Add_EmployeeV2_Accountant : System.Web.UI.Page
                 ddlEditRolePer.DataValueField = dtr.Columns[0].ToString();
                 ddlEditRolePer.DataTextField = dtr.Columns[1].ToString();
                 ddlEditRolePer.DataBind();
+                AnyminuteEmployeeEditor.OfferManagerChoices(ddlEditRolePer, 0);
             }
             else
             {
@@ -439,6 +440,7 @@ public partial class Add_EmployeeV2_Accountant : System.Web.UI.Page
                 ddlEditRolePer.DataValueField = dtr.Columns[0].ToString();
                 ddlEditRolePer.DataTextField = dtr.Columns[1].ToString();
                 ddlEditRolePer.DataBind();
+                AnyminuteEmployeeEditor.OfferManagerChoices(ddlEditRolePer, 0);
             }
         }
         else
@@ -490,6 +492,7 @@ public partial class Add_EmployeeV2_Accountant : System.Web.UI.Page
                 ddlEditRolePer.DataValueField = dtr.Columns[0].ToString();
                 ddlEditRolePer.DataTextField = dtmgr.Columns[1].ToString();
                 ddlEditRolePer.DataBind();
+                AnyminuteEmployeeEditor.OfferManagerChoices(ddlEditRolePer, 0);
             }
             else
             {
@@ -541,6 +544,7 @@ public partial class Add_EmployeeV2_Accountant : System.Web.UI.Page
                 ddlEditRolePer.DataValueField = dtMuid.Columns[0].ToString();
                 ddlEditRolePer.DataTextField = dtMuid.Columns[1].ToString();
                 ddlEditRolePer.DataBind();
+                AnyminuteEmployeeEditor.OfferManagerChoices(ddlEditRolePer, 0);
             }
         }
 
@@ -926,7 +930,7 @@ public partial class Add_EmployeeV2_Accountant : System.Web.UI.Page
         //    else
         //    {
         //        string[] ArrRoleId_PopAdd = ViewState["RoleId_PopAdd"].ToString().Split(',');
-        //        if (ArrRoleId_PopAdd[0].ToString() != ddlRole.SelectedItem.Text)
+        //        if (AnyminuteEmployeeEditor.SameRoleName(ddlRole.SelectedItem, ArrRoleId_PopAdd[0]) == false)
         //        {
         //            ScriptManager.RegisterClientScriptBlock(this.Page, this.GetType(), "SweetAlert", "swal('Info!', 'Click Add then Click on Edit Permission to Assign Custom Role Permission', 'info');", true);
         //        }
@@ -1327,7 +1331,7 @@ public partial class Add_EmployeeV2_Accountant : System.Web.UI.Page
         DataTable dtrate = (DataTable)ViewState["rateDetails"];
         var EmpName = txtFirstName.Text + " " + txtLastName.Text;
         var bussname = ddlBusiness.SelectedItem.Text;
-        var rolename = ddlRole.SelectedItem.Text;
+        var rolename = AnyminuteEmployeeEditor.StoredName(ddlRole.SelectedItem);
         var StartDate_RateGrid = txtHiredate.Text;
         //StringBuilder StringBuilder__ = new StringBuilder();
         //var AllRole = comm.ExecuteQueryDataTable("select Role_Permission_Id FROM Role_Permission_Master WHERE UserTypeId='" + ddlRole.SelectedValue + "'");
@@ -1352,7 +1356,7 @@ public partial class Add_EmployeeV2_Accountant : System.Web.UI.Page
             if (ViewState["RoleId_PopAdd"].ToString() != "")
             {
                 string[] ArrRoleId_PopAdd = ViewState["RoleId_PopAdd"].ToString().Split(',');
-                if (ArrRoleId_PopAdd[0].ToString() == ddlRole.SelectedItem.Text)
+                if (AnyminuteEmployeeEditor.SameRoleName(ddlRole.SelectedItem, ArrRoleId_PopAdd[0]))
                 {
                     for (int j = 1; j < ArrRoleId_PopAdd.Length - 1; j++)
                     {
@@ -1643,7 +1647,7 @@ public partial class Add_EmployeeV2_Accountant : System.Web.UI.Page
                 {
                     if (hfd_BussinessId_.Value == ddlBusAssProject.SelectedValue)
                     {
-                        this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('Warning!', 'Please Select Another Business as User is selected as Supervisor or Accountant User Role in Selected Business', 'warning');", true);
+                        this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('Warning!', 'Please Select Another Business as User is selected as Manager or Accountant User Role in Selected Business', 'warning');", true);
                         ddlBusAssProject.SelectedIndex = 0;
                         return;
                     }
@@ -1765,7 +1769,7 @@ public partial class Add_EmployeeV2_Accountant : System.Web.UI.Page
             {
                 if (hfd_BussinessId_.Value == ddlBusAssProject.SelectedValue)
                 {
-                    this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('Warning!', 'Please Select Another Business as User is selected as Supervisor or Accountant User Role in Selected Business', 'warning');", true);
+                    this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('Warning!', 'Please Select Another Business as User is selected as Manager or Accountant User Role in Selected Business', 'warning');", true);
                     return;
                 }
             }
@@ -3330,7 +3334,7 @@ public partial class Add_EmployeeV2_Accountant : System.Web.UI.Page
             {
                 if (hfd_BussinessId_.Value == ddlBusAssProject.SelectedValue)
                 {
-                    this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('Warning!', 'Please Select Another Business as User is selected as Supervisor or Accountant User Role in Selected Business', 'warning');", true);
+                    this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('Warning!', 'Please Select Another Business as User is selected as Manager or Accountant User Role in Selected Business', 'warning');", true);
                     return;
                 }
             }

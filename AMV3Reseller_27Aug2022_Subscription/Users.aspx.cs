@@ -26,7 +26,8 @@ public partial class AnyminuteEmployeesDirectory : System.Web.UI.Page
             Business.Items.Add(new ListItem("All businesses","0"));Role.Items.Add(new ListItem("All roles","0"));
             var cards=AnyminuteEmployeesView.Load();
             foreach(DataRow business in AnyminuteDirectoryScope.Businesses().Rows)Business.Items.Add(new ListItem(Convert.ToString(business["CompanyName"]),Convert.ToString(business["BusinessID"])));
-            foreach(var group in cards.SelectMany(x=>x.Assignments).GroupBy(x=>x.RoleId).OrderBy(x=>x.First().Role))Role.Items.Add(new ListItem(group.First().Role,group.Key.ToString()));
+            foreach(var group in cards.SelectMany(x=>x.Assignments).GroupBy(x=>AnyminuteEmployeeEditor.IsManagerRole(x.RoleId)?AnyminuteEmployeeEditor.RoleManagerId:x.RoleId).OrderBy(x=>AnyminuteEmployeeEditor.IsManagerRole(x.First().RoleId)?"Manager":x.First().Role))
+                Role.Items.Add(new ListItem(AnyminuteEmployeeEditor.IsManagerRole(group.Key)?"Manager":group.First().Role,group.Key.ToString()));
             string selected=Request.QueryString["BusinessId"];
             if(selected!=null){if(Business.Items.FindByValue(selected)==null)throw new HttpException(403,"Business outside directory access.");Business.SelectedValue=selected;}
             string flash=AnyminuteFlash.Take("employees");

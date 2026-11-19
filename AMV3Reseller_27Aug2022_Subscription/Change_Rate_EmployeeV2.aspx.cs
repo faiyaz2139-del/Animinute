@@ -189,14 +189,10 @@ public partial class Change_Rate_EmployeeV2 : System.Web.UI.Page
 
         DataTable dtPersonalDetailsForEdit = new DataTable();
         dtPersonalDetailsForEdit = comm.GetAllDataFromTable("AddEmployee", "*,convert(nvarchar(10),HireDate,120)HireDated", "EmployeeID=" + EmployeeID + "", "");
-        ddlusertype11.SelectedValue = dtPersonalDetailsForEdit.Rows[0]["UserType"].ToString();
-        foreach (ListItem itm in rdoBtnUserTypeList.Items)
-        {
-            if (itm.Value == dtPersonalDetailsForEdit.Rows[0]["UserType"].ToString())
-            {
-                itm.Selected = true;
-            }
-        }
+        string originalType = dtPersonalDetailsForEdit.Rows[0]["UserType"].ToString();
+        ViewState["OriginalUserTypeId"] = originalType;
+        AnyminuteEmployeeEditor.SelectStoredRole(ddlusertype11, originalType);
+        AnyminuteEmployeeEditor.SelectStoredRole(rdoBtnUserTypeList, originalType);
         if (dtPersonalDetailsForEdit.Rows[0]["UserType"].ToString() == "5")
         {
             txtMainEmail.Enabled = false;
@@ -406,7 +402,7 @@ public partial class Change_Rate_EmployeeV2 : System.Web.UI.Page
     {
         //comm.FillDropDownList(ddlusertype11, "UserType", "User_TypeId", "UserType", "", "User_TypeId"); //commented because of new user role requirement in new user role
         comm.FillDropDownList(ddlusertype11, "UserType", "User_TypeId", "UserType", "", "User_TypeId asc");
-        AnyminuteEmployeeEditor.Relabel(ddlusertype11);
+        AnyminuteEmployeeEditor.OfferManagerChoices(ddlusertype11, 0);
         DataTable dtUserTypeList = new DataTable();
         if (Request.QueryString["BusinessIdFromDefaultPage"] != null)
         {
@@ -511,7 +507,7 @@ public partial class Change_Rate_EmployeeV2 : System.Web.UI.Page
         rdoBtnUserTypeList.DataValueField = "User_TypeId";
         rdoBtnUserTypeList.DataTextField = "UserType";
         rdoBtnUserTypeList.DataBind();
-        AnyminuteEmployeeEditor.Relabel(rdoBtnUserTypeList);
+        AnyminuteEmployeeEditor.OfferManagerChoices(rdoBtnUserTypeList, 0);
         foreach (ListItem itm in rdoBtnUserTypeList.Items)
         {
             if (Session["UserType"].ToString() != "Admin")
@@ -724,7 +720,7 @@ public partial class Change_Rate_EmployeeV2 : System.Web.UI.Page
             {
                 EmpEntity.SINExpiry = txtSINExpiry.Text;
                 EmpEntity.UserType = 0;
-                string userTypeUserACC = AnyminuteEmployeeEditor.StoredName(ddlusertype11.SelectedItem);
+                string userTypeUserACC = AnyminuteEmployeeEditor.StoredName(ddlusertype11, Convert.ToInt32(ViewState["OriginalUserTypeId"] ?? "0"));
                 EmpEntity.LegalName = txtLegalName.Text;
                 EmpEntity.Title = txtLegalName.SelectedItem.Text;
                 EmpEntity.FirstName = txtFirstName.Text;
@@ -797,7 +793,7 @@ public partial class Change_Rate_EmployeeV2 : System.Web.UI.Page
 
                     //EmpEntity.UserType = int.Parse(ddlusertype11.SelectedValue);
                     EmpEntity.UserType = 0;
-                    string userTypeUserACC = AnyminuteEmployeeEditor.StoredName(ddlusertype11.SelectedItem);
+                    string userTypeUserACC = AnyminuteEmployeeEditor.StoredName(ddlusertype11, Convert.ToInt32(ViewState["OriginalUserTypeId"] ?? "0"));
                     EmpEntity.LegalName = txtLegalName.Text;
                     EmpEntity.Title = "";
                     EmpEntity.FirstName = txtFirstName.Text;
@@ -858,7 +854,7 @@ public partial class Change_Rate_EmployeeV2 : System.Web.UI.Page
 
                     //EmpEntity.UserType = int.Parse(ddlusertype11.SelectedValue);
                     EmpEntity.UserType = 0;
-                    string userTypeUserACC = AnyminuteEmployeeEditor.StoredName(ddlusertype11.SelectedItem);
+                    string userTypeUserACC = AnyminuteEmployeeEditor.StoredName(ddlusertype11, Convert.ToInt32(ViewState["OriginalUserTypeId"] ?? "0"));
                     EmpEntity.LegalName = txtLegalName.Text;
                     EmpEntity.Title = "";
                     EmpEntity.FirstName = txtFirstName.Text;
@@ -918,7 +914,7 @@ public partial class Change_Rate_EmployeeV2 : System.Web.UI.Page
 
     protected void btnSavePersonalDetails_Click(object sender, EventArgs e)
     {
-        //if (AnyminuteEmployeeEditor.StoredName(ddlusertype11.SelectedItem) == "Please Select")
+        //if (AnyminuteEmployeeEditor.StoredName(ddlusertype11, Convert.ToInt32(ViewState["OriginalUserTypeId"] ?? "0")) == "Please Select")
         //{
         //    this.ClientScript.RegisterStartupScript(this.GetType(), "SweetAlert", "swal('Warning!', 'Please Select User Type', 'warning');", true);
         //    return;
@@ -934,7 +930,7 @@ public partial class Change_Rate_EmployeeV2 : System.Web.UI.Page
         {
             //EmpEntity.UserType = int.Parse(ddlusertype11.SelectedValue);
             EmpEntity.UserType = 0;
-            string userTypeUserACC = AnyminuteEmployeeEditor.StoredName(ddlusertype11.SelectedItem);
+            string userTypeUserACC = AnyminuteEmployeeEditor.StoredName(ddlusertype11, Convert.ToInt32(ViewState["OriginalUserTypeId"] ?? "0"));
             EmpEntity.LegalName = txtLegalName.Text;
             EmpEntity.Title = "";
             EmpEntity.FirstName = txtFirstName.Text;
@@ -971,7 +967,7 @@ public partial class Change_Rate_EmployeeV2 : System.Web.UI.Page
         {
             //EmpEntity.UserType = int.Parse(ddlusertype11.SelectedValue);
             EmpEntity.UserType = 0;
-            string userTypeUserACC = AnyminuteEmployeeEditor.StoredName(ddlusertype11.SelectedItem);
+            string userTypeUserACC = AnyminuteEmployeeEditor.StoredName(ddlusertype11, Convert.ToInt32(ViewState["OriginalUserTypeId"] ?? "0"));
             EmpEntity.LegalName = txtLegalName.Text;
             EmpEntity.Title = "";
             EmpEntity.FirstName = txtFirstName.Text;
@@ -3922,7 +3918,7 @@ public partial class Change_Rate_EmployeeV2 : System.Web.UI.Page
         if (rdoBtnUserTypeList.SelectedValue.ToString() == "12")
         {
             int UserType = int.Parse(rdoBtnUserTypeList.SelectedValue);
-            string UserTypeName = AnyminuteEmployeeEditor.StoredName(rdoBtnUserTypeList.SelectedItem);
+            string UserTypeName = AnyminuteEmployeeEditor.StoredName(rdoBtnUserTypeList, Convert.ToInt32(ViewState["OriginalUserTypeId"] ?? "0"));
             ddlusertyperegular.ClearSelection();
             ddlusertyperegular.Items.FindByValue("N").Selected = true;
             ddlusertyperegular_SelectedIndexChanged(sender, e);
