@@ -494,7 +494,6 @@ public partial class AddEditRole_Add_Employee : System.Web.UI.Page
     //            ddlEditRolePer.DataValueField = dt.Columns[0].ToString();
     //            ddlEditRolePer.DataTextField = dt.Columns[1].ToString();
     //            ddlEditRolePer.DataBind();
-                AnyminuteEmployeeEditor.OfferManagerChoices(ddlEditRolePer, 0);
     //        }
     //        else
     //        {
@@ -514,7 +513,6 @@ public partial class AddEditRole_Add_Employee : System.Web.UI.Page
     //            ddlEditRolePer.DataValueField = dt.Columns[0].ToString();
     //            ddlEditRolePer.DataTextField = dt.Columns[1].ToString();
     //            ddlEditRolePer.DataBind();
-                AnyminuteEmployeeEditor.OfferManagerChoices(ddlEditRolePer, 0);
     //        }
     //    }
     //    else
@@ -542,7 +540,6 @@ public partial class AddEditRole_Add_Employee : System.Web.UI.Page
     //            ddlEditRolePer.DataValueField = dtmgr.Columns[0].ToString();
     //            ddlEditRolePer.DataTextField = dtmgr.Columns[1].ToString();
     //            ddlEditRolePer.DataBind();
-                AnyminuteEmployeeEditor.OfferManagerChoices(ddlEditRolePer, 0);
     //        }
     //        else
     //        {
@@ -567,7 +564,6 @@ public partial class AddEditRole_Add_Employee : System.Web.UI.Page
     //            ddlEditRolePer.DataValueField = dtMuid.Columns[0].ToString();
     //            ddlEditRolePer.DataTextField = dtMuid.Columns[1].ToString();
     //            ddlEditRolePer.DataBind();
-                AnyminuteEmployeeEditor.OfferManagerChoices(ddlEditRolePer, 0);
     //        }
     //    }
 
