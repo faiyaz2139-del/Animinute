@@ -1,0 +1,12 @@
+C# (C# 5 style; no string interpolation, no ?. ):
+- App_Code/AnyminuteEmployeeEditor.cs: RoleDisplay maps Administrator and Supervisor to Manager (display only). OfferAssignmentRoles, OfferManagerChoices, MergeSavedRoles, StoredRoleId, StoredName, SelectStoredRole, SameRoleName. SaveDetail writes JobTitleId only when SetJobTitle is true (Add form).
+- App_Code/AnyminuteJobTitles.cs: per-business job title list (Add/Edit/Delete) on Add Business Assignment only.
+- App_Code/AnyminuteEmployeesView.cs: Filter treats User_TypeId 2 and 5 as one Manager role.
+- EmployeeAssignment: Job Title row, Assign Role (Employee + Manager), Default Project/Notes in Assignment Details, and the mockup subtitle apply on Add only. Edit keeps the info card and Additional Settings. Accountant (12) and custom roles stay hidden on this screen and are kept on save if already assigned. Existing id 5 stays 5 when Manager remains checked; new Manager saves as id 2.
+- EmployeeEditor, Add_EmployeeV2*, AddEditRole_Add_Employee, Edit_EmployeeV2, Change_Rate_EmployeeV2: single Manager option; saves use role ids / StoredRoleId so an unchanged id 5 is not rewritten as 2.
+- WeeklyEmployeeSchedule.aspx: Weekly Time Card chrome (am-card, am-title, am-toolbar, am-table, am-summary, am-button). JS hooks (am-ws-*, #amWeeklySchedule, #amWsDefault, #amWsRepeat, #amWsDays) unchanged. Breadcrumb removed. Totals stay under the grid, styled as am-summary.
+- Users.aspx / UserLoginAccess.aspx: Businesses-list chrome (am-title, am-stats, am-toolbar, am-table). Employees pagination kept. Login & Access has no pagination (Businesses list has none). Report Access Employee/Supervisor/Administrator tiers were not renamed.
+- DB_REQUIRED/REQUIRED_11_JobTitle.sql: additive AnyminuteJobTitle + nullable JobTitleId on AnyminuteAssignmentDetail. Wired into deploy-anymin-v90.ps1 (site-file backup, then DB backup or table copy, then migration in a transaction).
+- Masters and standalone pages: stamp v90-20261118 / cache-buster 20261118v90.
+
+mcs is not on this box. The site compiles with aspnet_compiler on the server, same as v89.
