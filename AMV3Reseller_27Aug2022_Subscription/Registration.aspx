@@ -146,7 +146,7 @@
      window.onpageshow = function(evt) { if (evt.persisted) DisableBackButton() }
      window.onunload = function() { void (0) }
     </script>
-<link href="css/AnyminuteTypography.css?v=20261119v91" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261119v91" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261119v91" rel="stylesheet" /></head>
+<link href="css/AnyminuteTypography.css?v=20261120v92" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261120v92" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261120v92" rel="stylesheet" /></head>
 <body class="am-reference am-typography">
     <div class="container">
         <%--Commited By Firoz--%>

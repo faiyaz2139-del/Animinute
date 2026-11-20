@@ -1,7 +1,7 @@
 <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="WeeklyEmployeeSchedule.aspx.cs" Inherits="AnyminuteWeeklySchedulePage" Title="Work Schedule" %>
 <%-- 2026-10-25 v11 Deck I: Weekly Employee Schedule (planned hours; needs DB_REQUIRED/REQUIRED_05_WeeklySchedule.sql). --%>
 <%-- 2026-11-18 v90: chrome matches Weekly Time Card (am-card, am-title, am-toolbar, am-table, am-summary, am-button). JS hooks unchanged. --%>
-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteFlash.css?v=20261119v91" rel="stylesheet" /><link href="css/AnyminuteWeeklySchedule.css?v=20261119v91" rel="stylesheet" /><script src="Scripts/AnyminuteDateText.js?v=20261024v8" defer="defer"></script><script src="Scripts/AnyminuteWeeklySchedule.js?v=20261119v91" defer="defer"></script></asp:Content>
+<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteFlash.css?v=20261120v92" rel="stylesheet" /><link href="css/AnyminuteWeeklySchedule.css?v=20261120v92" rel="stylesheet" /><script src="Scripts/AnyminuteDateText.js?v=20261024v8" defer="defer"></script><script src="Scripts/AnyminuteWeeklySchedule.js?v=20261120v92" defer="defer"></script></asp:Content>
 <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
 <section class="am-card am-ws" id="amWeeklySchedule" aria-labelledby="am-ws-title">
  <div class="am-title"><div><h1 id="am-ws-title">Work Schedule</h1><p id="WsSub" runat="server">Set up weekly working hours, days off and break time for the selected employee. You can also repeat this schedule for multiple weeks.</p></div></div>

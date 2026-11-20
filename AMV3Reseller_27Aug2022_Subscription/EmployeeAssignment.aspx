@@ -1,9 +1,11 @@
 <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="EmployeeAssignment.aspx.cs" Inherits="AnyminuteEmployeeAssignmentPage" %>
-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteEmployees.css?v=20261119v91" rel="stylesheet" /><link href="css/AnyminuteEmployeesV2.css?v=20261119v91" rel="stylesheet" /><link href="css/AnyminuteFlash.css?v=20261119v91" rel="stylesheet" />
+<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteEmployees.css?v=20261120v92" rel="stylesheet" /><link href="css/AnyminuteEmployeesV2.css?v=20261120v92" rel="stylesheet" /><link href="css/AnyminuteFlash.css?v=20261120v92" rel="stylesheet" />
 <style>
-.am-jobtitle-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.am-jobtitle-row select{flex:1 1 220px;min-width:180px;min-height:38px;border:1px solid #cfd9e5;border-radius:7px;padding:7px 10px;background:#fff}
-.am-jobtitle-row .am-button{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;min-height:38px;padding:0 12px;margin:0}
+.am-jobtitle-row{display:flex;gap:6px;align-items:center;flex-wrap:nowrap;width:100%;min-width:0}
+.am-field .am-jobtitle-row select{flex:1 1 auto;min-width:0;width:auto;min-height:38px;height:38px;border:1px solid #cfd9e5;border-radius:7px;padding:7px 10px;background:#fff;box-shadow:none}
+.am-jobtitle-row .am-jobtitle-btn{display:inline-flex;align-items:center;justify-content:center;gap:4px;white-space:nowrap;flex:0 0 auto;box-sizing:border-box;height:26px;min-height:26px;max-height:26px;padding:0 8px;margin:0;font-size:12px;font-weight:600;line-height:1;border-radius:5px;text-decoration:none;box-shadow:none;background:#fff}
+.am-jobtitle-row .am-jobtitle-btn-add{border:1px solid #1768e8;color:#1768e8!important;background:#fff!important}
+.am-jobtitle-row .am-jobtitle-btn-muted{border:1px solid #c5ced8;color:#5e6a78!important;background:#fff!important}
 .am-jobtitle-editor{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}
 .am-jobtitle-editor input{flex:1 1 220px;min-height:38px;border:1px solid #cfd9e5;border-radius:7px;padding:7px 10px;background:#fff}
 .am-jobtitle-editor .am-button{min-height:38px;padding:0 12px;margin:0}
@@ -41,10 +43,11 @@
     <label class="am-field"><span>Business <span class="am-req">*</span></span><asp:DropDownList ID="Business" runat="server" AutoPostBack="true" OnSelectedIndexChanged="BusinessChanged" /></label>
     <div class="am-field"><span>Assign Role <asp:PlaceHolder ID="RolesPlural" runat="server">s</asp:PlaceHolder> <span class="am-req">*</span></span><asp:CheckBoxList ID="Roles" runat="server" RepeatLayout="Flow" RepeatDirection="Horizontal" CssClass="am-check-row" /><asp:PlaceHolder ID="RolesHint" runat="server"><span class="am-hint">The first ticked role is the main role used for permissions.</span></asp:PlaceHolder></div>
     <asp:PlaceHolder ID="JobTitleRow" runat="server">
-    <div class="am-field am-span-2"><span>Job Title <span class="am-req">*</span></span>
-     <div class="am-jobtitle-row"><asp:DropDownList ID="JobTitleList" runat="server" /><asp:LinkButton ID="JobTitleAdd" runat="server" OnClick="JobTitleAdd_Click" CausesValidation="false" CssClass="am-button"><span aria-hidden="true">+</span> Add</asp:LinkButton><asp:LinkButton ID="JobTitleEdit" runat="server" OnClick="JobTitleEdit_Click" CausesValidation="false" CssClass="am-button secondary">&#9998; Edit</asp:LinkButton><asp:LinkButton ID="JobTitleDelete" runat="server" OnClick="JobTitleDelete_Click" CausesValidation="false" CssClass="am-button secondary">&#128465; Delete</asp:LinkButton></div>
+    <div class="am-field"><span>Job Title <span class="am-req">*</span></span>
+     <div class="am-jobtitle-row"><asp:DropDownList ID="JobTitleList" runat="server" /><asp:LinkButton ID="JobTitleAdd" runat="server" OnClick="JobTitleAdd_Click" CausesValidation="false" CssClass="am-jobtitle-btn am-jobtitle-btn-add"><span aria-hidden="true">+</span> Add</asp:LinkButton><asp:LinkButton ID="JobTitleEdit" runat="server" OnClick="JobTitleEdit_Click" CausesValidation="false" CssClass="am-jobtitle-btn am-jobtitle-btn-muted">&#9998; Edit</asp:LinkButton><asp:LinkButton ID="JobTitleDelete" runat="server" OnClick="JobTitleDelete_Click" CausesValidation="false" CssClass="am-jobtitle-btn am-jobtitle-btn-muted">&#128465; Delete</asp:LinkButton></div>
      <asp:Panel ID="JobTitleEditor" runat="server" Visible="false" CssClass="am-jobtitle-editor"><asp:TextBox ID="JobTitleName" runat="server" MaxLength="150" /><asp:LinkButton ID="JobTitleSave" runat="server" OnClick="JobTitleSave_Click" CausesValidation="false" CssClass="am-button">Save</asp:LinkButton><asp:LinkButton ID="JobTitleCancel" runat="server" OnClick="JobTitleCancel_Click" CausesValidation="false" CssClass="am-button secondary">Cancel</asp:LinkButton></asp:Panel>
     </div>
+    <div class="am-jobtitle-spacer" aria-hidden="true"></div>
     </asp:PlaceHolder>
     <label class="am-field"><span>Employee Type <span class="am-req">*</span></span><asp:DropDownList ID="EmployeeType" runat="server"><asp:ListItem>Regular</asp:ListItem><asp:ListItem>Project</asp:ListItem></asp:DropDownList></label>
     <label class="am-field"><span>Pay Type <span class="am-req">*</span></span><asp:DropDownList ID="PayType" runat="server" /></label>
