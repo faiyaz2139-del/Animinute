@@ -225,6 +225,29 @@
   });
   document.addEventListener('keydown',function(e){var m=byId('amNewAddress');if(!m||m.hidden)return;if(e.key==='Escape')Address.close();else if(e.key==='Enter'&&e.target.closest&&e.target.closest('#amNewAddress')&&e.target.tagName!=='BUTTON'&&e.target.tagName!=='SELECT'){e.preventDefault();Address.apply();}});
  }
+
+ // v93: validate the 10-digit primary contact number before postback, and ignore a second
+ // Save click while the first request is still in flight (otherwise two inserts are created).
+ if(typeof document!=='undefined'){
+  var amSaving=false;
+  function amPhoneDigits(v){return String(v||'').replace(/\D/g,'');}
+  function amPhoneOk(){
+   var p=document.querySelector('#amBusinessEditor [id$=PrmContNmbr]');if(!p)return true;
+   if(amPhoneDigits(p.value).length===10){p.removeAttribute('aria-invalid');return true;}
+   p.setAttribute('aria-invalid','true');
+   var e=document.getElementById('SaveError');
+   if(e){e.textContent='Enter a valid 10-digit primary contact number.';e.style.display='';e.removeAttribute('hidden');}
+   try{p.focus();}catch(x){}
+   return false;
+  }
+  function amSaveLink(t){return t&&t.closest&&t.closest('#amBusinessEditor a[id$=SaveBusinessTop], #amBusinessEditor a[id$=btnSaveBusinessDetails], #amBusinessEditor a[id$=btnUpdateBusinessDetails], #amBusinessEditor a[id$=btnSaveAddres], #amBusinessEditor a[id$=btnUpdateAddress]');}
+  document.addEventListener('click',function(e){
+   var a=amSaveLink(e.target);if(!a)return;
+   if(amSaving){e.preventDefault();e.stopPropagation();return;}
+   if(!amPhoneOk()){e.preventDefault();e.stopPropagation();return;}
+   amSaving=true;a.setAttribute('aria-busy','true');
+  },true);
+ }
  if(typeof module!=='undefined'&&module.exports)module.exports={fileError:fileError};
  if(typeof document!=='undefined'){
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();

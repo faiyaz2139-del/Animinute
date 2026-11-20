@@ -73,8 +73,32 @@ public partial class AnyminuteDashboard : System.Web.UI.Page
  }
  protected void BusinessRows_ItemCommand(object sender,RepeaterCommandEventArgs e)
  {
-  if(e.CommandName!="SetBusinessStatus")return;
   StatusMessage.Visible=false;
+  if(e.CommandName=="DeleteBusiness")
+  {
+   int delId;
+   if(!Int32.TryParse(Convert.ToString(e.CommandArgument),out delId)||delId<=0)throw new HttpException(400,"Invalid business.");
+   try
+   {
+    using(var c=AnyminuteTimesheetRepair.Open())using(var tx=c.BeginTransaction())
+    {
+     int actor=AnyminuteApprovalAssignments.RequireOwner(c,tx,delId);
+     var current=AnyminuteTimesheetRepair.Query(c,tx,"SELECT Status FROM AddBusiness WITH(UPDLOCK,HOLDLOCK) WHERE BusinessID=@b","@b",delId);
+     if(current.Rows.Count!=1)throw new InvalidOperationException("Business was not found. Refresh the dashboard before trying again.");
+     int before=Convert.ToInt32(current.Rows[0][0]);
+     if(before==2)
+     {tx.Commit();Bind();StatusMessage.Text="Business already removed from the list.";StatusMessage.Visible=true;return;}
+     // Soft delete: Status=2 is already hidden by Businesses list queries (Status<>2). Rows and related data stay.
+     AnyminuteTimesheetRepair.Execute(c,tx,"UPDATE AddBusiness SET Status=2 WHERE BusinessID=@b AND Status<>2; INSERT INTO AnyminuteApprovalAudit(BusinessID,ActorID,EmployeeID,Action,BeforeValue,AfterValue,RecordedAtUTC) VALUES(@b,@a,@a,'DeleteBusiness',@before,'2',SYSUTCDATETIME())",
+      "@b",delId,"@a",actor,"@before",before.ToString());
+     tx.Commit();
+    }
+    Bind();StatusMessage.Text="Business removed from the list. Existing records were kept.";StatusMessage.Visible=true;
+   }
+   catch(InvalidOperationException ex){StatusMessage.Text=HttpUtility.HtmlEncode(ex.Message);StatusMessage.Visible=true;}
+   return;
+  }
+  if(e.CommandName!="SetBusinessStatus")return;
   string[] values=Convert.ToString(e.CommandArgument).Split('|');int business,expected,next;
   if(values.Length!=3 || !Int32.TryParse(values[0],out business) || !Int32.TryParse(values[1],out expected) || !Int32.TryParse(values[2],out next) ||
      business<=0 || (expected!=0&&expected!=1) || (next!=0&&next!=1))throw new HttpException(400,"Invalid business status action.");

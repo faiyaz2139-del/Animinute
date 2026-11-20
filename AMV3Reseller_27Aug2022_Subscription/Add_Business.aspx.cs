@@ -106,6 +106,7 @@ public partial class Add_Business : System.Web.UI.Page
         {
             Response.Redirect("Login.aspx");
         }
+        EnsureSaveKey();
         // v64 (PPT s2/s3): subscriber/owner sessions can arrive without MotherOrgid (e.g. after password reset) — resolve it from the
         // owner's own business assignment so Add/Edit Business no longer crash to the generic error page.
         if (String.IsNullOrEmpty(Convert.ToString(Session["MotherOrgid"])))
@@ -531,18 +532,16 @@ public partial class Add_Business : System.Web.UI.Page
     protected void btnSaveBusinessDetails_Click(object sender, EventArgs e)
     {
         AddressMessage.Visible = false;
+        SaveError.Visible = false;
         if (!String.IsNullOrWhiteSpace(Label_Maximum_Limit.Text))
         { SaveFeedback("Business changes are unavailable under the current plan or account status."); return; }
         EnableAddressFields();
         // v3: Status is not on the Add Business form (deck slide 1); a new business starts Active.
         if (Request.QueryString["BusinessIDEdit"] == null && ddlClientStats.SelectedValue == "") ddlClientStats.SelectedValue = "1";
+        // Validate (including the 10-digit primary contact number) before any upload or insert.
         string error = ValidateBusinessAndAddress();
         if (error != null) { ExtraBusinessDetails.Attributes["open"] = "open"; SaveFeedback(error); return; }
-        int business = 0;
-        if (Request.QueryString["BusinessIDEdit"] != null)
-            business = Int32.Parse(Request.QueryString["BusinessIDEdit"]);
-        else if (ViewState["SavedBusinessId"] != null)
-            business = Convert.ToInt32(ViewState["SavedBusinessId"]);
+        int business = ExistingBusinessId();
         bool updating = business > 0;
         string logo;
         try { logo = GenerateUniqueFileName(); }
@@ -583,7 +582,7 @@ public partial class Add_Business : System.Web.UI.Page
             { ExtraBusinessDetails.Attributes["open"] = "open"; SaveFeedback(saveError.Message + " No changes were saved."); return; }
             throw; // Preserve SQL/permission exceptions; no success feedback after failure.
         }
-        ViewState["SavedBusinessId"] = business; hfdBusinessId.Value = business.ToString();
+        RememberSavedBusiness(business);
         btnSaveBusinessDetails.Text = "Update"; btnSaveAddres.Text = "Update";
         // Post/Redirect/Get: the confirmation is shown at the top of the page the user lands on,
         // and refreshing that page cannot submit the form a second time.
@@ -607,6 +606,38 @@ public partial class Add_Business : System.Web.UI.Page
         SaveError.Text = HttpUtility.HtmlEncode(message);
         SaveError.Visible = true;
         AddressMessage.Visible = false;
+    }
+
+    private void EnsureSaveKey()
+    {
+        if (String.IsNullOrEmpty(Convert.ToString(ViewState["AddBusinessSaveKey"])))
+            ViewState["AddBusinessSaveKey"] = Guid.NewGuid().ToString("N");
+    }
+
+    // Query string (edit), ViewState/hidden id (same form after a first save), then the
+    // one-time form key in Session (a second postback from a double-click still carries
+    // the original empty ViewState, but Session already has the id from the first request).
+    private int ExistingBusinessId()
+    {
+        int id;
+        if (Request.QueryString["BusinessIDEdit"] != null && Int32.TryParse(Request.QueryString["BusinessIDEdit"], out id) && id > 0)
+            return id;
+        if (ViewState["SavedBusinessId"] != null && Int32.TryParse(Convert.ToString(ViewState["SavedBusinessId"]), out id) && id > 0)
+            return id;
+        if (Int32.TryParse(hfdBusinessId.Value, out id) && id > 0) return id;
+        string key = Convert.ToString(ViewState["AddBusinessSaveKey"]);
+        if (String.IsNullOrEmpty(key) || Session == null) return 0;
+        object prior = Session["AddBusinessSave:" + key];
+        if (prior != null && Int32.TryParse(Convert.ToString(prior), out id) && id > 0) return id;
+        return 0;
+    }
+
+    private void RememberSavedBusiness(int business)
+    {
+        ViewState["SavedBusinessId"] = business;
+        hfdBusinessId.Value = business.ToString();
+        string key = Convert.ToString(ViewState["AddBusinessSaveKey"]);
+        if (!String.IsNullOrEmpty(key) && Session != null) Session["AddBusinessSave:" + key] = business;
     }
 
     private string ValidateBusinessAndAddress()

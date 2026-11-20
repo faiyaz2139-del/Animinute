@@ -1,8 +1,8 @@
 ﻿<%@ Page Title="Business" Language="C#" MasterPageFile="~/Main.master" AutoEventWireup="true" CodeFile="Add_Business.aspx.cs" Inherits="Add_Business" %>
 <%@ Register Assembly="AjaxControlToolkit" Namespace="AjaxControlToolkit" TagPrefix="cc1" %>
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
- <link rel="stylesheet" href="css/AnyminuteBusinessEditor.css?v=20261116v86" />
- <script src="Scripts/AnyminuteBusinessEditor.js?v=20261116v86" defer="defer"></script>
+ <link rel="stylesheet" href="css/AnyminuteBusinessEditor.css?v=20261120v93" />
+ <script src="Scripts/AnyminuteBusinessEditor.js?v=20261120v93" defer="defer"></script>
  <script src="Scripts/AnyminuteBusinessAutosave.js?v=20261026v19" defer="defer"></script>
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
