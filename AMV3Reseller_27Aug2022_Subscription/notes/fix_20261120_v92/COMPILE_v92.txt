@@ -1,0 +1,9 @@
+C# 5 (no string interpolation, no ?. ):
+- No .cs changes in v92. Add/Edit/Delete Job Title handlers, IDs, and code-behind are unchanged.
+- EmployeeAssignment.aspx only: Job Title field stays in the left column of Assignment Details (under Business). A spacer keeps Employee Type / Pay Type on the following row. Assign Role stays on the same row as Business.
+- Dropdown keeps the same 38px select height/style as the other fields and fills the remaining left-column width. + Add, Edit, and Delete sit on that same line, 26px tall, vertically centered, 6px gaps, no wrap.
+- + Add is blue outline and blue text on white. Edit (pencil) and Delete (trash) are grey outline and grey text on white. Flat, no shadow or gradient.
+- Stamp v92-20261120 / 20261120v92 on the usual master/login cache-bust query strings and anyminute-build meta.
+
+mcs is not on this box. The site compiles with aspnet_compiler on the server, same as v91.
+Cumulative on v91 commit 4afc007de7f89245f29dfc17030548928b3d811b (notes) / c70f98c02801c248336d002df1c26fa8b01becca (labels + stamp).
