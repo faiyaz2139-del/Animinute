@@ -1,0 +1,448 @@
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Add_Business.aspx b/AMV3Reseller_27Aug2022_Subscription/Add_Business.aspx
+index d4b41ed..591a7c3 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Add_Business.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/Add_Business.aspx
+@@ -1,8 +1,8 @@
+ ﻿<%@ Page Title="Business" Language="C#" MasterPageFile="~/Main.master" AutoEventWireup="true" CodeFile="Add_Business.aspx.cs" Inherits="Add_Business" %>
+ <%@ Register Assembly="AjaxControlToolkit" Namespace="AjaxControlToolkit" TagPrefix="cc1" %>
+ <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
+- <link rel="stylesheet" href="css/AnyminuteBusinessEditor.css?v=20261116v86" />
+- <script src="Scripts/AnyminuteBusinessEditor.js?v=20261116v86" defer="defer"></script>
++ <link rel="stylesheet" href="css/AnyminuteBusinessEditor.css?v=20261120v93" />
++ <script src="Scripts/AnyminuteBusinessEditor.js?v=20261120v93" defer="defer"></script>
+  <script src="Scripts/AnyminuteBusinessAutosave.js?v=20261026v19" defer="defer"></script>
+ </asp:Content>
+ <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Add_Business.aspx.cs b/AMV3Reseller_27Aug2022_Subscription/Add_Business.aspx.cs
+index 25bf89c..b4bb316 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Add_Business.aspx.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/Add_Business.aspx.cs
+@@ -106,6 +106,7 @@ public partial class Add_Business : System.Web.UI.Page
+         {
+             Response.Redirect("Login.aspx");
+         }
++        EnsureSaveKey();
+         // v64 (PPT s2/s3): subscriber/owner sessions can arrive without MotherOrgid (e.g. after password reset) — resolve it from the
+         // owner's own business assignment so Add/Edit Business no longer crash to the generic error page.
+         if (String.IsNullOrEmpty(Convert.ToString(Session["MotherOrgid"])))
+@@ -531,18 +532,16 @@ public partial class Add_Business : System.Web.UI.Page
+     protected void btnSaveBusinessDetails_Click(object sender, EventArgs e)
+     {
+         AddressMessage.Visible = false;
++        SaveError.Visible = false;
+         if (!String.IsNullOrWhiteSpace(Label_Maximum_Limit.Text))
+         { SaveFeedback("Business changes are unavailable under the current plan or account status."); return; }
+         EnableAddressFields();
+         // v3: Status is not on the Add Business form (deck slide 1); a new business starts Active.
+         if (Request.QueryString["BusinessIDEdit"] == null && ddlClientStats.SelectedValue == "") ddlClientStats.SelectedValue = "1";
++        // Validate (including the 10-digit primary contact number) before any upload or insert.
+         string error = ValidateBusinessAndAddress();
+         if (error != null) { ExtraBusinessDetails.Attributes["open"] = "open"; SaveFeedback(error); return; }
+-        int business = 0;
+-        if (Request.QueryString["BusinessIDEdit"] != null)
+-            business = Int32.Parse(Request.QueryString["BusinessIDEdit"]);
+-        else if (ViewState["SavedBusinessId"] != null)
+-            business = Convert.ToInt32(ViewState["SavedBusinessId"]);
++        int business = ExistingBusinessId();
+         bool updating = business > 0;
+         string logo;
+         try { logo = GenerateUniqueFileName(); }
+@@ -583,7 +582,7 @@ public partial class Add_Business : System.Web.UI.Page
+             { ExtraBusinessDetails.Attributes["open"] = "open"; SaveFeedback(saveError.Message + " No changes were saved."); return; }
+             throw; // Preserve SQL/permission exceptions; no success feedback after failure.
+         }
+-        ViewState["SavedBusinessId"] = business; hfdBusinessId.Value = business.ToString();
++        RememberSavedBusiness(business);
+         btnSaveBusinessDetails.Text = "Update"; btnSaveAddres.Text = "Update";
+         // Post/Redirect/Get: the confirmation is shown at the top of the page the user lands on,
+         // and refreshing that page cannot submit the form a second time.
+@@ -609,6 +608,38 @@ public partial class Add_Business : System.Web.UI.Page
+         AddressMessage.Visible = false;
+     }
+ 
++    private void EnsureSaveKey()
++    {
++        if (String.IsNullOrEmpty(Convert.ToString(ViewState["AddBusinessSaveKey"])))
++            ViewState["AddBusinessSaveKey"] = Guid.NewGuid().ToString("N");
++    }
++
++    // Query string (edit), ViewState/hidden id (same form after a first save), then the
++    // one-time form key in Session (a second postback from a double-click still carries
++    // the original empty ViewState, but Session already has the id from the first request).
++    private int ExistingBusinessId()
++    {
++        int id;
++        if (Request.QueryString["BusinessIDEdit"] != null && Int32.TryParse(Request.QueryString["BusinessIDEdit"], out id) && id > 0)
++            return id;
++        if (ViewState["SavedBusinessId"] != null && Int32.TryParse(Convert.ToString(ViewState["SavedBusinessId"]), out id) && id > 0)
++            return id;
++        if (Int32.TryParse(hfdBusinessId.Value, out id) && id > 0) return id;
++        string key = Convert.ToString(ViewState["AddBusinessSaveKey"]);
++        if (String.IsNullOrEmpty(key) || Session == null) return 0;
++        object prior = Session["AddBusinessSave:" + key];
++        if (prior != null && Int32.TryParse(Convert.ToString(prior), out id) && id > 0) return id;
++        return 0;
++    }
++
++    private void RememberSavedBusiness(int business)
++    {
++        ViewState["SavedBusinessId"] = business;
++        hfdBusinessId.Value = business.ToString();
++        string key = Convert.ToString(ViewState["AddBusinessSaveKey"]);
++        if (!String.IsNullOrEmpty(key) && Session != null) Session["AddBusinessSave:" + key] = business;
++    }
++
+     private string ValidateBusinessAndAddress()
+     {
+         if (String.IsNullOrWhiteSpace(txtCompanyName.Text) || String.IsNullOrWhiteSpace(PrmContName.Text))
+diff --git a/AMV3Reseller_27Aug2022_Subscription/BusinessProfile.aspx b/AMV3Reseller_27Aug2022_Subscription/BusinessProfile.aspx
+index 1276f26..ec9a461 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/BusinessProfile.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/BusinessProfile.aspx
+@@ -1,9 +1,9 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="BusinessProfile.aspx.cs" Inherits="AnyminuteBusinessProfilePage" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSubscriberDashboard.css?v=20261120v92" rel="stylesheet" /></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteSubscriberDashboard.css?v=20261120v93" rel="stylesheet" /></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <%-- 2026-11-16 v86: Business Profile = read-only view of one business (opened from "Business Profile" under the business name on the
+      Businesses list). "Edit" opens the existing Edit Business screen (Add_Business.aspx?BusinessIDEdit=) and is shown to owners only. --%>
+-<section class="am-bp" data-build="v92-20261120">
++<section class="am-bp" data-build="v93-20261120">
+  <asp:Literal ID="ProfileLit" runat="server" />
+ </section>
+ </asp:Content>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Dashboard.aspx b/AMV3Reseller_27Aug2022_Subscription/Dashboard.aspx
+index f5d1a6a..46b1691 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Dashboard.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/Dashboard.aspx
+@@ -25,6 +25,7 @@
+ <asp:Repeater ID="BusinessRows" runat="server" OnItemCommand="BusinessRows_ItemCommand"><ItemTemplate><tr><td><strong><%#: Eval("CompanyName") %></strong><asp:HyperLink runat="server" Visible='<%# Convert.ToBoolean(Eval("Manage")) %>' NavigateUrl='<%# "BusinessProfile.aspx?BusinessId="+Eval("BusinessID") %>' Text="Business Profile" /></td><td><%#: Eval("PrimaryContactName") %></td><td><a href='<%# "Projects.aspx?BusinessId="+Eval("BusinessID") %>'>View Projects</a></td><td><strong><%#: Eval("Users") %> users</strong><div class="am-row-links"><a href='<%# "Users.aspx?BusinessId="+Eval("BusinessID") %>'>User List</a><asp:HyperLink runat="server" Visible='<%# Convert.ToBoolean(Eval("Manage")) %>' NavigateUrl="~/EmployeeEditor.aspx" Text="Add Employee" /><asp:HyperLink runat="server" Visible='<%# Convert.ToBoolean(Eval("Manage")) %>' NavigateUrl='<%# "UserLoginAccess.aspx?BusinessId="+Eval("BusinessID") %>' Text="Login &amp; Access" /><asp:HyperLink runat="server" Visible='<%# Convert.ToBoolean(Eval("Manage")) %>' NavigateUrl='<%# "GridviewNewDesign_AssignUser.aspx?BusinessIdFromDefaultPapge="+Eval("BusinessID") %>' Text="Assign User" /><asp:HyperLink runat="server" Visible='<%# Convert.ToBoolean(Eval("Manage")) %>' NavigateUrl='<%# "GridviewNewDesign.aspx?BusinessIdFromDefaultPapge="+Eval("BusinessID") %>' Text="Assign User to Manager" /><asp:HyperLink runat="server" Visible='<%# Convert.ToBoolean(Eval("Manage")) %>' NavigateUrl='<%# "AccountantAccess.aspx?BusinessId="+Eval("BusinessID") %>' Text="Accountant &amp; Payroll" /></div></td><td><a class="am-button secondary" href='<%# "WeekTimeCard.aspx?BusinessId="+Eval("BusinessID") %>'>&#9719; Open Time Card</a></td><td><span class='<%# "am-badge "+(Convert.ToString(Eval("Status")).Trim()=="1"?"Active":"Inactive") %>'><%#: Eval("DisplayStatus") %></span></td><td><asp:PlaceHolder runat="server" Visible='<%# Convert.ToBoolean(Eval("Manage")) %>'><details class="am-menu am-business-status-menu"><summary aria-label='<%# "Change status for " + Eval("CompanyName") %>'>&#8942;</summary><div>
+ <asp:LinkButton runat="server" Text="Active" CommandName="SetBusinessStatus" CommandArgument='<%# Eval("BusinessID")+"|"+Eval("Status")+"|1" %>' Enabled='<%# Convert.ToString(Eval("Status")).Trim()!="1" %>' CausesValidation="false" />
+ <asp:LinkButton runat="server" Text="Not Active" CommandName="SetBusinessStatus" CommandArgument='<%# Eval("BusinessID")+"|"+Eval("Status")+"|0" %>' Enabled='<%# Convert.ToString(Eval("Status")).Trim()!="0" %>' CausesValidation="false" OnClientClick="return confirm('Mark this business Not Active? Its existing data will be retained.');" />
++<asp:LinkButton runat="server" Text="Delete" CommandName="DeleteBusiness" CommandArgument='<%# Eval("BusinessID") %>' CssClass="am-danger-link" CausesValidation="false" OnClientClick="return confirm('Delete this business? It will be removed from the list. Existing records will be kept.');" />
+ </div></details></asp:PlaceHolder></td></tr></ItemTemplate></asp:Repeater>
+ </tbody></table></div><asp:Label ID="Empty" runat="server" Visible="false" Text="No accessible businesses found." CssClass="am-notice" /></section>
+ </asp:PlaceHolder>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Dashboard.aspx.cs b/AMV3Reseller_27Aug2022_Subscription/Dashboard.aspx.cs
+index da6f4e0..5ecd255 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Dashboard.aspx.cs
++++ b/AMV3Reseller_27Aug2022_Subscription/Dashboard.aspx.cs
+@@ -73,8 +73,32 @@ public partial class AnyminuteDashboard : System.Web.UI.Page
+  }
+  protected void BusinessRows_ItemCommand(object sender,RepeaterCommandEventArgs e)
+  {
+-  if(e.CommandName!="SetBusinessStatus")return;
+   StatusMessage.Visible=false;
++  if(e.CommandName=="DeleteBusiness")
++  {
++   int delId;
++   if(!Int32.TryParse(Convert.ToString(e.CommandArgument),out delId)||delId<=0)throw new HttpException(400,"Invalid business.");
++   try
++   {
++    using(var c=AnyminuteTimesheetRepair.Open())using(var tx=c.BeginTransaction())
++    {
++     int actor=AnyminuteApprovalAssignments.RequireOwner(c,tx,delId);
++     var current=AnyminuteTimesheetRepair.Query(c,tx,"SELECT Status FROM AddBusiness WITH(UPDLOCK,HOLDLOCK) WHERE BusinessID=@b","@b",delId);
++     if(current.Rows.Count!=1)throw new InvalidOperationException("Business was not found. Refresh the dashboard before trying again.");
++     int before=Convert.ToInt32(current.Rows[0][0]);
++     if(before==2)
++     {tx.Commit();Bind();StatusMessage.Text="Business already removed from the list.";StatusMessage.Visible=true;return;}
++     // Soft delete: Status=2 is already hidden by Businesses list queries (Status<>2). Rows and related data stay.
++     AnyminuteTimesheetRepair.Execute(c,tx,"UPDATE AddBusiness SET Status=2 WHERE BusinessID=@b AND Status<>2; INSERT INTO AnyminuteApprovalAudit(BusinessID,ActorID,EmployeeID,Action,BeforeValue,AfterValue,RecordedAtUTC) VALUES(@b,@a,@a,'DeleteBusiness',@before,'2',SYSUTCDATETIME())",
++      "@b",delId,"@a",actor,"@before",before.ToString());
++     tx.Commit();
++    }
++    Bind();StatusMessage.Text="Business removed from the list. Existing records were kept.";StatusMessage.Visible=true;
++   }
++   catch(InvalidOperationException ex){StatusMessage.Text=HttpUtility.HtmlEncode(ex.Message);StatusMessage.Visible=true;}
++   return;
++  }
++  if(e.CommandName!="SetBusinessStatus")return;
+   string[] values=Convert.ToString(e.CommandArgument).Split('|');int business,expected,next;
+   if(values.Length!=3 || !Int32.TryParse(values[0],out business) || !Int32.TryParse(values[1],out expected) || !Int32.TryParse(values[2],out next) ||
+      business<=0 || (expected!=0&&expected!=1) || (next!=0&&next!=1))throw new HttpException(400,"Invalid business status action.");
+diff --git a/AMV3Reseller_27Aug2022_Subscription/EmployeeAssignment.aspx b/AMV3Reseller_27Aug2022_Subscription/EmployeeAssignment.aspx
+index 0e37ee8..f9968a4 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/EmployeeAssignment.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/EmployeeAssignment.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="EmployeeAssignment.aspx.cs" Inherits="AnyminuteEmployeeAssignmentPage" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteEmployees.css?v=20261120v92" rel="stylesheet" /><link href="css/AnyminuteEmployeesV2.css?v=20261120v92" rel="stylesheet" /><link href="css/AnyminuteFlash.css?v=20261120v92" rel="stylesheet" />
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteEmployees.css?v=20261120v93" rel="stylesheet" /><link href="css/AnyminuteEmployeesV2.css?v=20261120v93" rel="stylesheet" /><link href="css/AnyminuteFlash.css?v=20261120v93" rel="stylesheet" />
+ <style>
+ .am-jobtitle-row{display:flex;gap:6px;align-items:center;flex-wrap:nowrap;width:100%;min-width:0}
+ .am-field .am-jobtitle-row select{flex:1 1 auto;min-width:0;width:auto;min-height:38px;height:38px;border:1px solid #cfd9e5;border-radius:7px;padding:7px 10px;background:#fff;box-shadow:none}
+diff --git a/AMV3Reseller_27Aug2022_Subscription/ExternalLogin.aspx b/AMV3Reseller_27Aug2022_Subscription/ExternalLogin.aspx
+index 2ffd65b..de23787 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/ExternalLogin.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/ExternalLogin.aspx
+@@ -1,3 +1,3 @@
+ <%@ Page Language="C#" AutoEventWireup="true" CodeFile="ExternalLogin.aspx.cs" Inherits="AnyminuteExternalLoginPage" EnableViewState="false" %>
+ <%-- v41: Google / Microsoft sign-in start (?p=google|microsoft) and OAuth redirect URI (?code&state). No UI; always redirects. --%>
+-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8" /><meta name="referrer" content="no-referrer" /><title>Signing in | AnyMinute</title><link href="css/AnyminuteTypography.css?v=20261120v92" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261120v92" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261120v92" rel="stylesheet" /></head><body class="am-reference am-typography"></body></html>
++<!DOCTYPE html><html lang="en"><head><meta charset="utf-8" /><meta name="referrer" content="no-referrer" /><title>Signing in | AnyMinute</title><link href="css/AnyminuteTypography.css?v=20261120v93" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261120v93" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261120v93" rel="stylesheet" /></head><body class="am-reference am-typography"></body></html>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Login.aspx b/AMV3Reseller_27Aug2022_Subscription/Login.aspx
+index 521f162..f13043c 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Login.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/Login.aspx
+@@ -152,7 +152,7 @@
+         .am-social-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;margin-bottom:10px;padding:9px 12px;border:1px solid #d0d7e2;border-radius:6px;background:#fff;color:#1f2937!important;font-weight:600;text-decoration:none!important}
+         .am-social-btn:hover{background:#f5f8fc;border-color:#b8c3d3}
+     </style>
+-<link href="css/AnyminuteTypography.css?v=20261120v92" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261120v92" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261120v92" rel="stylesheet" /></head>
++<link href="css/AnyminuteTypography.css?v=20261120v93" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261120v93" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261120v93" rel="stylesheet" /></head>
+ <body class="am-reference am-typography">
+     <div class="container">
+             <div class="col-md-3 col-sm-12 col-xs-12"></div>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Main.master b/AMV3Reseller_27Aug2022_Subscription/Main.master
+index da6d612..eab9de7 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Main.master
++++ b/AMV3Reseller_27Aug2022_Subscription/Main.master
+@@ -5,7 +5,7 @@
+ <!DOCTYPE html>
+ 
+ <html>
+-<head runat="server"><meta name="anyminute-build" content="v92-20261120" />
++<head runat="server"><meta name="anyminute-build" content="v93-20261120" />
+     <title>AnyMinute | Record From Anywhere</title>
+     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+@@ -139,7 +139,7 @@
+     </asp:ContentPlaceHolder>
+     <link href="css/AnyminuteUI2026.css?v=20261017" rel="stylesheet" />
+ <link href="css/AnyminuteUIUnified.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUiBugFixes.css?v=20261026v17" rel="stylesheet" />
+-<link href="css/AnyminuteNavDrawer.css?v=20261120v92" rel="stylesheet" /><link href="css/AnyminuteTypography.css?v=20261120v92" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261120v92" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261120v92" rel="stylesheet" /></head>
++<link href="css/AnyminuteNavDrawer.css?v=20261120v93" rel="stylesheet" /><link href="css/AnyminuteTypography.css?v=20261120v93" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261120v93" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261120v93" rel="stylesheet" /></head>
+ <script type="text/javascript">  
+     window.onload = window.history.forward(0);
+ </script>
+@@ -260,7 +260,7 @@
+     <script src="Scripts/AnyminuteUI2026.js?v=20261024v10"></script>
+     <script src="Scripts/AnyminuteUIUnified.js?v=20261031v38"></script>
+     <script src="Scripts/AnyminuteUiBugFixes.js?v=20261024e1"></script>
+-<script src="Scripts/AnyminuteNavigationActions.js?v=20261024e1"></script><script src="Scripts/AnyminuteNavDrawer.js?v=20261120v92"></script><script src="Scripts/AnyminuteBackNav.js?v=20261120v92"></script><script src="Scripts/AnyminuteMenus.js?v=20261120v92"></script></form>
++<script src="Scripts/AnyminuteNavigationActions.js?v=20261024e1"></script><script src="Scripts/AnyminuteNavDrawer.js?v=20261120v93"></script><script src="Scripts/AnyminuteBackNav.js?v=20261120v93"></script><script src="Scripts/AnyminuteMenus.js?v=20261120v93"></script></form>
+     <!-- Datatables -->
+     <script src="Assets/assets/js/plugin/datatables/datatables.min.js"></script>
+     <script>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master b/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master
+index 8871d01..bf8f780 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master
++++ b/AMV3Reseller_27Aug2022_Subscription/MasterWithoutMenu.master
+@@ -2,7 +2,7 @@
+ <!DOCTYPE html>
+ 
+ <html>
+-<head runat="server"><meta name="anyminute-build" content="v92-20261120" />
++<head runat="server"><meta name="anyminute-build" content="v93-20261120" />
+     <title>AnyMinute | Record From Anywhere</title>
+     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+@@ -28,7 +28,7 @@
+                        
+     </asp:ContentPlaceHolder>
+     
+-<link href="css/AnyminuteTypography.css?v=20261120v92" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261120v92" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261120v92" rel="stylesheet" /></head>
++<link href="css/AnyminuteTypography.css?v=20261120v93" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261120v93" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261120v93" rel="stylesheet" /></head>
+     <script type="text/javascript">  
+ 
+     window.onload = window.history.forward(0);
+@@ -65,7 +65,7 @@
+             </div>
+         </div>
+ 
+-    <script src="Scripts/AnyminuteMenus.js?v=20261120v92"></script></form>   
++    <script src="Scripts/AnyminuteMenus.js?v=20261120v93"></script></form>   
+ 
+ </body>
+ </html>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/ModalPopUpSelectEffectiveDate.aspx b/AMV3Reseller_27Aug2022_Subscription/ModalPopUpSelectEffectiveDate.aspx
+index 3606871..21668ce 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/ModalPopUpSelectEffectiveDate.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/ModalPopUpSelectEffectiveDate.aspx
+@@ -5,7 +5,7 @@
+ <html xmlns="http://www.w3.org/1999/xhtml">
+ <head runat="server">
+     <title></title>
+-<link href="css/AnyminuteTypography.css?v=20261120v92" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261120v92" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261120v92" rel="stylesheet" /></head>
++<link href="css/AnyminuteTypography.css?v=20261120v93" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261120v93" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261120v93" rel="stylesheet" /></head>
+ <body class="am-reference am-typography">
+     <form id="form1" runat="server">
+         <div>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Modern.master b/AMV3Reseller_27Aug2022_Subscription/Modern.master
+index 5828e4a..1b2170e 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Modern.master
++++ b/AMV3Reseller_27Aug2022_Subscription/Modern.master
+@@ -1,6 +1,6 @@
+ <%@ Master Language="C#" AutoEventWireup="true" CodeFile="Modern.master.cs" Inherits="AnyminuteModernMaster" %>
+ <!DOCTYPE html>
+-<html lang="en"><head runat="server"><meta charset="utf-8" /><meta name="anyminute-build" content="v92-20261120" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>AnyMinute</title><link href="css/bootstrap.min.css" rel="stylesheet" /><script src="Assets/assets/js/core/jquery.3.2.1.min.js"></script><script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script><script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" /><script src="Assets/assets/js/plugin/datatables/datatables.min.js"></script><script src="Assets/assets/js/SweetAlert.js"></script><link href="css/AnyminuteModern.css" rel="stylesheet" /><asp:ContentPlaceHolder ID="head" runat="server" /><link href="css/AnyminuteUI2026.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUIUnified.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUiBugFixes.css?v=20261026v17" rel="stylesheet" /><link href="css/AnyminuteNavDrawer.css?v=20261120v92" rel="stylesheet" /><link href="css/AnyminuteTypography.css?v=20261120v92" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261120v92" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261120v92" rel="stylesheet" /></head>
++<html lang="en"><head runat="server"><meta charset="utf-8" /><meta name="anyminute-build" content="v93-20261120" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>AnyMinute</title><link href="css/bootstrap.min.css" rel="stylesheet" /><script src="Assets/assets/js/core/jquery.3.2.1.min.js"></script><script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script><script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" /><script src="Assets/assets/js/plugin/datatables/datatables.min.js"></script><script src="Assets/assets/js/SweetAlert.js"></script><link href="css/AnyminuteModern.css" rel="stylesheet" /><asp:ContentPlaceHolder ID="head" runat="server" /><link href="css/AnyminuteUI2026.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUIUnified.css?v=20261024e1" rel="stylesheet" /><link href="css/AnyminuteUiBugFixes.css?v=20261026v17" rel="stylesheet" /><link href="css/AnyminuteNavDrawer.css?v=20261120v93" rel="stylesheet" /><link href="css/AnyminuteTypography.css?v=20261120v93" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261120v93" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261120v93" rel="stylesheet" /></head>
+ <body class="am-reference am-typography am-modern"><form id="frmMaster" runat="server"><asp:ScriptManager ID="ScriptManager1" runat="server" />
+ <header class="am-topbar"><button type="button" class="am-icon-button" data-toggle-sidebar aria-controls="am-main-navigation" aria-expanded="true" aria-label="Toggle navigation">&#9776;</button><a href="Dashboard.aspx" class="am-brand"><asp:PlaceHolder ID="LogoDefault" runat="server"><img src="Assets/assets/img/logo.jpg" alt="AnyMinute" class="am-logo" /></asp:PlaceHolder><asp:Literal ID="Brand" runat="server" /></a><span>Welcome! <asp:Literal ID="Welcome" runat="server" /><asp:Literal ID="WelcomeContext" runat="server" /></span><asp:Literal ID="HeaderHelp" runat="server" /><asp:Literal ID="HeaderBell" runat="server" /><details class="am-account-menu"><summary aria-label="Account menu"><asp:Literal ID="AccountAvatar" runat="server" /><span class="am-account-chevron" aria-hidden="true"></span><span class="sr-only">Account</span></summary><div class="am-account-popover"><a href="MyProfile.aspx"><span data-am-icon="profile" aria-hidden="true"></span>My profile</a><a href="LoginSecurity.aspx"><span data-am-icon="settings" aria-hidden="true"></span>Login &amp; security</a><asp:LinkButton ID="SignOut" runat="server" CausesValidation="false" OnClick="SignOut_Click"><span data-am-icon="signout" aria-hidden="true"></span>Sign out</asp:LinkButton>
+    <a href="Change%20Password.aspx"><span data-am-icon="settings" aria-hidden="true"></span>Change password</a><asp:Literal ID="AccountHelp" runat="server" /><asp:Literal ID="AccountUpgrade" runat="server" /></div></details></header>
+@@ -8,4 +8,4 @@
+ <script>/* v47 (Nov 2 live smoke): pin the Support Admin sidebar before the page content paints, so content never starts (or animates) under it */(function(b){try{if(!document.querySelector('#am-main-navigation li.am-sa-nav'))return;b.classList.add('am-drawer-nav','am-sa-navbody','am-sa-pinned','am-nav-init');b.dataset.amSaPin='1';var k=null;try{k=sessionStorage.getItem('amSaNav');}catch(x){}if(window.innerWidth>=992&&k!=='0')b.classList.add('am-drawer-open');window.addEventListener('load',function(){setTimeout(function(){b.classList.remove('am-nav-init');},50);});}catch(e){}})(document.body);</script>
+ <span style="display:none" aria-hidden="true"><asp:Literal ID="Pending" runat="server" /><asp:Literal ID="Unread" runat="server" /><asp:HyperLink ID="Payroll" runat="server" /></span>
+ <main class="am-main"><asp:ContentPlaceHolder ID="ContentPlaceHolder1" runat="server" /></main>
+-<script src="Scripts/AnyminuteModern.js"></script><script src="Scripts/AnyminuteUI2026.js?v=20261024v10"></script><script src="Scripts/AnyminuteUIUnified.js?v=20261031v38"></script><script src="Scripts/AnyminuteUiBugFixes.js?v=20261024e1"></script><script src="Scripts/AnyminuteNavDrawer.js?v=20261120v92"></script><script src="Scripts/AnyminuteBackNav.js?v=20261120v92"></script><script src="Scripts/AnyminuteNavigationActions.js?v=20261024e1"></script><script src="Scripts/AnyminuteMenus.js?v=20261120v92"></script></form></body></html>
++<script src="Scripts/AnyminuteModern.js"></script><script src="Scripts/AnyminuteUI2026.js?v=20261024v10"></script><script src="Scripts/AnyminuteUIUnified.js?v=20261031v38"></script><script src="Scripts/AnyminuteUiBugFixes.js?v=20261024e1"></script><script src="Scripts/AnyminuteNavDrawer.js?v=20261120v93"></script><script src="Scripts/AnyminuteBackNav.js?v=20261120v93"></script><script src="Scripts/AnyminuteNavigationActions.js?v=20261024e1"></script><script src="Scripts/AnyminuteMenus.js?v=20261120v93"></script></form></body></html>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Registration.aspx b/AMV3Reseller_27Aug2022_Subscription/Registration.aspx
+index cfc9feb..9f37f76 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Registration.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/Registration.aspx
+@@ -146,7 +146,7 @@
+      window.onpageshow = function(evt) { if (evt.persisted) DisableBackButton() }
+      window.onunload = function() { void (0) }
+     </script>
+-<link href="css/AnyminuteTypography.css?v=20261120v92" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261120v92" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261120v92" rel="stylesheet" /></head>
++<link href="css/AnyminuteTypography.css?v=20261120v93" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261120v93" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261120v93" rel="stylesheet" /></head>
+ <body class="am-reference am-typography">
+     <div class="container">
+         <%--Commited By Firoz--%>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Report3.aspx b/AMV3Reseller_27Aug2022_Subscription/Report3.aspx
+index a57f9e5..bb7e886 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Report3.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/Report3.aspx
+@@ -3,7 +3,7 @@
+ <html xmlns="http://www.w3.org/1999/xhtml">
+ <head runat="server"><title>AnyMinute - Employee Report</title>
+ <style>body{font-family:Arial,sans-serif;margin:24px;color:#25334a} .bar{display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin:12px 0}.field{display:flex;flex-direction:column;gap:5px}input,select{padding:7px} .action{padding:8px 12px;margin:3px} .table{margin-top:15px;overflow:auto}h2{margin-bottom:12px}</style>
+-<link href="css/AnyminuteTypography.css?v=20261120v92" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261120v92" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261120v92" rel="stylesheet" /></head>
++<link href="css/AnyminuteTypography.css?v=20261120v93" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261120v93" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261120v93" rel="stylesheet" /></head>
+ <body class="am-reference am-typography"><form id="form1" runat="server">
+ <asp:ScriptManager ID="ScriptManager1" runat="server" />
+ <h2>Employee Time Sheet Report</h2>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/ResetPassord.aspx b/AMV3Reseller_27Aug2022_Subscription/ResetPassord.aspx
+index 9f6d10a..1a08704 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/ResetPassord.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/ResetPassord.aspx
+@@ -133,7 +133,7 @@
+         }
+     </style>
+ 
+-<link href="css/AnyminuteTypography.css?v=20261120v92" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261120v92" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261120v92" rel="stylesheet" /></head>
++<link href="css/AnyminuteTypography.css?v=20261120v93" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261120v93" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261120v93" rel="stylesheet" /></head>
+ <body class="am-reference am-typography">
+     <form id="form1" runat="server">
+        
+diff --git a/AMV3Reseller_27Aug2022_Subscription/ResetPassord_New_Account.aspx b/AMV3Reseller_27Aug2022_Subscription/ResetPassord_New_Account.aspx
+index f077b3d..c7b33b1 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/ResetPassord_New_Account.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/ResetPassord_New_Account.aspx
+@@ -133,7 +133,7 @@
+         }
+     </style>
+ 
+-<link href="css/AnyminuteTypography.css?v=20261120v92" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261120v92" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261120v92" rel="stylesheet" /></head>
++<link href="css/AnyminuteTypography.css?v=20261120v93" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261120v93" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261120v93" rel="stylesheet" /></head>
+ <body class="am-reference am-typography">
+     <form id="form1" runat="server">
+         <%--<div class="row" style="height:100px;"></div>--%>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Scripts/AnyminuteBusinessEditor.js b/AMV3Reseller_27Aug2022_Subscription/Scripts/AnyminuteBusinessEditor.js
+index 177d2d9..9831c7f 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Scripts/AnyminuteBusinessEditor.js
++++ b/AMV3Reseller_27Aug2022_Subscription/Scripts/AnyminuteBusinessEditor.js
+@@ -225,6 +225,29 @@
+   });
+   document.addEventListener('keydown',function(e){var m=byId('amNewAddress');if(!m||m.hidden)return;if(e.key==='Escape')Address.close();else if(e.key==='Enter'&&e.target.closest&&e.target.closest('#amNewAddress')&&e.target.tagName!=='BUTTON'&&e.target.tagName!=='SELECT'){e.preventDefault();Address.apply();}});
+  }
++
++ // v93: validate the 10-digit primary contact number before postback, and ignore a second
++ // Save click while the first request is still in flight (otherwise two inserts are created).
++ if(typeof document!=='undefined'){
++  var amSaving=false;
++  function amPhoneDigits(v){return String(v||'').replace(/\D/g,'');}
++  function amPhoneOk(){
++   var p=document.querySelector('#amBusinessEditor [id$=PrmContNmbr]');if(!p)return true;
++   if(amPhoneDigits(p.value).length===10){p.removeAttribute('aria-invalid');return true;}
++   p.setAttribute('aria-invalid','true');
++   var e=document.getElementById('SaveError');
++   if(e){e.textContent='Enter a valid 10-digit primary contact number.';e.style.display='';e.removeAttribute('hidden');}
++   try{p.focus();}catch(x){}
++   return false;
++  }
++  function amSaveLink(t){return t&&t.closest&&t.closest('#amBusinessEditor a[id$=SaveBusinessTop], #amBusinessEditor a[id$=btnSaveBusinessDetails], #amBusinessEditor a[id$=btnUpdateBusinessDetails], #amBusinessEditor a[id$=btnSaveAddres], #amBusinessEditor a[id$=btnUpdateAddress]');}
++  document.addEventListener('click',function(e){
++   var a=amSaveLink(e.target);if(!a)return;
++   if(amSaving){e.preventDefault();e.stopPropagation();return;}
++   if(!amPhoneOk()){e.preventDefault();e.stopPropagation();return;}
++   amSaving=true;a.setAttribute('aria-busy','true');
++  },true);
++ }
+  if(typeof module!=='undefined'&&module.exports)module.exports={fileError:fileError};
+  if(typeof document!=='undefined'){
+   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+diff --git a/AMV3Reseller_27Aug2022_Subscription/UserLoginAccess.aspx b/AMV3Reseller_27Aug2022_Subscription/UserLoginAccess.aspx
+index 10943ed..b0ab63b 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/UserLoginAccess.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/UserLoginAccess.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="UserLoginAccess.aspx.cs" Inherits="AnyminuteUserLoginAccessPage" Title="Login &amp; Access" %>
+-<asp:Content ID="LaHead" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteReports.css?v=20261120v92" rel="stylesheet" /><script src="Scripts/AnyminuteReports.js?v=20261120v92" defer="defer"></script></asp:Content>
++<asp:Content ID="LaHead" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteReports.css?v=20261120v93" rel="stylesheet" /><script src="Scripts/AnyminuteReports.js?v=20261120v93" defer="defer"></script></asp:Content>
+ <asp:Content ID="LaBody" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <%-- v38: was LoginAccess.aspx (live ErrorPages before any page code ran); clean page, unique control IDs. v27: roles without owner/admin access get this notice instead of the 403 error page. --%>
+ <%-- v90: chrome matches the Businesses list (am-title, am-stats, am-toolbar, am-table). --%>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/Users.aspx b/AMV3Reseller_27Aug2022_Subscription/Users.aspx
+index e2ab4a2..c721e07 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/Users.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/Users.aspx
+@@ -1,5 +1,5 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="Users.aspx.cs" Inherits="AnyminuteEmployeesDirectory" %>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteEmployees.css?v=20261120v92" rel="stylesheet" /><link href="css/AnyminuteEmployeesV2.css?v=20261120v92" rel="stylesheet" /><link href="css/AnyminuteFlash.css?v=20261120v92" rel="stylesheet" /></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteEmployees.css?v=20261120v93" rel="stylesheet" /><link href="css/AnyminuteEmployeesV2.css?v=20261120v93" rel="stylesheet" /><link href="css/AnyminuteFlash.css?v=20261120v93" rel="stylesheet" /></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section class="am-card am-employees am-employees-v2">
+ <asp:Panel ID="Flash" runat="server" Visible="false" CssClass="am-flash" role="status"><span class="am-flash-icon" aria-hidden="true">&#10003;</span><asp:Literal ID="FlashText" runat="server" /></asp:Panel>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/VerifyLoginEmail.aspx b/AMV3Reseller_27Aug2022_Subscription/VerifyLoginEmail.aspx
+index 9f44254..be5a0bc 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/VerifyLoginEmail.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/VerifyLoginEmail.aspx
+@@ -1,6 +1,6 @@
+ <%@ Page Language="C#" AutoEventWireup="true" CodeFile="VerifyLoginEmail.aspx.cs" Inherits="AnyminuteVerifyLoginEmailPage" %>
+ <!DOCTYPE html>
+-<html lang="en"><head runat="server"><meta charset="utf-8" /><meta name="anyminute-build" content="v39-20261031" /><meta name="viewport" content="width=device-width,initial-scale=1" /><meta name="referrer" content="no-referrer" /><title>Verify Login Email | AnyMinute</title><link rel="icon" href="Assets/assets/img/logo.jpg" type="image/x-icon" /><link href="css/AnyminuteLoginSecurity.css?v=20261031v39" rel="stylesheet" /><link href="css/AnyminuteTypography.css?v=20261120v92" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261120v92" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261120v92" rel="stylesheet" /></head>
++<html lang="en"><head runat="server"><meta charset="utf-8" /><meta name="anyminute-build" content="v39-20261031" /><meta name="viewport" content="width=device-width,initial-scale=1" /><meta name="referrer" content="no-referrer" /><title>Verify Login Email | AnyMinute</title><link rel="icon" href="Assets/assets/img/logo.jpg" type="image/x-icon" /><link href="css/AnyminuteLoginSecurity.css?v=20261031v39" rel="stylesheet" /><link href="css/AnyminuteTypography.css?v=20261120v93" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261120v93" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261120v93" rel="stylesheet" /></head>
+ <body class="am-reference am-typography am-ls-verify"><form id="VerifyForm" runat="server">
+ <%-- v39 (Change Login Email DOC step 3): one-time link from the verification email. Works signed in or signed out; the change happens on the Confirm click (POST), so mail scanners that prefetch the link cannot use it. --%>
+ <main class="am-ls-box"><img src="Assets/assets/img/logo.jpg" alt="AnyMinute" class="am-ls-logo" />
+diff --git a/AMV3Reseller_27Aug2022_Subscription/WeeklyEmployeeSchedule.aspx b/AMV3Reseller_27Aug2022_Subscription/WeeklyEmployeeSchedule.aspx
+index c5bde12..efdc247 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/WeeklyEmployeeSchedule.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/WeeklyEmployeeSchedule.aspx
+@@ -1,7 +1,7 @@
+ <%@ Page Language="C#" MasterPageFile="~/Modern.master" AutoEventWireup="true" CodeFile="WeeklyEmployeeSchedule.aspx.cs" Inherits="AnyminuteWeeklySchedulePage" Title="Work Schedule" %>
+ <%-- 2026-10-25 v11 Deck I: Weekly Employee Schedule (planned hours; needs DB_REQUIRED/REQUIRED_05_WeeklySchedule.sql). --%>
+ <%-- 2026-11-18 v90: chrome matches Weekly Time Card (am-card, am-title, am-toolbar, am-table, am-summary, am-button). JS hooks unchanged. --%>
+-<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteFlash.css?v=20261120v92" rel="stylesheet" /><link href="css/AnyminuteWeeklySchedule.css?v=20261120v92" rel="stylesheet" /><script src="Scripts/AnyminuteDateText.js?v=20261024v8" defer="defer"></script><script src="Scripts/AnyminuteWeeklySchedule.js?v=20261120v92" defer="defer"></script></asp:Content>
++<asp:Content ID="Head" ContentPlaceHolderID="head" runat="server"><link href="css/AnyminuteFlash.css?v=20261120v93" rel="stylesheet" /><link href="css/AnyminuteWeeklySchedule.css?v=20261120v93" rel="stylesheet" /><script src="Scripts/AnyminuteDateText.js?v=20261024v8" defer="defer"></script><script src="Scripts/AnyminuteWeeklySchedule.js?v=20261120v93" defer="defer"></script></asp:Content>
+ <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+ <section class="am-card am-ws" id="amWeeklySchedule" aria-labelledby="am-ws-title">
+  <div class="am-title"><div><h1 id="am-ws-title">Work Schedule</h1><p id="WsSub" runat="server">Set up weekly working hours, days off and break time for the selected employee. You can also repeat this schedule for multiple weeks.</p></div></div>
+diff --git a/AMV3Reseller_27Aug2022_Subscription/document2.aspx b/AMV3Reseller_27Aug2022_Subscription/document2.aspx
+index 3d14b97..6178f02 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/document2.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/document2.aspx
+@@ -5,7 +5,7 @@
+ <html xmlns="http://www.w3.org/1999/xhtml">
+ <head runat="server">
+     <title></title>
+-<link href="css/AnyminuteTypography.css?v=20261120v92" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261120v92" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261120v92" rel="stylesheet" /></head>
++<link href="css/AnyminuteTypography.css?v=20261120v93" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261120v93" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261120v93" rel="stylesheet" /></head>
+ <body class="am-reference am-typography">
+     <form id="form1" runat="server">
+              <div Style="visibility:hidden;display:none;">
+diff --git a/AMV3Reseller_27Aug2022_Subscription/document3.aspx b/AMV3Reseller_27Aug2022_Subscription/document3.aspx
+index 2103984..bb2cf32 100644
+--- a/AMV3Reseller_27Aug2022_Subscription/document3.aspx
++++ b/AMV3Reseller_27Aug2022_Subscription/document3.aspx
+@@ -5,7 +5,7 @@
+ <html xmlns="http://www.w3.org/1999/xhtml">
+ <head runat="server">
+     <title></title>
+-<link href="css/AnyminuteTypography.css?v=20261120v92" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261120v92" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261120v92" rel="stylesheet" /></head>
++<link href="css/AnyminuteTypography.css?v=20261120v93" rel="stylesheet" /><link href="css/AnyminuteReference.css?v=20261120v93" rel="stylesheet" /><link href="css/AnyminuteFlat.css?v=20261120v93" rel="stylesheet" /></head>
+ <body class="am-reference am-typography">
+     <form id="form1" runat="server">
+              <div Style="visibility:hidden;display:none;">

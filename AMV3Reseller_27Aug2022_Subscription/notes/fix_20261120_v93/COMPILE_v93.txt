@@ -1,0 +1,8 @@
+C# 5 (no string interpolation, no ?. ):
+- Add_Business.aspx.cs: phone (and the rest of ValidateBusinessAndAddress) still runs before any logo upload or Sp_InsertBusiness. A form save key is stored in ViewState on first load; after a successful save the new BusinessID is also written to Session under that key (and hfdBusinessId). A second postback from a double-click still has the original empty ViewState, but ExistingBusinessId() reuses the Session id and updates instead of inserting again.
+- Scripts/AnyminuteBusinessEditor.js: before a Save postback, require 10 digits in the primary contact number (same message as the server) and ignore a second click while the first request is in flight.
+- Dashboard.aspx / Dashboard.aspx.cs: Delete in the existing row ⋮ menu, with a confirm prompt. Soft delete sets AddBusiness.Status=2 (already hidden by list queries Status<>2). No hard delete of related rows. Audit Action=DeleteBusiness. RequireOwner, same pattern as Active/Not Active. No new SQL script.
+- Stamp v93-20261120 / 20261120v93.
+
+mcs is not on this box. The site compiles with aspnet_compiler on the server, same as v92.
+Cumulative on v92 commit 6c4cf49ed7f92abd442b8a82d1da3eefa2c67a30 (notes) / 10a896901db7ea18c8086655446d92a766d4df77 (Job Title + stamp).
