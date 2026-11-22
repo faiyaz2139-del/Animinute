@@ -1,0 +1,7 @@
+C# 5 (no string interpolation, no ?. ):
+- EmployeeAssignment.aspx only (no .cs change): Job Title and Assign Roles are no longer adjacent auto-placed cells in am-grid with a spacer. Business + Job Title stack in a left column (am-assign-left); Assign Roles stays in the right column of am-assign-top, visible even when "Select a business" is selected. Employee remains default-checked in OfferAssignmentRoles. Job Title controls keep the v92 compact + Add / Edit / Delete styling. Job Title still shows on Add only (JobTitleRow.Visible = add).
+- Dashboard.aspx: Delete on the Businesses row menu now requires two confirms: a warning that the business will be deleted, then "Are you sure?". Soft delete (Status=2) is unchanged.
+- Stamp v94-20261122 / 20261122v94.
+
+mcs is not on this box. The site compiles with aspnet_compiler on the server, same as v93.
+Cumulative on v93 commit 8aad03d3152fa57e2b8a54a1ea7927e5fef164dd (notes) / b2e684a1616c41cb803b67f5715523b37de0343c (Add Business + Delete + stamp).
